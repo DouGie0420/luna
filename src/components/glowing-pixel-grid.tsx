@@ -5,31 +5,21 @@ import { cn } from '@/lib/utils';
 
 interface GlowingPixelGridProps {
   className?: string;
-  pixelSize?: number;
-  glowChance?: number;
-  glowDuration?: number;
 }
 
-interface Pixel {
+interface Star {
   x: number;
   y: number;
-  isGlowing: boolean;
-  glowIntensity: number;
-  glowTime: number;
+  size: number;
+  opacity: number;
+  speed: number;
 }
 
-export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({
-  className,
-  pixelSize = 20,
-  glowChance = 0.03,
-  glowDuration = 2500,
-}) => {
+export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
-  const pixels = useRef<Pixel[]>([]);
-  // Use static theme values to avoid performance issues
-  const baseColor = 'hsl(284 20% 25% / 0.5)'; // --border with alpha
-  const glowColor = '310 100% 60%'; // --primary HSL values
+  const stars = useRef<Star[]>([]);
+  const foregroundColor = '226, 219, 230'; // Hardcoded from hsl(284 20% 90%)
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,68 +28,41 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    let lastTime = 0;
-    
     const resizeCanvas = () => {
-      const parent = canvas.parentElement;
-      if (!parent) return;
-      canvas.width = parent.offsetWidth;
-      canvas.height = parent.offsetHeight;
-      
-      pixels.current = [];
-      const cols = Math.floor(canvas.width / pixelSize);
-      const rows = Math.floor(canvas.height / pixelSize);
+        const parent = canvas.parentElement;
+        if (!parent) return;
+        canvas.width = parent.offsetWidth;
+        canvas.height = parent.offsetHeight;
+        
+        stars.current = [];
+        const starCount = Math.floor(canvas.width * canvas.height / 2000); // Adjust density
 
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          pixels.current.push({
-            x,
-            y,
-            isGlowing: false,
-            glowIntensity: 0,
-            glowTime: Math.random() * glowDuration, // Start at random points in cycle
+        for (let i = 0; i < starCount; i++) {
+          stars.current.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 2 + 1, // Size between 1 and 3
+            opacity: Math.random(),
+            speed: Math.random() * 0.05 + 0.01,
           });
         }
-      }
     };
     
     resizeCanvas();
 
-    const animate = (time: number) => {
-      if (!lastTime) lastTime = time;
-      const deltaTime = time - lastTime;
-      lastTime = time;
-
+    const animate = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      pixels.current.forEach(pixel => {
-        // Handle glowing logic
-        if (pixel.isGlowing) {
-          pixel.glowTime += deltaTime;
-          const progress = pixel.glowTime / glowDuration;
-          
-          if (progress >= 1) {
-            pixel.isGlowing = false;
-            pixel.glowIntensity = 0;
-            pixel.glowTime = 0;
-          } else {
-            pixel.glowIntensity = Math.sin(progress * Math.PI) * 0.7 + 0.1; // Sine wave from 0.1 to 0.8
-          }
-        } else if (Math.random() < glowChance / 60) { // Adjust chance based on framerate
-          pixel.isGlowing = true;
-          pixel.glowTime = 0;
+      stars.current.forEach(star => {
+        // Update opacity for twinkling effect
+        star.opacity += star.speed;
+        if (star.opacity > 1 || star.opacity < 0) {
+            star.speed *= -1;
         }
 
-        // Draw base grid pixel
-        ctx.fillStyle = baseColor;
-        ctx.fillRect(pixel.x * pixelSize, pixel.y * pixelSize, pixelSize - 2, pixelSize - 2);
-        
-        // Draw glow overlay
-        if (pixel.isGlowing) {
-            ctx.fillStyle = `hsla(${glowColor}, ${pixel.glowIntensity})`;
-            ctx.fillRect(pixel.x * pixelSize, pixel.y * pixelSize, pixelSize - 2, pixelSize - 2);
-        }
+        ctx.fillStyle = `rgba(${foregroundColor}, ${star.opacity})`;
+        ctx.fillRect(star.x, star.y, star.size, star.size);
       });
 
       animationFrameId.current = requestAnimationFrame(animate);
@@ -121,13 +84,13 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({
         resizeObserver.unobserve(parent);
       }
     };
-  }, [pixelSize, glowChance, glowDuration, baseColor, glowColor]);
+  }, [foregroundColor]);
 
   return (
     <canvas
       ref={canvasRef}
       className={cn(
-        'absolute inset-0 w-full h-full pointer-events-none z-0',
+        'absolute inset-0 w-full h-full pointer-events-none', // z-index will be handled by parent
         className
       )}
     />
