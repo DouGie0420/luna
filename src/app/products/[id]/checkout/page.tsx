@@ -250,30 +250,30 @@ export default function CheckoutPage() {
                     <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
                     <div className="grid grid-cols-1 gap-2">
                         <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                        <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
-                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
                         <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
+                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                        <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
                     </div>
                  </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-6 pt-6 border-t">
+              <CardFooter className="flex-col items-start gap-4 pt-6 border-t">
                  <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
-                 <div className="w-full space-y-2">
+                 <div className="w-full space-y-3 pt-2">
                     <div className="relative h-2 w-full">
                         <Progress value={progress} className="w-full h-2 rounded-full" />
-                        <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="absolute inset-0 flex items-center justify-center mix-blend-plus-lighter">
                            <span className="text-xs font-bold text-primary-foreground">
                                 {Math.round(progress)}%
                            </span>
                         </div>
                     </div>
-                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground text-center w-full">
-                        <AlertCircle className="h-4 w-4" />
-                        <p>{t('checkoutPage.escrowInfo')}</p>
+                    <div className="flex items-start gap-3 text-center w-full p-4 rounded-lg border border-border bg-secondary/30">
+                        <AlertCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <p className="text-xs text-muted-foreground text-left">{t('checkoutPage.escrowInfo')}</p>
                     </div>
                  </div>
               </CardFooter>
