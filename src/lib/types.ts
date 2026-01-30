@@ -33,6 +33,7 @@ export type UserProfile = {
     photoURL: string;
     gender?: '男' | '女' | '其他' | '保密';
     location?: string;
+    bio?: string;
     kycStatus: KycStatus;
     createdAt?: any;
     lastLogin?: any;

@@ -18,18 +18,68 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useUser } from "@/firebase";
+import { useUser, useFirestore } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Copy } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { updateUserProfile } from "@/lib/user";
 
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
+    const firestore = useFirestore();
     const { t } = useTranslation();
+    const { toast } = useToast();
+
+    const [displayName, setDisplayName] = useState('');
+    const [gender, setGender] = useState('保密');
+    const [location, setLocation] = useState('');
+    const [bio, setBio] = useState('');
+
+    useEffect(() => {
+        if (profile) {
+            setDisplayName(profile.displayName || '');
+            setGender(profile.gender || '保密');
+            setLocation(profile.location || '');
+            setBio(profile.bio || '');
+        }
+    }, [profile]);
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: t('accountPage.copied'),
+        });
+    };
+
+    const handleSaveChanges = async () => {
+        if (!firestore || !user) return;
+        const dataToUpdate = {
+            displayName,
+            gender,
+            location,
+            bio,
+        };
+        try {
+            await updateUserProfile(firestore, user.uid, dataToUpdate);
+            toast({
+                title: t('accountPage.saveSuccessTitle'),
+                description: t('accountPage.saveSuccessDescription'),
+            })
+        } catch(e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update profile.'
+            })
+        }
+    };
 
     if (loading) {
         return (
@@ -82,17 +132,26 @@ export default function AccountProfilePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
-                                <Input id="full-name" defaultValue={profile?.displayName || user?.displayName || ''} />
+                                <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                             </div>
-                            <div className="grid gap-2">
+                             <div className="grid gap-2">
+                                <Label htmlFor="user-id">{t('accountPage.userId')}</Label>
+                                <div className="flex gap-2">
+                                    <Input id="user-id" value={user?.uid || ''} readOnly className="text-muted-foreground" />
+                                    <Button variant="outline" size="icon" onClick={() => handleCopy(user?.uid || '')}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid gap-2">
                                 <Label htmlFor="email">{t('accountPage.email')}</Label>
-                                <Input id="email" type="email" defaultValue={profile?.email || user?.email || ''} readOnly className="text-muted-foreground" />
-                            </div>
+                                <Input id="email" type="email" value={profile?.email || user?.email || ''} readOnly className="text-muted-foreground" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="gender">{t('accountPage.gender')}</Label>
-                                <Select defaultValue={profile?.gender || '保密'}>
+                                <Select value={gender} onValueChange={setGender}>
                                     <SelectTrigger id="gender">
                                         <SelectValue placeholder={t('accountPage.genderSelectPlaceholder')} />
                                     </SelectTrigger>
@@ -106,8 +165,18 @@ export default function AccountProfilePage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="location">{t('accountPage.location')}</Label>
-                                <Input id="location" defaultValue={profile?.location || ''} placeholder={t('accountPage.locationPlaceholder')} />
+                                <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('accountPage.locationPlaceholder')} />
                             </div>
+                        </div>
+                        <div className="grid gap-2">
+                             <Label htmlFor="bio">{t('accountPage.bio')}</Label>
+                            <Textarea
+                                id="bio"
+                                value={bio}
+                                onChange={(e) => setBio(e.target.value)}
+                                placeholder={t('accountPage.bioPlaceholder')}
+                                rows={3}
+                            />
                         </div>
                         <Separator />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -134,7 +203,7 @@ export default function AccountProfilePage() {
                         </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                        <Button>{t('accountPage.saveChanges')}</Button>
+                        <Button onClick={handleSaveChanges}>{t('accountPage.saveChanges')}</Button>
                     </CardFooter>
                 </Card>
 

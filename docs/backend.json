@@ -32,6 +32,10 @@
             "type": "string",
             "description": "The user's city."
         },
+        "bio": {
+          "type": "string",
+          "description": "The user's personal biography or introduction."
+        },
         "kycStatus": {
           "type": "string",
           "description": "The user's KYC verification status.",
