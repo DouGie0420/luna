@@ -5,7 +5,8 @@ import { SearchBar } from '@/components/layout/search-bar';
 import { Button } from '@/components/ui/button';
 import { NearbyRecommendations } from '@/components/nearby-recommendations';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { VerifiedMerchants } from '@/components/verified-merchants';
 
 export default function HomePage() {
   const [popularSearches, setPopularSearches] = useState([
@@ -38,6 +39,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      
+      <VerifiedMerchants />
+
       <div className="container mx-auto px-4 pb-16">
         <NearbyRecommendations />
       </div>
