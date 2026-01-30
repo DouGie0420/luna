@@ -94,7 +94,7 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
           <CarouselContent>
             {images.map((img, index) => (
               <CarouselItem key={index} onClick={openLightbox}>
-                <div className="aspect-video relative cursor-zoom-in overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-sm ring-1 ring-inset ring-white/20 group-hover:ring-white/30 transition-all">
+                <div className="aspect-video relative cursor-zoom-in overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-lg ring-1 ring-inset ring-white/20 group-hover:ring-white/30 transition-all">
                     <Image
                         src={img}
                         alt={`${product.name} image ${index + 1}`}
@@ -128,7 +128,7 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
                 <div 
                   onClick={() => onThumbClick(index)} 
                   className={cn(
-                    'overflow-hidden aspect-square relative cursor-pointer rounded-lg bg-white/10 p-1 backdrop-blur-sm transition-all ring-1 ring-inset',
+                    'overflow-hidden aspect-square relative cursor-pointer rounded-lg bg-white/10 p-1 backdrop-blur-lg transition-all ring-1 ring-inset',
                     selectedIndex === index ? 'ring-primary opacity-100' : 'ring-white/20 opacity-60 hover:opacity-100'
                   )}
                 >
