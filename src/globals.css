@@ -124,10 +124,10 @@
   .progress-stripes {
     background-image: repeating-linear-gradient(
       -45deg,
-      hsl(var(--secondary)),
-      hsl(var(--secondary)) 10px,
-      hsl(var(--muted)) 10px,
-      hsl(var(--muted)) 20px
+      hsl(var(--background)),
+      hsl(var(--background)) 10px,
+      hsl(var(--border)) 10px,
+      hsl(var(--border)) 20px
     );
     background-size: 28.28px 28.28px;
   }
