@@ -180,7 +180,7 @@ const users: User[] = [
   },
   {
     id: 'user10',
-    name: 'Jane Smith',
+    name: '南极弹吉他的橘黄海葵',
     avatarUrl: 'https://picsum.photos/seed/user10/100/100',
     rating: 4.9,
     reviews: 132,

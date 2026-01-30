@@ -5,8 +5,8 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { getProductById, getUsers } from '@/lib/data';
-import type { Product, User } from '@/lib/types';
+import { getUsers } from '@/lib/data';
+import type { User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Truck, Copy, MessageCircle, MoreHorizontal, ShoppingCart, CheckCircle } from 'lucide-react';
+import { Truck, Copy, MessageCircle, MoreHorizontal, ShoppingCart, CheckCircle, Gem } from 'lucide-react';
 import { format, formatDistanceToNow, add } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 
@@ -26,7 +26,7 @@ const mockOrders: any = {
     "ORD004": {
         id: "ORD004",
         product: { id: "vintage-camera", name: "Suno ai v5国际版充值 | 账号 直充一次性到账", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art", originalPrice: 80.00, },
-        seller: { id: "user10", name: "南极弹吉他的橘黄海葵", avatar: "https://picsum.photos/seed/user10/100/100" },
+        sellerId: "user10",
         dealPrice: 76.00,
         discount: 4.00,
         shippingFee: 0.00,
@@ -127,7 +127,7 @@ const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href 
             <span className="text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
                 {isLink ? (
-                    <Link href={href} className="font-semibold text-foreground hover:text-primary">{value}</Link>
+                    <Link href={href} className="font-semibold text-foreground hover:underline hover:text-primary transition-colors">{value}</Link>
                 ) : (
                     <span className="font-medium text-right">{value}</span>
                 )}
@@ -146,18 +146,22 @@ export default function OrderDetailPage() {
     const orderId = params.id as string;
 
     const [order, setOrder] = useState<any>(null);
+    const [seller, setSeller] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setLoading(true);
-        // Simulate fetching order data
-        setTimeout(() => {
+        const fetchData = async () => {
             const fetchedOrder = mockOrders[orderId];
             if (fetchedOrder) {
+                const allUsers = await getUsers();
+                const foundSeller = allUsers.find(u => u.id === fetchedOrder.sellerId);
                 setOrder(fetchedOrder);
+                setSeller(foundSeller || null);
             }
             setLoading(false);
-        }, 500);
+        };
+        fetchData();
     }, [orderId]);
     
     const handleCopy = (text: string) => {
@@ -179,7 +183,7 @@ export default function OrderDetailPage() {
         return <OrderDetailPageSkeleton />;
     }
     
-    if (!order) {
+    if (!order || !seller) {
         return notFound();
     }
 
@@ -199,7 +203,7 @@ export default function OrderDetailPage() {
                                 </CardDescription>
                             </div>
                             <div className="h-16 w-16 flex items-center justify-center">
-                                <div className="h-6 w-6 rounded-full bg-foreground animate-pulse"></div>
+                                <Truck className="h-16 w-16 text-muted-foreground" />
                             </div>
                         </div>
                     </CardHeader>
@@ -216,8 +220,14 @@ export default function OrderDetailPage() {
                                 <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
                             </div>
                         </div>
-                        <div className="mt-2 text-right">
-                            <Badge variant="outline" className="border-destructive text-destructive">{t('orderDetails.refundOnMismatch')}</Badge>
+                        <div className="mt-4 border-t pt-4">
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">{t('accountPage.creditScore')}</span>
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <Gem className="h-4 w-4 text-primary" />
+                                    <span>{seller.creditScore || 0}</span>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -226,12 +236,17 @@ export default function OrderDetailPage() {
                     <CardContent className="pt-6 text-sm">
                         <div className="space-y-3">
                             <div className="flex justify-between">
-                                <span className="font-semibold">{t('orderDetails.dealPrice')} <span className="text-muted-foreground font-normal">({t('orderDetails.inEscrow')})</span></span>
+                                <span className="font-semibold">{t('orderDetails.dealPrice')}</span>
                                 <span className="font-semibold">{order.currency}{order.dealPrice.toFixed(2)}</span>
                             </div>
-                            <div className="flex justify-between text-muted-foreground">
-                                <span>{t('orderDetails.totalPrice')} ({t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)})</span>
-                                <span>{order.currency}{order.product.originalPrice.toFixed(2)}</span>
+                            <div className="flex justify-between text-muted-foreground items-center">
+                                <span>{t('orderDetails.totalPrice')}</span>
+                                <div className="flex items-center gap-2">
+                                     <span className="line-through">{order.currency}{order.product.originalPrice.toFixed(2)}</span>
+                                     <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-400">
+                                        {t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)}
+                                     </Badge>
+                                </div>
                             </div>
                             <div className="flex justify-between text-muted-foreground">
                                 <span>{t('orderDetails.shippingFee')}</span>
@@ -249,7 +264,7 @@ export default function OrderDetailPage() {
                             <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} onCopy={handleCopy} />
                             <Separator />
                             <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} onCopy={handleCopy} />
-                            <InfoRow label={t('orderDetails.sellerNickname')} value={order.seller.name} isLink href={`/user/${order.seller.id}`} />
+                            <InfoRow label={t('orderDetails.sellerNickname')} value={seller.name} isLink href={`/user/${seller.id}`} />
                             <Separator />
                             <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
                             <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
