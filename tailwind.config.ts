@@ -98,11 +98,9 @@ export default {
         'glow': {
           '0%, 100%': {
             boxShadow: '0 0 5px hsl(var(--primary) / 0.6)',
-            backgroundColor: 'hsl(var(--primary) / 0.1)',
           },
           '50%': {
             boxShadow: '0 0 15px 2px hsl(var(--primary) / 0.9)',
-            backgroundColor: 'hsl(var(--primary) / 0.2)',
           },
         },
         'glow-green': {
