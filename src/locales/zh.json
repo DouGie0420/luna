@@ -176,6 +176,15 @@
       "completed": "已完成",
       "disputed": "争议中"
     },
+    "status": {
+      "pending": "待处理",
+      "inEscrow": "托管中",
+      "shipped": "已发货",
+      "awaitingConfirmation": "等待确认",
+      "completed": "已完成",
+      "disputed": "争议中",
+      "cancelled": "已取消"
+    },
     "orderCard": {
       "viewDetails": "查看详情",
       "contactSeller": "联系卖家",

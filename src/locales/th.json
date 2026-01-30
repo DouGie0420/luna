@@ -176,6 +176,15 @@
       "completed": "เสร็จสมบูรณ์",
       "disputed": "มีข้อพิพาท"
     },
+    "status": {
+        "pending": "รอดำเนินการ",
+        "inEscrow": "ใน Escrow",
+        "shipped": "จัดส่งแล้ว",
+        "awaitingConfirmation": "รอการยืนยัน",
+        "completed": "เสร็จสมบูรณ์",
+        "disputed": "มีข้อพิพาท",
+        "cancelled": "ยกเลิกแล้ว"
+    },
     "orderCard": {
       "viewDetails": "ดูรายละเอียด",
       "contactSeller": "ติดต่อผู้ขาย",

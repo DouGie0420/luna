@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTranslation } from "@/hooks/use-translation"
+import type { OrderStatus } from "@/lib/types"
 
 const purchases = [
     { 
@@ -57,6 +58,12 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
             default: return 'secondary';
         }
     }
+    
+    const getStatusTranslation = (status: string) => {
+        const keyPart = status.replace(/\s+/g, '').charAt(0).toLowerCase() + status.replace(/\s+/g, '').slice(1);
+        return t(`accountPurchases.status.${keyPart}`);
+    }
+
     return (
         <Card className="overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -67,7 +74,7 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
                     </Avatar>
                     <span className="font-semibold text-sm">{order.seller.name}</span>
                 </div>
-                <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusTranslation(order.status)}</Badge>
             </CardHeader>
             <CardContent className="p-4 bg-secondary/20">
                 <div className="flex items-center gap-4">
@@ -97,7 +104,7 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
 
 export default function MyPurchasesPage() {
     const { t } = useTranslation();
-    const renderOrders = (status?: string) => {
+    const renderOrders = (status?: OrderStatus) => {
         const filteredOrders = status ? purchases.filter(o => o.status === status) : purchases;
         if (filteredOrders.length === 0) {
             return (

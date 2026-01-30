@@ -176,6 +176,15 @@
       "completed": "Completed",
       "disputed": "Disputed"
     },
+    "status": {
+      "pending": "Pending",
+      "inEscrow": "In Escrow",
+      "shipped": "Shipped",
+      "awaitingConfirmation": "Awaiting Confirmation",
+      "completed": "Completed",
+      "disputed": "Disputed",
+      "cancelled": "Cancelled"
+    },
     "orderCard": {
       "viewDetails": "View Details",
       "contactSeller": "Contact Seller",
