@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import { AlertCircle, MapPin, Truck, Wallet, Edit, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaymentMethodButton } from '@/components/payment-method-button';
+import { Progress } from "@/components/ui/progress";
 
 
 const mockAddresses: UserAddress[] = [
@@ -61,8 +62,8 @@ function CheckoutPageSkeleton() {
       <Skeleton className="h-9 w-48 mb-6" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
         <div className="lg:col-span-3 space-y-8">
-          <Skeleton className="h-28 w-full" />
           <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-28 w-full" />
         </div>
         <div className="lg:col-span-2">
           <Skeleton className="h-96 w-full" />
@@ -82,6 +83,12 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(mockAddresses.find(a => a.isDefault)?.id);
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('USDT');
+  const [progress, setProgress] = useState(13);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(90), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const id = params.id as string;
 
@@ -223,7 +230,6 @@ export default function CheckoutPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Separator />
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('checkoutPage.subtotal')}</span>
                   <span>{product.price.toLocaleString()} {product.currency}</span>
@@ -237,19 +243,20 @@ export default function CheckoutPage() {
                     <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
                     <div className="grid grid-cols-2 gap-3">
                         <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                        <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
-                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
                         <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
+                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                        <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
                     </div>
                  </div>
               </CardContent>
-              <CardFooter className="flex-col gap-4 pt-6 border-t">
+              <CardFooter className="flex-col items-start gap-4 pt-6 border-t">
                  <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
-                 <div className="flex items-center gap-2 text-xs text-muted-foreground text-center">
+                 <Progress value={progress} className="w-full h-2 rounded-full" />
+                 <div className="flex items-center gap-2 text-xs text-muted-foreground text-center w-full justify-center">
                     <AlertCircle className="h-4 w-4" />
                     <p>{t('checkoutPage.escrowInfo')}</p>
                  </div>
