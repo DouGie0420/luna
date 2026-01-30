@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { smartSearchSuggestions } from '@/ai/flows/smart-search-suggestions';
+import { useDebounce } from '@/hooks/use-debounce';
 
 interface SearchBarProps {
   placeholderKeywords?: string[];
@@ -22,8 +24,30 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const [placeholder, setPlaceholder] = useState('搜点什么');
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const storedHistory = localStorage.getItem('searchHistory');
+      if (storedHistory) {
+        setSearchHistory(JSON.parse(storedHistory));
+      }
+    } catch (e) {
+      console.error("Failed to parse search history from localStorage", e);
+      localStorage.removeItem('searchHistory');
+    }
+  }, []);
+
+  const addToHistory = (term: string) => {
+    const updatedHistory = [term, ...searchHistory.filter(t => t.toLowerCase() !== term.toLowerCase())].slice(0, 5);
+    setSearchHistory(updatedHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(updatedHistory));
+  };
+
 
   useEffect(() => {
     if (placeholderKeywords && placeholderKeywords.length > 0) {
@@ -38,12 +62,47 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     }
   }, [placeholderKeywords]);
 
+  useEffect(() => {
+    if (debouncedSearchTerm.length > 1) {
+      const fetchSuggestions = async () => {
+        setIsLoading(true);
+        setSuggestions([]); // Clear old suggestions
+        try {
+          const result = await smartSearchSuggestions({
+            searchTerm: debouncedSearchTerm,
+            searchHistory: searchHistory,
+          });
+          
+          if (result.suggestions && result.suggestions.length > 0) {
+            setSuggestions(result.suggestions);
+            setIsPopoverOpen(true);
+          } else {
+            setSuggestions([]); // Ensure it's an empty array for the "No suggestions" message
+            setIsPopoverOpen(true); // Still open to show the message
+          }
+        } catch (error) {
+          console.error('Failed to fetch search suggestions:', error);
+          setSuggestions([]);
+          setIsPopoverOpen(false);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchSuggestions();
+    } else {
+      setSuggestions([]);
+      setIsPopoverOpen(false);
+    }
+  }, [debouncedSearchTerm, searchHistory]);
+
+
   const handleSearch = (term: string) => {
     if (!term) return;
     const trimmedTerm = term.trim();
     if (!trimmedTerm) return;
     
     setSearchTerm(trimmedTerm);
+    addToHistory(trimmedTerm);
     setSuggestions([]);
     setIsPopoverOpen(false);
     inputRef.current?.blur();
@@ -54,7 +113,12 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div className="group relative flex h-16 items-center rounded-full border border-primary/30 bg-transparent text-xl animate-glow overflow-hidden">
+          <div 
+            className="group relative flex h-16 items-center rounded-full border border-primary/30 bg-transparent text-xl animate-glow overflow-hidden"
+            onClick={() => {
+              if (suggestions.length > 0 || (searchTerm.length > 1 && !isLoading)) setIsPopoverOpen(true)
+            }}
+            >
               <Input
                   ref={inputRef}
                   value={searchTerm}
@@ -67,23 +131,34 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
                   <Search className="mr-2 h-7 w-7" />
                   搜索
               </Button>
-              {isLoading && (
-                  <Loader2 className="absolute right-[180px] top-1/2 h-7 w-7 -translate-y-1/2 animate-spin text-muted-foreground" />
-              )}
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
-          <ul className="py-2">
-            {suggestions.map((suggestion, index) => (
-              <li
-                key={index}
-                className="cursor-pointer px-4 py-2 text-sm hover:bg-accent"
-                onClick={() => handleSearch(suggestion)}
-              >
-                {suggestion}
-              </li>
-            ))}
-          </ul>
+        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+          {isLoading ? (
+            <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              正在生成建议...
+            </div>
+          ) : suggestions.length > 0 ? (
+            <ul className="py-2">
+              {suggestions.map((suggestion, index) => (
+                <li
+                  key={index}
+                  className="cursor-pointer px-4 py-2 text-sm hover:bg-accent"
+                  onMouseDown={(e) => { 
+                    e.preventDefault();
+                    handleSearch(suggestion);
+                  }}
+                >
+                  {suggestion}
+                </li>
+              ))}
+            </ul>
+          ) : (
+             <div className="p-4 text-center text-sm text-muted-foreground">
+                没有找到相关建议
+             </div>
+          )}
         </PopoverContent>
       </Popover>
     </div>
