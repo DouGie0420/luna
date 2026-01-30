@@ -28,6 +28,12 @@ export type User = {
   isPro?: boolean;
   isWeb3Verified?: boolean;
   kycStatus?: KycStatus;
+  location?: {
+    city: string;
+    country: string;
+    lat: number;
+    lng: number;
+  };
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
@@ -112,4 +118,5 @@ export type BbsPost = {
   createdAt: string;
   featuredImage?: string;
   featuredImageHint?: string;
+  isFeatured?: boolean;
 };

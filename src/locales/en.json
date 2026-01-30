@@ -263,7 +263,9 @@
     "newPost": "New Post",
     "filterNewest": "Newest",
     "filterTrending": "Trending",
-    "filterHot": "Hot"
+    "filterFeatured": "Featured",
+    "filterNearest": "Nearest",
+    "searchPlaceholder": "Search posts..."
   },
   "bbsPosts": {
     "post1": {

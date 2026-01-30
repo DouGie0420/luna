@@ -263,7 +263,9 @@
     "newPost": "โพสต์ใหม่",
     "filterNewest": "ใหม่ล่าสุด",
     "filterTrending": "กำลังนิยม",
-    "filterHot": "ร้อนแรง"
+    "filterFeatured": "แนะนำ",
+    "filterNearest": "ใกล้ฉัน",
+    "searchPlaceholder": "ค้นหาโพสต์..."
   },
   "bbsPosts": {
     "post1": {

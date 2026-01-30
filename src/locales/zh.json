@@ -263,7 +263,9 @@
     "newPost": "发布新帖",
     "filterNewest": "最新",
     "filterTrending": "趋势",
-    "filterHot": "热门"
+    "filterFeatured": "加精",
+    "filterNearest": "离我最近",
+    "searchPlaceholder": "搜索帖子..."
   },
   "bbsPosts": {
     "post1": {

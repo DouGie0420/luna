@@ -11,6 +11,7 @@ const users: User[] = [
     isPro: true,
     isWeb3Verified: false,
     kycStatus: 'Verified',
+    location: { city: 'Bangkok', country: 'Thailand', lat: 13.7563, lng: 100.5018 },
   },
   {
     id: 'user2',
@@ -21,6 +22,7 @@ const users: User[] = [
     isPro: false,
     isWeb3Verified: true,
     kycStatus: 'Verified',
+    location: { city: 'Shanghai', country: 'China', lat: 31.2304, lng: 121.4737 },
   },
   {
     id: 'user3',
@@ -31,6 +33,7 @@ const users: User[] = [
     isPro: true,
     isWeb3Verified: true,
     kycStatus: 'Verified',
+    location: { city: 'Chiang Mai', country: 'Thailand', lat: 18.7883, lng: 98.9853 },
   },
   {
     id: 'user4',
@@ -41,6 +44,7 @@ const users: User[] = [
     isPro: true,
     isWeb3Verified: true,
     kycStatus: 'Not Verified',
+    location: { city: 'Phuket', country: 'Thailand', lat: 7.8804, lng: 98.3923 },
   },
   {
     id: 'user5',
@@ -50,6 +54,7 @@ const users: User[] = [
     reviews: 150,
     isPro: true,
     kycStatus: 'Pending',
+    location: { city: 'Pattaya', country: 'Thailand', lat: 12.9246, lng: 100.8825 },
   },
   {
     id: 'user6',
@@ -59,6 +64,7 @@ const users: User[] = [
     reviews: 95,
     isWeb3Verified: true,
     kycStatus: 'Verified',
+    location: { city: 'Beijing', country: 'China', lat: 39.9042, lng: 116.4074 },
   },
   {
     id: 'user7',
@@ -67,6 +73,7 @@ const users: User[] = [
     rating: 4.3,
     reviews: 33,
     kycStatus: 'Verified',
+    location: { city: 'Shenzhen', country: 'China', lat: 22.5431, lng: 114.0579 },
   },
   {
     id: 'user8',
@@ -77,6 +84,7 @@ const users: User[] = [
     isPro: false,
     isWeb3Verified: false,
     kycStatus: 'Not Verified',
+    location: { city: 'Nonthaburi', country: 'Thailand', lat: 13.859, lng: 100.5218 },
   },
   {
     id: 'user9',
@@ -87,6 +95,7 @@ const users: User[] = [
     isPro: true,
     isWeb3Verified: true,
     kycStatus: 'Verified',
+    location: { city: 'Samut Prakan', country: 'Thailand', lat: 13.5994, lng: 100.653 },
   },
   {
     id: 'user10',
@@ -97,6 +106,7 @@ const users: User[] = [
     isPro: true,
     isWeb3Verified: true,
     kycStatus: 'Verified',
+    location: { city: 'Udon Thani', country: 'Thailand', lat: 17.4138, lng: 102.7881 },
   },
 ];
 
@@ -284,7 +294,8 @@ const bbsPosts: BbsPost[] = [
       views: 2500,
       createdAt: '2024-07-28T10:00:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post1/800/450',
-      featuredImageHint: 'cyberpunk hardware'
+      featuredImageHint: 'cyberpunk hardware',
+      isFeatured: true,
     },
     {
       id: 'post-2',
@@ -297,7 +308,8 @@ const bbsPosts: BbsPost[] = [
       views: 8900,
       createdAt: '2024-07-27T18:30:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post2/800/450',
-      featuredImageHint: 'virtual reality'
+      featuredImageHint: 'virtual reality',
+      isFeatured: true,
     },
     {
       id: 'post-3',
