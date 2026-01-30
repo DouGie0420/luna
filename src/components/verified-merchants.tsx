@@ -1,25 +1,47 @@
 import { getUsers } from "@/lib/data";
 import { MerchantCard } from "./merchant-card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
 
 export async function VerifiedMerchants() {
     const users = await getUsers();
-    const proUsers = users.slice(0, 5); // For now, just take the first 5 as "pro"
+    const proUsers = users.slice(0, 10); // Get 10 users
 
     return (
         <section className="container mx-auto px-4 py-12 md:py-16">
             <h2 className="font-headline text-3xl font-semibold mb-6">认证商户</h2>
             <div className="relative">
-                <ScrollArea className="w-full whitespace-nowrap">
-                    <div className="flex w-max space-x-6 pb-4">
-                        {proUsers.map(user => (
-                            <div key={user.id} className="w-64">
-                                <MerchantCard user={user} />
-                            </div>
-                        ))}
-                    </div>
-                    <ScrollBar orientation="horizontal" />
-                </ScrollArea>
+                <Carousel
+                  opts={{
+                    align: "start",
+                    loop: true,
+                  }}
+                  plugins={[
+                    Autoplay({
+                      delay: 3000,
+                      stopOnInteraction: true,
+                    }),
+                  ]}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {proUsers.map((user) => (
+                      <CarouselItem key={user.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/5">
+                        <div className="p-1 h-full">
+                          <MerchantCard user={user} />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious className="hidden lg:flex" />
+                  <CarouselNext className="hidden lg:flex" />
+                </Carousel>
             </div>
         </section>
     );

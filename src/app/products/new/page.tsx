@@ -70,6 +70,7 @@ export default function NewProductPage() {
                         <SelectItem value="home-goods">Home Goods</SelectItem>
                         <SelectItem value="sports-outdoors">Sports & Outdoors</SelectItem>
                         <SelectItem value="fashion">Fashion</SelectItem>
+                        <SelectItem value="musical-instruments">Musical Instruments</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
