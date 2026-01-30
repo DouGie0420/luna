@@ -176,7 +176,9 @@ export default function AccountProfilePage() {
                                 onChange={(e) => setBio(e.target.value)}
                                 placeholder={t('accountPage.bioPlaceholder')}
                                 rows={3}
+                                maxLength={200}
                             />
+                            <p className="text-xs text-muted-foreground text-right">{bio.length} / 200</p>
                         </div>
                         <Separator />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
