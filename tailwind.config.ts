@@ -105,6 +105,16 @@ export default {
             backgroundColor: 'hsl(var(--primary) / 0.2)',
           },
         },
+        'glow-green': {
+            '0%, 100%': {
+              boxShadow: '0 0 5px hsl(84 78% 55% / 0.6)',
+              backgroundColor: 'hsl(84 78% 55% / 0.1)',
+            },
+            '50%': {
+              boxShadow: '0 0 15px 2px hsl(84 78% 55% / 0.9)',
+              backgroundColor: 'hsl(84 78% 55% / 0.2)',
+            },
+        },
         'glow-line': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
@@ -114,6 +124,7 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'glow': 'glow 2.5s ease-in-out infinite',
+        'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
       },
     },

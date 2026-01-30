@@ -90,7 +90,7 @@ export function UserNav() {
         </Link>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-none p-0">
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0 animate-glow-green">
             <Avatar className="h-8 w-8">
                 <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
                 <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
