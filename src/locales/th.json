@@ -265,7 +265,8 @@
     "filterTrending": "กำลังนิยม",
     "filterFeatured": "แนะนำ",
     "filterNearest": "ใกล้ฉัน",
-    "searchPlaceholder": "ค้นหาโพสต์..."
+    "searchPlaceholder": "ค้นหาโพสต์...",
+    "featuredBadge": "แนะนำ"
   },
   "bbsPosts": {
     "post1": {

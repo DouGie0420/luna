@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, ThumbsUp, Eye } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Eye, Star } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
@@ -42,7 +42,13 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                      <CardTitle className="font-headline text-xl mb-2 leading-tight">
                         {t(post.titleKey)}
                     </CardTitle>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        {post.isFeatured && (
+                            <Badge variant="outline" className="text-xs border-amber-400/50 bg-amber-400/10 text-amber-300">
+                                <Star className="mr-1 h-3 w-3 fill-amber-300" />
+                                {t('bbsPage.featuredBadge')}
+                            </Badge>
+                        )}
                         {post.tags.map(tag => (
                             <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                         ))}

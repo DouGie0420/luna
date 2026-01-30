@@ -265,7 +265,8 @@
     "filterTrending": "趋势",
     "filterFeatured": "加精",
     "filterNearest": "离我最近",
-    "searchPlaceholder": "搜索帖子..."
+    "searchPlaceholder": "搜索帖子...",
+    "featuredBadge": "精华"
   },
   "bbsPosts": {
     "post1": {

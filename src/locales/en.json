@@ -265,7 +265,8 @@
     "filterTrending": "Trending",
     "filterFeatured": "Featured",
     "filterNearest": "Nearest",
-    "searchPlaceholder": "Search posts..."
+    "searchPlaceholder": "Search posts...",
+    "featuredBadge": "Featured"
   },
   "bbsPosts": {
     "post1": {
