@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, MapPin, Truck, Wallet, Edit, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PaymentMethodButton } from '@/components/payment-method-button';
 
 
 const mockAddresses: UserAddress[] = [
@@ -52,6 +53,7 @@ const SHIPPING_FEES = {
 
 type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
 type ShippingMethodOption = 'Buyer Pays' | 'In-person';
+type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
 
 function CheckoutPageSkeleton() {
   return (
@@ -80,7 +82,7 @@ export default function CheckoutPage() {
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(mockAddresses.find(a => a.isDefault)?.id);
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
-  const [paymentMethod, setPaymentMethod] = useState<string>('USDT');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('USDT');
 
   const id = params.id as string;
 
@@ -210,11 +212,11 @@ export default function CheckoutPage() {
                   </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    <Button variant={paymentMethod === 'USDT' ? 'default' : 'outline'} className="h-12 text-base" onClick={() => setPaymentMethod('USDT')}>USDT</Button>
-                    <Button variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} className="h-12 text-base" onClick={() => setPaymentMethod('Alipay')}>支付宝</Button>
-                    <Button variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} className="h-12 text-base" onClick={() => setPaymentMethod('WeChat')}>微信支付</Button>
-                    <Button variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} className="h-12 text-base" onClick={() => setPaymentMethod('PromptPay')}>PromptPay</Button>
+                <div className="grid grid-cols-2 gap-3">
+                    <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
+                    <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
+                    <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                    <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
                 </div>
               </CardContent>
             </Card>
