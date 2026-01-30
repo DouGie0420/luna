@@ -125,6 +125,34 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             </div>
                         </Link>
                     </div>
+
+                    <div>
+                        <h4 className="font-semibold mb-2">{t('userProfile.verifications')}</h4>
+                         <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+                            {seller.isPro && (
+                                <div className="flex items-center gap-1.5 text-green-400">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>{t('userProfile.pro')}</span>
+                                </div>
+                            )}
+                            {seller.isWeb3Verified && (
+                                <div className="flex items-center gap-1.5 text-blue-400">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>{t('userProfile.web3')}</span>
+                                </div>
+                            )}
+                            {seller.kycStatus === 'Verified' && (
+                                <div className="flex items-center gap-1.5 text-cyan-400">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>{t('userProfile.kyc')}</span>
+                                </div>
+                            )}
+                            {!seller.isPro && !seller.isWeb3Verified && seller.kycStatus !== 'Verified' && (
+                                <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
+                            )}
+                        </div>
+                    </div>
+
                     <div>
                         <h4 className="font-semibold mb-2">{t('sellerProfile.reviewDetails')}</h4>
                         <div className="space-y-2">
