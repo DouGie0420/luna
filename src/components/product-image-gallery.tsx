@@ -94,20 +94,20 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
           <CarouselContent>
             {images.map((img, index) => (
               <CarouselItem key={index} onClick={openLightbox}>
-                <div className="aspect-video relative cursor-zoom-in bg-muted overflow-hidden border-2 border-primary/30 transition-colors duration-300 group-hover:border-primary/60">
-                  <Image
-                    src={img}
-                    alt={`${product.name} image ${index + 1}`}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    data-ai-hint={imageHints[index]}
-                  />
+                <div className="aspect-video relative cursor-zoom-in overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-sm ring-1 ring-inset ring-white/20 group-hover:ring-white/30 transition-all">
+                    <Image
+                        src={img}
+                        alt={`${product.name} image ${index + 1}`}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
+                        data-ai-hint={imageHints[index]}
+                    />
                 </div>
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="absolute left-4 text-white hidden group-hover:flex" />
-          <CarouselNext className="absolute right-4 text-white hidden group-hover:flex" />
+          <CarouselPrevious className="absolute left-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+          <CarouselNext className="absolute right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
         </Carousel>
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -128,15 +128,15 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
                 <div 
                   onClick={() => onThumbClick(index)} 
                   className={cn(
-                    'overflow-hidden aspect-square relative cursor-pointer border-2 transition-all',
-                    selectedIndex === index ? 'border-primary' : 'border-border/40 opacity-60 hover:opacity-100 hover:border-primary/70'
+                    'overflow-hidden aspect-square relative cursor-pointer rounded-lg bg-white/10 p-1 backdrop-blur-sm transition-all ring-1 ring-inset',
+                    selectedIndex === index ? 'ring-primary opacity-100' : 'ring-white/20 opacity-60 hover:opacity-100'
                   )}
                 >
                   <Image 
                     src={img} 
                     alt={`Thumbnail ${index + 1}`} 
                     fill 
-                    className="object-cover" 
+                    className="object-cover rounded-md" 
                   />
                 </div>
               </CarouselItem>
