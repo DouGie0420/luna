@@ -163,9 +163,9 @@ export default function UserProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                            <div className="p-3 bg-secondary/30 rounded-lg">
+                            <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
                                 <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
-                                <div className="flex flex-col items-start gap-2 text-sm font-medium">
+                                <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                                     {user.isPro && (
                                         <div className="flex items-center gap-1.5 text-green-400">
                                             <ShieldCheck className="h-4 w-4" />
