@@ -118,7 +118,11 @@ export default {
         'glow-line': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
-        }
+        },
+        'hue-rotate': {
+          '0%': { filter: 'hue-rotate(0deg)' },
+          '100%': { filter: 'hue-rotate(360deg)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -126,6 +130,7 @@ export default {
         'glow': 'glow 2.5s ease-in-out infinite',
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
+        'hue-rotate': 'hue-rotate 3s linear infinite',
       },
     },
   },
