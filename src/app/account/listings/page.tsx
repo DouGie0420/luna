@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { getProducts } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -33,13 +33,30 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     const { t } = useTranslation();
     const { toast } = useToast();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [copyStatus, setCopyStatus] = useState({ show: false, x: 0, y: 0 });
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
     const handleShare = () => {
         const productUrl = `${window.location.origin}/products/${product.id}`;
         navigator.clipboard.writeText(productUrl);
-        toast({
-            title: t('productCardActions.linkCopied'),
-        });
+        
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            setCopyStatus({
+                show: true,
+                x: rect.left + rect.width / 2,
+                y: rect.top - 10, // Position it above the button
+            });
+
+            setTimeout(() => {
+                setCopyStatus(s => ({ ...s, show: false }));
+            }, 1500);
+        } else {
+            // Fallback for safety
+            toast({
+                title: t('productCardActions.linkCopied'),
+            });
+        }
     };
 
     const handleDelete = () => {
@@ -57,52 +74,62 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     };
 
     return (
-        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={handleComingSoon}>
-                        <Edit className="mr-2 h-4 w-4"/>
-                        <span>{t('productCardActions.edit')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={handleComingSoon}>
-                        <Sparkles className="mr-2 h-4 w-4"/>
-                        <span>{t('productCardActions.polish')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={handleShare}>
-                        <Share2 className="mr-2 h-4 w-4"/>
-                        <span>{t('productCardActions.share')}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                        className="text-destructive focus:text-destructive-foreground focus:bg-destructive"
-                        onSelect={() => setIsDeleteDialogOpen(true)}
-                    >
-                        <Trash2 className="mr-2 h-4 w-4"/>
-                        <span>{t('productCardActions.delete')}</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+        <>
+            {copyStatus.show && (
+                 <div
+                    style={{ top: `${copyStatus.y}px`, left: `${copyStatus.x}px` }}
+                    className="fixed z-[101] -translate-x-1/2 -translate-y-full transform rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground animate-in fade-in-0 zoom-in-90"
+                >
+                    {t('productCardActions.linkCopied')}
+                </div>
+            )}
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button ref={triggerRef} variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={handleComingSoon}>
+                            <Edit className="mr-2 h-4 w-4"/>
+                            <span>{t('productCardActions.edit')}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={handleComingSoon}>
+                            <Sparkles className="mr-2 h-4 w-4"/>
+                            <span>{t('productCardActions.polish')}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={handleShare}>
+                            <Share2 className="mr-2 h-4 w-4"/>
+                            <span>{t('productCardActions.share')}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                            className="text-destructive focus:text-destructive-foreground focus:bg-destructive"
+                            onSelect={() => setIsDeleteDialogOpen(true)}
+                        >
+                            <Trash2 className="mr-2 h-4 w-4"/>
+                            <span>{t('productCardActions.delete')}</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
 
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{t('productCardActions.deleteConfirmTitle')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {t('productCardActions.deleteConfirmDescription')}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel>{t('productCardActions.deleteCancel')}</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                        {t('productCardActions.deleteConfirmAction')}
-                    </AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('productCardActions.deleteConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t('productCardActions.deleteConfirmDescription')}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('productCardActions.deleteCancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                            {t('productCardActions.deleteConfirmAction')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
 
