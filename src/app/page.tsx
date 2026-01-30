@@ -8,9 +8,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <section className="w-full">
-        <PromoCarousel />
-      </section>
+      {/* The PromoCarousel section has been removed for debugging the white line issue. */}
       
       <div className="container mx-auto px-4">
         <section className="py-12">
