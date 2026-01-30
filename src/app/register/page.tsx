@@ -15,6 +15,13 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
+import { useFirebaseAuth } from "@/firebase/auth/use-user"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth"
+import { useFirestore } from "@/firebase"
+import { useRouter } from "next/navigation"
+import { upsertUserProfile } from "@/lib/user"
+import { useToast } from "@/hooks/use-toast"
+import { X } from "lucide-react"
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -26,9 +33,43 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 
 export default function RegisterPage() {
+  const auth = useFirebaseAuth();
+  const firestore = useFirestore();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
+    if (!auth || !firestore) return;
+
+    const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      await upsertUserProfile(firestore, result.user);
+      toast({
+        title: "注册成功",
+        description: `欢迎，${result.user.displayName}！您的账户已创建。`,
+      });
+      router.push('/account');
+    } catch (error: any) {
+      console.error("Social login error:", error);
+      toast({
+        variant: 'destructive',
+        title: "注册失败",
+        description: error.message || "无法通过社交账号注册，请稍后再试。",
+      });
+    }
+  };
+
   return (
     <div className="py-12">
-      <Card className="w-full max-w-2xl mx-auto">
+      <Card className="w-full max-w-2xl mx-auto relative">
+        <Button asChild variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground">
+          <Link href="/">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </Link>
+        </Button>
         <CardHeader>
           <CardTitle className="text-2xl font-headline">创建您的 LUNA 账户</CardTitle>
           <CardDescription>
@@ -99,11 +140,11 @@ export default function RegisterPage() {
           </div>
 
           <div className="w-full grid grid-cols-2 gap-2">
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => handleSocialLogin('google')}>
                 <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                 Google
               </Button>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
                 <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
                 Facebook
               </Button>
