@@ -73,57 +73,63 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12">
-      <Card className="w-full max-w-sm relative">
-        <Button asChild variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground">
-          <Link href="/">
-            <X className="h-4 w-4" />
-            <span className="sr-only">{t('common.close')}</span>
-          </Link>
-        </Button>
-        <CardHeader>
-          <CardTitle className="text-2xl font-headline">{t('loginPage.title')}</CardTitle>
-          <CardDescription>
-            {t('loginPage.description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
-            <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} defaultValue="test@example.com" required />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
-            <Input id="password" type="password" defaultValue="password" required />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleTestLogin}>{t('common.login')}</Button>
-          
-          <div className="relative w-full">
-            <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
-            <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('loginPage.orContinueWith')}</span>
-          </div>
-
-          <div className="w-full grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => handleSocialLogin('google')}>
-                <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
-                Google
-              </Button>
-              <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
-                <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                Facebook
-              </Button>
-          </div>
-
-          <div className="text-center text-sm">
-            {t('loginPage.noAccount')}{" "}
-            <Link href="/register" className="underline">
-              {t('common.register')}
+    <>
+      <div className="sticky top-20 z-30 border-b bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto flex h-16 items-center justify-end px-4">
+          <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Link href="/">
+              <X className="h-4 w-4" />
+              <span className="sr-only">{t('common.close')}</span>
             </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+          </Button>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-12">
+        <Card className="w-full max-w-sm mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl font-headline">{t('loginPage.title')}</CardTitle>
+            <CardDescription>
+              {t('loginPage.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
+              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} defaultValue="test@example.com" required />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
+              <Input id="password" type="password" defaultValue="password" required />
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button className="w-full" onClick={handleTestLogin}>{t('common.login')}</Button>
+            
+            <div className="relative w-full">
+              <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
+              <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('loginPage.orContinueWith')}</span>
+            </div>
+
+            <div className="w-full grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => handleSocialLogin('google')}>
+                  <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
+                  Google
+                </Button>
+                <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
+                  <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
+                  Facebook
+                </Button>
+            </div>
+
+            <div className="text-center text-sm">
+              {t('loginPage.noAccount')}{" "}
+              <Link href="/register" className="underline">
+                {t('common.register')}
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </>
   )
 }

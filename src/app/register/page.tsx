@@ -64,105 +64,111 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="py-12">
-      <Card className="w-full max-w-2xl mx-auto relative">
-        <Button asChild variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground">
-          <Link href="/">
-            <X className="h-4 w-4" />
-            <span className="sr-only">{t('common.close')}</span>
-          </Link>
-        </Button>
-        <CardHeader>
-          <CardTitle className="text-2xl font-headline">{t('registerPage.title')}</CardTitle>
-          <CardDescription>
-            {t('registerPage.description')}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
+      <div className="sticky top-20 z-30 border-b bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto flex h-16 items-center justify-end px-4">
+          <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+            <Link href="/">
+              <X className="h-4 w-4" />
+              <span className="sr-only">{t('common.close')}</span>
+            </Link>
+          </Button>
+        </div>
+      </div>
+      <div className="container mx-auto px-4 py-12">
+        <Card className="w-full max-w-2xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl font-headline">{t('registerPage.title')}</CardTitle>
+            <CardDescription>
+              {t('registerPage.description')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="login-id">{t('registerPage.loginIdLabel')}</Label>
+                <Input id="login-id" placeholder={t('registerPage.loginIdPlaceholder')} required />
+                <p className="text-xs text-muted-foreground">{t('registerPage.loginIdDescription')}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="username">{t('registerPage.usernameLabel')}</Label>
+                <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required />
+                <p className="text-xs text-muted-foreground">{t('registerPage.usernameDescription')}</p>
+              </div>
+            </div>
+            
             <div className="grid gap-2">
-              <Label htmlFor="login-id">{t('registerPage.loginIdLabel')}</Label>
-              <Input id="login-id" placeholder={t('registerPage.loginIdPlaceholder')} required />
-              <p className="text-xs text-muted-foreground">{t('registerPage.loginIdDescription')}</p>
+              <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
+              <div className="flex gap-2">
+                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required className="flex-1" />
+                <Button variant="secondary">{t('registerPage.sendVerificationCode')}</Button>
+              </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="username">{t('registerPage.usernameLabel')}</Label>
-              <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required />
-              <p className="text-xs text-muted-foreground">{t('registerPage.usernameDescription')}</p>
-            </div>
-          </div>
-          
-          <div className="grid gap-2">
-            <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
-            <div className="flex gap-2">
-              <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required className="flex-1" />
-              <Button variant="secondary">{t('registerPage.sendVerificationCode')}</Button>
-            </div>
-          </div>
-           <div className="grid gap-2">
-              <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
-              <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} />
-            </div>
+                <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
+                <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} />
+              </div>
 
-          <Separator />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="password">{t('registerPage.passwordLabel')}</Label>
-              <Input id="password" type="password" required />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password-confirm">{t('registerPage.confirmPasswordLabel')}</Label>
-              <Input id="password-confirm" type="password" required />
-            </div>
-          </div>
-
-           <div className="items-top flex space-x-2">
-              <Checkbox id="terms1" />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="terms1"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  {t('registerPage.termsAgreement')}{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
-                    {t('registerPage.termsOfService')}
-                  </Link>
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  {t('registerPage.termsRequirement')}
-                </p>
+            <Separator />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="password">{t('registerPage.passwordLabel')}</Label>
+                <Input id="password" type="password" required />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password-confirm">{t('registerPage.confirmPasswordLabel')}</Label>
+                <Input id="password-confirm" type="password" required />
               </div>
             </div>
 
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full">{t('registerPage.createAccount')}</Button>
-          
-          <div className="relative w-full">
-            <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
-            <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('registerPage.orRegisterWith')}</span>
-          </div>
+            <div className="items-top flex space-x-2">
+                <Checkbox id="terms1" />
+                <div className="grid gap-1.5 leading-none">
+                  <label
+                    htmlFor="terms1"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    {t('registerPage.termsAgreement')}{" "}
+                    <Link href="/terms" className="text-primary hover:underline">
+                      {t('registerPage.termsOfService')}
+                    </Link>
+                  </label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('registerPage.termsRequirement')}
+                  </p>
+                </div>
+              </div>
 
-          <div className="w-full grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => handleSocialLogin('google')}>
-                <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
-                Google
-              </Button>
-              <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
-                <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                Facebook
-              </Button>
-          </div>
+          </CardContent>
+          <CardFooter className="flex flex-col gap-4">
+            <Button className="w-full">{t('registerPage.createAccount')}</Button>
+            
+            <div className="relative w-full">
+              <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
+              <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('registerPage.orRegisterWith')}</span>
+            </div>
 
-          <div className="text-center text-sm">
-            {t('registerPage.alreadyHaveAccount')}{" "}
-            <Link href="/login" className="underline text-primary">
-              {t('common.login')}
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+            <div className="w-full grid grid-cols-2 gap-2">
+                <Button variant="outline" onClick={() => handleSocialLogin('google')}>
+                  <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
+                  Google
+                </Button>
+                <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
+                  <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
+                  Facebook
+                </Button>
+            </div>
+
+            <div className="text-center text-sm">
+              {t('registerPage.alreadyHaveAccount')}{" "}
+              <Link href="/login" className="underline text-primary">
+                {t('common.login')}
+              </Link>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+    </>
   )
 }
