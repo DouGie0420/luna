@@ -1,13 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useTranslation } from '@/hooks/use-translation';
 import { type Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Bookmark } from 'lucide-react';
+import Image from 'next/image';
 
 export default function MyListingsPage() {
     const { t } = useTranslation();
@@ -58,7 +61,74 @@ export default function MyListingsPage() {
             {userProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {userProducts.map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                        <Card key={product.id} className="overflow-hidden h-full flex flex-col group">
+                            <CardHeader className="p-0">
+                                <div className="aspect-[4/3] relative overflow-hidden">
+                                <Link href={`/products/${product.id}`}>
+                                    <Image
+                                    src={product.images[0]}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                    data-ai-hint={product.imageHints[0]}
+                                    />
+                                </Link>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 flex-grow">
+                                <Link href={`/products/${product.id}`}>
+                                    <CardTitle className="font-headline text-lg mb-2 leading-tight hover:underline">
+                                        {product.name}
+                                    </CardTitle>
+                                </Link>
+                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                                    <div className="flex items-center gap-1">
+                                        <Heart className="h-4 w-4" />
+                                        <span>{product.likes || 0} {t('accountListings.likes')}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Bookmark className="h-4 w-4" />
+                                        <span>{product.favorites || 0} {t('accountListings.favorites')}</span>
+                                    </div>
+                                </div>
+                            </CardContent>
+                            <CardFooter className="p-4 flex justify-between items-center">
+                                <div>
+                                    <p className="text-lg font-semibold text-primary">
+                                    {product.price.toLocaleString()}
+                                    <span className="text-xs text-muted-foreground ml-1">{product.currency}</span>
+                                    </p>
+                                </div>
+                                <div>
+                                    <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem>
+                                            <Edit className="mr-2 h-4 w-4"/>
+                                            <span>{t('productCardActions.edit')}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Sparkles className="mr-2 h-4 w-4"/>
+                                            <span>{t('productCardActions.polish')}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                            <Share2 className="mr-2 h-4 w-4"/>
+                                            <span>{t('productCardActions.share')}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4"/>
+                                            <span>{t('productCardActions.delete')}</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </CardFooter>
+                        </Card>
                     ))}
                 </div>
             ) : (

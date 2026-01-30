@@ -163,7 +163,9 @@
     "newItem": "List a New Item",
     "noListingsTitle": "You have no active listings.",
     "noListingsDescription": "Start selling by listing your first item.",
-    "listItem": "List an Item"
+    "listItem": "List an Item",
+    "likes": "Likes",
+    "favorites": "Favorites"
   },
   "accountPurchases": {
     "title": "My Purchases",
@@ -207,5 +209,11 @@
     "selfieUploadLabel": "Selfie with ID",
     "selfieUploadDescription": "Hold your ID next to your face.",
     "submitButton": "Submit for Verification"
+  },
+  "productCardActions": {
+    "edit": "Edit Item",
+    "delete": "Delete Item",
+    "polish": "Polish Item",
+    "share": "Share Link"
   }
 }

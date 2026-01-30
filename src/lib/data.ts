@@ -86,6 +86,8 @@ const products: Product[] = [
     seller: users[0],
     location: { city: 'Bangkok', country: 'Thailand', lat: 13.7563, lng: 100.5018 },
     category: 'Electronics',
+    likes: 132,
+    favorites: 256,
   },
   {
     id: 'leather-wallet',
@@ -98,6 +100,8 @@ const products: Product[] = [
     seller: users[1],
     location: { city: 'Shanghai', country: 'China', lat: 31.2304, lng: 121.4737 },
     category: 'Accessories',
+    likes: 88,
+    favorites: 150,
   },
   {
     id: 'smart-watch',
@@ -110,6 +114,8 @@ const products: Product[] = [
     seller: users[2],
     location: { city: 'Chiang Mai', country: 'Thailand', lat: 18.7883, lng: 98.9853 },
     category: 'Electronics',
+    likes: 215,
+    favorites: 430,
   },
   {
     id: 'wireless-headphones',
@@ -122,6 +128,8 @@ const products: Product[] = [
     seller: users[0],
     location: { city: 'Phuket', country: 'Thailand', lat: 7.8804, lng: 98.3923 },
     category: 'Electronics',
+    likes: 180,
+    favorites: 320,
   },
   {
     id: 'designer-sunglasses',
@@ -134,6 +142,8 @@ const products: Product[] = [
     seller: users[1],
     location: { city: 'Beijing', country: 'China', lat: 39.9042, lng: 116.4074 },
     category: 'Accessories',
+    likes: 95,
+    favorites: 180,
   },
   {
     id: 'gaming-console',
@@ -146,6 +156,8 @@ const products: Product[] = [
     seller: users[2],
     location: { city: 'Pattaya', country: 'Thailand', lat: 12.9246, lng: 100.8825 },
     category: 'Electronics',
+    likes: 500,
+    favorites: 980,
   },
   {
     id: 'ceramic-vase',
@@ -158,6 +170,8 @@ const products: Product[] = [
     seller: users[0],
     location: { city: 'Bangkok', country: 'Thailand', lat: 13.74, lng: 100.52 },
     category: 'Home Goods',
+    likes: 45,
+    favorites: 80,
   },
   {
     id: 'mountain-bike',
@@ -170,6 +184,8 @@ const products: Product[] = [
     seller: users[2],
     location: { city: 'Chiang Mai', country: 'Thailand', lat: 18.8, lng: 99.0 },
     category: 'Sports & Outdoors',
+    likes: 120,
+    favorites: 210,
   },
    {
     id: 'ukulele',
@@ -182,6 +198,8 @@ const products: Product[] = [
     seller: users[3],
     location: { city: 'Bangkok', country: 'Thailand', lat: 13.75, lng: 100.51 },
     category: 'Musical Instruments',
+    likes: 60,
+    favorites: 110,
   },
   {
     id: 'drone',
@@ -194,6 +212,8 @@ const products: Product[] = [
     seller: users[4],
     location: { city: 'Chiang Mai', country: 'Thailand', lat: 18.79, lng: 98.99 },
     category: 'Electronics',
+    likes: 350,
+    favorites: 600,
   },
   {
     id: 'espresso-machine',
@@ -206,6 +226,8 @@ const products: Product[] = [
     seller: users[5],
     location: { city: 'Shanghai', country: 'China', lat: 31.22, lng: 121.48 },
     category: 'Home Goods',
+    likes: 190,
+    favorites: 380,
   },
   {
     id: 'leather-backpack',
@@ -218,6 +240,8 @@ const products: Product[] = [
     seller: users[6],
     location: { city: 'Pattaya', country: 'Thailand', lat: 12.93, lng: 100.89 },
     category: 'Accessories',
+    likes: 220,
+    favorites: 450,
   },
 ];
 

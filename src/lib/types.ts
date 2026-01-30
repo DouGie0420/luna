@@ -14,6 +14,8 @@ export type Product = {
     lng: number;
   };
   category: string;
+  likes?: number;
+  favorites?: number;
 };
 
 export type User = {

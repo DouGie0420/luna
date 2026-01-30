@@ -163,7 +163,9 @@
     "newItem": "ลงรายการใหม่",
     "noListingsTitle": "คุณยังไม่มีรายการที่ลงขาย",
     "noListingsDescription": "เริ่มขายโดยการลงรายการสินค้าชิ้นแรกของคุณ",
-    "listItem": "ลงรายการสินค้า"
+    "listItem": "ลงรายการสินค้า",
+    "likes": "ถูกใจ",
+    "favorites": "บันทึก"
   },
   "accountPurchases": {
     "title": "การซื้อของฉัน",
@@ -207,5 +209,11 @@
     "selfieUploadLabel": "รูปถ่ายตนเองพร้อมบัตรประจำตัว",
     "selfieUploadDescription": "ถือบัตรประจำตัวของคุณไว้ข้างใบหน้า",
     "submitButton": "ส่งเพื่อตรวจสอบ"
+  },
+  "productCardActions": {
+    "edit": "แก้ไขรายการ",
+    "delete": "ลบรายการ",
+    "polish": "โปรโมท",
+    "share": "แชร์ลิงก์"
   }
 }
