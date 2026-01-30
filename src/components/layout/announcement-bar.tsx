@@ -53,24 +53,22 @@ export function AnnouncementBar() {
                     </p>
                 </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 overflow-hidden border-0 bg-transparent shadow-xl shadow-primary/20">
-                <div className="relative isolate w-full h-full bg-card">
-                    <div className="pixel-grid absolute inset-0 z-0 opacity-40" />
-                    <div className="relative z-10 flex flex-col h-full">
-                        <DialogHeader className="p-6 pb-2 flex-shrink-0">
-                            <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
-                        </DialogHeader>
-                        <ScrollArea className="flex-grow">
-                             <div className="px-6 pb-6 pt-2">
-                                <div
-                                className="space-y-4 text-sm"
-                                dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
-                                />
-                            </div>
-                        </ScrollArea>
-                    </div>
-                    <SnakeBorder />
+            <DialogContent className="relative flex flex-col sm:max-w-[600px] max-h-[80vh] p-0 overflow-hidden border-0 bg-card shadow-xl shadow-primary/20">
+                <div className="pixel-grid absolute inset-0 -z-10 opacity-40" />
+                <div className="flex-shrink-0 p-6 pb-2">
+                    <DialogHeader className="p-0 text-left">
+                        <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
+                    </DialogHeader>
                 </div>
+                <ScrollArea className="flex-1">
+                     <div className="px-6 pb-6">
+                        <div
+                        className="space-y-4 text-sm"
+                        dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
+                        />
+                    </div>
+                </ScrollArea>
+                <SnakeBorder />
             </DialogContent>
         </Dialog>
     );

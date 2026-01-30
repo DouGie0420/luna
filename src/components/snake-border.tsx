@@ -91,6 +91,11 @@ export const SnakeBorder: React.FC<SnakeBorderProps> = ({
     const draw = () => {
       if (!ctx) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Add glow effect
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+
       ctx.fillStyle = color;
       snake.forEach((segment, index) => {
         // Create a tail that fades out
@@ -99,6 +104,9 @@ export const SnakeBorder: React.FC<SnakeBorderProps> = ({
         ctx.fillRect(segment.x * pixelSize, segment.y * pixelSize, pixelSize, pixelSize);
       });
       ctx.globalAlpha = 1.0;
+      
+      // Reset shadow
+      ctx.shadowBlur = 0;
     };
 
     let lastTime = 0;
