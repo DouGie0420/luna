@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -183,41 +182,42 @@ export default function CheckoutPage() {
             </Card>
 
             <RotatingQuote />
-
+            
             {/* Shipping Method */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {product.shippingMethod === 'Seller Pays' ? (
-                   <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
-                    <CheckCircle2 className="h-6 w-6" />
-                    <div>
-                      <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
-                      <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
+            <div className="pt-[30px]">
+                <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                    <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {product.shippingMethod === 'Seller Pays' ? (
+                    <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
+                        <CheckCircle2 className="h-6 w-6" />
+                        <div>
+                        <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
+                        <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
+                        </div>
                     </div>
-                  </div>
-                ) : (
-                  <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
-                    {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
-                      <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                          <div className="flex items-center gap-4">
-                            <RadioGroupItem value={method} id={method} />
-                            <div>
-                              <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
-                              <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                    ) : (
+                    <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
+                        {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
+                        <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                            <div className="flex items-center gap-4">
+                                <RadioGroupItem value={method} id={method} />
+                                <div>
+                                <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
+                                <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                                </div>
                             </div>
-                          </div>
-                      </Label>
-                    ))}
-                  </RadioGroup>
-                )}
-              </CardContent>
-            </Card>
-
+                        </Label>
+                        ))}
+                    </RadioGroup>
+                    )}
+                </CardContent>
+                </Card>
+            </div>
           </div>
 
           {/* Right/Sidebar Column */}
@@ -264,7 +264,7 @@ export default function CheckoutPage() {
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                  <div className="w-full space-y-2 pt-2">
-                    <div className="relative h-2 w-full overflow-hidden">
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary">
                         <Progress value={progress} className="w-full h-2 rounded-full" />
                         <div className="absolute inset-0 flex items-center justify-center mix-blend-plus-lighter">
                            <span className="text-xs font-bold text-primary-foreground">
@@ -272,7 +272,7 @@ export default function CheckoutPage() {
                            </span>
                         </div>
                     </div>
-                    <div className="w-full text-center">
+                     <div className="w-full text-center">
                         <p className="text-xs text-muted-foreground">{t('checkoutPage.escrowInfo')}</p>
                     </div>
                  </div>
