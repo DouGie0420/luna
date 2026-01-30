@@ -136,17 +136,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
                 </CardContent>
             </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>商品位置</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="aspect-video bg-muted border border-border flex items-center justify-center">
-                        <MapPin className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                </CardContent>
-            </Card>
       </div>
 
 
