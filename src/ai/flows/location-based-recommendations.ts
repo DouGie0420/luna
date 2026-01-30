@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import {googleAI} from '@genkit-ai/google-genai';
 import {z} from 'genkit';
 
 const RecommendProductsInputSchema = z.object({
@@ -47,6 +48,7 @@ export async function recommendProducts(
 
 const prompt = ai.definePrompt({
   name: 'recommendProductsPrompt',
+  model: googleAI.model('gemini-pro'),
   input: {schema: RecommendProductsInputSchema},
   output: {schema: RecommendProductsOutputSchema},
   prompt: `You are a personal shopping assistant. A user is at latitude {{{latitude}}}, longitude {{{longitude}}}. They want you to recommend products available within {{{radius}}}km to them based on their purchase history.
