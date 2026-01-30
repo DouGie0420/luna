@@ -9,6 +9,7 @@ interface SnakeBorderProps {
   speed?: number; // Time in ms between frames
   color?: string;
   length?: number;
+  glowBlur?: number;
 }
 
 export const SnakeBorder: React.FC<SnakeBorderProps> = ({
@@ -17,6 +18,7 @@ export const SnakeBorder: React.FC<SnakeBorderProps> = ({
   speed = 40,
   color = 'hsl(var(--primary))',
   length = 20,
+  glowBlur = 10,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>();
@@ -94,7 +96,7 @@ export const SnakeBorder: React.FC<SnakeBorderProps> = ({
       
       // Add glow effect
       ctx.shadowColor = color;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = glowBlur;
 
       ctx.fillStyle = color;
       snake.forEach((segment, index) => {
@@ -133,7 +135,7 @@ export const SnakeBorder: React.FC<SnakeBorderProps> = ({
           resizeObserver.unobserve(parent);
         }
     };
-  }, [pixelSize, speed, color, length]);
+  }, [pixelSize, speed, color, length, glowBlur]);
 
   return (
     <canvas
