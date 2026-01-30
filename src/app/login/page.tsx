@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
 import { useToast } from "@/hooks/use-toast";
 import { X } from "lucide-react";
+import React from "react";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -34,6 +35,17 @@ export default function LoginPage() {
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+
+  const handleTestLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    localStorage.setItem('isTestUser', 'true');
+    toast({
+      title: "测试登录成功",
+      description: "您正在以测试用户身份登录。即将跳转到您的账户页面...",
+    });
+    // Use a full page reload to ensure the user hook re-initializes
+    window.location.href = '/account';
+  };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     if (!auth || !firestore) return;
@@ -76,15 +88,15 @@ export default function LoginPage() {
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="email">电子邮件</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input id="email" type="email" placeholder="m@example.com" defaultValue="test@example.com" required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">密码</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" defaultValue="password" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full">登录</Button>
+          <Button className="w-full" onClick={handleTestLogin}>登录</Button>
           
           <div className="relative w-full">
             <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />

@@ -23,8 +23,19 @@ export function UserNav() {
   const auth = useAuth();
   const { toast } = useToast();
   const isLoggedIn = !!user;
+  const isTestUser = user?.uid === 'test-user-uid';
 
   const handleLogout = async () => {
+    if (isTestUser) {
+      localStorage.removeItem('isTestUser');
+      toast({
+        title: "已退出登录",
+        description: "您已从测试账户退出。",
+      });
+      window.location.href = '/'; // Full reload to clear state
+      return;
+    }
+    
     if (auth) {
       await auth.signOut();
       toast({
