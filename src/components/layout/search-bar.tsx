@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,7 +14,12 @@ import { smartSearchSuggestions } from '@/ai/flows/smart-search-suggestions';
 import { useDebounce } from '@/hooks/use-debounce';
 import { SnakeBorder } from '@/components/snake-border';
 
-export function SearchBar() {
+interface SearchBarProps {
+  placeholderKeywords?: string[];
+}
+
+export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -21,6 +27,22 @@ export function SearchBar() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [placeholder, setPlaceholder] = useState('搜点什么');
+
+  useEffect(() => {
+    if (placeholderKeywords && placeholderKeywords.length > 0) {
+      setPlaceholder(placeholderKeywords[0]);
+      let currentIndex = 0;
+      const interval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % placeholderKeywords.length;
+        setPlaceholder(placeholderKeywords[currentIndex]);
+      }, 2000); // Change keyword every 2 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [placeholderKeywords]);
+
 
   const fetchSuggestions = useCallback(async (term: string) => {
     if (term.length < 2) {
@@ -60,13 +82,17 @@ export function SearchBar() {
 
   const handleSearch = (term: string) => {
     if (!term) return;
-    setSearchTerm(term);
-    setSearchHistory(prev => [term, ...prev.slice(0, 4)]);
+    const trimmedTerm = term.trim();
+    if (!trimmedTerm) return;
+    
+    setSearchTerm(trimmedTerm);
+    if (!searchHistory.includes(trimmedTerm)) {
+      setSearchHistory(prev => [trimmedTerm, ...prev.slice(0, 4)]);
+    }
     setSuggestions([]);
     setIsPopoverOpen(false);
-    // Here you would typically navigate to the search results page
-    console.log(`Searching for: ${term}`);
     inputRef.current?.blur();
+    router.push(`/search?q=${encodeURIComponent(trimmedTerm)}`);
   };
 
   return (
@@ -80,7 +106,7 @@ export function SearchBar() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-                        placeholder="搜点什么"
+                        placeholder={placeholder}
                         className="w-full h-12 text-base pl-6 bg-card/50 border-0 rounded-none focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground"
                     />
                     <Button onClick={() => handleSearch(searchTerm)} className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-base shrink-0">
