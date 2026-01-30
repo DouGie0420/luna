@@ -27,6 +27,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { useTranslation } from '@/hooks/use-translation';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function NewProductPage() {
   const { user, profile, loading } = useUser();
@@ -165,6 +166,20 @@ export default function NewProductPage() {
                             <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+                <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
+                    <Checkbox id="consignment" />
+                    <div className="grid gap-1.5 leading-none">
+                    <Label
+                        htmlFor="consignment"
+                        className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                        {t('newProductPage.officialConsignment')}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                        {t('newProductPage.consignmentDescription')}
+                    </p>
+                    </div>
                 </div>
                 <div className="grid gap-2">
                     <Label>{t('newProductPage.images')}</Label>

@@ -14,6 +14,7 @@ export type Product = {
     lng: number;
   };
   category: string;
+  isConsignment?: boolean;
   likes?: number;
   favorites?: number;
 };

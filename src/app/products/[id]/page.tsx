@@ -10,6 +10,7 @@ import { BuyNowButton } from '@/components/buy-now-button';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { ProductImageGallery } from '@/components/product-image-gallery';
 import { ProductPriceAndPayment } from '@/components/product-price-and-payment';
+import { ProductTitleWithBadge } from '@/components/product-title-with-badge';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -33,7 +34,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
           {/* Right Column: Product Details & Actions */}
           <div className="lg:col-span-2 flex flex-col gap-6">
-              <h1 className="font-headline text-3xl font-bold">{product.name}</h1>
+              <ProductTitleWithBadge product={product} />
               
               <ProductPriceAndPayment product={product} />
 

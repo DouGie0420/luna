@@ -131,7 +131,12 @@
     "cannotListDescription": "KYC verification is required to list items.",
     "kycRequiredTitle": "KYC Verification Required",
     "kycRequiredDescription": "Your account is not KYC verified. To ensure the safety of the platform, you must complete verification before you can list items.",
-    "goToVerify": "Go to Verification"
+    "goToVerify": "Go to Verification",
+    "officialConsignment": "Official Consignment",
+    "consignmentDescription": "Check this to use our official consignment service. Our team will contact you for further steps."
+  },
+  "product": {
+    "consignmentBadge": "[Consignment]"
   },
   "supportPage": {
     "title": "Contact Support",

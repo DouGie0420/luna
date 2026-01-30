@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { MapPin } from 'lucide-react';
@@ -5,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface ProductCardProps {
   product: Product;
@@ -12,6 +15,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, className }: ProductCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Link href={`/products/${product.id}`} className="group">
       <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200", className)}>
@@ -30,7 +35,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <CardTitle className="font-headline text-lg mb-2 leading-tight">
             {product.name}
           </CardTitle>
-          <Badge variant="secondary" className="mb-2">{product.category}</Badge>
+          <div className="flex items-center gap-2 flex-wrap mt-1">
+            {product.isConsignment && (
+                <Badge variant="destructive" className="animate-glow-green border-lime-400/50">
+                    {t('product.consignmentBadge')}
+                </Badge>
+            )}
+            <Badge variant="secondary">{product.category}</Badge>
+          </div>
         </CardContent>
         <CardFooter className="p-4 flex justify-between items-center">
           <div>

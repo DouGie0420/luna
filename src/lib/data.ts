@@ -182,6 +182,7 @@ const products: Product[] = [
     seller: users[2],
     location: { city: 'Pattaya', country: 'Thailand', lat: 12.9246, lng: 100.8825 },
     category: 'Electronics',
+    isConsignment: true,
     likes: 500,
     favorites: 980,
   },

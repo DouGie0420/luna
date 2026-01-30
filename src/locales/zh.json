@@ -131,7 +131,12 @@
     "cannotListDescription": "需要完成认证才能发布商品。",
     "kycRequiredTitle": "需要KYC认证",
     "kycRequiredDescription": "您的账户尚未完成KYC（了解你的客户）认证。为了确保平台交易的安全，您必须先完成认证才能发布商品。",
-    "goToVerify": "前往认证"
+    "goToVerify": "前往认证",
+    "officialConsignment": "官方寄售",
+    "consignmentDescription": "勾选此项表示您希望使用官方寄售服务。我们的团队将与您联系后续事宜。"
+  },
+  "product": {
+    "consignmentBadge": "[寄售商品]"
   },
   "supportPage": {
     "title": "联系客服",
