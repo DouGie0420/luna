@@ -19,6 +19,14 @@ import { Truck, Copy, MessageCircle, MoreHorizontal, CheckCircle, Gem, ChevronDo
 import { format } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 
 // --- Mock Data ---
@@ -217,10 +225,22 @@ export default function OrderDetailPage() {
                             </div>
                             <div className="flex items-center justify-center gap-4">
                                 {order.status === 'Shipped' && (
-                                    <Button variant="outline">
-                                        <PackageSearch className="mr-2 h-4 w-4" />
-                                        {t('orderDetails.viewLogistics')}
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline">
+                                                <PackageSearch className="mr-2 h-4 w-4" />
+                                                {t('orderDetails.viewLogistics')}
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuLabel>{t('orderDetails.selectCourier')}</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipSF') })}>{t('orderDetails.courierSF')}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipYTO') })}>{t('orderDetails.courierYTO')}</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipOther') })}>{t('orderDetails.courierOther')}</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 )}
                                 <Truck className="h-12 w-12 text-muted-foreground" />
                             </div>
@@ -277,7 +297,7 @@ export default function OrderDetailPage() {
 
                 <Card>
                     <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen} className="text-sm">
-                         <CollapsibleTrigger asChild>
+                        <CollapsibleTrigger asChild>
                             <div className="flex cursor-pointer items-center justify-between p-6">
                                 <span className="text-muted-foreground">{t('orderDetails.orderNumber')}</span>
                                 <div className="flex items-center gap-2">

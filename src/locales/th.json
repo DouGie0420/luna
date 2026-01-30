@@ -379,7 +379,6 @@
       "hours": "ชม ",
       "minutes": "น"
     },
-    "refundOnMismatch": "คืนเงินหากคำอธิบายไม่ตรงกัน",
     "dealPrice": "ราคาซื้อขาย",
     "totalPrice": "ราคาสินค้ารวม",
     "discount": "ส่วนลด: {amount}",
@@ -398,6 +397,14 @@
     "buyAgain": "ซื้ออีกครั้ง",
     "confirmReceipt": "ยืนยันการรับสินค้า",
     "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!",
-    "viewLogistics": "ดูการขนส่ง"
+    "viewLogistics": "ดูการขนส่ง",
+    "selectCourier": "เลือกบริษัทขนส่ง",
+    "courierSF": "SF Express",
+    "courierYTO": "YTO Express",
+    "courierOther": "บริษัทขนส่งท้องถิ่นอื่นๆ",
+    "featureWIP": "ฟังก์ชันกำลังพัฒนา",
+    "wipSF": "การรวมระบบติดตามพัสดุของ SF Express กำลังจะมาในเร็วๆ นี้",
+    "wipYTO": "การรวมระบบติดตามพัสดุของ YTO Express กำลังจะมาในเร็วๆ นี้",
+    "wipOther": "การรวมระบบกับบริษัทขนส่งท้องถิ่นอื่นๆ กำลังจะมาในเร็วๆ นี้"
   }
 }

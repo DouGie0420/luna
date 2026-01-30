@@ -379,7 +379,6 @@
       "hours": "小时",
       "minutes": "分钟"
     },
-    "refundOnMismatch": "描述不符全额退",
     "dealPrice": "成交价",
     "totalPrice": "商品总价",
     "discount": "优惠: {amount}",
@@ -398,6 +397,14 @@
     "buyAgain": "再次购买",
     "confirmReceipt": "确认收货",
     "receiptConfirmed": "已确认收货！",
-    "viewLogistics": "查看物流"
+    "viewLogistics": "查看物流",
+    "selectCourier": "选择快递公司",
+    "courierSF": "顺丰快递 (SF Express)",
+    "courierYTO": "圆通快递 (YTO Express)",
+    "courierOther": "其他本地快递",
+    "featureWIP": "功能开发中",
+    "wipSF": "即将对接顺丰快递物流查询",
+    "wipYTO": "即将对接圆通快递物流查询",
+    "wipOther": "即将对接其他本地快递"
   }
 }

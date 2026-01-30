@@ -379,7 +379,6 @@
         "hours": "h ",
         "minutes": "m"
     },
-    "refundOnMismatch": "Refund on description mismatch",
     "dealPrice": "Deal Price",
     "totalPrice": "Total Product Price",
     "discount": "Discount: {amount}",
@@ -398,6 +397,14 @@
     "buyAgain": "Buy Again",
     "confirmReceipt": "Confirm Receipt",
     "receiptConfirmed": "Receipt confirmed!",
-    "viewLogistics": "View Logistics"
+    "viewLogistics": "View Logistics",
+    "selectCourier": "Select Courier Company",
+    "courierSF": "SF Express",
+    "courierYTO": "YTO Express",
+    "courierOther": "Other Local Couriers",
+    "featureWIP": "Feature In Development",
+    "wipSF": "SF Express tracking integration is coming soon.",
+    "wipYTO": "YTO Express tracking integration is coming soon.",
+    "wipOther": "Other local courier integrations are coming soon."
   }
 }
