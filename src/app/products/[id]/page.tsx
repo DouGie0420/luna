@@ -124,13 +124,13 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
             <Card>
                 <CardHeader>
-                    <CardTitle>商品位置</CardTitle>
+                    <CardTitle className="text-center">商品位置</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="aspect-video bg-muted flex items-center justify-center border border-dashed border-border">
-                        <p className="text-muted-foreground">地图API将在此处显示</p>
+                    <div className="w-64 h-64 rounded-full bg-muted flex items-center justify-center border border-dashed border-border mx-auto">
+                        <p className="text-muted-foreground">地图</p>
                     </div>
-                     <div className="flex items-center gap-2 text-muted-foreground mt-4">
+                     <div className="flex items-center justify-center gap-2 text-muted-foreground mt-4">
                         <MapPin className="h-4 w-4" />
                         <span>{product.location.city}, {product.location.country}</span>
                     </div>
