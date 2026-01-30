@@ -386,3 +386,9 @@ export async function getBbsPosts(): Promise<BbsPost[]> {
     await new Promise(resolve => setTimeout(resolve, 500));
     return bbsPosts;
 }
+
+export async function getBbsPostById(id: string): Promise<BbsPost | undefined> {
+  // Simulate network delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  return bbsPosts.find(p => p.id === id);
+}
