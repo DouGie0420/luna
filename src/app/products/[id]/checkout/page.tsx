@@ -302,8 +302,8 @@ export default function CheckoutPage() {
                   </div>
                    <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                    <div className="w-full space-y-2 pt-2">
-                      <div className="relative h-4 w-full overflow-hidden rounded-full">
-                          <Progress value={progress} className="w-full h-4 progress-stripes animate-stripes-move" />
+                      <div className="relative h-4 w-full overflow-hidden rounded-full progress-stripes animate-stripes-move">
+                          <Progress value={progress} className="w-full h-4 bg-transparent" />
                           <div className="absolute inset-0 flex items-center justify-center">
                              <span className="text-sm font-bold text-primary-foreground [text-shadow:0_1px_2px_hsl(var(--background)/0.7)]">
                                   {Math.round(progress)}%
