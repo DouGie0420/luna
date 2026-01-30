@@ -4,13 +4,12 @@ import Link from 'next/link';
 import { getProductById, getProducts } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, ShieldCheck } from 'lucide-react';
 import { BuyNowButton } from '@/components/buy-now-button';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { ProductImageGallery } from '@/components/product-image-gallery';
 import { ProductPriceAndPayment } from '@/components/product-price-and-payment';
 import { ProductTitleWithBadge } from '@/components/product-title-with-badge';
+import { SellerProfileCard } from '@/components/seller-profile-card';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -45,47 +44,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                   <BuyNowButton product={product} />
               </div>
 
-              <Card>
-                  <CardContent className="p-4">
-                      <div className="flex items-start gap-4">
-                          <Avatar className="h-16 w-16">
-                              <AvatarImage src={product.seller.avatarUrl} alt={product.seller.name} />
-                              <AvatarFallback>{product.seller.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                              <p className="font-bold text-lg">{product.seller.name}</p>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                  <Star className="h-4 w-4 fill-primary text-primary" />
-                                  <span>{product.seller.rating} ({product.seller.reviews} reviews)</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                                  <MapPin className="h-4 w-4" />
-                                  <span>{product.location.city}, {product.location.country}</span>
-                              </div>
-                          </div>
-                          <div className="flex flex-col items-start gap-1 text-sm font-medium">
-                              {product.seller.isPro && (
-                                  <div className="flex items-center gap-1.5 text-green-400">
-                                      <ShieldCheck className="h-4 w-4" />
-                                      <span>PRO</span>
-                                  </div>
-                              )}
-                              {product.seller.isWeb3Verified && (
-                                  <div className="flex items-center gap-1.5 text-blue-400">
-                                      <ShieldCheck className="h-4 w-4" />
-                                      <span>WEB3</span>
-                                  </div>
-                              )}
-                              {product.seller.kycStatus === 'Verified' && (
-                                  <div className="flex items-center gap-1.5 text-cyan-400">
-                                      <ShieldCheck className="h-4 w-4" />
-                                      <span>KYC</span>
-                                  </div>
-                              )}
-                          </div>
-                      </div>
-                  </CardContent>
-              </Card>
+              <SellerProfileCard product={product} />
           </div>
         </div>
         

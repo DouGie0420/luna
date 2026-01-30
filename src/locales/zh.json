@@ -298,5 +298,14 @@
         "title": "适合深夜编程的合成器波歌单",
         "content": "精选了一份最棒的合成器波和黑暗合成器音乐的歌单，让你保持专注，进入状态。非常适合编程、设计，或者只是在数字夜景中巡航。链接在内。"
     }
+  },
+  "sellerProfile": {
+    "reviews": "条评价",
+    "onSale": "在售商品",
+    "sold": "已售商品",
+    "reviewDetails": "评价详情",
+    "goodReviews": "好评",
+    "neutralReviews": "中评",
+    "badReviews": "差评"
   }
 }

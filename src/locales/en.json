@@ -298,5 +298,14 @@
         "title": "Synthwave Playlist for Late-Night Coding Sessions",
         "content": "Curated a playlist of the best synthwave and darksynth tracks to keep you focused and in the zone. Perfect for coding, designing, or just cruising through the digital nightscape. Link inside."
     }
+  },
+  "sellerProfile": {
+    "reviews": "reviews",
+    "onSale": "Items on Sale",
+    "sold": "Items Sold",
+    "reviewDetails": "Review Details",
+    "goodReviews": "Good",
+    "neutralReviews": "Neutral",
+    "badReviews": "Bad"
   }
 }

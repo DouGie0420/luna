@@ -34,6 +34,11 @@ export type User = {
     lat: number;
     lng: number;
   };
+  itemsOnSale?: number;
+  itemsSold?: number;
+  goodReviews?: number;
+  neutralReviews?: number;
+  badReviews?: number;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
