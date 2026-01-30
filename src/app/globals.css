@@ -99,3 +99,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .pixel-grid-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    opacity: 0.2;
+    background-image:
+      linear-gradient(hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 30px 30px;
+    image-rendering: pixelated;
+  }
+}
