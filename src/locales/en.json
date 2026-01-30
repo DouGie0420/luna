@@ -311,6 +311,11 @@
     "usersFollowing": "{userName}'s Following",
     "noFollowers": "{userName} doesn't have any followers yet.",
     "notFollowingAnyone": "{userName} isn't following anyone yet.",
-    "follow": "Follow"
+    "follow": "Follow",
+    "verifications": "Verifications",
+    "pro": "PRO",
+    "web3": "WEB3",
+    "kyc": "KYC",
+    "noVerifications": "No verifications yet"
   }
 }

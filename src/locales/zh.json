@@ -311,6 +311,11 @@
     "usersFollowing": "{userName} 关注的人",
     "noFollowers": "{userName} 还没有任何粉丝。",
     "notFollowingAnyone": "{userName} 还没有关注任何人。",
-    "follow": "关注"
+    "follow": "关注",
+    "verifications": "认证状态",
+    "pro": "专业卖家",
+    "web3": "Web3认证",
+    "kyc": "实名认证",
+    "noVerifications": "暂无认证"
   }
 }

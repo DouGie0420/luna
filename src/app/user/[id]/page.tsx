@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck } from "lucide-react";
 import { getUsers, getProducts } from "@/lib/data";
 import { notFound, useParams } from "next/navigation";
 import type { User, Product } from "@/lib/types";
@@ -163,6 +163,32 @@ export default function UserProfilePage() {
                                     </div>
                                 </div>
                             </Link>
+                            <div className="p-3 bg-secondary/30 rounded-lg">
+                                <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
+                                <div className="flex flex-col items-start gap-2 text-sm font-medium">
+                                    {user.isPro && (
+                                        <div className="flex items-center gap-1.5 text-green-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.pro')}</span>
+                                        </div>
+                                    )}
+                                    {user.isWeb3Verified && (
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.web3')}</span>
+                                        </div>
+                                    )}
+                                    {user.kycStatus === 'Verified' && (
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.kyc')}</span>
+                                        </div>
+                                    )}
+                                    {!user.isPro && !user.isWeb3Verified && user.kycStatus !== 'Verified' && (
+                                        <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

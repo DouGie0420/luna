@@ -43,19 +43,19 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 {seller.isPro && (
                                     <div className="flex items-center gap-1.5 text-green-400">
                                         <ShieldCheck className="h-4 w-4" />
-                                        <span>PRO</span>
+                                        <span>{t('userProfile.pro')}</span>
                                     </div>
                                 )}
                                 {seller.isWeb3Verified && (
                                     <div className="flex items-center gap-1.5 text-blue-400">
                                         <ShieldCheck className="h-4 w-4" />
-                                        <span>WEB3</span>
+                                        <span>{t('userProfile.web3')}</span>
                                     </div>
                                 )}
                                 {seller.kycStatus === 'Verified' && (
                                     <div className="flex items-center gap-1.5 text-cyan-400">
                                         <ShieldCheck className="h-4 w-4" />
-                                        <span>KYC</span>
+                                        <span>{t('userProfile.kyc')}</span>
                                     </div>
                                 )}
                             </div>

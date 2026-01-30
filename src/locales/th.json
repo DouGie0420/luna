@@ -311,6 +311,11 @@
     "usersFollowing": "กำลังติดตามของ {userName}",
     "noFollowers": "{userName} ยังไม่มีผู้ติดตาม",
     "notFollowingAnyone": "{userName} ยังไม่ได้ติดตามใคร",
-    "follow": "ติดตาม"
+    "follow": "ติดตาม",
+    "verifications": "การยืนยัน",
+    "pro": "มือโปร",
+    "web3": "WEB3",
+    "kyc": "KYC",
+    "noVerifications": "ยังไม่มีการยืนยัน"
   }
 }
