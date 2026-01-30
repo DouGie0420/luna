@@ -2,7 +2,7 @@
   "common": {
     "login": "登录",
     "register": "注册",
-    "close": "关闭",
+    "close": "返回首页",
     "submit": "提交",
     "back": "返回"
   },

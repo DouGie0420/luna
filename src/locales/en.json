@@ -2,7 +2,7 @@
   "common": {
     "login": "Login",
     "register": "Register",
-    "close": "Close",
+    "close": "Home",
     "submit": "Submit",
     "back": "Back"
   },
