@@ -63,7 +63,7 @@
         },
         "lunarSoil": {
           "type": "number",
-          "description": "The user's balance of Lunar Soil, the platform's loyalty points."
+          "description": "The user's balance of Lunar Soil, the platform's loyalty points, measured in grams (克)."
         }
       },
       "required": ["uid", "email", "kycStatus", "createdAt"]
