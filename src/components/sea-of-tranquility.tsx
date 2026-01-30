@@ -5,19 +5,16 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, Star, ThumbsUp, ArrowRight, MapPin } from 'lucide-react';
+import { MessageSquare, ThumbsUp, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getBbsPosts } from '@/lib/data';
 import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
-import { enUS, zhCN, th } from 'date-fns/locale';
-
-const locales = { en: enUS, zh: zhCN, th: th };
 
 export function SeaOfTranquility() {
-    const { t, language } = useTranslation();
+    const { t } = useTranslation();
     const { toast } = useToast();
     const [posts, setPosts] = useState<BbsPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -50,11 +47,22 @@ export function SeaOfTranquility() {
                         </Link>
                     </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <Card key={i} className="bg-card/50">
-                             <CardHeader><Skeleton className="h-10 w-4/5" /></CardHeader>
-                             <CardFooter><Skeleton className="h-8 w-3/5 ml-auto" /></CardFooter>
+                        <Card key={i} className="bg-card/50 overflow-hidden">
+                             <Skeleton className="aspect-video w-full" />
+                             <div className="p-4 space-y-2">
+                                 <Skeleton className="h-5 w-3/4" />
+                                 <Skeleton className="h-4 w-full" />
+                                 <Skeleton className="h-4 w-5/6" />
+                             </div>
+                             <div className="p-4 pt-0 flex justify-between items-center">
+                                 <div className="flex items-center gap-2">
+                                     <Skeleton className="h-6 w-6 rounded-full" />
+                                     <Skeleton className="h-4 w-16" />
+                                 </div>
+                                 <Skeleton className="h-4 w-12" />
+                             </div>
                         </Card>
                     ))}
                 </div>
@@ -73,63 +81,54 @@ export function SeaOfTranquility() {
                 </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {posts.map(post => {
-                    const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
-                        addSuffix: true,
-                        locale: locales[language] || enUS
-                    });
-                    
-                    return (
-                        <Link key={post.id} href={`/bbs/${post.id}`} className="group block h-full">
-                            <Card className="bg-card/50 hover:bg-card/80 transition-colors duration-300 flex flex-col h-full">
-                                <CardHeader>
-                                    <div className="flex items-start gap-3">
-                                        <Avatar className="h-10 w-10">
-                                            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div className="flex-1">
-                                            <CardTitle className="font-headline text-lg leading-tight transition-colors group-hover:text-primary">{t(post.titleKey)}</CardTitle>
-                                            <div className="mt-2">
-                                                <p className="text-sm font-semibold text-muted-foreground">{post.author.name}</p>
-                                                <div className="flex items-center flex-wrap gap-x-2 text-xs text-muted-foreground">
-                                                    <span>{timeAgo}</span>
-                                                    {post.author.location && (
-                                                        <>
-                                                            <span className="text-muted-foreground/50">•</span>
-                                                            <div className="flex items-center gap-1">
-                                                                <MapPin className="h-3 w-3" />
-                                                                <span>{post.author.location.city}, {post.author.location.countryCode}</span>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {posts.map(post => (
+                    <Link key={post.id} href={`/bbs/${post.id}`} className="group block h-full">
+                        <Card className="bg-card/50 hover:bg-card/80 transition-colors duration-300 flex flex-col h-full overflow-hidden">
+                            {post.images && post.images.length > 0 && (
+                                <CardHeader className="p-0">
+                                    <div className="aspect-video relative">
+                                        <Image
+                                            src={post.images[0]}
+                                            alt={t(post.titleKey)}
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                            data-ai-hint={post.imageHints?.[0] || ''}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                                     </div>
                                 </CardHeader>
-                                <CardContent className="flex-grow" />
-                                <CardFooter>
-                                    <div className="flex justify-end items-center gap-2 text-sm text-muted-foreground w-full">
-                                        <Button variant="ghost" size="sm" onClick={handleComingSoon} className="relative z-10 flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                                            <MessageSquare className="h-4 w-4" />
-                                            <span>{post.replies}</span>
-                                        </Button>
-                                        <Button variant="ghost" size="sm" onClick={handleComingSoon} className="relative z-10 flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                                            <ThumbsUp className="h-4 w-4" />
-                                            <span>{post.likes}</span>
-                                        </Button>
-                                        <Button variant="ghost" size="sm" onClick={handleComingSoon} className="relative z-10 flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                                            <Star className="h-4 w-4" />
-                                            <span>{post.favorites || 0}</span>
-                                        </Button>
+                            )}
+                            <div className={`p-4 ${post.images && post.images.length > 0 ? "-mt-10 z-10 text-white" : ""}`}>
+                                <CardTitle className="font-headline text-lg leading-tight transition-colors group-hover:text-primary line-clamp-2">{t(post.titleKey)}</CardTitle>
+                            </div>
+                        
+                            <CardContent className="p-4 pt-0 text-sm text-muted-foreground flex-grow">
+                                <p className="line-clamp-2">{t(post.contentKey)}</p>
+                            </CardContent>
+
+                            <CardFooter className="p-4 pt-0 flex justify-between items-center text-xs">
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <Avatar className="h-6 w-6">
+                                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="truncate">{post.author.name}</span>
+                                </div>
+                                <div className="flex items-center gap-3 text-muted-foreground">
+                                    <div className="flex items-center gap-1" title={`${post.replies} replies`}>
+                                        <MessageSquare className="h-3.5 w-3.5" />
+                                        <span>{post.replies}</span>
                                     </div>
-                                </CardFooter>
-                            </Card>
-                        </Link>
-                    )
-                })}
+                                    <div className="flex items-center gap-1" title={`${post.likes} likes`}>
+                                        <ThumbsUp className="h-3.5 w-3.5" />
+                                        <span>{post.likes}</span>
+                                    </div>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    </Link>
+                ))}
             </div>
         </section>
     );
