@@ -184,40 +184,38 @@ export default function CheckoutPage() {
             <RotatingQuote />
             
             {/* Shipping Method */}
-            <div className="pt-[30px]">
-                <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                    <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {product.shippingMethod === 'Seller Pays' ? (
-                    <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
-                        <CheckCircle2 className="h-6 w-6" />
-                        <div>
-                        <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
-                        <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
-                        </div>
-                    </div>
-                    ) : (
-                    <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
-                        {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
-                        <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                            <div className="flex items-center gap-4">
-                                <RadioGroupItem value={method} id={method} />
-                                <div>
-                                <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
-                                <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
-                                </div>
-                            </div>
-                        </Label>
-                        ))}
-                    </RadioGroup>
-                    )}
-                </CardContent>
-                </Card>
-            </div>
+            <Card>
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                  <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
+                  </CardTitle>
+              </CardHeader>
+              <CardContent>
+                  {product.shippingMethod === 'Seller Pays' ? (
+                  <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
+                      <CheckCircle2 className="h-6 w-6" />
+                      <div>
+                      <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
+                      <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
+                      </div>
+                  </div>
+                  ) : (
+                  <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
+                      {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
+                      <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                          <div className="flex items-center gap-4">
+                              <RadioGroupItem value={method} id={method} />
+                              <div>
+                              <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
+                              <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                              </div>
+                          </div>
+                      </Label>
+                      ))}
+                  </RadioGroup>
+                  )}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right/Sidebar Column */}
@@ -251,9 +249,9 @@ export default function CheckoutPage() {
                     <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
                     <div className="grid grid-cols-1 gap-2">
                         <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                        <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
-                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
                         <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
+                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                        <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
                     </div>
                  </div>
               </CardContent>

@@ -9,29 +9,51 @@ const quotes = [
 ];
 
 export function RotatingQuote() {
-    const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-    const [isFading, setIsFading] = useState(false);
+    const [quoteIndex, setQuoteIndex] = useState(0);
+    const [text, setText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+    
+    const typingSpeed = 120;
+    const deletingSpeed = 70;
+    const pauseDuration = 2000;
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setIsFading(true);
-            setTimeout(() => {
-                setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % quotes.length);
-                setIsFading(false);
-            }, 500); // fade out duration
-        }, 5000); // Change quote every 5 seconds
+        let timer: NodeJS.Timeout;
 
-        return () => clearInterval(interval);
-    }, []);
+        if (isDeleting) {
+            // Handle deleting
+            if (text.length > 0) {
+                timer = setTimeout(() => {
+                    setText((prev) => prev.slice(0, -1));
+                }, deletingSpeed);
+            } else {
+                // Finished deleting, switch to next quote
+                setIsDeleting(false);
+                setQuoteIndex((prev) => (prev + 1) % quotes.length);
+            }
+        } else {
+            // Handle typing
+            const fullQuote = quotes[quoteIndex];
+            if (text.length < fullQuote.length) {
+                timer = setTimeout(() => {
+                    setText((prev) => fullQuote.substring(0, prev.length + 1));
+                }, typingSpeed);
+            } else {
+                // Pause at the end of the line before deleting
+                timer = setTimeout(() => setIsDeleting(true), pauseDuration);
+            }
+        }
+
+        return () => clearTimeout(timer);
+    }, [text, isDeleting, quoteIndex]);
 
     return (
-        <div className="text-center">
+        <div className="text-center py-4">
             <p className={cn(
-                "font-headline text-sm text-primary animate-glow",
-                "transition-opacity duration-500",
-                isFading ? "opacity-0" : "opacity-100"
+                "font-headline text-sm text-muted-foreground animate-glow-muted h-4 flex justify-center items-center",
             )}>
-                {quotes[currentQuoteIndex]}
+                <span>{text}</span>
+                <span className="inline-block w-px h-4 bg-muted-foreground ml-1 animate-pulse"></span>
             </p>
         </div>
     );

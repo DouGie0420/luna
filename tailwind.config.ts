@@ -103,6 +103,14 @@ export default {
             textShadow: '0 0 16px hsl(var(--primary) / 1)',
           },
         },
+        'glow-muted': {
+          '0%, 100%': {
+            textShadow: '0 0 5px hsl(var(--muted-foreground) / 0.7)',
+          },
+          '50%': {
+            textShadow: '0 0 10px hsl(var(--muted-foreground) / 1)',
+          },
+        },
         'glow-green': {
             '0%, 100%': {
               boxShadow: '0 0 5px hsl(84 78% 55% / 0.6)',
@@ -130,6 +138,7 @@ export default {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'glow': 'glow 4s ease-in-out infinite',
+        'glow-muted': 'glow-muted 4s ease-in-out infinite',
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
