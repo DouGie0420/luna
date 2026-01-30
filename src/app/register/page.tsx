@@ -23,6 +23,7 @@ import { upsertUserProfile } from "@/lib/user"
 import { useToast } from "@/hooks/use-toast"
 import { X } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
+import React from "react";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -40,7 +41,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
+  const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
     if (!auth || !firestore) return;
 
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
@@ -51,6 +52,8 @@ export default function RegisterPage() {
       toast({
         title: t('registerPage.registrationSuccessTitle'),
         description: t('registerPage.registrationSuccessDescription').replace('{displayName}', result.user.displayName || 'User'),
+        x: e.clientX,
+        y: e.clientY,
       });
       router.push('/account');
     } catch (error: any) {
@@ -59,24 +62,21 @@ export default function RegisterPage() {
         variant: 'destructive',
         title: t('registerPage.registrationFailedTitle'),
         description: error.message || t('registerPage.registrationFailedDescription'),
+        x: e.clientX,
+        y: e.clientY,
       });
     }
   };
 
   return (
-    <>
-      <div className="sticky top-20 z-30 border-y border-primary/50 bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-12 items-center justify-end px-4">
-          <Button asChild variant="ghost" className="rounded-full bg-lime-400/20 text-lime-300 border border-lime-400/50 hover:bg-lime-400/30 hover:text-lime-200 h-8 px-3">
-            <Link href="/">
-              <X className="mr-2 h-4 w-4" />
-              {t('common.close')}
-            </Link>
+    <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
+        <Card className="w-full max-w-2xl mx-auto relative">
+          <Button asChild variant="ghost" size="icon" className="absolute right-2 top-2 z-10 h-9 w-9 rounded-full p-1 text-primary ring-offset-background transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none animate-glow">
+              <Link href="/">
+                <X className="h-5 w-5" />
+                <span className="sr-only">{t('common.close')}</span>
+              </Link>
           </Button>
-        </div>
-      </div>
-      <div className="container mx-auto px-4 py-12">
-        <Card className="w-full max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl font-headline">{t('registerPage.title')}</CardTitle>
             <CardDescription>
@@ -150,11 +150,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={() => handleSocialLogin('google')}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)}>
                   <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                   Google
                 </Button>
-                <Button variant="outline" onClick={() => handleSocialLogin('facebook')}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)}>
                   <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
                   Facebook
                 </Button>
@@ -168,7 +168,6 @@ export default function RegisterPage() {
             </div>
           </CardFooter>
         </Card>
-      </div>
-    </>
+    </div>
   )
 }
