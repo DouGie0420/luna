@@ -164,7 +164,8 @@
     "kycVerification": "KYC Verification",
     "settings": "Settings",
     "logout": "Logout",
-    "settingsTooltip": "Feature coming soon"
+    "settingsTooltip": "Feature coming soon",
+    "addresses": "Addresses"
   },
   "accountListings": {
     "title": "My Listings",
@@ -227,6 +228,15 @@
     "selfieUploadDescription": "Hold your ID next to your face.",
     "submitButton": "Submit for Verification"
   },
+  "accountAddresses": {
+    "title": "My Addresses",
+    "savedAddresses": "Saved Addresses",
+    "description": "Manage your shipping addresses for faster checkout.",
+    "addNewAddress": "Add New Address",
+    "noAddresses": "No saved addresses.",
+    "noAddressesDescription": "Add an address to get started.",
+    "addFirstAddress": "Add your first address"
+  },
   "productCardActions": {
     "edit": "Edit Item",
     "delete": "Delete Item",
@@ -239,6 +249,12 @@
     "deleteCancel": "Cancel",
     "deleteSuccess": "Item deleted successfully",
     "featureComingSoon": "Feature coming soon!"
+  },
+  "buyNowButton": {
+    "buyNow": "Buy Now",
+    "loading": "Loading...",
+    "kycRequiredTitle": "KYC Required",
+    "kycRequiredDescription": "You must complete KYC verification before purchasing."
   },
   "homePage": {
     "verifiedMerchants": "Verified Merchants",
@@ -319,5 +335,30 @@
     "web3": "WEB3",
     "kyc": "KYC",
     "noVerifications": "No verifications yet"
+  },
+  "checkoutPage": {
+    "title": "Confirm Order",
+    "productInfo": "Product Information",
+    "shippingAddress": "Shipping Address",
+    "addNewAddress": "Add New Address",
+    "defaultAddress": "Default",
+    "edit": "Edit",
+    "shippingMethod": "Shipping Method",
+    "shippingMethods": {
+      "sellerpays": "Seller Pays",
+      "sellerpaysDesc": "Shipping fee is covered by the seller.",
+      "buyerpays": "Buyer Pays",
+      "buyerpaysDesc": "Shipping fee will be calculated and added.",
+      "inperson": "In-person Transaction",
+      "inpersonDesc": "Meet with the seller to exchange."
+    },
+    "paymentMethod": "Payment Method",
+    "orderSummary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shippingFee": "Shipping",
+    "free": "Free",
+    "total": "Total",
+    "confirmPurchase": "Confirm Purchase",
+    "escrowInfo": "Your payment will be held in escrow until you confirm receipt of the item."
   }
 }

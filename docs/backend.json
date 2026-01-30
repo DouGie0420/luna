@@ -89,6 +89,58 @@
       },
       "required": ["uid", "email", "kycStatus", "createdAt"]
     },
+    "UserAddress": {
+      "title": "User Address",
+      "description": "Represents a user's shipping address.",
+      "type": "object",
+      "properties": {
+        "recipientName": {
+          "type": "string",
+          "description": "The name of the recipient."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The recipient's phone number."
+        },
+        "country": {
+          "type": "string",
+          "description": "Country of the address."
+        },
+        "province": {
+          "type": "string",
+          "description": "Province or state of the address."
+        },
+        "city": {
+          "type": "string",
+          "description": "City of the address."
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "The primary line of the address."
+        },
+        "addressLine2": {
+          "type": "string",
+          "description": "The secondary line of the address (optional)."
+        },
+        "postalCode": {
+          "type": "string",
+          "description": "The postal code."
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "Whether this is the default shipping address."
+        }
+      },
+      "required": [
+        "recipientName",
+        "phone",
+        "country",
+        "province",
+        "city",
+        "addressLine1",
+        "postalCode"
+      ]
+    },
     "Promo": {
       "title": "Promotion",
       "description": "Represents a promotional event or page, like Cyber Monday.",
@@ -144,7 +196,9 @@
         "productId": { "type": "string" },
         "buyerId": { "type": "string" },
         "sellerId": { "type": "string" },
-        "price": { "type": "number" },
+        "price": { "type": "number", "description": "The original price of the product." },
+        "shippingFee": { "type": "number", "description": "The calculated shipping fee." },
+        "totalAmount": { "type": "number", "description": "The total amount (price + shippingFee)." },
         "currency": { "type": "string" },
         "status": {
           "type": "string",
@@ -153,9 +207,25 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "completedAt": { "type": "string", "format": "date-time" },
         "buyerReviewId": { "type": "string" },
-        "sellerReviewId": { "type": "string" }
+        "sellerReviewId": { "type": "string" },
+        "shippingAddress": {
+          "type": "object",
+          "description": "A snapshot of the selected shipping address at the time of order.",
+          "properties": {
+            "recipientName": { "type": "string" },
+            "phone": { "type": "string" },
+            "country": { "type": "string" },
+            "province": { "type": "string" },
+            "city": { "type": "string" },
+            "addressLine1": { "type": "string" },
+            "addressLine2": { "type": "string" },
+            "postalCode": { "type": "string" }
+          },
+           "required": ["recipientName", "phone", "country", "province", "city", "addressLine1", "postalCode"]
+        },
+        "shippingMethod": { "type": "string", "enum": ["Seller Pays", "Buyer Pays", "In-person"] }
       },
-      "required": ["productId", "buyerId", "sellerId", "price", "currency", "status", "createdAt"]
+      "required": ["productId", "buyerId", "sellerId", "price", "shippingFee", "totalAmount", "currency", "status", "createdAt", "shippingAddress", "shippingMethod"]
     },
     "Review": {
       "title": "Transaction Review",
@@ -193,6 +263,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores public user profile data."
+    },
+    "/users/{userId}/addresses/{addressId}": {
+      "schema": { "$ref": "#/entities/UserAddress" },
+      "description": "Stores a user's shipping addresses."
     },
     "/promos/{promoId}": {
       "schema": { "$ref": "#/entities/Promo" },

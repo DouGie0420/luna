@@ -6,8 +6,10 @@ import { Button } from './ui/button';
 import { useRouter } from 'next/navigation';
 import type { Product } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
 
 export function BuyNowButton({ product }: { product: Product }) {
+    const { t } = useTranslation();
     const { user, profile, loading } = useUser();
     const router = useRouter();
     const { toast } = useToast();
@@ -21,18 +23,14 @@ export function BuyNowButton({ product }: { product: Product }) {
         if (profile?.kycStatus !== 'Verified') {
             toast({
                 variant: 'destructive',
-                title: '需要认证',
-                description: '您需要完成KYC认证后才能购买商品。',
+                title: t('buyNowButton.kycRequiredTitle'),
+                description: t('buyNowButton.kycRequiredDescription'),
             });
             // Optionally redirect to KYC page
             setTimeout(() => router.push('/account/kyc'), 2000);
         } else {
             // Proceed to checkout
-            console.log('Proceed to checkout for product:', product.id);
-            toast({
-                title: '正在处理...',
-                description: '正在将您转到结帐页面。',
-            });
+            router.push(`/products/${product.id}/checkout`);
         }
     };
 
@@ -40,14 +38,14 @@ export function BuyNowButton({ product }: { product: Product }) {
         return (
              <Button size="lg" className="flex-1 h-14 text-lg" disabled>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                加载中...
+                {t('buyNowButton.loading')}
             </Button>
         )
     }
 
     return (
         <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleClick}>
-            立即购买
+            {t('buyNowButton.buyNow')}
         </Button>
     );
 }

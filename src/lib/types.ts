@@ -87,18 +87,35 @@ export type Promo = {
 export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Disputed' | 'Cancelled';
 export type Rating = 'Good' | 'Neutral' | 'Bad';
 
+export type UserAddress = {
+  id: string;
+  recipientName: string;
+  phone: string;
+  country: string;
+  province: string;
+  city: string;
+  addressLine1: string;
+  addressLine2?: string;
+  postalCode: string;
+  isDefault?: boolean;
+};
+
 export type Order = {
   id: string;
   productId: string;
   buyerId: string;
   sellerId: string;
   price: number;
+  shippingFee: number;
+  totalAmount: number;
   currency: string;
   status: OrderStatus;
   createdAt: any;
   completedAt?: any;
   buyerReviewId?: string;
   sellerReviewId?: string;
+  shippingAddress: Omit<UserAddress, 'id' | 'isDefault'>;
+  shippingMethod: 'Seller Pays' | 'Buyer Pays' | 'In-person';
 };
 
 export type Review = {

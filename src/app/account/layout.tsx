@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   LogOut,
   Settings,
+  MapPin,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -135,6 +136,17 @@ export default function AccountLayout({
                   <Link href="/account/wallet">
                     <Wallet />
                     {t('accountLayout.wallet')}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/account/addresses')}
+                >
+                  <Link href="/account/addresses">
+                    <MapPin />
+                    {t('accountLayout.addresses')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

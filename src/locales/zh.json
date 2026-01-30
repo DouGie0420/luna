@@ -164,7 +164,8 @@
     "kycVerification": "KYC认证",
     "settings": "设置",
     "logout": "退出登录",
-    "settingsTooltip": "功能即将推出"
+    "settingsTooltip": "功能即将推出",
+    "addresses": "收货地址"
   },
   "accountListings": {
     "title": "我发布的",
@@ -227,6 +228,15 @@
     "selfieUploadDescription": "请将证件放在脸旁边拍照。",
     "submitButton": "提交以供审核"
   },
+  "accountAddresses": {
+    "title": "我的地址",
+    "savedAddresses": "已存地址",
+    "description": "管理您的收货地址以便快速结账。",
+    "addNewAddress": "添加新地址",
+    "noAddresses": "没有已存地址。",
+    "noAddressesDescription": "添加一个地址以开始。",
+    "addFirstAddress": "添加您的第一个地址"
+  },
   "productCardActions": {
     "edit": "编辑商品",
     "delete": "删除商品",
@@ -239,6 +249,12 @@
     "deleteCancel": "取消",
     "deleteSuccess": "商品已删除",
     "featureComingSoon": "功能即将推出！"
+  },
+  "buyNowButton": {
+    "buyNow": "立即购买",
+    "loading": "加载中...",
+    "kycRequiredTitle": "需要KYC认证",
+    "kycRequiredDescription": "您必须先完成KYC认证才能购买商品。"
   },
   "homePage": {
     "verifiedMerchants": "认证商户",
@@ -319,5 +335,30 @@
     "web3": "Web3认证",
     "kyc": "实名认证",
     "noVerifications": "暂无认证"
+  },
+  "checkoutPage": {
+    "title": "确认订单",
+    "productInfo": "商品信息",
+    "shippingAddress": "收货地址",
+    "addNewAddress": "添加新地址",
+    "defaultAddress": "默认",
+    "edit": "编辑",
+    "shippingMethod": "配送方式",
+    "shippingMethods": {
+      "sellerpays": "卖家包邮",
+      "sellerpaysDesc": "运费由卖家承担。",
+      "buyerpays": "运费到付",
+      "buyerpaysDesc": "运费将被计算并添加。",
+      "inperson": "当面交易",
+      "inpersonDesc": "与卖家见面以交换商品。"
+    },
+    "paymentMethod": "支付方式",
+    "orderSummary": "订单摘要",
+    "subtotal": "商品总价",
+    "shippingFee": "运费",
+    "free": "免费",
+    "total": "合计",
+    "confirmPurchase": "确认购买",
+    "escrowInfo": "您的付款将被托管，直到您确认收到商品为止。"
   }
 }

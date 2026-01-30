@@ -164,7 +164,8 @@
     "kycVerification": "การยืนยัน KYC",
     "settings": "ตั้งค่า",
     "logout": "ออกจากระบบ",
-    "settingsTooltip": "ฟีเจอร์นี้จะมาในเร็วๆ นี้"
+    "settingsTooltip": "ฟีเจอร์นี้จะมาในเร็วๆ นี้",
+    "addresses": "ที่อยู่"
   },
   "accountListings": {
     "title": "รายการของฉัน",
@@ -227,6 +228,15 @@
     "selfieUploadDescription": "ถือบัตรประจำตัวของคุณไว้ข้างใบหน้า",
     "submitButton": "ส่งเพื่อตรวจสอบ"
   },
+  "accountAddresses": {
+    "title": "ที่อยู่ของฉัน",
+    "savedAddresses": "ที่อยู่ที่บันทึกไว้",
+    "description": "จัดการที่อยู่สำหรับจัดส่งของคุณเพื่อการชำระเงินที่รวดเร็วยิ่งขึ้น",
+    "addNewAddress": "เพิ่มที่อยู่ใหม่",
+    "noAddresses": "ไม่มีที่อยู่ที่บันทึกไว้",
+    "noAddressesDescription": "เพิ่มที่อยู่เพื่อเริ่มต้น",
+    "addFirstAddress": "เพิ่มที่อยู่แรกของคุณ"
+  },
   "productCardActions": {
     "edit": "แก้ไขรายการ",
     "delete": "ลบรายการ",
@@ -239,6 +249,12 @@
     "deleteCancel": "ยกเลิก",
     "deleteSuccess": "ลบรายการสำเร็จแล้ว",
     "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!"
+  },
+  "buyNowButton": {
+    "buyNow": "ซื้อตอนนี้",
+    "loading": "กำลังโหลด...",
+    "kycRequiredTitle": "ต้องการ KYC",
+    "kycRequiredDescription": "คุณต้องยืนยัน KYC ให้เสร็จสิ้นก่อนทำการสั่งซื้อ"
   },
   "homePage": {
     "verifiedMerchants": "ร้านค้าที่ยืนยันแล้ว",
@@ -319,5 +335,30 @@
     "web3": "WEB3",
     "kyc": "KYC",
     "noVerifications": "ยังไม่มีการยืนยัน"
+  },
+  "checkoutPage": {
+    "title": "ยืนยันคำสั่งซื้อ",
+    "productInfo": "ข้อมูลสินค้า",
+    "shippingAddress": "ที่อยู่สำหรับจัดส่ง",
+    "addNewAddress": "เพิ่มที่อยู่ใหม่",
+    "defaultAddress": "ค่าเริ่มต้น",
+    "edit": "แก้ไข",
+    "shippingMethod": "วิธีการจัดส่ง",
+    "shippingMethods": {
+      "sellerpays": "ผู้ขายจ่าย",
+      "sellerpaysDesc": "ผู้ขายเป็นผู้รับผิดชอบค่าจัดส่ง",
+      "buyerpays": "ผู้ซื้อจ่าย",
+      "buyerpaysDesc": "ค่าจัดส่งจะถูกคำนวณและเพิ่มเข้าไป",
+      "inperson": "นัดรับสินค้า",
+      "inpersonDesc": "นัดพบกับผู้ขายเพื่อแลกเปลี่ยนสินค้า"
+    },
+    "paymentMethod": "ช่องทางการชำระเงิน",
+    "orderSummary": "สรุปคำสั่งซื้อ",
+    "subtotal": "ราคาสินค้า",
+    "shippingFee": "ค่าจัดส่ง",
+    "free": "ฟรี",
+    "total": "ทั้งหมด",
+    "confirmPurchase": "ยืนยันการสั่งซื้อ",
+    "escrowInfo": "การชำระเงินของคุณจะถูกเก็บไว้ใน escrow จนกว่าคุณจะยืนยันการรับสินค้า"
   }
 }
