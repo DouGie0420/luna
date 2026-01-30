@@ -2,19 +2,13 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getProductById, getProducts } from '@/lib/data';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, ShieldCheck } from 'lucide-react';
 import { BuyNowButton } from '@/components/buy-now-button';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
+import { ProductImageGallery } from '@/components/product-image-gallery';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -33,35 +27,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
           {/* Left Column: Image Carousel & Actions */}
           <div className="lg:col-span-3">
-            <Carousel className="w-full">
-              <CarouselContent>
-                {product.images.map((img, index) => (
-                  <CarouselItem key={index}>
-                    <Card className="overflow-hidden">
-                      <div className="aspect-video relative">
-                        <Image
-                          src={img}
-                          alt={`${product.name} image ${index + 1}`}
-                          fill
-                          className="object-cover"
-                          data-ai-hint={product.imageHints[index]}
-                        />
-                      </div>
-                    </Card>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="left-4" />
-              <CarouselNext className="right-4" />
-            </Carousel>
-            <div className="flex items-center justify-end gap-6 mt-4">
-                <Button variant="ghost" className="text-muted-foreground">
-                    <Star className="mr-2 h-4 w-4" /> 点赞
-                </Button>
-                <Button variant="ghost" className="text-muted-foreground">
-                    <Star className="mr-2 h-4 w-4" /> 收藏
-                </Button>
-            </div>
+            <ProductImageGallery product={product} />
           </div>
 
           {/* Right Column: Product Details & Actions */}
