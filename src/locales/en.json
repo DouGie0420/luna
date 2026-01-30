@@ -58,7 +58,7 @@
     "orders": "Orders",
     "logoutTestSuccess": "You have logged out of the test account.",
     "logoutSuccess": "You have been successfully logged out.",
-    "web3Login": "Web3 Login",
+    "web3Wallet": "Web3 Wallet",
     "web3LoginComingSoonTitle": "Feature Coming Soon",
     "web3LoginComingSoonDescription": "Web3 wallet login is currently under development."
   },

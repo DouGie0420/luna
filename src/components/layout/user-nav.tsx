@@ -79,14 +79,14 @@ export function UserNav() {
   if (!isLoggedIn) {
     return (
         <div className="flex items-center gap-2">
-             <Button variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={handleWeb3Login}>
+             <Button size="sm" variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={handleWeb3Login}>
                 <Wallet className="mr-2 h-4 w-4" />
-                {t('userNav.web3Login')}
+                {t('userNav.web3Wallet')}
             </Button>
-             <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
+             <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/login">{t('common.login')}</Link>
             </Button>
-            <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
+            <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/register">{t('common.register')}</Link>
             </Button>
         </div>
