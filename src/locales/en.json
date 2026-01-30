@@ -256,5 +256,39 @@
     "post4": {
       "title": "[Showoff] My home server matrix, come take a look."
     }
+  },
+  "bbsPage": {
+    "title": "Sea of Tranquility",
+    "description": "A haven for discourse in the digital expanse.",
+    "newPost": "New Post",
+    "filterNewest": "Newest",
+    "filterTrending": "Trending",
+    "filterHot": "Hot"
+  },
+  "bbsPosts": {
+    "post1": {
+        "title": "Tutorial: My First Custom Keyboard Build",
+        "content": "A step-by-step guide on how I built my first mechanical keyboard with a transparent case and neon keycaps. It was a journey of soldering, programming, and a lot of patience. Sharing the component list and my experience..."
+    },
+    "post2": {
+        "title": "Is the new 'Neural-Link VR' headset worth it?",
+        "content": "Just spent a week with the latest VR headset. The immersion is insane, but is it worth the hefty price tag? Here is my detailed review, covering the pros, cons, and whether you should upgrade..."
+    },
+    "post3": {
+        "title": "My Favorite Cyber-Fashion Finds This Month",
+        "content": "Compiled a list of the most unique techwear and cyberpunk-style clothing I've come across. From LED-embedded jackets to self-lacing boots, the future of fashion is now."
+    },
+    "post4": {
+        "title": "Trading 101: How to Avoid Common Scams",
+        "content": "Having been on this platform for a while, I've seen my share of shady deals. Here are some tips and red flags to look out for to ensure your trades are safe and secure. Stay vigilant, everyone."
+    },
+    "post5": {
+        "title": "Photo Gallery: Bangkok's Neon-Drenched Streets",
+        "content": "A collection of photos I took wandering through Bangkok's hidden alleys and bustling night markets. The city truly comes alive after dark with a unique cyberpunk aesthetic."
+    },
+    "post6": {
+        "title": "Synthwave Playlist for Late-Night Coding Sessions",
+        "content": "Curated a playlist of the best synthwave and darksynth tracks to keep you focused and in the zone. Perfect for coding, designing, or just cruising through the digital nightscape. Link inside."
+    }
   }
 }

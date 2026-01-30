@@ -99,3 +99,17 @@ export type LunarSoilLedgerEntry = {
   expiresAt: any;
   source: string; // e.g., 'review', 'daily-login', 'purchase'
 };
+
+export type BbsPost = {
+  id: string;
+  titleKey: string;
+  contentKey: string;
+  author: User;
+  tags: string[];
+  replies: number;
+  likes: number;
+  views: number;
+  createdAt: string;
+  featuredImage?: string;
+  featuredImageHint?: string;
+};

@@ -1,4 +1,4 @@
-import type { Product, User, KycStatus } from './types';
+import type { Product, User, KycStatus, BbsPost } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -272,6 +272,87 @@ const products: Product[] = [
   },
 ];
 
+const bbsPosts: BbsPost[] = [
+    {
+      id: 'post-1',
+      titleKey: 'bbsPosts.post1.title',
+      contentKey: 'bbsPosts.post1.content',
+      author: users[4],
+      tags: ['硬件改造', 'DIY', '教程'],
+      replies: 42,
+      likes: 128,
+      views: 2500,
+      createdAt: '2024-07-28T10:00:00Z',
+      featuredImage: 'https://picsum.photos/seed/bbs-post1/800/450',
+      featuredImageHint: 'cyberpunk hardware'
+    },
+    {
+      id: 'post-2',
+      titleKey: 'bbsPosts.post2.title',
+      contentKey: 'bbsPosts.post2.content',
+      author: users[1],
+      tags: ['虚拟现实', '游戏', '评测'],
+      replies: 88,
+      likes: 350,
+      views: 8900,
+      createdAt: '2024-07-27T18:30:00Z',
+      featuredImage: 'https://picsum.photos/seed/bbs-post2/800/450',
+      featuredImageHint: 'virtual reality'
+    },
+    {
+      id: 'post-3',
+      titleKey: 'bbsPosts.post3.title',
+      contentKey: 'bbsPosts.post3.content',
+      author: users[2],
+      tags: ['时尚', '穿搭', '霓虹'],
+      replies: 15,
+      likes: 75,
+      views: 1200,
+      createdAt: '2024-07-27T14:00:00Z',
+      featuredImage: 'https://picsum.photos/seed/bbs-post3/800/450',
+      featuredImageHint: 'neon fashion'
+    },
+    {
+      id: 'post-4',
+      titleKey: 'bbsPosts.post4.title',
+      contentKey: 'bbsPosts.post4.content',
+      author: users[6],
+      tags: ['交易心得', '避坑指南'],
+      replies: 29,
+      likes: 99,
+      views: 3100,
+      createdAt: '2024-07-26T11:00:00Z',
+      featuredImage: 'https://picsum.photos/seed/bbs-post4/800/450',
+      featuredImageHint: 'abstract data'
+    },
+    {
+        id: 'post-5',
+        titleKey: 'bbsPosts.post5.title',
+        contentKey: 'bbsPosts.post5.content',
+        author: users[8],
+        tags: ['城市探索', '摄影', '曼谷'],
+        replies: 55,
+        likes: 210,
+        views: 6500,
+        createdAt: '2024-07-25T22:00:00Z',
+        featuredImage: 'https://picsum.photos/seed/bbs-post5/800/450',
+        featuredImageHint: 'cyberpunk city'
+    },
+    {
+        id: 'post-6',
+        titleKey: 'bbsPosts.post6.title',
+        contentKey: 'bbsPosts.post6.content',
+        author: users[9],
+        tags: ['音乐', '合成器波', '推荐'],
+        replies: 33,
+        likes: 150,
+        views: 4200,
+        createdAt: '2024-07-24T09:00:00Z',
+        featuredImage: 'https://picsum.photos/seed/bbs-post6/800/450',
+        featuredImageHint: 'retro wave'
+    }
+];
+
 export async function getProducts(): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -287,4 +368,9 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 export async function getUsers(): Promise<User[]> {
     await new Promise(resolve => setTimeout(resolve, 500));
     return users;
+}
+
+export async function getBbsPosts(): Promise<BbsPost[]> {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return bbsPosts;
 }
