@@ -127,7 +127,7 @@ const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href 
             <span className="text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
                 {isLink ? (
-                    <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
+                    <Link href={href} className="font-semibold text-foreground hover:text-primary">{value}</Link>
                 ) : (
                     <span className="font-medium text-right">{value}</span>
                 )}
@@ -198,7 +198,9 @@ export default function OrderDetailPage() {
                                     <Countdown targetDate={order.autoConfirmTime} />
                                 </CardDescription>
                             </div>
-                            <Truck className="h-16 w-16 text-primary animate-bounce" />
+                            <div className="h-16 w-16 flex items-center justify-center">
+                                <div className="h-6 w-6 rounded-full bg-foreground animate-pulse"></div>
+                            </div>
                         </div>
                     </CardHeader>
                 </Card>
