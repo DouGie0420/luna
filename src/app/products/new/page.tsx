@@ -22,14 +22,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert } from "lucide-react"
+import { Upload, ShieldAlert, X } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function NewProductPage() {
   const { user, profile, loading } = useUser();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
       if (!loading && !user) {
@@ -57,8 +59,14 @@ export default function NewProductPage() {
       return (
            <>
               <div className="sticky top-20 z-30 border-b bg-background/80 backdrop-blur-sm">
-                <div className="container mx-auto flex h-16 items-center px-4">
+                <div className="container mx-auto flex h-16 items-center justify-between px-4">
                   <BackButton />
+                  <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground">
+                    <Link href="/">
+                        <X className="mr-2 h-4 w-4" />
+                        {t('common.close')}
+                    </Link>
+                  </Button>
                 </div>
               </div>
               <div className="container mx-auto px-4 py-12">
@@ -93,8 +101,14 @@ export default function NewProductPage() {
   return (
     <>
       <div className="sticky top-20 z-30 border-b bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center px-4">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <BackButton />
+          <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground">
+            <Link href="/">
+                <X className="mr-2 h-4 w-4" />
+                {t('common.close')}
+            </Link>
+          </Button>
         </div>
       </div>
       <div className="container mx-auto px-4 py-12">

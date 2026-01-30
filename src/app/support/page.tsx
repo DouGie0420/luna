@@ -16,16 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { BackButton } from "@/components/back-button"
+import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close"
 
 export default function SupportPage() {
   return (
     <>
-      <div className="sticky top-20 z-30 border-b bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center px-4">
-          <BackButton />
-        </div>
-      </div>
+      <PageHeaderWithBackAndClose />
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto">
           <Card>
