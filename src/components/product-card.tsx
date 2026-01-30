@@ -34,7 +34,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </CardContent>
         <CardFooter className="p-4 flex justify-between items-center">
           <div>
-             <p className="text-lg font-semibold">
+             <p className="text-lg font-semibold text-primary">
               {product.price.toLocaleString()}
               <span className="text-xs text-muted-foreground ml-1">{product.currency}</span>
             </p>

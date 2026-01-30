@@ -106,6 +106,10 @@ export default async function ProductPage({ params }: { params: { id: string } }
                                 <Star className="h-4 w-4 fill-primary text-primary" />
                                 <span>{product.seller.rating} ({product.seller.reviews} reviews)</span>
                             </div>
+                             <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                                <MapPin className="h-4 w-4" />
+                                <span>{product.location.city}, {product.location.country}</span>
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -130,21 +134,6 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 </CardHeader>
                 <CardContent>
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-center">商品位置</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="w-64 h-64 rounded-full bg-muted flex items-center justify-center border border-dashed border-border mx-auto">
-                        <p className="text-muted-foreground">地图</p>
-                    </div>
-                     <div className="flex items-center justify-center gap-2 text-muted-foreground mt-4">
-                        <MapPin className="h-4 w-4" />
-                        <span>{product.location.city}, {product.location.country}</span>
-                    </div>
                 </CardContent>
             </Card>
       </div>
