@@ -4,6 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { BackgroundSnake } from '@/components/background-snake';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export default function RootLayout({
   children,
@@ -18,14 +20,17 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
       </head>
       <body className={cn("font-body", "bg-background text-foreground")}>
-        <div className="pixel-grid-bg" />
-        <BackgroundSnake />
-        <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-        </div>
-        <Toaster />
+        <FirebaseClientProvider>
+          <div className="pixel-grid-bg" />
+          <BackgroundSnake />
+          <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+          </div>
+          <Toaster />
+          <FirebaseErrorListener />
+        </FirebaseClientProvider>
       </body>
     </html>
   );

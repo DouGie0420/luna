@@ -23,3 +23,15 @@ export type User = {
   rating: number;
   reviews: number;
 };
+
+export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
+
+export type UserProfile = {
+    uid: string;
+    email: string;
+    displayName: string;
+    photoURL: string;
+    kycStatus: KycStatus;
+    createdAt?: any;
+    lastLogin?: any;
+}

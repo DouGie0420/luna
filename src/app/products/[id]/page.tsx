@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, ShieldCheck } from 'lucide-react';
+import { BuyNowButton } from '@/components/buy-now-button';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -88,9 +89,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                 <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg">
                     Chat with Seller
                 </Button>
-                 <Button size="lg" className="flex-1 h-14 text-lg">
-                    Buy Now
-                </Button>
+                 <BuyNowButton product={product} />
             </div>
 
             <Card>

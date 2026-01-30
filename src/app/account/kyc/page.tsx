@@ -1,11 +1,15 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { ShieldCheck } from "lucide-react";
+import { useUser } from "@/firebase";
 
 export default function KYCPage() {
-    const kycStatus = "Verified"; // Can be 'Not Verified', 'Pending', 'Verified'
+    const { profile } = useUser();
+    const kycStatus = profile?.kycStatus || "Not Verified"; // Can be 'Not Verified', 'Pending', 'Verified'
 
     return (
         <div>

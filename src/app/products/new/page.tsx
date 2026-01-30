@@ -1,3 +1,8 @@
+'use client';
+
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
+import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -16,9 +21,65 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Upload } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Upload, ShieldAlert } from "lucide-react"
+import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function NewProductPage() {
+  const { user, profile, loading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+      if (!loading && !user) {
+          router.replace('/login?redirect=/products/new');
+      }
+  }, [user, loading, router]);
+  
+  if (loading || !user) {
+      return (
+        <div className="container mx-auto px-4 py-12">
+            <div className="max-w-3xl mx-auto space-y-6">
+              <Skeleton className="h-10 w-1/3" />
+              <Skeleton className="h-6 w-2/3" />
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            </div>
+        </div>
+      );
+  }
+
+  if (profile && profile.kycStatus !== 'Verified') {
+      return (
+           <div className="container mx-auto px-4 py-12">
+              <Card className="max-w-3xl mx-auto">
+                  <CardHeader>
+                      <CardTitle className="text-3xl font-headline">无法发布商品</CardTitle>
+                      <CardDescription>
+                          需要完成认证才能发布商品。
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                     <Alert variant="destructive">
+                          <ShieldAlert className="h-4 w-4" />
+                          <AlertTitle>需要KYC认证</AlertTitle>
+                          <AlertDescription className="flex flex-col gap-4">
+                              <p>您的账户尚未完成KYC（了解你的客户）认证。为了确保平台交易的安全，您必须先完成认证才能发布商品。</p>
+                              <Button asChild className="mt-4 w-fit">
+                                  <Link href="/account/kyc">前往认证</Link>
+                              </Button>
+                          </AlertDescription>
+                      </Alert>
+                  </CardContent>
+              </Card>
+          </div>
+      );
+  }
+
+
   return (
     <div className="container mx-auto px-4 py-12">
       <Card className="max-w-3xl mx-auto">
