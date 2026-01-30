@@ -4,6 +4,9 @@ import { useState, useMemo } from 'react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { useTranslation } from '@/hooks/use-translation';
+
 
 type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
 
@@ -20,6 +23,7 @@ const FEES = {
 };
 
 export function ProductPriceAndPayment({ product }: { product: Product }) {
+    const { t } = useTranslation();
     const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
 
     // Normalize base price to THB for calculation
@@ -67,7 +71,7 @@ export function ProductPriceAndPayment({ product }: { product: Product }) {
     return (
         <>
             <div className="bg-card p-4 border border-border">
-                <div className="flex items-baseline gap-2 flex-wrap">
+                 <div className="flex items-baseline gap-4 flex-wrap">
                     <p className="text-4xl font-bold text-primary">
                         ฿{basePriceInTHB.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </p>
@@ -80,6 +84,11 @@ export function ProductPriceAndPayment({ product }: { product: Product }) {
                         <p className="text-lg font-semibold text-muted-foreground">
                              (Total: ฿{convertedPrice.amount})
                         </p>
+                    )}
+                    {product.shippingMethod === 'Seller Pays' && (
+                        <Badge variant="outline" className="border-lime-400/50 bg-lime-400/10 text-lime-300 self-center">
+                            {t('product.freeShipping')}
+                        </Badge>
                     )}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">

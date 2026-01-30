@@ -133,10 +133,14 @@
     "kycRequiredDescription": "您的账户尚未完成KYC（了解你的客户）认证。为了确保平台交易的安全，您必须先完成认证才能发布商品。",
     "goToVerify": "前往认证",
     "officialConsignment": "官方寄售",
-    "consignmentDescription": "勾选此项表示您希望使用官方寄售服务。我们的团队将与您联系后续事宜。"
+    "consignmentDescription": "勾选此项表示您希望使用官方寄售服务。我们的团队将与您联系后续事宜。",
+    "shippingMethod": "配送方式",
+    "sellerPays": "卖家包邮",
+    "buyerPays": "买家承担运费"
   },
   "product": {
-    "consignmentBadge": "寄售"
+    "consignmentBadge": "寄售",
+    "freeShipping": "包邮"
   },
   "supportPage": {
     "title": "联系客服",
@@ -346,11 +350,11 @@
     "shippingMethod": "配送方式",
     "shippingMethods": {
       "sellerpays": "卖家包邮",
-      "sellerpaysDesc": "运费由卖家承担。",
-      "buyerpays": "运费到付",
-      "buyerpaysDesc": "运费将被计算并添加。",
+      "sellerpaysDesc": "运费已由卖家承担。",
+      "buyerpays": "快递配送",
+      "buyerpaysDesc": "运费将由您承担。",
       "inperson": "当面交易",
-      "inpersonDesc": "与卖家见面以交换商品。"
+      "inpersonDesc": "与卖家约定时间和地点进行交易。"
     },
     "paymentMethod": "支付方式",
     "orderSummary": "订单摘要",

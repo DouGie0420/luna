@@ -28,6 +28,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { useTranslation } from '@/hooks/use-translation';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function NewProductPage() {
   const { user, profile, loading } = useUser();
@@ -166,6 +167,19 @@ export default function NewProductPage() {
                             <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+                 <div className="grid gap-2">
+                    <Label>{t('newProductPage.shippingMethod')}</Label>
+                    <RadioGroup defaultValue="Buyer Pays" className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Seller Pays" id="seller-pays" />
+                            <Label htmlFor="seller-pays" className="font-normal">{t('newProductPage.sellerPays')}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="Buyer Pays" id="buyer-pays" />
+                            <Label htmlFor="buyer-pays" className="font-normal">{t('newProductPage.buyerPays')}</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
                     <Checkbox id="consignment" />

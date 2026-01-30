@@ -16,6 +16,7 @@ export type Product = {
   };
   category: string;
   isConsignment?: boolean;
+  shippingMethod?: 'Seller Pays' | 'Buyer Pays';
   likes?: number;
   favorites?: number;
 };

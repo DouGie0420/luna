@@ -1,5 +1,52 @@
 {
   "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Represents an item listed for sale on the platform.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "THB",
+            "USDT",
+            "RMB"
+          ]
+        },
+        "sellerId": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "isConsignment": {
+          "type": "boolean"
+        },
+        "shippingMethod": {
+          "type": "string",
+          "enum": [
+            "Seller Pays",
+            "Buyer Pays"
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "price",
+        "currency",
+        "sellerId",
+        "category"
+      ]
+    },
     "UserProfile": {
       "title": "User Profile",
       "description": "Represents a user's profile in the system.",
@@ -26,11 +73,16 @@
         "gender": {
           "type": "string",
           "description": "The user's gender.",
-          "enum": ["男", "女", "其他", "保密"]
+          "enum": [
+            "男",
+            "女",
+            "其他",
+            "保密"
+          ]
         },
         "location": {
-            "type": "string",
-            "description": "The user's city."
+          "type": "string",
+          "description": "The user's city."
         },
         "bio": {
           "type": "string",
@@ -39,15 +91,19 @@
         "kycStatus": {
           "type": "string",
           "description": "The user's KYC verification status.",
-          "enum": ["Not Verified", "Pending", "Verified"]
+          "enum": [
+            "Not Verified",
+            "Pending",
+            "Verified"
+          ]
         },
         "createdAt": {
-            "type": "string", 
-            "format": "date-time"
+          "type": "string",
+          "format": "date-time"
         },
         "lastLogin": {
-            "type": "string", 
-            "format": "date-time"
+          "type": "string",
+          "format": "date-time"
         },
         "rating": {
           "type": "number",
@@ -80,14 +136,26 @@
         "creditLevel": {
           "type": "string",
           "description": "The user's credit level.",
-          "enum": ["Newcomer", "Bronze", "Silver", "Gold", "Platinum", "Diamond"]
+          "enum": [
+            "Newcomer",
+            "Bronze",
+            "Silver",
+            "Gold",
+            "Platinum",
+            "Diamond"
+          ]
         },
         "lunarSoil": {
           "type": "number",
           "description": "The user's balance of Lunar Soil, the platform's loyalty points, measured in grams (克)."
         }
       },
-      "required": ["uid", "email", "kycStatus", "createdAt"]
+      "required": [
+        "uid",
+        "email",
+        "kycStatus",
+        "createdAt"
+      ]
     },
     "UserAddress": {
       "title": "User Address",
@@ -193,95 +261,247 @@
       "description": "Represents a transaction between a buyer and a seller.",
       "type": "object",
       "properties": {
-        "productId": { "type": "string" },
-        "buyerId": { "type": "string" },
-        "sellerId": { "type": "string" },
-        "price": { "type": "number", "description": "The original price of the product." },
-        "shippingFee": { "type": "number", "description": "The calculated shipping fee." },
-        "totalAmount": { "type": "number", "description": "The total amount (price + shippingFee)." },
-        "currency": { "type": "string" },
+        "productId": {
+          "type": "string"
+        },
+        "buyerId": {
+          "type": "string"
+        },
+        "sellerId": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number",
+          "description": "The original price of the product."
+        },
+        "shippingFee": {
+          "type": "number",
+          "description": "The calculated shipping fee."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount (price + shippingFee)."
+        },
+        "currency": {
+          "type": "string"
+        },
         "status": {
           "type": "string",
-          "enum": ["Pending", "In Escrow", "Shipped", "Awaiting Confirmation", "Completed", "Disputed", "Cancelled"]
+          "enum": [
+            "Pending",
+            "In Escrow",
+            "Shipped",
+            "Awaiting Confirmation",
+            "Completed",
+            "Disputed",
+            "Cancelled"
+          ]
         },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "completedAt": { "type": "string", "format": "date-time" },
-        "buyerReviewId": { "type": "string" },
-        "sellerReviewId": { "type": "string" },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "buyerReviewId": {
+          "type": "string"
+        },
+        "sellerReviewId": {
+          "type": "string"
+        },
         "shippingAddress": {
           "type": "object",
           "description": "A snapshot of the selected shipping address at the time of order.",
           "properties": {
-            "recipientName": { "type": "string" },
-            "phone": { "type": "string" },
-            "country": { "type": "string" },
-            "province": { "type": "string" },
-            "city": { "type": "string" },
-            "addressLine1": { "type": "string" },
-            "addressLine2": { "type": "string" },
-            "postalCode": { "type": "string" }
+            "recipientName": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "province": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "addressLine1": {
+              "type": "string"
+            },
+            "addressLine2": {
+              "type": "string"
+            },
+            "postalCode": {
+              "type": "string"
+            }
           },
-           "required": ["recipientName", "phone", "country", "province", "city", "addressLine1", "postalCode"]
+          "required": [
+            "recipientName",
+            "phone",
+            "country",
+            "province",
+            "city",
+            "addressLine1",
+            "postalCode"
+          ]
         },
-        "shippingMethod": { "type": "string", "enum": ["Seller Pays", "Buyer Pays", "In-person"] }
+        "shippingMethod": {
+          "type": "string",
+          "enum": [
+            "Seller Pays",
+            "Buyer Pays",
+            "In-person"
+          ]
+        }
       },
-      "required": ["productId", "buyerId", "sellerId", "price", "shippingFee", "totalAmount", "currency", "status", "createdAt", "shippingAddress", "shippingMethod"]
+      "required": [
+        "productId",
+        "buyerId",
+        "sellerId",
+        "price",
+        "shippingFee",
+        "totalAmount",
+        "currency",
+        "status",
+        "createdAt",
+        "shippingAddress",
+        "shippingMethod"
+      ]
     },
     "Review": {
       "title": "Transaction Review",
       "description": "A review submitted by a user for a transaction.",
       "type": "object",
       "properties": {
-        "orderId": { "type": "string" },
-        "reviewerId": { "type": "string" },
-        "revieweeId": { "type": "string" },
-        "role": { "type": "string", "enum": ["buyer", "seller"] },
-        "rating": { "type": "string", "enum": ["Good", "Neutral", "Bad"] },
-        "comment": { "type": "string" },
-        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "orderId": {
+          "type": "string"
+        },
+        "reviewerId": {
+          "type": "string"
+        },
+        "revieweeId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "buyer",
+            "seller"
+          ]
+        },
+        "rating": {
+          "type": "string",
+          "enum": [
+            "Good",
+            "Neutral",
+            "Bad"
+          ]
+        },
+        "comment": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
       },
-      "required": ["orderId", "reviewerId", "revieweeId", "role", "rating", "createdAt"]
+      "required": [
+        "orderId",
+        "reviewerId",
+        "revieweeId",
+        "role",
+        "rating",
+        "createdAt"
+      ]
     },
     "LunarSoilLedgerEntry": {
-        "title": "Lunar Soil Ledger Entry",
-        "description": "Represents a single transaction of Lunar Soil, used to track expiration.",
-        "type": "object",
-        "properties": {
-            "amount": { "type": "number" },
-            "earnedAt": { "type": "string", "format": "date-time" },
-            "expiresAt": { "type": "string", "format": "date-time" },
-            "source": { "type": "string", "description": "e.g., 'review', 'daily-login', 'purchase'" }
+      "title": "Lunar Soil Ledger Entry",
+      "description": "Represents a single transaction of Lunar Soil, used to track expiration.",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
         },
-        "required": ["amount", "earnedAt", "expiresAt", "source"]
+        "earnedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "description": "e.g., 'review', 'daily-login', 'purchase'"
+        }
+      },
+      "required": [
+        "amount",
+        "earnedAt",
+        "expiresAt",
+        "source"
+      ]
     }
   },
   "auth": {
-    "providers": ["google.com", "facebook.com"]
+    "providers": [
+      "google.com",
+      "facebook.com"
+    ]
   },
   "firestore": {
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/Product"
+      },
+      "description": "Stores individual product listings."
+    },
     "/users/{userId}": {
-      "schema": { "$ref": "#/entities/UserProfile" },
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
       "description": "Stores public user profile data."
     },
     "/users/{userId}/addresses/{addressId}": {
-      "schema": { "$ref": "#/entities/UserAddress" },
+      "schema": {
+        "$ref": "#/entities/UserAddress"
+      },
       "description": "Stores a user's shipping addresses."
     },
     "/promos/{promoId}": {
-      "schema": { "$ref": "#/entities/Promo" },
+      "schema": {
+        "$ref": "#/entities/Promo"
+      },
       "description": "Stores data for promotional pages."
     },
     "/orders/{orderId}": {
-      "schema": { "$ref": "#/entities/Order" },
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
       "description": "Stores transaction data between users."
     },
     "/reviews/{reviewId}": {
-      "schema": { "$ref": "#/entities/Review" },
+      "schema": {
+        "$ref": "#/entities/Review"
+      },
       "description": "Stores reviews for transactions."
     },
     "/users/{userId}/lunarSoilLedger/{ledgerEntryId}": {
-      "schema": { "$ref": "#/entities/LunarSoilLedgerEntry" },
+      "schema": {
+        "$ref": "#/entities/LunarSoilLedgerEntry"
+      },
       "description": "Ledger for a user's Lunar Soil transactions to handle expiration."
     }
   }

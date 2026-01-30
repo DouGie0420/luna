@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, MapPin, Truck, Wallet, Edit } from 'lucide-react';
+import { AlertCircle, MapPin, Truck, Wallet, Edit, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 
@@ -50,40 +50,21 @@ const SHIPPING_FEES = {
   'In-person': 0,
 };
 
-type ShippingMethod = keyof typeof SHIPPING_FEES;
+type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
+type ShippingMethodOption = 'Buyer Pays' | 'In-person';
 
 function CheckoutPageSkeleton() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12">
       <Skeleton className="h-9 w-48 mb-6" />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
         <div className="lg:col-span-2 space-y-8">
-          <Card>
-            <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-24 w-full" />
-              <Skeleton className="h-24 w-full" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-            <CardContent><Skeleton className="h-12 w-full" /></CardContent>
-          </Card>
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-20 w-full" />
         </div>
         <div className="lg:col-span-1">
-          <Card>
-            <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-            <CardContent>
-              <Skeleton className="h-20 w-full" />
-              <Separator className="my-4" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-4/5" />
-              </div>
-            </CardContent>
-            <CardFooter><Skeleton className="h-12 w-full" /></CardFooter>
-          </Card>
+          <Skeleton className="h-96 w-full" />
         </div>
       </div>
     </div>
@@ -98,7 +79,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
 
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(mockAddresses.find(a => a.isDefault)?.id);
-  const [shippingMethod, setShippingMethod] = useState<ShippingMethod>('Seller Pays');
+  const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
   const [paymentMethod, setPaymentMethod] = useState<string>('USDT');
 
   const id = params.id as string;
@@ -115,6 +96,13 @@ export default function CheckoutPage() {
     };
     fetchProduct();
   }, [id]);
+
+  const shippingMethod: ShippingMethod = useMemo(() => {
+    if (product?.shippingMethod === 'Seller Pays') {
+      return 'Seller Pays';
+    }
+    return selectedShippingOption;
+  }, [product, selectedShippingOption]);
 
   const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
   const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
@@ -138,7 +126,7 @@ export default function CheckoutPage() {
       <div className="container mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-3xl font-headline mb-8">{t('checkoutPage.title')}</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
           
           {/* Left/Main Column */}
           <div className="lg:col-span-2 space-y-8">
@@ -188,19 +176,29 @@ export default function CheckoutPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <RadioGroup value={shippingMethod} onValueChange={(v: any) => setShippingMethod(v)} className="flex flex-col md:flex-row gap-4">
-                  {(Object.keys(SHIPPING_FEES) as ShippingMethod[]).map(method => (
-                     <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                        <div className="flex items-center gap-4">
-                          <RadioGroupItem value={method} id={method} />
-                          <div>
-                            <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
-                            <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                {product.shippingMethod === 'Seller Pays' ? (
+                   <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
+                    <CheckCircle2 className="h-6 w-6" />
+                    <div>
+                      <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
+                      <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
+                    {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
+                      <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                          <div className="flex items-center gap-4">
+                            <RadioGroupItem value={method} id={method} />
+                            <div>
+                              <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
+                              <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                            </div>
                           </div>
-                        </div>
-                     </Label>
-                  ))}
-                </RadioGroup>
+                      </Label>
+                    ))}
+                  </RadioGroup>
+                )}
               </CardContent>
             </Card>
 
@@ -227,11 +225,8 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <Card className="sticky top-24">
               <CardHeader>
-                <CardTitle>{t('checkoutPage.productInfo')}</CardTitle>
-              </CardHeader>
-              <CardContent>
                 <div className="flex items-start gap-4">
-                  <div className="relative w-24 h-24 aspect-square rounded-md overflow-hidden">
+                  <div className="relative w-20 h-20 aspect-square rounded-md overflow-hidden">
                     <Image src={product.images[0]} alt={product.name} fill className="object-cover" data-ai-hint={product.imageHints[0]} />
                   </div>
                   <div className="flex-1">
@@ -242,14 +237,9 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                 </div>
-              </CardContent>
-              
-              <Separator />
-
-              <CardHeader>
-                <CardTitle>{t('checkoutPage.orderSummary')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
+                <Separator />
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">{t('checkoutPage.subtotal')}</span>
                   <span>{product.price.toLocaleString()} {product.currency}</span>
@@ -258,13 +248,13 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">{t('checkoutPage.shippingFee')}</span>
                   <span>{shippingFee > 0 ? `${shippingFee.toLocaleString()} ${product.currency}` : t('checkoutPage.free')}</span>
                 </div>
-                <Separator className="my-2" />
+                <Separator />
                 <div className="flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
               </CardContent>
-              <CardFooter className="flex-col gap-4">
+              <CardFooter className="flex-col gap-4 pt-4 border-t">
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                  <div className="flex items-center gap-2 text-xs text-muted-foreground text-center">
                     <AlertCircle className="h-4 w-4" />

@@ -133,10 +133,14 @@
     "kycRequiredDescription": "Your account is not KYC verified. To ensure the safety of the platform, you must complete verification before you can list items.",
     "goToVerify": "Go to Verification",
     "officialConsignment": "Official Consignment",
-    "consignmentDescription": "Check this to use our official consignment service. Our team will contact you for further steps."
+    "consignmentDescription": "Check this to use our official consignment service. Our team will contact you for further steps.",
+    "shippingMethod": "Shipping Method",
+    "sellerPays": "Seller Pays Shipping",
+    "buyerPays": "Buyer Pays Shipping"
   },
   "product": {
-    "consignmentBadge": "Consignment"
+    "consignmentBadge": "Consignment",
+    "freeShipping": "Free Shipping"
   },
   "supportPage": {
     "title": "Contact Support",
@@ -347,7 +351,7 @@
     "shippingMethods": {
       "sellerpays": "Seller Pays",
       "sellerpaysDesc": "Shipping fee is covered by the seller.",
-      "buyerpays": "Buyer Pays",
+      "buyerpays": "Standard Shipping",
       "buyerpaysDesc": "Shipping fee will be calculated and added.",
       "inperson": "In-person Transaction",
       "inpersonDesc": "Meet with the seller to exchange."
