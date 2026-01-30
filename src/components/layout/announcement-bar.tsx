@@ -8,6 +8,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Megaphone } from 'lucide-react';
+import { GlowingPixelGrid } from "@/components/glowing-pixel-grid";
 
 const announcements = [
     { 
@@ -51,14 +52,21 @@ export function AnnouncementBar() {
                     </p>
                 </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] flex max-h-[80vh] flex-col">
-                <DialogHeader>
-                    <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
-                </DialogHeader>
-                <div 
-                  className="space-y-4 text-sm overflow-y-auto"
-                  dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
-                />
+            <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 border-primary/20 overflow-hidden">
+                <div className="relative isolate w-full h-full bg-card">
+                    <GlowingPixelGrid className="opacity-40 blur-sm" />
+                    <div className="relative z-10 flex flex-col h-full">
+                        <DialogHeader className="p-6 pb-2">
+                            <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="overflow-y-auto px-6 pb-6 pt-2">
+                            <div
+                              className="space-y-4 text-sm"
+                              dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
+                            />
+                        </div>
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     );
