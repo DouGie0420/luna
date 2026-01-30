@@ -10,8 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useDebounce } from '@/hooks/use-debounce';
-import { SnakeBorder } from '@/components/snake-border';
 
 interface SearchBarProps {
   placeholderKeywords?: string[];
@@ -24,23 +22,6 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [primaryColor, setPrimaryColor] = useState('hsl(310 100% 60%)');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const primaryHsl = getComputedStyle(document.documentElement)
-          .getPropertyValue('--primary')
-          .trim();
-        if (primaryHsl) {
-          setPrimaryColor(`hsl(${primaryHsl})`);
-        }
-      } catch (error) {
-        console.error('Could not parse --primary CSS variable.', error);
-      }
-    }
-  }, []);
-
 
   const [placeholder, setPlaceholder] = useState('搜点什么');
 
@@ -73,33 +54,34 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-            <div className="relative">
-                <div className="relative flex items-center rounded-none overflow-hidden focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ring-offset-background transition-shadow">
-                    <Input
-                        ref={inputRef}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-                        placeholder={placeholder}
-                        className="w-full h-14 text-lg pl-6 bg-card/50 border-0 rounded-none focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground"
-                    />
-                    <Button onClick={() => handleSearch(searchTerm)} className="h-14 px-8 bg-primary hover:bg-primary/90 text-primary-foreground text-lg shrink-0">
-                        <Search className="h-6 w-6 mr-2" />
-                        搜索
-                    </Button>
-                    {isLoading && (
-                        <Loader2 className="absolute right-[160px] top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground animate-spin" />
-                    )}
-                </div>
-                <SnakeBorder color={primaryColor} pixelSize={5} speed={50} glowBlur={20} />
-            </div>
+          <div className="group relative flex h-14 items-center overflow-hidden bg-black/20 text-lg">
+              <Input
+                  ref={inputRef}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
+                  placeholder={placeholder}
+                  className="h-full w-full appearance-none rounded-none border-0 bg-transparent pl-6 pr-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+              />
+              <Button onClick={() => handleSearch(searchTerm)} className="h-full shrink-0 rounded-none bg-primary px-8 text-lg text-primary-foreground hover:bg-primary/90">
+                  <Search className="mr-2 h-6 w-6" />
+                  搜索
+              </Button>
+              {isLoading && (
+                  <Loader2 className="absolute right-[160px] top-1/2 h-6 w-6 -translate-y-1/2 animate-spin text-muted-foreground" />
+              )}
+              {/* Underline base */}
+              <div className="absolute bottom-0 left-0 h-px w-full bg-primary/30" />
+              {/* Animated glow line */}
+              <div className="absolute bottom-0 left-0 h-px w-1/4 animate-glow-line bg-primary shadow-[0_0_8px_hsl(var(--primary))]"></div>
+          </div>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
           <ul className="py-2">
             {suggestions.map((suggestion, index) => (
               <li
                 key={index}
-                className="px-4 py-2 text-sm hover:bg-accent cursor-pointer"
+                className="cursor-pointer px-4 py-2 text-sm hover:bg-accent"
                 onClick={() => handleSearch(suggestion)}
               >
                 {suggestion}
