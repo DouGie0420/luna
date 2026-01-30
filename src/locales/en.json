@@ -248,19 +248,7 @@
   "seaOfTranquility": {
     "title": "Lacus Somniorum",
     "enter": "Enter the Lake",
-    "postedBy": "Posted by",
-    "post1": {
-      "title": "[Discussion] Which city has the strongest cyberpunk vibe?"
-    },
-    "post2": {
-      "title": "[Share] Check out this retro-futuristic jacket I found!"
-    },
-    "post3": {
-      "title": "[Help] Looking for neon light strip recommendations for my drone."
-    },
-    "post4": {
-      "title": "[Showoff] My home server matrix, come take a look."
-    }
+    "postedBy": "Posted by"
   },
   "bbsPage": {
     "title": "Lacus Somniorum",
@@ -306,7 +294,8 @@
     "reviewDetails": "Review Details",
     "goodReviews": "Good",
     "neutralReviews": "Neutral",
-    "badReviews": "Bad"
+    "badReviews": "Bad",
+    "onSaleCount": "{count} on sale"
   },
   "userProfile": {
     "usersListings": "{userName}'s Listings",

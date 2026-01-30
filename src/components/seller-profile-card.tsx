@@ -32,7 +32,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 <p className="font-bold text-lg">{seller.name}</p>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 fill-primary text-primary" />
-                                    <span>{seller.rating} ({seller.reviews} reviews)</span>
+                                    <span>{seller.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', (seller.itemsOnSale ?? 0).toString())})</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
                                     <MapPin className="h-4 w-4" />
@@ -74,7 +74,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <p className="text-xl font-bold">{seller.name}</p>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span>{seller.rating} ({seller.reviews} {t('sellerProfile.reviews')})</span>
+                                <span>{seller.rating.toFixed(1)} ({seller.reviews} {t('sellerProfile.reviews')})</span>
                             </div>
                         </div>
                     </DialogTitle>
