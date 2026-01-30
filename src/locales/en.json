@@ -184,22 +184,21 @@
     "title": "My Purchases",
     "tabs": {
       "all": "All",
-      "inEscrow": "In Escrow",
-      "shipped": "Shipped",
+      "toShip": "To Ship",
+      "toReceive": "To Receive",
       "completed": "Completed",
       "disputed": "Disputed"
     },
     "status": {
       "pending": "Pending",
-      "inEscrow": "In Escrow",
-      "shipped": "Shipped",
+      "inEscrow": "To Ship",
+      "shipped": "To Receive",
       "awaitingConfirmation": "Awaiting Confirmation",
       "completed": "Completed",
       "disputed": "Disputed",
       "cancelled": "Cancelled"
     },
     "orderCard": {
-      "viewDetails": "View Details",
       "contactSeller": "Contact Seller",
       "leaveReview": "Leave Review",
       "confirmReceipt": "Confirm Receipt"
@@ -364,5 +363,41 @@
     "total": "Total",
     "confirmPurchase": "Confirm Purchase",
     "escrowInfo": "Your payment will be held in escrow until you confirm receipt of the item."
+  },
+  "orderSuccess": {
+    "title": "Payment Successful!",
+    "description": "Your order is being processed. You will be redirected shortly..."
+  },
+  "orderDetails": {
+    "status": {
+      "Shipped": "Seller has shipped, awaiting confirmation"
+    },
+    "countdown": "Will auto-confirm in {time}",
+    "autoConfirmed": "Order auto-confirmed",
+    "time": {
+        "days": "d ",
+        "hours": "h ",
+        "minutes": "m"
+    },
+    "refundOnMismatch": "Refund on description mismatch",
+    "dealPrice": "Deal Price",
+    "inEscrow": "in Alipay escrow",
+    "totalPrice": "Total Product Price",
+    "discount": "discounted {amount}",
+    "shippingFee": "Shipping Fee",
+    "orderNumber": "Order Number",
+    "transactionSnapshot": "Transaction Snapshot",
+    "snapshotInfo": "Can be used as evidence in a dispute",
+    "paymentTransactionId": "Alipay Transaction No.",
+    "shippingAddress": "Shipping Address",
+    "sellerNickname": "Seller Nickname",
+    "orderTime": "Order Time",
+    "paymentTime": "Payment Time",
+    "shippingTime": "Shipping Time",
+    "contactSeller": "Contact Seller",
+    "more": "More",
+    "buyAgain": "Buy Again",
+    "confirmReceipt": "Confirm Receipt",
+    "receiptConfirmed": "Receipt confirmed!"
   }
 }

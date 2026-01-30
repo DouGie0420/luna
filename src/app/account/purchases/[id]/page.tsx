@@ -1,0 +1,274 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { useParams, notFound, useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+
+import { getProductById, getUsers } from '@/lib/data';
+import type { Product, User } from '@/lib/types';
+import { useTranslation } from '@/hooks/use-translation';
+import { useToast } from '@/hooks/use-toast';
+
+import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Truck, Copy, MessageCircle, MoreHorizontal, ShoppingCart, CheckCircle } from 'lucide-react';
+import { format, formatDistanceToNow, add } from 'date-fns';
+import { enUS, zhCN, th } from 'date-fns/locale';
+
+// --- Mock Data ---
+// In a real app, this would be fetched from a database
+const mockOrders: any = {
+    "ORD004": {
+        id: "ORD004",
+        product: { id: "vintage-camera", name: "Suno ai v5国际版充值 | 账号 直充一次性到账", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art", originalPrice: 80.00, },
+        seller: { id: "user10", name: "南极弹吉他的橘黄海葵", avatar: "https://picsum.photos/seed/user10/100/100" },
+        dealPrice: 76.00,
+        discount: 4.00,
+        shippingFee: 0.00,
+        currency: '¥',
+        status: "Shipped",
+        orderNumber: "5027653261827220635",
+        paymentTransactionId: "2026012222001169911450728666",
+        shippingAddress: "陈先生 18990008909 四川省自贡市 大安区马冲口街道张化厂宿舍4栋",
+        orderTime: "2026-01-22 16:23:42",
+        paymentTime: "2026-01-22 16:23:47",
+        shippingTime: "2026-01-22 16:37:46",
+        autoConfirmTime: add(new Date(), { days: 1, hours: 11, minutes: 57 }).toISOString()
+    }
+};
+
+
+function OrderDetailPageSkeleton() {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-8">
+        <div className="space-y-6">
+          <Card>
+            <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+            <CardContent><Skeleton className="h-4 w-1/2" /></CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+                <div className="flex gap-4">
+                    <Skeleton className="h-20 w-20" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-full" />
+                        <Skeleton className="h-5 w-1/4" />
+                    </div>
+                </div>
+            </CardContent>
+          </Card>
+          <Card>
+             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
+             <CardContent className="space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+             </CardContent>
+          </Card>
+           <Card>
+             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
+             <CardContent className="space-y-3">
+                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
+             </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+}
+
+function Countdown({ targetDate }: { targetDate: string }) {
+    const { t } = useTranslation();
+    const calculateTimeLeft = () => {
+        const difference = +new Date(targetDate) - +new Date();
+        let timeLeft: { [key: string]: number } = {};
+
+        if (difference > 0) {
+            timeLeft = {
+                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+            };
+        }
+        return timeLeft;
+    };
+
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000 * 60); // Update every minute is enough
+
+        return () => clearTimeout(timer);
+    });
+
+    const timerComponents = Object.entries(timeLeft).map(([interval, value]) => {
+        if (value > 0) {
+            return `${value}${t(`orderDetails.time.${interval}` as any)}`;
+        }
+        return null;
+    }).filter(Boolean).join('');
+    
+    if (!timerComponents) {
+        return <span className="text-destructive">{t('orderDetails.autoConfirmed')}</span>;
+    }
+
+    return <span>{t('orderDetails.countdown').replace('{time}', timerComponents)}</span>;
+}
+
+
+export default function OrderDetailPage() {
+    const params = useParams();
+    const router = useRouter();
+    const { t } = useTranslation();
+    const { toast } = useToast();
+    const orderId = params.id as string;
+
+    const [order, setOrder] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        // Simulate fetching order data
+        setTimeout(() => {
+            const fetchedOrder = mockOrders[orderId];
+            if (fetchedOrder) {
+                setOrder(fetchedOrder);
+            }
+            setLoading(false);
+        }, 500);
+    }, [orderId]);
+    
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        toast({
+            title: t('accountPage.copied'),
+        });
+    };
+
+    const handleConfirmReceipt = () => {
+        toast({
+            title: t('orderDetails.receiptConfirmed'),
+        });
+        // In a real app, update order status in the backend
+        router.push('/account/purchases');
+    };
+
+    if (loading) {
+        return <>
+            <PageHeaderWithBackAndClose />
+            <OrderDetailPageSkeleton />
+        </>;
+    }
+    
+    if (!order) {
+        return notFound();
+    }
+
+    return (
+        <div className="pb-24">
+            <PageHeaderWithBackAndClose />
+            <div className="container mx-auto max-w-2xl px-4 py-8">
+                <div className="space-y-4">
+                    
+                    <Card className="overflow-hidden">
+                        <CardHeader className="bg-card">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <CardTitle className="flex items-center gap-2 text-xl font-headline">
+                                        {t(`orderDetails.status.${order.status}`)}
+                                    </CardTitle>
+                                    <CardDescription className="mt-1 text-sm">
+                                        <Countdown targetDate={order.autoConfirmTime} />
+                                    </CardDescription>
+                                </div>
+                                <Truck className="h-16 w-16 text-primary animate-bounce" />
+                            </div>
+                        </CardHeader>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="flex gap-4">
+                                <Image src={order.product.image} alt={order.product.name} width={80} height={80} className="rounded-md object-cover" data-ai-hint={order.product.imageHint} />
+                                <div className="flex-1">
+                                    <p className="font-semibold leading-tight">{order.product.name}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
+                                </div>
+                            </div>
+                            <div className="mt-2 text-right">
+                                <Badge variant="outline" className="border-destructive text-destructive">{t('orderDetails.refundOnMismatch')}</Badge>
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardContent className="pt-6 text-sm">
+                            <div className="space-y-3">
+                                <div className="flex justify-between">
+                                    <span className="font-semibold">{t('orderDetails.dealPrice')} <span className="text-muted-foreground font-normal">({t('orderDetails.inEscrow')})</span></span>
+                                    <span className="font-semibold">{order.currency}{order.dealPrice.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>{t('orderDetails.totalPrice')} ({t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)})</span>
+                                    <span>{order.currency}{order.product.originalPrice.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-muted-foreground">
+                                    <span>{t('orderDetails.shippingFee')}</span>
+                                    <span>{order.currency}{order.shippingFee.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="pt-6 text-sm">
+                            <div className="space-y-3">
+                                <InfoRow label={t('orderDetails.orderNumber')} value={order.orderNumber} onCopy={handleCopy} />
+                                <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
+                                <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} onCopy={handleCopy} />
+                                <Separator />
+                                <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} onCopy={handleCopy} />
+                                <InfoRow label={t('orderDetails.sellerNickname')} value={order.seller.name} isLink href={`/user/${order.seller.id}`} />
+                                <Separator />
+                                <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
+                                <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
+                                <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                </div>
+            </div>
+
+            <div className="fixed bottom-0 left-0 w-full bg-background border-t p-3 flex items-center justify-end gap-2">
+                <Button variant="ghost"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
+                <Button variant="ghost"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
+                <Button variant="outline">{t('orderDetails.buyAgain')}</Button>
+                <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
+            </div>
+        </div>
+    );
+}
+
+const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => (
+    <div className="flex justify-between items-center">
+        <span className="text-muted-foreground">{label}</span>
+        <div className="flex items-center gap-2">
+            {isLink ? (
+                <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
+            ) : (
+                <span className="font-medium text-right">{value}</span>
+            )}
+            {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy(value)}>{t('accountPage.copy')}</Button>}
+            {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
+        </div>
+    </div>
+);

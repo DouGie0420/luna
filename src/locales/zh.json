@@ -184,22 +184,21 @@
     "title": "我的购买",
     "tabs": {
       "all": "全部",
-      "inEscrow": "托管中",
-      "shipped": "已发货",
+      "toShip": "待发货",
+      "toReceive": "待收货",
       "completed": "已完成",
       "disputed": "争议中"
     },
     "status": {
       "pending": "待处理",
-      "inEscrow": "托管中",
-      "shipped": "已发货",
+      "inEscrow": "待发货",
+      "shipped": "待收货",
       "awaitingConfirmation": "等待确认",
       "completed": "已完成",
       "disputed": "争议中",
       "cancelled": "已取消"
     },
     "orderCard": {
-      "viewDetails": "查看详情",
       "contactSeller": "联系卖家",
       "leaveReview": "去评价",
       "confirmReceipt": "确认收货"
@@ -364,5 +363,41 @@
     "total": "合计",
     "confirmPurchase": "确认购买",
     "escrowInfo": "您的付款将被托管，直到您确认收到商品为止。"
+  },
+  "orderSuccess": {
+    "title": "支付成功!",
+    "description": "您的订单正在处理中，即将跳转..."
+  },
+  "orderDetails": {
+    "status": {
+      "Shipped": "卖家已发货，待确认收货"
+    },
+    "countdown": "{time}后将自动确认收货",
+    "autoConfirmed": "订单已自动确认",
+    "time": {
+      "days": "天",
+      "hours": "小时",
+      "minutes": "分钟"
+    },
+    "refundOnMismatch": "描述不符全额退",
+    "dealPrice": "成交价",
+    "inEscrow": "在支付宝担保账户中",
+    "totalPrice": "商品总价",
+    "discount": "已优惠{amount}",
+    "shippingFee": "运费",
+    "orderNumber": "订单编号",
+    "transactionSnapshot": "交易快照",
+    "snapshotInfo": "发生交易争议时，可作为判断依据",
+    "paymentTransactionId": "支付宝交易号",
+    "shippingAddress": "收货地址",
+    "sellerNickname": "卖家昵称",
+    "orderTime": "下单时间",
+    "paymentTime": "付款时间",
+    "shippingTime": "发货时间",
+    "contactSeller": "联系卖家",
+    "more": "更多",
+    "buyAgain": "再次购买",
+    "confirmReceipt": "确认收货",
+    "receiptConfirmed": "已确认收货！"
   }
 }

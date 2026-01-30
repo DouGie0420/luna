@@ -184,22 +184,21 @@
     "title": "การซื้อของฉัน",
     "tabs": {
       "all": "ทั้งหมด",
-      "inEscrow": "ใน Escrow",
-      "shipped": "จัดส่งแล้ว",
+      "toShip": "ต้องจัดส่ง",
+      "toReceive": "ต้องได้รับ",
       "completed": "เสร็จสมบูรณ์",
       "disputed": "มีข้อพิพาท"
     },
     "status": {
         "pending": "รอดำเนินการ",
-        "inEscrow": "ใน Escrow",
-        "shipped": "จัดส่งแล้ว",
+        "inEscrow": "ต้องจัดส่ง",
+        "shipped": "ต้องได้รับ",
         "awaitingConfirmation": "รอการยืนยัน",
         "completed": "เสร็จสมบูรณ์",
         "disputed": "มีข้อพิพาท",
         "cancelled": "ยกเลิกแล้ว"
     },
     "orderCard": {
-      "viewDetails": "ดูรายละเอียด",
       "contactSeller": "ติดต่อผู้ขาย",
       "leaveReview": "เขียนรีวิว",
       "confirmReceipt": "ยืนยันการรับสินค้า"
@@ -364,5 +363,41 @@
     "total": "ทั้งหมด",
     "confirmPurchase": "ยืนยันการสั่งซื้อ",
     "escrowInfo": "การชำระเงินของคุณจะถูกเก็บไว้ใน escrow จนกว่าคุณจะยืนยันการรับสินค้า"
+  },
+  "orderSuccess": {
+    "title": "ชำระเงินสำเร็จ!",
+    "description": "คำสั่งซื้อของคุณกำลังดำเนินการ คุณจะถูกเปลี่ยนเส้นทางในไม่ช้า..."
+  },
+  "orderDetails": {
+    "status": {
+      "Shipped": "ผู้ขายได้จัดส่งแล้ว รอการยืนยัน"
+    },
+    "countdown": "จะยืนยันอัตโนมัติใน {time}",
+    "autoConfirmed": "ยืนยันคำสั่งซื้ออัตโนมัติแล้ว",
+    "time": {
+      "days": "ว ",
+      "hours": "ชม ",
+      "minutes": "น"
+    },
+    "refundOnMismatch": "คืนเงินหากคำอธิบายไม่ตรงกัน",
+    "dealPrice": "ราคาซื้อขาย",
+    "inEscrow": "ใน escrow ของ Alipay",
+    "totalPrice": "ราคาสินค้ารวม",
+    "discount": "ส่วนลด {amount}",
+    "shippingFee": "ค่าจัดส่ง",
+    "orderNumber": "หมายเลขคำสั่งซื้อ",
+    "transactionSnapshot": "ภาพรวมธุรกรรม",
+    "snapshotInfo": "สามารถใช้เป็นหลักฐานในกรณีพิพาทได้",
+    "paymentTransactionId": "หมายเลขธุรกรรม Alipay",
+    "shippingAddress": "ที่อยู่สำหรับจัดส่ง",
+    "sellerNickname": "ชื่อเล่นผู้ขาย",
+    "orderTime": "เวลาสั่งซื้อ",
+    "paymentTime": "เวลาชำระเงิน",
+    "shippingTime": "เวลาจัดส่ง",
+    "contactSeller": "ติดต่อผู้ขาย",
+    "more": "เพิ่มเติม",
+    "buyAgain": "ซื้ออีกครั้ง",
+    "confirmReceipt": "ยืนยันการรับสินค้า",
+    "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!"
   }
 }

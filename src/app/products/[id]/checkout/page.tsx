@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getProductById } from '@/lib/data';
 import { useUser, useFirestore, useCollection } from '@/firebase';
@@ -56,6 +56,7 @@ function CheckoutPageSkeleton() {
 
 export default function CheckoutPage() {
   const params = useParams();
+  const router = useRouter();
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
@@ -108,6 +109,13 @@ export default function CheckoutPage() {
     };
     fetchProduct();
   }, [id]);
+
+  const handleConfirmPurchase = () => {
+    // In a real app, this would create an order in the database.
+    // For now, we'll just navigate to a success page.
+    const mockOrderId = "ORD004"; // Using a known mock order ID
+    router.push(`/order/success?orderId=${mockOrderId}`);
+  };
 
   const handleEditAddress = (addressId: string) => {
     setEditingAddressId(addressId);
@@ -300,10 +308,10 @@ export default function CheckoutPage() {
                     <span>{t('checkoutPage.total')}</span>
                     <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                   </div>
-                   <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
+                   <Button size="lg" className="w-full h-12 text-lg" onClick={handleConfirmPurchase}>{t('checkoutPage.confirmPurchase')}</Button>
                    <div className="w-full space-y-2 pt-2">
-                      <div className="relative h-4 w-full overflow-hidden rounded-full">
-                          <Progress value={progress} className="w-full h-4" />
+                      <div className="relative h-4 w-full overflow-hidden rounded-full animate-breathing-glow bg-secondary">
+                          <Progress value={progress} className="w-full h-4 bg-transparent" />
                           <div className="absolute inset-0 flex items-center justify-center">
                              <span className="text-sm font-bold text-primary-foreground [text-shadow:0_1px_2px_hsl(var(--background)/0.7)]">
                                   {Math.round(progress)}%

@@ -10,25 +10,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import Link from "next/link"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useTranslation } from "@/hooks/use-translation"
 import type { OrderStatus } from "@/lib/types"
 
 const purchases = [
     { 
-      id: "ORD004", 
-      product: { name: "Ceramic Vase", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art" }, 
+      id: "ORD007", 
+      product: { name: "Hand-Painted Ceramic Vase", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art" }, 
       seller: { name: "Alex Doe", avatar: "https://picsum.photos/seed/user1/100/100" },
       amount: "2,500 THB", 
-      status: "In Escrow", 
-      date: "2023-10-28" 
+      status: "In Escrow", // To Ship
+      date: "2023-10-29" 
     },
     { 
-      id: "ORD005", 
-      product: { name: "Gen-5 Smart Watch", image: "https://picsum.photos/seed/purchase2/600/400", imageHint: "futuristic watch" }, 
-      seller: { name: "Charlie Brown", avatar: "https://picsum.photos/seed/user3/100/100" },
-      amount: "150 USDT", 
-      status: "Shipped", 
+      id: "ORD004", 
+      product: { name: "Suno ai v5国际版充值 | 账号", image: "https://picsum.photos/seed/purchase2/600/400", imageHint: "futuristic watch" }, 
+      seller: { name: "南极弹吉他的橘黄海葵", avatar: "https://picsum.photos/seed/user10/100/100" },
+      amount: "¥76.00", 
+      status: "Shipped", // To Receive
       date: "2023-10-27" 
     },
     { 
@@ -55,6 +56,7 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
         switch (status) {
             case 'Completed': return 'default';
             case 'Disputed': return 'destructive';
+            case 'Shipped': return 'secondary';
             default: return 'secondary';
         }
     }
@@ -65,7 +67,8 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
     }
 
     return (
-        <Card className="overflow-hidden">
+        <Link href={`/account/purchases/${order.id}`}>
+        <Card className="overflow-hidden hover:border-primary/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
@@ -89,7 +92,6 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
                 </div>
             </CardContent>
             <CardFooter className="p-4 flex justify-end gap-2">
-                <Button variant="ghost" size="sm">{t('accountPurchases.orderCard.viewDetails')}</Button>
                 <Button variant="outline" size="sm">{t('accountPurchases.orderCard.contactSeller')}</Button>
                 {order.status === 'Completed' ? (
                      <Button size="sm">{t('accountPurchases.orderCard.leaveReview')}</Button>
@@ -98,6 +100,7 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
                 )}
             </CardFooter>
         </Card>
+        </Link>
     );
 };
 
@@ -128,8 +131,8 @@ export default function MyPurchasesPage() {
             <Tabs defaultValue="all">
                 <TabsList className="grid w-full grid-cols-5 mb-6">
                     <TabsTrigger value="all">{t('accountPurchases.tabs.all')}</TabsTrigger>
-                    <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.inEscrow')}</TabsTrigger>
-                    <TabsTrigger value="shipped">{t('accountPurchases.tabs.shipped')}</TabsTrigger>
+                    <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.toShip')}</TabsTrigger>
+                    <TabsTrigger value="shipped">{t('accountPurchases.tabs.toReceive')}</TabsTrigger>
                     <TabsTrigger value="completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
                     <TabsTrigger value="disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
                 </TabsList>
