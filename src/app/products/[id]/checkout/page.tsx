@@ -178,9 +178,11 @@ export default function CheckoutPage() {
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" /> {t('checkoutPage.shippingAddress')}
                   </CardTitle>
-                   <Button variant="secondary" size="sm" onClick={handleAddNewAddress}>
-                      {t('checkoutPage.addNewAddress')}
-                   </Button>
+                   <DialogTrigger asChild>
+                     <Button variant="secondary" size="sm" onClick={handleAddNewAddress}>
+                        {t('checkoutPage.addNewAddress')}
+                     </Button>
+                   </DialogTrigger>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
@@ -203,10 +205,12 @@ export default function CheckoutPage() {
                               </p>
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); handleEditAddress(address.id); }}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              {t('checkoutPage.edit')}
-                          </Button>
+                          <DialogTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); handleEditAddress(address.id); }}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                {t('checkoutPage.edit')}
+                            </Button>
+                          </DialogTrigger>
                         </div>
                       </Label>
                     )) : (
@@ -298,8 +302,8 @@ export default function CheckoutPage() {
                   </div>
                    <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                    <div className="w-full space-y-2 pt-2">
-                      <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary [background-image:repeating-linear-gradient(-45deg,hsl(var(--accent))_0,hsl(var(--accent))_0.5rem,hsl(var(--secondary))_0.5rem,hsl(var(--secondary))_1rem)] [background-size:2rem_2rem] animate-stripes-move">
-                          <Progress value={progress} className="w-full h-2 rounded-full bg-transparent" />
+                      <div className="relative h-4 w-full overflow-hidden rounded-full bg-secondary [background-image:repeating-linear-gradient(-45deg,hsl(var(--accent))_0,hsl(var(--accent))_0.5rem,hsl(var(--secondary))_0.5rem,hsl(var(--secondary))_1rem)] [background-size:2rem_2rem] animate-stripes-move">
+                          <Progress value={progress} className="w-full h-4 rounded-full bg-transparent" />
                           <div className="absolute inset-0 flex items-center justify-center">
                              <span className="text-sm font-bold text-primary-foreground [text-shadow:0_1px_2px_hsl(var(--background)/0.7)]">
                                   {Math.round(progress)}%
