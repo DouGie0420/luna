@@ -50,18 +50,21 @@ export function AnnouncementBar() {
           </p>
         </div>
       </DialogTrigger>
-      <DialogContent className="relative sm:max-w-[600px] max-h-[80vh] p-0 flex flex-col border-0 bg-card shadow-xl shadow-primary/20">
-        <div className="pixel-grid absolute inset-0 -z-20 opacity-40" />
-        
-        <div className="relative z-10 flex flex-col flex-1 min-h-0">
-            <div className="flex-shrink-0 p-6 pb-2">
+      <DialogContent className="sm:max-w-[600px] p-0 border-0 overflow-hidden shadow-xl shadow-primary/20">
+        <div className="relative h-full max-h-[80vh] flex flex-col bg-card">
+            
+            <div className="pixel-grid absolute inset-0 -z-10 opacity-40" />
+            <SnakeBorder className="absolute inset-0 z-0" />
+
+            <div className="flex-shrink-0 p-6 pb-2 z-10">
                 <DialogHeader className="p-0 text-left">
                 <DialogTitle className="font-headline text-2xl">
                     {currentAnnouncement.title}
                 </DialogTitle>
                 </DialogHeader>
             </div>
-            <ScrollArea className="flex-1 min-h-0">
+
+            <ScrollArea className="flex-1 min-h-0 z-10">
                 <div className="px-6 pb-6">
                 <div
                     className="space-y-4 text-sm"
@@ -70,8 +73,6 @@ export function AnnouncementBar() {
                 </div>
             </ScrollArea>
         </div>
-
-        <SnakeBorder className="absolute inset-0 z-0" />
       </DialogContent>
     </Dialog>
   );
