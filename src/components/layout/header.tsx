@@ -6,7 +6,7 @@ import { PlusCircle } from "lucide-react";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm border-border/40">
+    <header className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-20 items-center justify-between gap-8 px-4">
         <Logo />
 
