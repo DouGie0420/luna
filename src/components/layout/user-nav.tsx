@@ -83,7 +83,7 @@ export function UserNav() {
                 <Wallet className="mr-2 h-4 w-4" />
                 {t('userNav.web3Login')}
             </Button>
-             <Button asChild variant="default" className="rounded-full animate-glow">
+             <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/login">{t('common.login')}</Link>
             </Button>
             <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
