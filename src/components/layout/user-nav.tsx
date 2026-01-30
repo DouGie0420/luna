@@ -82,20 +82,24 @@ export function UserNav() {
 
   return (
     <div className="flex items-center gap-4">
-        <Link href="/messages" title={t('userNav.messages')}>
-            <MessageSquare className="h-5 w-5 text-foreground/90 hover:text-foreground" />
-        </Link>
-        <Link href="/account/purchases" title={t('userNav.orders')}>
-            <ShoppingCart className="h-5 w-5 text-foreground/90 hover:text-foreground" />
-        </Link>
+        <Button asChild variant="ghost" size="icon" className="rounded-full border border-primary/20 hover:bg-primary/10 hover:border-primary/50">
+            <Link href="/messages" title={t('userNav.messages')}>
+                <MessageSquare className="h-5 w-5" />
+            </Link>
+        </Button>
+        <Button asChild variant="ghost" size="icon" className="rounded-full border border-primary/20 hover:bg-primary/10 hover:border-primary/50">
+            <Link href="/account/purchases" title={t('userNav.orders')}>
+                <ShoppingCart className="h-5 w-5" />
+            </Link>
+        </Button>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0 animate-glow-green">
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-            </Avatar>
-            </Button>
+            <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+              <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
+                  <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+              </Avatar>
+            </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
@@ -135,7 +139,7 @@ export function UserNav() {
         </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button asChild variant="ghost" className="rounded-full bg-lime-400/20 text-lime-300 border border-lime-400/50 hover:bg-lime-400/30 hover:text-lime-200 h-10 px-4">
+        <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground h-10 px-4 font-bold">
             <Link href="/products/new" onClick={handleListProductClick}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t('userNav.listAnItem')}
