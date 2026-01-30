@@ -82,16 +82,20 @@ export function UserNav() {
 
   return (
     <div className="flex items-center gap-4">
-        <Button asChild variant="ghost" size="icon" className="rounded-full border border-primary/20 hover:bg-primary/10 hover:border-primary/50">
-            <Link href="/messages" title={t('userNav.messages')}>
-                <MessageSquare className="h-5 w-5" />
-            </Link>
-        </Button>
-        <Button asChild variant="ghost" size="icon" className="rounded-full border border-primary/20 hover:bg-primary/10 hover:border-primary/50">
-            <Link href="/account/purchases" title={t('userNav.orders')}>
-                <ShoppingCart className="h-5 w-5" />
-            </Link>
-        </Button>
+        <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+            <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+                <Link href="/messages" title={t('userNav.messages')}>
+                    <MessageSquare className="h-5 w-5" />
+                </Link>
+            </Button>
+        </div>
+        <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+            <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+                <Link href="/account/purchases" title={t('userNav.orders')}>
+                    <ShoppingCart className="h-5 w-5" />
+                </Link>
+            </Button>
+        </div>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">

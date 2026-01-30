@@ -16,10 +16,12 @@ export function LanguageSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" title="Change language" className="rounded-full border border-primary/20 hover:bg-primary/10 hover:border-primary/50">
-          <Languages className="h-5 w-5" />
-          <span className="sr-only">Change language</span>
-        </Button>
+        <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+          <Button variant="ghost" size="icon" title="Change language" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+            <Languages className="h-5 w-5" />
+            <span className="sr-only">Change language</span>
+          </Button>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={() => setLanguage('en')}>
