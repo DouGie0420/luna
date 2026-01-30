@@ -191,13 +191,17 @@ export default function BbsPostPage() {
                                 const user = getUserById(comment.user);
                                 return user ? (
                                     <div key={index} className="flex items-start gap-3">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                        </Avatar>
+                                        <Link href={`/user/${user.id}`}>
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                        </Link>
                                         <div className="flex-1">
                                             <div className="flex items-baseline gap-2">
-                                                <p className="text-sm font-semibold text-muted-foreground">{user.name}</p>
+                                                <Link href={`/user/${user.id}`}>
+                                                    <span className="text-sm font-semibold text-muted-foreground hover:underline">{user.name}</span>
+                                                </Link>
                                                 <p className="text-xs text-muted-foreground">{comment.time}</p>
                                             </div>
                                             <p className="text-sm">{comment.text}</p>
