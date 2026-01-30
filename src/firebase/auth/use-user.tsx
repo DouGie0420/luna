@@ -48,6 +48,8 @@ const testProfile: UserProfile = {
   displayName: '测试用户',
   photoURL: 'https://picsum.photos/seed/test-user/100/100',
   kycStatus: 'Verified',
+  isPro: true,
+  isWeb3Verified: true,
   createdAt: new Date(),
   lastLogin: new Date(),
   rating: 4.9,

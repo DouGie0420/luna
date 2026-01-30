@@ -56,6 +56,8 @@ export type UserProfile = {
     location?: string;
     bio?: string;
     kycStatus: KycStatus;
+    isPro?: boolean;
+    isWeb3Verified?: boolean;
     createdAt?: any;
     lastLogin?: any;
     rating?: number;

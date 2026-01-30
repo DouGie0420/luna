@@ -38,6 +38,8 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
                 location: '',
                 bio: '',
                 kycStatus: 'Not Verified',
+                isPro: false,
+                isWeb3Verified: false,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
                 rating: 0,

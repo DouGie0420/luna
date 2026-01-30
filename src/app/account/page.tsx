@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -270,6 +270,32 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                             </Link>
+                             <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
+                                <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
+                                <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+                                    {profile?.isPro && (
+                                        <div className="flex items-center gap-1.5 text-green-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.pro')}</span>
+                                        </div>
+                                    )}
+                                    {profile?.isWeb3Verified && (
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.web3')}</span>
+                                        </div>
+                                    )}
+                                    {profile?.kycStatus === 'Verified' && (
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.kyc')}</span>
+                                        </div>
+                                    )}
+                                    {!profile?.isPro && !profile?.isWeb3Verified && profile?.kycStatus !== 'Verified' && (
+                                        <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
