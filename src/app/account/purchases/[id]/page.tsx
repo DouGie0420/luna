@@ -10,7 +10,6 @@ import type { Product, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 
-import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -160,10 +159,7 @@ export default function OrderDetailPage() {
     };
 
     if (loading) {
-        return <>
-            <PageHeaderWithBackAndClose />
-            <OrderDetailPageSkeleton />
-        </>;
+        return <OrderDetailPageSkeleton />;
     }
     
     if (!order) {
@@ -172,7 +168,6 @@ export default function OrderDetailPage() {
 
     return (
         <div className="pb-24">
-            <PageHeaderWithBackAndClose />
             <div className="container mx-auto max-w-2xl px-4 py-8">
                 <div className="space-y-4">
                     
