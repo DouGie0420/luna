@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/sidebar'
 import { usePathname } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close'
 
 export default function AccountLayout({
   children,
@@ -106,6 +107,7 @@ export default function AccountLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
+        <PageHeaderWithBackAndClose />
         {children}
       </SidebarInset>
     </SidebarProvider>
