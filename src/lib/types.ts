@@ -40,6 +40,7 @@ export type UserProfile = {
     purchasesCount?: number;
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+    lunarSoil?: number;
 }
 
 export type Promo = {
@@ -51,4 +52,41 @@ export type Promo = {
   secondaryButtonText: string;
   productsSectionTitle: string;
   featuredProductIds: string[];
+};
+
+export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Disputed' | 'Cancelled';
+export type Rating = 'Good' | 'Neutral' | 'Bad';
+
+export type Order = {
+  id: string;
+  productId: string;
+  buyerId: string;
+  sellerId: string;
+  price: number;
+  currency: string;
+  status: OrderStatus;
+  createdAt: any;
+  completedAt?: any;
+  buyerReviewId?: string;
+  sellerReviewId?: string;
+};
+
+export type Review = {
+  id: string;
+  orderId: string;
+  reviewerId: string;
+  revieweeId: string;
+  role: 'buyer' | 'seller';
+  rating: Rating;
+  comment?: string;
+  images?: string[];
+  createdAt: any;
+};
+
+export type LunarSoilLedgerEntry = {
+  id: string;
+  amount: number;
+  earnedAt: any;
+  expiresAt: any;
+  source: string; // e.g., 'review', 'daily-login', 'purchase'
 };

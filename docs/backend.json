@@ -60,6 +60,10 @@
           "type": "string",
           "description": "The user's credit level.",
           "enum": ["Newcomer", "Bronze", "Silver", "Gold", "Platinum", "Diamond"]
+        },
+        "lunarSoil": {
+          "type": "number",
+          "description": "The user's balance of Lunar Soil, the platform's loyalty points."
         }
       },
       "required": ["uid", "email", "kycStatus", "createdAt"]
@@ -110,6 +114,55 @@
         "secondaryButtonText",
         "productsSectionTitle"
       ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a transaction between a buyer and a seller.",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string" },
+        "buyerId": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["Pending", "In Escrow", "Shipped", "Awaiting Confirmation", "Completed", "Disputed", "Cancelled"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "buyerReviewId": { "type": "string" },
+        "sellerReviewId": { "type": "string" }
+      },
+      "required": ["productId", "buyerId", "sellerId", "price", "currency", "status", "createdAt"]
+    },
+    "Review": {
+      "title": "Transaction Review",
+      "description": "A review submitted by a user for a transaction.",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string" },
+        "reviewerId": { "type": "string" },
+        "revieweeId": { "type": "string" },
+        "role": { "type": "string", "enum": ["buyer", "seller"] },
+        "rating": { "type": "string", "enum": ["Good", "Neutral", "Bad"] },
+        "comment": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderId", "reviewerId", "revieweeId", "role", "rating", "createdAt"]
+    },
+    "LunarSoilLedgerEntry": {
+        "title": "Lunar Soil Ledger Entry",
+        "description": "Represents a single transaction of Lunar Soil, used to track expiration.",
+        "type": "object",
+        "properties": {
+            "amount": { "type": "number" },
+            "earnedAt": { "type": "string", "format": "date-time" },
+            "expiresAt": { "type": "string", "format": "date-time" },
+            "source": { "type": "string", "description": "e.g., 'review', 'daily-login', 'purchase'" }
+        },
+        "required": ["amount", "earnedAt", "expiresAt", "source"]
     }
   },
   "auth": {
@@ -123,6 +176,18 @@
     "/promos/{promoId}": {
       "schema": { "$ref": "#/entities/Promo" },
       "description": "Stores data for promotional pages."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores transaction data between users."
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Stores reviews for transactions."
+    },
+    "/users/{userId}/lunarSoilLedger/{ledgerEntryId}": {
+      "schema": { "$ref": "#/entities/LunarSoilLedgerEntry" },
+      "description": "Ledger for a user's Lunar Soil transactions to handle expiration."
     }
   }
 }
