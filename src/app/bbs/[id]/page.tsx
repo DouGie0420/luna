@@ -17,7 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { ThumbsUp, Star, Share2, Plus, MessageSquare } from 'lucide-react';
+import { ThumbsUp, Star, Share2, Plus, MessageSquare, MapPin, Calendar } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -152,8 +152,7 @@ export default function BbsPostPage() {
 
                      {/* Content */}
                     <div className="p-6">
-                        <h1 className="font-headline text-3xl font-bold mb-2">{t(post.titleKey)}</h1>
-                        <p className="text-xs text-muted-foreground mb-6">{format(postDate, 'PPP p')}</p>
+                        <h1 className="font-headline text-3xl font-bold mb-4">{t(post.titleKey)}</h1>
 
                         {post.images && post.images.length > 0 && (
                             <div className="my-6">
@@ -167,6 +166,19 @@ export default function BbsPostPage() {
                         {post.tags.map(tag => (
                             <Badge key={tag} variant="secondary">#{tag}</Badge>
                         ))}
+                        </div>
+
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground mt-4 pt-4 border-t border-border/20">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span>{format(postDate, 'PPP')}</span>
+                            </div>
+                            {post.author.location && (
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>{post.author.location.city}, {post.author.location.countryCode}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     
