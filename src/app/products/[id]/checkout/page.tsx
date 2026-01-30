@@ -194,8 +194,8 @@ export default function CheckoutPage() {
                         <div className="flex items-center gap-4">
                           <RadioGroupItem value={method} id={method} />
                           <div>
-                            <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(' ', '')}` as any)}</p>
-                            <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(' ', '')}Desc` as any)}</p>
+                            <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
+                            <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
                           </div>
                         </div>
                      </Label>
