@@ -59,13 +59,12 @@ function CheckoutPageSkeleton() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-12">
       <Skeleton className="h-9 w-48 mb-6" />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
+        <div className="lg:col-span-3 space-y-8">
           <Skeleton className="h-28 w-full" />
           <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-20 w-full" />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-2">
           <Skeleton className="h-96 w-full" />
         </div>
       </div>
@@ -128,10 +127,10 @@ export default function CheckoutPage() {
       <div className="container mx-auto max-w-5xl px-4 py-12">
         <h1 className="text-3xl font-headline mb-8">{t('checkoutPage.title')}</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           
           {/* Left/Main Column */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             
             {/* Shipping Address */}
             <Card>
@@ -204,27 +203,10 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
-            {/* Payment Method */}
-            <Card>
-              <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5" /> {t('checkoutPage.paymentMethod')}
-                  </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                    <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                    <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
-                    <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
-                    <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
-                </div>
-              </CardContent>
-            </Card>
-
           </div>
 
           {/* Right/Sidebar Column */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-2">
             <Card className="sticky top-24">
               <CardHeader>
                 <div className="flex items-start gap-4">
@@ -240,23 +222,32 @@ export default function CheckoutPage() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+              <CardContent className="space-y-4">
                 <Separator />
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('checkoutPage.subtotal')}</span>
                   <span>{product.price.toLocaleString()} {product.currency}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('checkoutPage.shippingFee')}</span>
                   <span>{shippingFee > 0 ? `${shippingFee.toLocaleString()} ${product.currency}` : t('checkoutPage.free')}</span>
                 </div>
                 <Separator />
-                <div className="flex justify-between font-bold text-lg">
+                 <div>
+                    <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                        <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
+                        <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
+                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                        <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
+                    </div>
+                 </div>
+              </CardContent>
+              <CardFooter className="flex-col gap-4 pt-6 border-t">
+                 <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
-              </CardContent>
-              <CardFooter className="flex-col gap-4 pt-4 border-t">
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                  <div className="flex items-center gap-2 text-xs text-muted-foreground text-center">
                     <AlertCircle className="h-4 w-4" />

@@ -13,9 +13,9 @@ const AlipayLogo = () => (
 );
 
 const WeChatLogo = () => (
-    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48">
-            <path fill="none" stroke="#FFF" strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M17 33.91s-11-6-11-15c0-8 7-14 16-14s17 6 17 14c0 9.4-10 15.4-10 15.4M17 34s-2 4-2 7s4 4 7 4s6-2 6-4s-1-5-1-5m-11.83-14a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1m14.5 0a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1"/>
+    <div className="w-6 h-6 rounded-full bg-[#07C160] flex items-center justify-center">
+        <svg viewBox="0 0 1024 1024" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M512 64C264.58 64 64 254.34 64 502c0 137.02 64.12 260.66 166.62 344.22-14.26 38.9-39.98 72.82-74.08 99.3-4.52 3.52-6.2 9.56-4.22 14.98 1.98 5.4 7.28 8.8 12.98 8.44 32.96-2.08 65.34-11.42 94.6-27.18 24.96-13.44 47.56-31.14 67.28-52.42C425.86 896.7 468.18 902 512 902c247.42 0 448-189.92 448-438S759.42 64 512 64z m-144.38 522.68c-40.42 0-73.2-30.82-73.2-68.86s32.78-68.86 73.2-68.86c40.42 0 73.2 30.82 73.2 68.86s-32.78 68.86-73.2 68.86z m288.76 0c-40.42 0-73.2-30.82-73.2-68.86s32.78-68.86 73.2-68.86c40.42 0 73.2 30.82 73.2 68.86s-32.78 68.86-73.2 68.86z"/>
         </svg>
     </div>
 );
