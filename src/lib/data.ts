@@ -384,8 +384,8 @@ const bbsPosts: BbsPost[] = [
       views: 2500,
       favorites: 95,
       createdAt: '2024-07-28T10:00:00Z',
-      featuredImage: 'https://picsum.photos/seed/bbs-post1/800/450',
-      featuredImageHint: 'cyberpunk hardware',
+      images: Array.from({ length: 9 }, (_, i) => `https://picsum.photos/seed/bbs-post1-${i}/800/450`),
+      imageHints: Array(9).fill('cyberpunk hardware'),
       isFeatured: true,
     },
     {
@@ -399,8 +399,8 @@ const bbsPosts: BbsPost[] = [
       views: 8900,
       favorites: 210,
       createdAt: '2024-07-27T18:30:00Z',
-      featuredImage: 'https://picsum.photos/seed/bbs-post2/800/450',
-      featuredImageHint: 'virtual reality',
+      images: ['https://picsum.photos/seed/bbs-post2/800/450'],
+      imageHints: ['virtual reality'],
       isFeatured: true,
     },
     {
@@ -414,8 +414,8 @@ const bbsPosts: BbsPost[] = [
       views: 1200,
       favorites: 45,
       createdAt: '2024-07-27T14:00:00Z',
-      featuredImage: 'https://picsum.photos/seed/bbs-post3/800/450',
-      featuredImageHint: 'neon fashion'
+      images: ['https://picsum.photos/seed/bbs-post3/800/450'],
+      imageHints: ['neon fashion']
     },
     {
       id: 'post-4',
@@ -428,8 +428,8 @@ const bbsPosts: BbsPost[] = [
       views: 3100,
       favorites: 60,
       createdAt: '2024-07-26T11:00:00Z',
-      featuredImage: 'https://picsum.photos/seed/bbs-post4/800/450',
-      featuredImageHint: 'abstract data'
+      images: ['https://picsum.photos/seed/bbs-post4/800/450'],
+      imageHints: ['abstract data']
     },
     {
         id: 'post-5',
@@ -442,8 +442,8 @@ const bbsPosts: BbsPost[] = [
         views: 6500,
         favorites: 180,
         createdAt: '2024-07-25T22:00:00Z',
-        featuredImage: 'https://picsum.photos/seed/bbs-post5/800/450',
-        featuredImageHint: 'cyberpunk city'
+        images: ['https://picsum.photos/seed/bbs-post5/800/450'],
+        imageHints: ['cyberpunk city']
     },
     {
         id: 'post-6',
@@ -456,8 +456,8 @@ const bbsPosts: BbsPost[] = [
         views: 4200,
         favorites: 120,
         createdAt: '2024-07-24T09:00:00Z',
-        featuredImage: 'https://picsum.photos/seed/bbs-post6/800/450',
-        featuredImageHint: 'retro wave'
+        images: ['https://picsum.photos/seed/bbs-post6/800/450'],
+        imageHints: ['retro wave']
     }
 ];
 

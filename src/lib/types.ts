@@ -131,8 +131,8 @@ export type BbsPost = {
   likes: number;
   views: number;
   createdAt: string;
-  featuredImage?: string;
-  featuredImageHint?: string;
+  images?: string[];
+  imageHints?: string[];
   isFeatured?: boolean;
   favorites?: number;
 };

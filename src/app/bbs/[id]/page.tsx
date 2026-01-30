@@ -20,6 +20,7 @@ import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-a
 import { ThumbsUp, Star, Share2, Plus, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
+import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -154,16 +155,10 @@ export default function BbsPostPage() {
                         <h1 className="font-headline text-3xl font-bold mb-2">{t(post.titleKey)}</h1>
                         <p className="text-xs text-muted-foreground mb-6">{format(postDate, 'PPP p')}</p>
 
-                        {post.featuredImage && (
-                        <div className="relative aspect-video my-6 rounded-xl overflow-hidden shadow-lg shadow-black/30 border border-border">
-                            <Image
-                                src={post.featuredImage}
-                                alt={t(post.titleKey)}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={post.featuredImageHint || ''}
-                            />
-                        </div>
+                        {post.images && post.images.length > 0 && (
+                            <div className="my-6">
+                                <BbsPostImageGallery post={post} />
+                            </div>
                         )}
 
                         <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{t(post.contentKey)}</p>

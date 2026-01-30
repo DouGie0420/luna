@@ -24,21 +24,21 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     return (
         <Link href={`/bbs/${post.id}`} className="group block h-full">
             <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
-                {post.featuredImage && (
+                {post.images && post.images.length > 0 && (
                     <CardHeader className="p-0">
                         <div className="aspect-video relative overflow-hidden">
                             <Image
-                                src={post.featuredImage}
+                                src={post.images[0]}
                                 alt={t(post.titleKey)}
                                 fill
                                 className="object-cover"
-                                data-ai-hint={post.featuredImageHint || ''}
+                                data-ai-hint={post.imageHints?.[0] || ''}
                             />
                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
                     </CardHeader>
                 )}
-                <div className={post.featuredImage ? "p-4 -mt-16 z-10 text-white" : "p-4"}>
+                <div className={post.images && post.images.length > 0 ? "p-4 -mt-16 z-10 text-white" : "p-4"}>
                      <CardTitle className="font-headline text-xl mb-2 leading-tight">
                         {t(post.titleKey)}
                     </CardTitle>
