@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { getProductById, getProducts } from '@/lib/data';
 import {
   Carousel,
@@ -11,8 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, MessageCircle, CreditCard, ShieldCheck } from 'lucide-react';
-import { ProductCard } from '@/components/product-card';
+import { Star, MapPin, ShieldCheck } from 'lucide-react';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -27,7 +27,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
-        {/* Left Column: Image Carousel */}
+        {/* Left Column: Image Carousel & Actions */}
         <div className="lg:col-span-3">
           <Carousel className="w-full">
             <CarouselContent>
@@ -50,6 +50,14 @@ export default async function ProductPage({ params }: { params: { id: string } }
             <CarouselPrevious className="left-4" />
             <CarouselNext className="right-4" />
           </Carousel>
+           <div className="flex items-center justify-end gap-6 mt-4">
+              <Button variant="ghost" className="text-muted-foreground">
+                  <Star className="mr-2 h-4 w-4" /> 点赞
+              </Button>
+              <Button variant="ghost" className="text-muted-foreground">
+                  <Star className="mr-2 h-4 w-4" /> 收藏
+              </Button>
+          </div>
         </div>
 
         {/* Right Column: Product Details & Actions */}
@@ -102,17 +110,20 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     </div>
                 </CardContent>
             </Card>
-
-            <div className="flex items-center justify-end gap-4">
-                <Button variant="ghost" className="text-muted-foreground">
-                    <Star className="mr-2 h-4 w-4" /> 收藏
-                </Button>
-            </div>
         </div>
       </div>
       
       {/* Description and other sections below */}
       <div className="mt-12 flex flex-col gap-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>留言板</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground leading-relaxed">这里按留言发布的时间顺序显示用户对该商品的留言</p>
+                </CardContent>
+            </Card>
+          
             <Card>
                 <CardHeader>
                     <CardTitle>商品描述</CardTitle>
@@ -141,9 +152,21 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
       <div className="mt-20">
         <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {recommendedProducts.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
+                  <Image
+                    src={p.images[0]}
+                    alt={p.name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    data-ai-hint={p.imageHints[0]}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                  <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
+                    {p.name}
+                  </h3>
+                </Link>
             ))}
         </div>
       </div>
