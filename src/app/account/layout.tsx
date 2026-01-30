@@ -106,9 +106,7 @@ export default function AccountLayout({
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <div className="p-6 md:p-8 lg:p-12">
-            {children}
-        </div>
+        {children}
       </SidebarInset>
     </SidebarProvider>
   )

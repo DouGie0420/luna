@@ -9,7 +9,7 @@ export default async function MyListingsPage() {
     const userProducts = allProducts.slice(0, 4); 
 
     return (
-        <div>
+        <div className="p-6 md:p-8 lg:p-12">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-3xl font-headline">My Listings</h1>
                 <Button asChild>

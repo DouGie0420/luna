@@ -12,7 +12,7 @@ export default function KYCPage() {
     const kycStatus = profile?.kycStatus || "Not Verified"; // Can be 'Not Verified', 'Pending', 'Verified'
 
     return (
-        <div>
+        <div className="p-6 md:p-8 lg:p-12">
             <h1 className="text-3xl font-headline mb-6">KYC Verification</h1>
 
             <Card className="mb-8">
