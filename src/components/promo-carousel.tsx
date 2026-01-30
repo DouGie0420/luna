@@ -19,7 +19,7 @@ const promos = [
     imageUrl:
       'https://images.unsplash.com/photo-1581092921441-982d31c36814?q=80&w=1920&auto=format&fit=crop',
     imageHint: 'futuristic technology',
-    link: '#',
+    link: '/promo/cyber-monday',
   },
   {
     title: '城市霓虹',
@@ -27,7 +27,7 @@ const promos = [
     imageUrl:
       'https://images.unsplash.com/photo-1534430480872-3498386e7856?q=80&w=1920&auto=format&fit=crop',
     imageHint: 'neon city',
-    link: '#',
+    link: '/promo/cyber-monday',
   },
   {
     title: '数字浪潮',
@@ -35,7 +35,7 @@ const promos = [
     imageUrl:
       'https://images.unsplash.com/photo-1639762681057-408e52192e50?q=80&w=1920&auto=format&fit=crop',
     imageHint: 'cyberpunk character',
-    link: '#',
+    link: '/promo/cyber-monday',
   },
 ];
 
