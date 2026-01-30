@@ -14,7 +14,7 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <div className="hidden md:flex flex-1 max-w-sm">
+          <div className="flex flex-1 max-w-xs md:max-w-sm">
             <SearchBar />
           </div>
           <nav className="flex items-center space-x-2">
