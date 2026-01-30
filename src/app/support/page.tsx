@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -17,8 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close"
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function SupportPage() {
+  const { t } = useTranslation();
+
   return (
     <>
       <PageHeaderWithBackAndClose />
@@ -26,43 +31,43 @@ export default function SupportPage() {
         <div className="max-w-3xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl font-headline">Contact Support</CardTitle>
+              <CardTitle className="text-3xl font-headline">{t('supportPage.title')}</CardTitle>
               <CardDescription>
-                Have an issue? Fill out the form below and our team will get back to you.
+                {t('supportPage.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="grid gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="email">Your Email</Label>
-                  <Input id="email" type="email" placeholder="you@example.com" />
+                  <Label htmlFor="email">{t('supportPage.emailLabel')}</Label>
+                  <Input id="email" type="email" placeholder={t('supportPage.emailPlaceholder')} />
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="category">Inquiry Type</Label>
+                    <Label htmlFor="category">{t('supportPage.inquiryTypeLabel')}</Label>
                     <Select>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder={t('supportPage.inquiryTypePlaceholder')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="payment">Payment Issue</SelectItem>
-                            <SelectItem value="transaction">Transaction Dispute</SelectItem>
-                            <SelectItem value="account">Account Access</SelectItem>
-                            <SelectItem value="bug">Report a Bug</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
+                            <SelectItem value="payment">{t('supportPage.payment')}</SelectItem>
+                            <SelectItem value="transaction">{t('supportPage.transaction')}</SelectItem>
+                            <SelectItem value="account">{t('supportPage.account')}</SelectItem>
+                            <SelectItem value="bug">{t('supportPage.bug')}</SelectItem>
+                            <SelectItem value="other">{t('supportPage.other')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="e.g. Problem with order #ORD123" />
+                  <Label htmlFor="subject">{t('supportPage.subjectLabel')}</Label>
+                  <Input id="subject" placeholder={t('supportPage.subjectPlaceholder')} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" placeholder="Please describe your issue in detail..." rows={6} />
+                  <Label htmlFor="description">{t('supportPage.descriptionLabel')}</Label>
+                  <Textarea id="description" placeholder={t('supportPage.descriptionPlaceholder')} rows={6} />
                 </div>
                 
                 <div className="flex justify-end">
-                    <Button type="submit" size="lg">Submit Ticket</Button>
+                    <Button type="submit" size="lg">{t('supportPage.submitTicket')}</Button>
                 </div>
               </form>
             </CardContent>

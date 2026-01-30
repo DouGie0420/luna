@@ -90,7 +90,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
               <div className="flex gap-2">
                   <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg">
-                      Chat with Seller
+                      联系卖家
                   </Button>
                   <BuyNowButton product={product} />
               </div>

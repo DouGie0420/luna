@@ -47,7 +47,7 @@ export function BuyNowButton({ product }: { product: Product }) {
 
     return (
         <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleClick}>
-            Buy Now
+            立即购买
         </Button>
     );
 }

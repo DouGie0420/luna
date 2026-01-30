@@ -7,7 +7,6 @@ import { BackgroundSnake } from '@/components/background-snake';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { LanguageProvider } from '@/context/language-provider';
-import { LanguageSelector } from '@/components/language-selector';
 import { FloatingSupportButton } from '@/components/floating-support-button';
 
 export default function RootLayout({
@@ -34,7 +33,6 @@ export default function RootLayout({
             </div>
             <Toaster />
             <FirebaseErrorListener />
-            <LanguageSelector />
             <FloatingSupportButton />
           </LanguageProvider>
         </FirebaseClientProvider>

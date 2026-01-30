@@ -73,19 +73,19 @@ export default function NewProductPage() {
                   <div className="max-w-3xl mx-auto">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-3xl font-headline">无法发布商品</CardTitle>
+                            <CardTitle className="text-3xl font-headline">{t('newProductPage.cannotListTitle')}</CardTitle>
                             <CardDescription>
-                                需要完成认证才能发布商品。
+                                {t('newProductPage.cannotListDescription')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                           <Alert variant="destructive">
                                 <ShieldAlert className="h-4 w-4" />
-                                <AlertTitle>需要KYC认证</AlertTitle>
+                                <AlertTitle>{t('newProductPage.kycRequiredTitle')}</AlertTitle>
                                 <AlertDescription className="flex flex-col gap-4">
-                                    <p>您的账户尚未完成KYC（了解你的客户）认证。为了确保平台交易的安全，您必须先完成认证才能发布商品。</p>
+                                    <p>{t('newProductPage.kycRequiredDescription')}</p>
                                     <Button asChild className="mt-4 w-fit">
-                                        <Link href="/account/kyc">前往认证</Link>
+                                        <Link href="/account/kyc">{t('newProductPage.goToVerify')}</Link>
                                     </Button>
                                 </AlertDescription>
                             </Alert>
@@ -115,67 +115,67 @@ export default function NewProductPage() {
         <div className="max-w-3xl mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl font-headline">List a New Item</CardTitle>
+              <CardTitle className="text-3xl font-headline">{t('newProductPage.title')}</CardTitle>
               <CardDescription>
-                Fill in the details below to put your item on the market.
+                {t('newProductPage.description')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form className="grid gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Item Name</Label>
-                  <Input id="name" placeholder="e.g. Vintage Leather Jacket" />
+                  <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
+                  <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" placeholder="Describe your item in detail..." />
+                  <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
+                  <Textarea id="description" placeholder={t('newProductPage.descriptionPlaceholder')} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
-                        <Label htmlFor="price">Price</Label>
-                        <Input id="price" type="number" placeholder="100.00" />
+                        <Label htmlFor="price">{t('newProductPage.price')}</Label>
+                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="currency">Currency</Label>
+                        <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
                         <Select defaultValue="THB">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a currency" />
+                                <SelectValue placeholder={t('newProductPage.selectCurrency')} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="THB">THB (Thai Baht)</SelectItem>
-                                <SelectItem value="USDT">USDT (Tether)</SelectItem>
-                                <SelectItem value="RMB-alipay">Alipay (RMB)</SelectItem>
-                                <SelectItem value="RMB-wechat">WeChat Pay (RMB)</SelectItem>
+                                <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
+                                <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
+                                <SelectItem value="RMB-alipay">{t('newProductPage.alipay')}</SelectItem>
+                                <SelectItem value="RMB-wechat">{t('newProductPage.wechat')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
                 <div className="grid gap-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category">{t('newProductPage.category')}</Label>
                     <Select>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder={t('newProductPage.selectCategory')} />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="electronics">Electronics</SelectItem>
-                            <SelectItem value="accessories">Accessories</SelectItem>
-                            <SelectItem value="home-goods">Home Goods</SelectItem>
-                            <SelectItem value="sports-outdoors">Sports & Outdoors</SelectItem>
-                            <SelectItem value="fashion">Fashion</SelectItem>
-                            <SelectItem value="musical-instruments">Musical Instruments</SelectItem>
+                            <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
+                            <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
+                            <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
+                            <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
+                            <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
+                            <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
                 <div className="grid gap-2">
-                    <Label>Item Images</Label>
+                    <Label>{t('newProductPage.images')}</Label>
                     <div className="border-2 border-dashed border-border rounded-lg p-12 flex flex-col items-center justify-center text-center">
                         <Upload className="h-12 w-12 text-muted-foreground" />
-                        <p className="mt-2 text-sm text-muted-foreground">Drag & drop files here, or click to browse</p>
-                        <Button variant="outline" className="mt-4">Select Files</Button>
+                        <p className="mt-2 text-sm text-muted-foreground">{t('newProductPage.dragAndDrop')}</p>
+                        <Button variant="outline" className="mt-4">{t('newProductPage.selectFiles')}</Button>
                     </div>
                 </div>
                 <div className="flex justify-end">
-                    <Button type="submit" size="lg">List Item</Button>
+                    <Button type="submit" size="lg">{t('newProductPage.listItem')}</Button>
                 </div>
               </form>
             </CardContent>
