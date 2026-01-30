@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { LifeBuoy } from 'lucide-react';
+import { Headset } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 import {
   Tooltip,
@@ -25,7 +25,7 @@ export function FloatingSupportButton() {
                             className="h-16 w-16 rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground shadow-2xl shadow-primary/30 transition-transform hover:scale-110"
                         >
                             <Link href="/support">
-                                <LifeBuoy className="h-8 w-8" />
+                                <Headset className="h-8 w-8" />
                             </Link>
                         </Button>
                     </TooltipTrigger>
