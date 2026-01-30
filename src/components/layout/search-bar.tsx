@@ -133,7 +133,10 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
               </Button>
           </div>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0 border-primary/50 bg-background/80 backdrop-blur-sm"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
           {isLoading ? (
             <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -144,7 +147,8 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
               {suggestions.map((suggestion, index) => (
                 <li
                   key={index}
-                  className="cursor-pointer px-4 py-2 text-sm hover:bg-accent"
+                  className="cursor-pointer px-4 py-2 text-sm hover:bg-accent opacity-0"
+                  style={{ animation: `suggestion-fade-in 0.3s ease-out ${index * 0.07}s forwards` }}
                   onMouseDown={(e) => { 
                     e.preventDefault();
                     handleSearch(suggestion);
