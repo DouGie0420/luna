@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { SnakeBorder } from '@/components/snake-border';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,10 @@ function PromoPageSkeleton() {
 export default function CyberMondayPromoPage() {
     const firestore = useFirestore();
     // In a real CMS, this ID would be dynamic. For now, we hardcode it.
-    const promoRef = firestore ? doc(firestore, 'promos', 'cyber-monday') : null;
+    const promoRef = useMemo(() => 
+        firestore ? doc(firestore, 'promos', 'cyber-monday') : null,
+        [firestore]
+    );
     const { data: promo, loading: promoLoading } = useDoc<Promo>(promoRef);
 
     const [products, setProducts] = useState<Product[]>([]);
