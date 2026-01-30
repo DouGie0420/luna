@@ -1,9 +1,7 @@
 import { Logo } from "./logo";
 import { UserNav } from "./user-nav";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
 import { AnnouncementBar } from "./announcement-bar";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export function Header() {
   return (
@@ -15,7 +13,8 @@ export function Header() {
           <AnnouncementBar />
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher />
           <UserNav />
         </div>
       </div>
