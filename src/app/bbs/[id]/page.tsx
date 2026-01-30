@@ -183,7 +183,7 @@ export default function BbsPostPage() {
                     </div>
                     
                     {/* Comments */}
-                     <div className="px-6 pb-6">
+                     <div id="comments" className="px-6 pb-6 scroll-mt-24">
                         <Separator className="my-6" />
                         <div className="space-y-6">
                             <p className="text-lg font-semibold">{comments.length} 条评论</p>

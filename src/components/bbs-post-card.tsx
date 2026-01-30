@@ -12,10 +12,12 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
+    const router = useRouter();
     const { t, language } = useTranslation();
     const { toast } = useToast();
     
@@ -24,10 +26,31 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         locale: locales[language] || enUS
     });
 
-    const handleActionClick = (e: React.MouseEvent) => {
+    const handleInteraction = (e: React.MouseEvent, action: () => void) => {
+        e.stopPropagation();
         e.preventDefault();
-        toast({
-            title: t('productCardActions.featureComingSoon'),
+        action();
+    };
+
+    const handleCommentClick = (e: React.MouseEvent) => {
+        handleInteraction(e, () => {
+            router.push(`/bbs/${post.id}#comments`);
+        });
+    };
+
+    const handleLikeClick = (e: React.MouseEvent) => {
+        handleInteraction(e, () => {
+            toast({
+                title: t('bbsPage.thankYouForLike'),
+            });
+        });
+    };
+    
+    const handleViewsClick = (e: React.MouseEvent) => {
+        handleInteraction(e, () => {
+            toast({
+                title: t('productCardActions.featureComingSoon'),
+            });
         });
     };
 
@@ -81,15 +104,15 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full">
-                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
+                        <button onClick={handleCommentClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
                         </button>
-                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
+                        <button onClick={handleLikeClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.likes}</span>
                         </button>
-                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
+                        <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />
                             <span>{post.views}</span>
                         </button>

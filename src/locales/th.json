@@ -260,7 +260,8 @@
     "filterNearest": "ใกล้ฉัน",
     "searchPlaceholder": "ค้นหาโพสต์...",
     "featuredBadge": "แนะนำ",
-    "linkCopied": "คัดลอกลิงก์โพสต์ไปยังคลิปบอร์ดแล้ว!"
+    "linkCopied": "คัดลอกลิงก์โพสต์ไปยังคลิปบอร์ดแล้ว!",
+    "thankYouForLike": "ขอบคุณที่กดไลค์!"
   },
   "bbsPosts": {
     "post1": {

@@ -260,7 +260,8 @@
     "filterNearest": "Nearest",
     "searchPlaceholder": "Search posts...",
     "featuredBadge": "Featured",
-    "linkCopied": "Post link copied to clipboard!"
+    "linkCopied": "Post link copied to clipboard!",
+    "thankYouForLike": "Thanks for your like!"
   },
   "bbsPosts": {
     "post1": {

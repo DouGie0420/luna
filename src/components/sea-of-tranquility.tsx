@@ -15,9 +15,11 @@ import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 
 
 export function SeaOfTranquility() {
+    const router = useRouter();
     const { t, language } = useTranslation();
     const [posts, setPosts] = useState<BbsPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -34,10 +36,31 @@ export function SeaOfTranquility() {
         fetchPosts();
     }, []);
 
-    const handleActionClick = (e: React.MouseEvent) => {
+    const handleInteraction = (e: React.MouseEvent, action: () => void) => {
+        e.stopPropagation();
         e.preventDefault();
-        toast({
-            title: t('productCardActions.featureComingSoon'),
+        action();
+    };
+
+    const handleCommentClick = (e: React.MouseEvent, postId: string) => {
+        handleInteraction(e, () => {
+            router.push(`/bbs/${postId}#comments`);
+        });
+    };
+
+    const handleLikeClick = (e: React.MouseEvent) => {
+        handleInteraction(e, () => {
+            toast({
+                title: t('bbsPage.thankYouForLike'),
+            });
+        });
+    };
+    
+    const handleViewsClick = (e: React.MouseEvent) => {
+        handleInteraction(e, () => {
+            toast({
+                title: t('productCardActions.featureComingSoon'),
+            });
         });
     };
 
@@ -133,15 +156,15 @@ export function SeaOfTranquility() {
                                                 </div>
                                             </div>
                                             <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full mt-3 pt-3 border-t border-border/50">
-                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
+                                                <button onClick={(e) => handleCommentClick(e, post.id)} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
                                                     <MessageSquare className="h-4 w-4" />
                                                     <span>{post.replies}</span>
                                                 </button>
-                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
+                                                <button onClick={handleLikeClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
                                                     <ThumbsUp className="h-4 w-4" />
                                                     <span>{post.likes}</span>
                                                 </button>
-                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
+                                                <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                                                     <Eye className="h-4 w-4" />
                                                     <span>{post.views}</span>
                                                 </button>
