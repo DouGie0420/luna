@@ -14,7 +14,7 @@ import Link from "next/link";
 
 export function UserNav() {
   // In a real app, you'd get the user's session status here.
-  const isLoggedIn = false; 
+  const isLoggedIn = true; 
 
   if (!isLoggedIn) {
     return (

@@ -30,9 +30,11 @@ export function Header() {
 
         <div className="flex items-center gap-4 self-start pt-6">
           <UserNav />
-           <Button variant="secondary" className="rounded-full">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              发布
+           <Button asChild variant="secondary" className="rounded-full">
+              <Link href="/products/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                发布
+              </Link>
            </Button>
         </div>
       </div>
