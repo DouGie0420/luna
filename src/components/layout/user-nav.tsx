@@ -135,7 +135,7 @@ export function UserNav() {
         </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button asChild variant="default" className="rounded-none">
+        <Button asChild variant="ghost" className="rounded-full bg-lime-400/20 text-lime-300 border border-lime-400/50 hover:bg-lime-400/30 hover:text-lime-200 h-10 px-4">
             <Link href="/products/new" onClick={handleListProductClick}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t('userNav.listAnItem')}
