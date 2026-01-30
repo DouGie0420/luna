@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart } from "lucide-react";
+import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export function UserNav() {
@@ -18,10 +18,13 @@ export function UserNav() {
 
   if (!isLoggedIn) {
     return (
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <Link href="/login" className="hover:underline">登录</Link>
-            <div className="h-3 w-px bg-foreground/50" />
-            <Link href="/register" className="hover:underline">注册</Link>
+        <div className="flex items-center gap-2">
+            <Button asChild variant="default" className="rounded-full animate-glow">
+                <Link href="/login">登录</Link>
+            </Button>
+            <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
+                <Link href="/register">注册</Link>
+            </Button>
         </div>
     )
   }
@@ -74,6 +77,13 @@ export function UserNav() {
             </DropdownMenuItem>
         </DropdownMenuContent>
         </DropdownMenu>
+
+        <Button asChild variant="default" className="rounded-none">
+            <Link href="/products/new">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                发布
+            </Link>
+        </Button>
     </div>
   );
 }

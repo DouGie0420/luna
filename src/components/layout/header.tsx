@@ -17,12 +17,6 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <UserNav />
-           <Button asChild variant="default" className="rounded-none">
-              <Link href="/products/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                发布
-              </Link>
-           </Button>
         </div>
       </div>
     </header>
