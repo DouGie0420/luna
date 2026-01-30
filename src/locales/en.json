@@ -259,7 +259,8 @@
     "filterFeatured": "Featured",
     "filterNearest": "Nearest",
     "searchPlaceholder": "Search posts...",
-    "featuredBadge": "Featured"
+    "featuredBadge": "Featured",
+    "linkCopied": "Post link copied to clipboard!"
   },
   "bbsPosts": {
     "post1": {

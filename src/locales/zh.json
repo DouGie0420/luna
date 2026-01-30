@@ -259,7 +259,8 @@
     "filterFeatured": "精华",
     "filterNearest": "离我最近",
     "searchPlaceholder": "搜索帖子...",
-    "featuredBadge": "精华"
+    "featuredBadge": "精华",
+    "linkCopied": "帖子链接已复制到剪贴板！"
   },
   "bbsPosts": {
     "post1": {

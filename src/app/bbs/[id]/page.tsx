@@ -7,6 +7,7 @@ import { useParams, notFound } from 'next/navigation';
 import { getBbsPostById, getUsers } from '@/lib/data';
 import type { BbsPost, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
+import { useToast } from '@/hooks/use-toast';
 
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -17,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { ThumbsUp, Star, Send, Plus, MessageSquare } from 'lucide-react';
+import { ThumbsUp, Star, Share2, Plus, MessageSquare } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 
@@ -65,6 +66,7 @@ function PostPageSkeleton() {
 export default function BbsPostPage() {
     const params = useParams();
     const { t, language } = useTranslation();
+    const { toast } = useToast();
     const [post, setPost] = useState<BbsPost | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -96,6 +98,14 @@ export default function BbsPostPage() {
         };
         fetchData();
     }, [id]);
+
+    const handleShare = () => {
+        const postUrl = window.location.href;
+        navigator.clipboard.writeText(postUrl);
+        toast({
+            title: t('bbsPage.linkCopied'),
+        });
+    };
 
     if (loading) {
         return (
@@ -196,11 +206,12 @@ export default function BbsPostPage() {
                         {/* Actions Footer */}
                         <div className="p-4 border-t bg-card">
                             <div className="relative">
-                                <Input placeholder="说点什么吧..." className="pr-28" />
+                                <Input placeholder="说点什么吧..." className="pr-40" />
                                 <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center gap-1">
                                      <Button variant="ghost" size="icon"><ThumbsUp /></Button>
                                      <Button variant="ghost" size="icon"><Star /></Button>
                                      <Button variant="ghost" size="icon"><MessageSquare /></Button>
+                                     <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
                                 </div>
                             </div>
                         </div>
