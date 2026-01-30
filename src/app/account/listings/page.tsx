@@ -33,27 +33,15 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     const { t } = useTranslation();
     const { toast } = useToast();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const triggerRef = useRef<HTMLButtonElement>(null);
-
-    const handleShare = () => {
+    
+    const handleShare = (e: React.MouseEvent) => {
         const productUrl = `${window.location.origin}/products/${product.id}`;
         navigator.clipboard.writeText(productUrl);
-        
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top;
-            toast({
-                title: t('productCardActions.linkCopied'),
-                x,
-                y,
-            });
-        } else {
-            // Fallback for safety
-            toast({
-                title: t('productCardActions.linkCopied'),
-            });
-        }
+        toast({
+            title: t('productCardActions.linkCopied'),
+            x: e.clientX,
+            y: e.clientY,
+        });
     };
 
     const handleDelete = () => {
@@ -64,21 +52,12 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
         setIsDeleteDialogOpen(false);
     };
 
-    const handleComingSoon = () => {
-        if (triggerRef.current) {
-            const rect = triggerRef.current.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top;
-            toast({
-                title: t('productCardActions.featureComingSoon'),
-                x,
-                y,
-            });
-        } else {
-            toast({
-                title: t('productCardActions.featureComingSoon'),
-            });
-        }
+    const handleComingSoon = (e: React.MouseEvent) => {
+        toast({
+            title: t('productCardActions.featureComingSoon'),
+            x: e.clientX,
+            y: e.clientY,
+        });
     };
 
     return (
@@ -86,7 +65,7 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button ref={triggerRef} variant="ghost" size="icon" className="h-8 w-8">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
                     </DropdownMenuTrigger>
@@ -99,7 +78,12 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
                             <Sparkles className="mr-2 h-4 w-4"/>
                             <span>{t('productCardActions.polish')}</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={handleShare}>
+                        <DropdownMenuItem onSelect={(e) => {
+                            e.preventDefault(); // Prevent menu from closing
+                            const target = e.target as HTMLElement;
+                            const rect = target.getBoundingClientRect();
+                             handleShare(e as unknown as React.MouseEvent);
+                        }}>
                             <Share2 className="mr-2 h-4 w-4"/>
                             <span>{t('productCardActions.share')}</span>
                         </DropdownMenuItem>
