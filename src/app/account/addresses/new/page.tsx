@@ -23,6 +23,8 @@ import type { UserAddress } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { addDoc, updateDoc, deleteDoc, doc, collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const EMPTY_ADDRESS: Omit<UserAddress, 'id'> = {
     recipientName: '',
@@ -102,7 +104,7 @@ export default function AddressFormPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     }
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!firestore || !user) {
             toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
@@ -110,45 +112,66 @@ export default function AddressFormPage() {
         }
 
         setIsSubmitting(true);
-        try {
-            const dataToSave = { ...formData };
-            if ('id' in dataToSave) {
-              delete (dataToSave as any).id;
-            }
+        const dataToSave = { ...formData };
+        if ('id' in dataToSave) {
+            delete (dataToSave as any).id;
+        }
 
-            if (isEditMode) {
-                const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId!);
-                await updateDoc(docRef, dataToSave);
-                toast({ title: 'Address Updated' });
-            } else {
-                const collectionRef = collection(firestore, 'users', user.uid, 'addresses');
-                await addDoc(collectionRef, dataToSave);
-                toast({ title: 'Address Saved' });
-            }
-            router.push('/account/addresses');
-        } catch (error) {
-            console.error('Error saving address:', error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to save address.' });
-            setIsSubmitting(false);
+        if (isEditMode) {
+            const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId!);
+            updateDoc(docRef, dataToSave)
+                .then(() => {
+                    toast({ title: 'Address Updated' });
+                    router.push('/account/addresses');
+                })
+                .catch((serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: docRef.path,
+                        operation: 'update',
+                        requestResourceData: dataToSave,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                    setIsSubmitting(false);
+                });
+        } else {
+            const collectionRef = collection(firestore, 'users', user.uid, 'addresses');
+            addDoc(collectionRef, dataToSave)
+                .then(() => {
+                    toast({ title: 'Address Saved' });
+                    router.push('/account/addresses');
+                })
+                .catch((serverError) => {
+                    const permissionError = new FirestorePermissionError({
+                        path: collectionRef.path,
+                        operation: 'create',
+                        requestResourceData: dataToSave,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                    setIsSubmitting(false);
+                });
         }
     };
     
-    const handleDelete = async () => {
+    const handleDelete = () => {
         if (!firestore || !user || !addressId) return;
 
         setIsSubmitting(true);
-        try {
-            const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId);
-            await deleteDoc(docRef);
-            toast({ title: 'Address Deleted' });
-            router.push('/account/addresses');
-        } catch (error) {
-            console.error('Error deleting address:', error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete address.'});
-            setIsSubmitting(false);
-        } finally {
-            setIsDeleteDialogOpen(false);
-        }
+        const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId);
+        
+        deleteDoc(docRef)
+            .then(() => {
+                toast({ title: 'Address Deleted' });
+                router.push('/account/addresses');
+            })
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: docRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                setIsSubmitting(false);
+                setIsDeleteDialogOpen(false);
+            });
     };
     
     const isLoading = userLoading || (isEditMode && addressLoading);

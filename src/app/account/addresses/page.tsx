@@ -28,6 +28,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 function AddressCard({ address, onDeleteClick }: { address: UserAddress; onDeleteClick: (addressId: string) => void; }) {
     return (
@@ -99,17 +101,23 @@ export default function AddressesPage() {
 
   const { data: addresses, loading: addressesLoading } = useCollection<UserAddress>(addressesCollectionQuery);
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!firestore || !user || !addressToDelete) return;
-    try {
-        const addressRef = doc(firestore, 'users', user.uid, 'addresses', addressToDelete);
-        await deleteDoc(addressRef);
-        toast({ title: 'Address Deleted' });
-        setAddressToDelete(null);
-    } catch (error) {
-        console.error('Error deleting address:', error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete address.' });
-    }
+    
+    const addressRef = doc(firestore, 'users', user.uid, 'addresses', addressToDelete);
+    deleteDoc(addressRef)
+        .then(() => {
+            toast({ title: 'Address Deleted' });
+            setAddressToDelete(null);
+        })
+        .catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: addressRef.path,
+                operation: 'delete',
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setAddressToDelete(null); // Also close dialog on error.
+        });
   };
 
   const isLoading = userLoading || addressesLoading;
