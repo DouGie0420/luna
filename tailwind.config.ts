@@ -130,7 +130,7 @@ export default {
         'glow': 'glow 2.5s ease-in-out infinite',
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
-        'hue-rotate': 'hue-rotate 3s linear infinite',
+        'hue-rotate': 'hue-rotate 5s linear infinite',
       },
     },
   },
