@@ -91,7 +91,7 @@ export function SearchBar() {
                         <Loader2 className="absolute right-[150px] top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground animate-spin" />
                     )}
                 </div>
-                <SnakeBorder />
+                <SnakeBorder color="hsl(120 100% 50%)" />
             </div>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
