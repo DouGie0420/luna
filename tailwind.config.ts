@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Share Tech Mono', 'monospace'],
-        headline: ['Space Grotesk', 'sans-serif'],
+        body: ['"Press Start 2P"', 'cursive'],
+        headline: ['"Press Start 2P"', 'cursive'],
         code: ['monospace'],
       },
       colors: {
@@ -74,9 +74,9 @@ export default {
         },
       },
       borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        lg: '0',
+        md: '0',
+        sm: '0',
       },
       keyframes: {
         'accordion-down': {

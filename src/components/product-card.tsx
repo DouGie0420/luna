@@ -14,14 +14,14 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   return (
     <Link href={`/products/${product.id}`} className="group">
-      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-lg hover:-translate-y-1", className)}>
+      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200", className)}>
         <CardHeader className="p-0">
           <div className="aspect-[4/3] relative overflow-hidden">
             <Image
               src={product.images[0]}
               alt={product.name}
               fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              className="object-cover"
               data-ai-hint={product.imageHints[0]}
             />
           </div>

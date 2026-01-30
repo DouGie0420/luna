@@ -48,12 +48,12 @@ export default function KYCPage() {
                     <CardContent className="grid gap-6">
                         <div className="grid gap-2">
                             <Label htmlFor="id-upload">Government-Issued ID</Label>
-                            <input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
+                            <input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
                             <p className="text-xs text-muted-foreground">e.g., Passport, Driver's License</p>
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="selfie-upload">Selfie with ID</Label>
-                            <input id="selfie-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
+                            <input id="selfie-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
                              <p className="text-xs text-muted-foreground">Hold your ID next to your face.</p>
                         </div>
                          <div className="flex justify-end">
