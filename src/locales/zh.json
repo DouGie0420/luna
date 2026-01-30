@@ -408,5 +408,21 @@
     "wipSF": "即将对接顺丰快递物流查询",
     "wipYTO": "即将对接圆通快递物流查询",
     "wipOther": "即将对接其他本地快递"
+  },
+  "productComments": {
+    "title": "留言板",
+    "noComments": "暂无留言",
+    "beTheFirst": "成为第一个留言的人吧",
+    "showMore": "展开更多",
+    "collapse": "收起",
+    "previous": "上一页",
+    "next": "下一页",
+    "placeholder": "留下你的留言...",
+    "submit": "发布",
+    "cannotCommentTitle": "无法评论",
+    "cannotCommentDescription": "您需要登录并完成认证才能发表评论。",
+    "loginToComment_link": "登录",
+    "loginToComment_text": "并完成认证后即可留言。",
+    "commentPosted": "留言已发布"
   }
 }

@@ -408,5 +408,21 @@
     "wipSF": "SF Express tracking integration is coming soon.",
     "wipYTO": "YTO Express tracking integration is coming soon.",
     "wipOther": "Other local courier integrations are coming soon."
+  },
+  "productComments": {
+    "title": "Comment Section",
+    "noComments": "No comments yet.",
+    "beTheFirst": "Be the first to leave a comment.",
+    "showMore": "Show More",
+    "collapse": "Collapse",
+    "previous": "Previous",
+    "next": "Next",
+    "placeholder": "Leave your comment...",
+    "submit": "Submit",
+    "cannotCommentTitle": "Cannot Comment",
+    "cannotCommentDescription": "You need to be logged in and verified to comment.",
+    "loginToComment_link": "Login",
+    "loginToComment_text": "and get verified to leave a comment.",
+    "commentPosted": "Comment posted"
   }
 }

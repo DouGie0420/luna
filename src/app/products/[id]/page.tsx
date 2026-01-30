@@ -8,6 +8,7 @@ import { ProductImageGallery } from '@/components/product-image-gallery';
 import { ProductTitleWithBadge } from '@/components/product-title-with-badge';
 import { SellerProfileCard } from '@/components/seller-profile-card';
 import { ProductPurchaseActions } from '@/components/product-purchase-actions';
+import { ProductCommentSection } from '@/components/product-comment-section';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -41,14 +42,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
         
         {/* Description and other sections below */}
         <div className="mt-12 flex flex-col gap-8">
-              <Card>
-                  <CardHeader>
-                      <CardTitle>留言板</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <p className="text-muted-foreground leading-relaxed">这里按留言发布的时间顺序显示用户对该商品的留言</p>
-                  </CardContent>
-              </Card>
+              <ProductCommentSection productId={product.id} />
             
               <Card>
                   <CardHeader>
