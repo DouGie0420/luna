@@ -25,7 +25,7 @@ export function RotatingQuote() {
     }, []);
 
     return (
-        <div className="text-center p-4 my-2">
+        <div className="text-center">
             <p className={cn(
                 "font-headline text-sm text-primary animate-glow",
                 "transition-opacity duration-500",

@@ -143,7 +143,7 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
           
           {/* Left/Main Column */}
-          <div className="lg:col-span-3 space-y-8">
+          <div className="lg:col-span-3 space-y-6">
             
             {/* Shipping Address */}
             <Card>
@@ -263,8 +263,8 @@ export default function CheckoutPage() {
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
-                 <div className="w-full space-y-3 pt-2">
-                    <div className="relative h-2 w-full">
+                 <div className="w-full space-y-2 pt-2">
+                    <div className="relative h-2 w-full overflow-hidden">
                         <Progress value={progress} className="w-full h-2 rounded-full" />
                         <div className="absolute inset-0 flex items-center justify-center mix-blend-plus-lighter">
                            <span className="text-xs font-bold text-primary-foreground">
