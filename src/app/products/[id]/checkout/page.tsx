@@ -20,6 +20,7 @@ import { AlertCircle, MapPin, Truck, Wallet, Edit, CheckCircle2 } from 'lucide-r
 import { cn } from '@/lib/utils';
 import { PaymentMethodButton } from '@/components/payment-method-button';
 import { Progress } from "@/components/ui/progress";
+import { RotatingQuote } from '@/components/rotating-quote';
 
 
 const mockAddresses: UserAddress[] = [
@@ -180,6 +181,8 @@ export default function CheckoutPage() {
               </CardContent>
             </Card>
 
+            <RotatingQuote />
+
             {/* Shipping Method */}
             <Card>
               <CardHeader>
@@ -247,9 +250,9 @@ export default function CheckoutPage() {
                     <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
                     <div className="grid grid-cols-1 gap-2">
                         <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                        <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
-                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
                         <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
+                        <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
+                        <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
                     </div>
                  </div>
               </CardContent>
@@ -263,7 +266,7 @@ export default function CheckoutPage() {
                     <div className="relative h-2 w-full">
                         <Progress value={progress} className="w-full h-2 rounded-full" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                           <span className="text-xs font-bold text-white" style={{ mixBlendMode: 'difference' }}>
+                           <span className="text-xs font-bold text-primary-foreground">
                                 {Math.round(progress)}%
                            </span>
                         </div>
