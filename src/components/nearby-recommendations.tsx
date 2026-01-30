@@ -64,12 +64,12 @@ export function NearbyRecommendations() {
   return (
     <section>
       <h2 className="font-headline text-3xl font-semibold mb-6">为你精选</h2>
-      <div className="pixel-grid-bg">
+      <div className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {(isLoading || recommendations.length === 0) ? (
               [...Array(8)].map((_, i) => (
                   <div key={i} className="flex flex-col space-y-3">
-                    <Skeleton className="aspect-[4/3] w-full" />
+                    <div className="aspect-[4/3] w-full"><Skeleton className="w-full h-full" /></div>
                     <div className="space-y-2">
                       <Skeleton className="h-4 w-4/5" />
                       <Skeleton className="h-4 w-3/5" />
