@@ -7,6 +7,7 @@ import { NearbyRecommendations } from '@/components/nearby-recommendations';
 import Link from 'next/link';
 import { useState } from 'react';
 import { VerifiedMerchants } from '@/components/verified-merchants';
+import { CanyonOfTheMoon } from '@/components/canyon-of-the-moon';
 
 export default function HomePage() {
   const [popularSearches, setPopularSearches] = useState([
@@ -41,6 +42,8 @@ export default function HomePage() {
       </section>
       
       <VerifiedMerchants />
+
+      <CanyonOfTheMoon />
 
       <div className="container mx-auto px-4 pb-16">
         <NearbyRecommendations />
