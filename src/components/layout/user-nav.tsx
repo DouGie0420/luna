@@ -48,12 +48,10 @@ export function UserNav() {
     }
   };
   
-  const handleWeb3Login = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleWeb3Login = () => {
     toast({
       title: t('userNav.web3LoginComingSoonTitle'),
       description: t('userNav.web3LoginComingSoonDescription'),
-      x: e.clientX,
-      y: e.clientY,
     });
   };
 

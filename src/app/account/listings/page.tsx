@@ -34,13 +34,11 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     const { toast } = useToast();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     
-    const handleShare = (e: React.MouseEvent) => {
+    const handleShare = () => {
         const productUrl = `${window.location.origin}/products/${product.id}`;
         navigator.clipboard.writeText(productUrl);
         toast({
             title: t('productCardActions.linkCopied'),
-            x: e.clientX,
-            y: e.clientY,
         });
     };
 
@@ -52,11 +50,9 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
         setIsDeleteDialogOpen(false);
     };
 
-    const handleComingSoon = (e: React.MouseEvent) => {
+    const handleComingSoon = () => {
         toast({
             title: t('productCardActions.featureComingSoon'),
-            x: e.clientX,
-            y: e.clientY,
         });
     };
 
@@ -78,12 +74,7 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
                             <Sparkles className="mr-2 h-4 w-4"/>
                             <span>{t('productCardActions.polish')}</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={(e) => {
-                            e.preventDefault(); // Prevent menu from closing
-                            const target = e.target as HTMLElement;
-                            const rect = target.getBoundingClientRect();
-                             handleShare(e as unknown as React.MouseEvent);
-                        }}>
+                        <DropdownMenuItem onSelect={handleShare}>
                             <Share2 className="mr-2 h-4 w-4"/>
                             <span>{t('productCardActions.share')}</span>
                         </DropdownMenuItem>

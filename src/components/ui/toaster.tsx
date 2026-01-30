@@ -16,9 +16,8 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
-        const isCenter = props.x !== undefined && props.y !== undefined;
         return (
-          <Toast key={id} {...props} className={isCenter ? 'fixed' : ''} style={isCenter ? { left: `${props.x}px`, top: `${props.y}px`, transform: 'translate(-50%, -150%)' } : {}}>
+          <Toast key={id} {...props}>
             <div className="grid gap-1 text-center">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (
