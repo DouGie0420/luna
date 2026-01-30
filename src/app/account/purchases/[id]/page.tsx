@@ -120,6 +120,23 @@ function Countdown({ targetDate }: { targetDate: string }) {
     return <span>{t('orderDetails.countdown').replace('{time}', timerComponents)}</span>;
 }
 
+const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">{label}</span>
+            <div className="flex items-center gap-2">
+                {isLink ? (
+                    <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
+                ) : (
+                    <span className="font-medium text-right">{value}</span>
+                )}
+                {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy && onCopy(value)}>{t('accountPage.copy')}</Button>}
+                {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
+            </div>
+        </div>
+    );
+};
 
 export default function OrderDetailPage() {
     const params = useParams();
@@ -167,108 +184,88 @@ export default function OrderDetailPage() {
     }
 
     return (
-        <div>
-            <div className="container mx-auto max-w-2xl px-4 py-8">
-                <div className="space-y-4">
-                    
-                    <Card className="overflow-hidden">
-                        <CardHeader className="bg-card">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <CardTitle className="flex items-center gap-2 text-xl font-headline">
-                                        {t(`orderDetails.status.${order.status}`)}
-                                    </CardTitle>
-                                    <CardDescription className="mt-1 text-sm">
-                                        <Countdown targetDate={order.autoConfirmTime} />
-                                    </CardDescription>
-                                </div>
-                                <Truck className="h-16 w-16 text-primary animate-bounce" />
+        <div className="container mx-auto max-w-2xl px-4 py-8">
+            <div className="space-y-4">
+                
+                <Card className="overflow-hidden">
+                    <CardHeader className="bg-card">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <CardTitle className="flex items-center gap-2 text-xl font-headline">
+                                    {t(`orderDetails.status.${order.status}`)}
+                                </CardTitle>
+                                <CardDescription className="mt-1 text-sm">
+                                    <Countdown targetDate={order.autoConfirmTime} />
+                                </CardDescription>
                             </div>
-                        </CardHeader>
-                    </Card>
+                            <Truck className="h-16 w-16 text-primary animate-bounce" />
+                        </div>
+                    </CardHeader>
+                </Card>
 
-                    <Card>
-                        <CardContent className="pt-6">
-                            <div className="flex gap-4">
-                                <Image src={order.product.image} alt={order.product.name} width={80} height={80} className="rounded-md object-cover" data-ai-hint={order.product.imageHint} />
-                                <div className="flex-1">
-                                    <p className="font-semibold leading-tight">{order.product.name}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
-                                </div>
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex gap-4">
+                            <Image src={order.product.image} alt={order.product.name} width={80} height={80} className="rounded-md object-cover" data-ai-hint={order.product.imageHint} />
+                            <div className="flex-1">
+                                <p className="font-semibold leading-tight">{order.product.name}</p>
                             </div>
-                            <div className="mt-2 text-right">
-                                <Badge variant="outline" className="border-destructive text-destructive">{t('orderDetails.refundOnMismatch')}</Badge>
+                            <div className="text-right">
+                                <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
                             </div>
-                        </CardContent>
-                    </Card>
-                    
-                    <Card>
-                        <CardContent className="pt-6 text-sm">
-                            <div className="space-y-3">
-                                <div className="flex justify-between">
-                                    <span className="font-semibold">{t('orderDetails.dealPrice')} <span className="text-muted-foreground font-normal">({t('orderDetails.inEscrow')})</span></span>
-                                    <span className="font-semibold">{order.currency}{order.dealPrice.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-muted-foreground">
-                                    <span>{t('orderDetails.totalPrice')} ({t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)})</span>
-                                    <span>{order.currency}{order.product.originalPrice.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between text-muted-foreground">
-                                    <span>{t('orderDetails.shippingFee')}</span>
-                                    <span>{order.currency}{order.shippingFee.toFixed(2)}</span>
-                                </div>
+                        </div>
+                        <div className="mt-2 text-right">
+                            <Badge variant="outline" className="border-destructive text-destructive">{t('orderDetails.refundOnMismatch')}</Badge>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="pt-6 text-sm">
+                        <div className="space-y-3">
+                            <div className="flex justify-between">
+                                <span className="font-semibold">{t('orderDetails.dealPrice')} <span className="text-muted-foreground font-normal">({t('orderDetails.inEscrow')})</span></span>
+                                <span className="font-semibold">{order.currency}{order.dealPrice.toFixed(2)}</span>
                             </div>
-                        </CardContent>
-                    </Card>
+                            <div className="flex justify-between text-muted-foreground">
+                                <span>{t('orderDetails.totalPrice')} ({t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)})</span>
+                                <span>{order.currency}{order.product.originalPrice.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-muted-foreground">
+                                <span>{t('orderDetails.shippingFee')}</span>
+                                <span>{order.currency}{order.shippingFee.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    <Card>
-                        <CardContent className="pt-6 text-sm">
-                            <div className="space-y-3">
-                                <InfoRow label={t('orderDetails.orderNumber')} value={order.orderNumber} onCopy={handleCopy} />
-                                <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
-                                <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} onCopy={handleCopy} />
-                                <Separator />
-                                <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} onCopy={handleCopy} />
-                                <InfoRow label={t('orderDetails.sellerNickname')} value={order.seller.name} isLink href={`/user/${order.seller.id}`} />
-                                <Separator />
-                                <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
-                                <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
-                                <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
-                            </div>
-                        </CardContent>
-                    </Card>
+                <Card>
+                    <CardContent className="pt-6 text-sm">
+                        <div className="space-y-3">
+                            <InfoRow label={t('orderDetails.orderNumber')} value={order.orderNumber} onCopy={handleCopy} />
+                            <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
+                            <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} onCopy={handleCopy} />
+                            <Separator />
+                            <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} onCopy={handleCopy} />
+                            <InfoRow label={t('orderDetails.sellerNickname')} value={order.seller.name} isLink href={`/user/${order.seller.id}`} />
+                            <Separator />
+                            <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
+                            <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
+                            <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    <Card>
-                        <CardFooter className="p-4 pt-4 justify-end gap-2">
-                            <Button variant="ghost"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
-                            <Button variant="ghost"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
-                            <Button variant="outline">{t('orderDetails.buyAgain')}</Button>
-                            <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
-                        </CardFooter>
-                    </Card>
+                <Card>
+                    <CardFooter className="p-4 pt-4 justify-end gap-2">
+                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
+                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
+                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.buyAgain')}</Button>
+                        <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
+                    </CardFooter>
+                </Card>
 
-                </div>
             </div>
         </div>
     );
 }
-
-const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
-    const { t } = useTranslation();
-    return (
-        <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">{label}</span>
-            <div className="flex items-center gap-2">
-                {isLink ? (
-                    <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
-                ) : (
-                    <span className="font-medium text-right">{value}</span>
-                )}
-                {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy && onCopy(value)}>{t('accountPage.copy')}</Button>}
-                {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
-            </div>
-        </div>
-    );
-};
