@@ -292,6 +292,7 @@ const bbsPosts: BbsPost[] = [
       replies: 42,
       likes: 128,
       views: 2500,
+      favorites: 95,
       createdAt: '2024-07-28T10:00:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post1/800/450',
       featuredImageHint: 'cyberpunk hardware',
@@ -306,6 +307,7 @@ const bbsPosts: BbsPost[] = [
       replies: 88,
       likes: 350,
       views: 8900,
+      favorites: 210,
       createdAt: '2024-07-27T18:30:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post2/800/450',
       featuredImageHint: 'virtual reality',
@@ -320,6 +322,7 @@ const bbsPosts: BbsPost[] = [
       replies: 15,
       likes: 75,
       views: 1200,
+      favorites: 45,
       createdAt: '2024-07-27T14:00:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post3/800/450',
       featuredImageHint: 'neon fashion'
@@ -333,6 +336,7 @@ const bbsPosts: BbsPost[] = [
       replies: 29,
       likes: 99,
       views: 3100,
+      favorites: 60,
       createdAt: '2024-07-26T11:00:00Z',
       featuredImage: 'https://picsum.photos/seed/bbs-post4/800/450',
       featuredImageHint: 'abstract data'
@@ -346,6 +350,7 @@ const bbsPosts: BbsPost[] = [
         replies: 55,
         likes: 210,
         views: 6500,
+        favorites: 180,
         createdAt: '2024-07-25T22:00:00Z',
         featuredImage: 'https://picsum.photos/seed/bbs-post5/800/450',
         featuredImageHint: 'cyberpunk city'
@@ -359,6 +364,7 @@ const bbsPosts: BbsPost[] = [
         replies: 33,
         likes: 150,
         views: 4200,
+        favorites: 120,
         createdAt: '2024-07-24T09:00:00Z',
         featuredImage: 'https://picsum.photos/seed/bbs-post6/800/450',
         featuredImageHint: 'retro wave'

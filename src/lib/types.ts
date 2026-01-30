@@ -119,4 +119,5 @@ export type BbsPost = {
   featuredImage?: string;
   featuredImageHint?: string;
   isFeatured?: boolean;
+  favorites?: number;
 };
