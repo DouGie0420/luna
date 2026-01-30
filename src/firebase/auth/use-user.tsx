@@ -54,6 +54,8 @@ const testProfile: UserProfile = {
   reviewsCount: 150,
   salesCount: 88,
   purchasesCount: 120,
+  followersCount: 123,
+  followingCount: 45,
   creditScore: 985,
   creditLevel: 'Gold',
 };

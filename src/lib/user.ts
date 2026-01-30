@@ -44,6 +44,8 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
                 reviewsCount: 0,
                 salesCount: 0,
                 purchasesCount: 0,
+                followersCount: 0,
+                followingCount: 0,
                 creditScore: 0,
                 creditLevel: 'Newcomer'
             };
