@@ -33,7 +33,6 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     const { t } = useTranslation();
     const { toast } = useToast();
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [copyStatus, setCopyStatus] = useState({ show: false, x: 0, y: 0 });
     const triggerRef = useRef<HTMLButtonElement>(null);
 
     const handleShare = () => {
@@ -42,15 +41,13 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
         
         if (triggerRef.current) {
             const rect = triggerRef.current.getBoundingClientRect();
-            setCopyStatus({
-                show: true,
-                x: rect.left + rect.width / 2,
-                y: rect.top - 10, // Position it above the button
+            const x = rect.left + rect.width / 2;
+            const y = rect.top;
+            toast({
+                title: t('productCardActions.linkCopied'),
+                x,
+                y,
             });
-
-            setTimeout(() => {
-                setCopyStatus(s => ({ ...s, show: false }));
-            }, 1500);
         } else {
             // Fallback for safety
             toast({
@@ -68,21 +65,24 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
     };
 
     const handleComingSoon = () => {
-        toast({
-            title: t('productCardActions.featureComingSoon'),
-        });
+        if (triggerRef.current) {
+            const rect = triggerRef.current.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top;
+            toast({
+                title: t('productCardActions.featureComingSoon'),
+                x,
+                y,
+            });
+        } else {
+            toast({
+                title: t('productCardActions.featureComingSoon'),
+            });
+        }
     };
 
     return (
         <>
-            {copyStatus.show && (
-                 <div
-                    style={{ top: `${copyStatus.y}px`, left: `${copyStatus.x}px` }}
-                    className="fixed z-[101] -translate-x-1/2 -translate-y-full transform rounded-full bg-primary px-3 py-1 text-sm text-primary-foreground animate-in fade-in-0 zoom-in-90"
-                >
-                    {t('productCardActions.linkCopied')}
-                </div>
-            )}
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
