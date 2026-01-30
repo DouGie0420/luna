@@ -72,21 +72,21 @@ export function SearchBar() {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-            <div className="relative flex items-center">
+            <div className="relative flex items-center rounded-full overflow-hidden border-2 border-primary/50 focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 ring-offset-background transition-shadow">
                 <Input
                     ref={inputRef}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
                     placeholder="搜点什么"
-                    className="w-full h-14 text-lg rounded-lg rounded-r-none border-2 border-r-0 border-primary/50 bg-card/50 focus-visible:ring-primary focus-visible:border-primary"
+                    className="w-full h-16 text-xl pl-6 bg-card/50 border-0 rounded-none focus-visible:ring-0 focus-visible:outline-none placeholder:text-muted-foreground"
                 />
-                 <Button onClick={() => handleSearch(searchTerm)} className="h-14 px-6 rounded-lg rounded-l-none bg-secondary hover:bg-secondary/90 text-secondary-foreground text-lg">
-                    <Search className="h-5 w-5 mr-2" />
+                 <Button onClick={() => handleSearch(searchTerm)} className="h-16 px-8 bg-secondary hover:bg-secondary/90 text-secondary-foreground text-xl shrink-0">
+                    <Search className="h-6 w-6 mr-2" />
                     搜索
                 </Button>
                 {isLoading && (
-                    <Loader2 className="absolute right-[120px] top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
+                    <Loader2 className="absolute right-[150px] top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground animate-spin" />
                 )}
             </div>
         </PopoverTrigger>

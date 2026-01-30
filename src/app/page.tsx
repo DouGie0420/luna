@@ -14,7 +14,7 @@ export default async function HomePage() {
       
       <div className="container mx-auto px-4">
         <section className="py-12">
-           <div className="w-full max-w-3xl mx-auto">
+           <div className="w-full max-w-5xl mx-auto">
               <SearchBar />
               <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 justify-center">
                 {hotSearches.map(item => (
