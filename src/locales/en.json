@@ -307,5 +307,14 @@
     "goodReviews": "Good",
     "neutralReviews": "Neutral",
     "badReviews": "Bad"
+  },
+  "userProfile": {
+    "usersListings": "{userName}'s Listings",
+    "noListings": "{userName} has no active listings.",
+    "noListingsDescription": "Check back later to see what they're selling.",
+    "usersSoldItems": "{userName}'s Sold Items",
+    "noSoldItems": "No sold items to display.",
+    "noSoldItemsDescription": "This user's sales history will appear here.",
+    "latestListings": "Latest listings from {userName}"
   }
 }

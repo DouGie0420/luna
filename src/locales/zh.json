@@ -307,5 +307,14 @@
     "goodReviews": "好评",
     "neutralReviews": "中评",
     "badReviews": "差评"
+  },
+  "userProfile": {
+    "usersListings": "{userName} 的在售商品",
+    "noListings": "{userName} 没有在售商品。",
+    "noListingsDescription": "稍后再回来看看他们在卖什么。",
+    "usersSoldItems": "{userName} 的已售商品",
+    "noSoldItems": "没有已售商品可显示。",
+    "noSoldItemsDescription": "该用户的销售历史将显示在此处。",
+    "latestListings": "{userName} 的最新商品"
   }
 }

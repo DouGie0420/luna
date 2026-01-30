@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
+import Link from 'next/link';
 
 export function SellerProfileCard({ product }: { product: Product }) {
     const { t } = useTranslation();
@@ -95,14 +96,18 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <ShoppingBag className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                <p className="font-bold">{seller.itemsOnSale ?? 0}</p>
+                                <Link href={`/user/${seller.id}/listings`} className="font-bold hover:underline">
+                                    {seller.itemsOnSale ?? 0}
+                                </Link>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 rounded-lg border p-3">
                             <ShoppingCart className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                <p className="font-bold">{seller.itemsSold ?? 0}</p>
+                                <Link href={`/user/${seller.id}/sold`} className="font-bold hover:underline">
+                                    {seller.itemsSold ?? 0}
+                                </Link>
                             </div>
                         </div>
                     </div>

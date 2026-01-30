@@ -242,7 +242,7 @@
   },
   "homePage": {
     "verifiedMerchants": "ร้านค้าที่ยืนยันแล้ว",
-    "canyonOfTheMoon": "หุบเขาแห่งดวงจันทร์",
+    "canyonOfTheMoon": "Lunar Vale",
     "recommendedForYou": "แนะนำสำหรับคุณ"
   },
   "seaOfTranquility": {
@@ -307,5 +307,14 @@
     "goodReviews": "ดี",
     "neutralReviews": "ปานกลาง",
     "badReviews": "แย่"
+  },
+  "userProfile": {
+    "usersListings": "รายการของ {userName}",
+    "noListings": "{userName} ไม่มีรายการที่ลงขาย",
+    "noListingsDescription": "กลับมาดูภายหลังว่าพวกเขากำลังขายอะไร",
+    "usersSoldItems": "สินค้าที่ขายแล้วของ {userName}",
+    "noSoldItems": "ไม่มีสินค้าที่ขายแล้วให้แสดง",
+    "noSoldItemsDescription": "ประวัติการขายของผู้ใช้นี้จะปรากฏที่นี่",
+    "latestListings": "รายการล่าสุดจาก {userName}"
   }
 }
