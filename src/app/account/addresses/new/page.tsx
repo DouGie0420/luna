@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -64,7 +63,6 @@ export default function AddressFormPage() {
 
     return (
         <>
-            <PageHeaderWithBackAndClose />
             <div className="container mx-auto px-4 py-12 max-w-2xl">
                 <Card>
                     <CardHeader>
