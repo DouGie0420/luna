@@ -34,7 +34,7 @@ export async function smartSearchSuggestions(input: SmartSearchInput): Promise<S
 
 const prompt = ai.definePrompt({
   name: 'smartSearchSuggestionsPrompt',
-  model: 'gemini-pro',
+  model: 'googleai/gemini-1.5-flash-preview-0514',
   input: {schema: SmartSearchInputSchema},
   output: {schema: SmartSearchOutputSchema},
   prompt: `You are an AI assistant that suggests search terms to the user as they type.

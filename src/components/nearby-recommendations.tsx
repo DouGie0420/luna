@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { recommendProducts } from '@/ai/flows/location-based-recommendations';
 import { getProducts } from '@/lib/data';
 import { ProductCard } from './product-card';
 import { Skeleton } from './ui/skeleton';
@@ -12,53 +11,22 @@ export function NearbyRecommendations() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRecommendations = async (latitude: number, longitude: number) => {
+    const fetchRecommendations = async () => {
       setIsLoading(true);
       try {
-        const purchaseHistory = 'Vintage Film Camera, Designer Sunglasses'; // Mock purchase history
-        const result = await recommendProducts({
-          latitude,
-          longitude,
-          purchaseHistory,
-          maxRecommendations: 8,
-        });
-        
-        const allProducts = await getProducts();
-        const recommendedProducts = allProducts.filter(p => 
-          result.recommendations.some(rec => p.name.toLowerCase().includes(rec.toLowerCase()))
-        ).slice(0, 8);
-        
-        if (recommendedProducts.length > 0) {
-            setRecommendations(recommendedProducts);
-        } else {
-            // Fallback to showing some popular items if AI recommendations are empty
-            setRecommendations(allProducts.slice(0, 8));
-        }
-      } catch (err) {
-        console.error("Failed to fetch AI recommendations, falling back to popular items.", err);
+        // Fallback to showing some popular items
         const allProducts = await getProducts();
         setRecommendations(allProducts.slice(0, 8));
+      } catch (err) {
+        console.error("Failed to fetch popular items.", err);
+        // Handle error case, maybe set recommendations to an empty array
+        setRecommendations([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    const defaultLocation = { latitude: 13.7563, longitude: 100.5018 };
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          fetchRecommendations(position.coords.latitude, position.coords.longitude);
-        },
-        () => {
-          console.log("Geolocation permission denied. Using default location for recommendations.");
-          fetchRecommendations(defaultLocation.latitude, defaultLocation.longitude);
-        }
-      );
-    } else {
-      console.log("Geolocation not supported. Using default location for recommendations.");
-      fetchRecommendations(defaultLocation.latitude, defaultLocation.longitude);
-    }
+    fetchRecommendations();
   }, []);
 
   return (

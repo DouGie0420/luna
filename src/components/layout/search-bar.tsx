@@ -10,7 +10,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { smartSearchSuggestions } from '@/ai/flows/smart-search-suggestions';
 import { useDebounce } from '@/hooks/use-debounce';
 import { SnakeBorder } from '@/components/snake-border';
 
@@ -22,10 +21,8 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [placeholder, setPlaceholder] = useState('搜点什么');
@@ -43,52 +40,12 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     }
   }, [placeholderKeywords]);
 
-
-  const fetchSuggestions = useCallback(async (term: string) => {
-    if (term.length < 2) {
-      setSuggestions([]);
-      setIsPopoverOpen(false);
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const result = await smartSearchSuggestions({
-        searchTerm: term,
-        searchHistory: searchHistory,
-      });
-      setSuggestions(result.suggestions);
-      if (result.suggestions.length > 0) {
-        setIsPopoverOpen(true);
-      } else {
-        setIsPopoverOpen(false);
-      }
-    } catch (error) {
-      console.error('Error fetching search suggestions:', error);
-      setSuggestions([]);
-      setIsPopoverOpen(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [searchHistory]);
-
-  useEffect(() => {
-    if (debouncedSearchTerm) {
-      fetchSuggestions(debouncedSearchTerm);
-    } else {
-      setSuggestions([]);
-      setIsPopoverOpen(false);
-    }
-  }, [debouncedSearchTerm, fetchSuggestions]);
-
   const handleSearch = (term: string) => {
     if (!term) return;
     const trimmedTerm = term.trim();
     if (!trimmedTerm) return;
     
     setSearchTerm(trimmedTerm);
-    if (!searchHistory.includes(trimmedTerm)) {
-      setSearchHistory(prev => [trimmedTerm, ...prev.slice(0, 4)]);
-    }
     setSuggestions([]);
     setIsPopoverOpen(false);
     inputRef.current?.blur();
