@@ -1,31 +1,35 @@
-import { ProductCard } from '@/components/product-card';
-import { getProducts } from '@/lib/data';
 import { PromoCarousel } from '@/components/promo-carousel';
 import { NearbyRecommendations } from '@/components/nearby-recommendations';
-import { Separator } from '@/components/ui/separator';
+import { SearchBar } from '@/components/layout/search-bar';
+import Link from 'next/link';
 
 export default async function HomePage() {
-  const products = await getProducts();
+  const hotSearches = ["热水袋", "羽绒服", "电动车", "男童羽绒服", "巧克力", "手机壳", "女衣", "牛仔裤"];
 
   return (
     <div className="flex flex-col">
       <section className="w-full">
         <PromoCarousel />
       </section>
-
-      <div className="container mx-auto px-4 py-8 space-y-12">
-        <NearbyRecommendations />
-
-        <Separator />
-
-        <section>
-          <h2 className="font-headline text-3xl font-semibold mb-6">为你精选</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+      
+      <div className="container mx-auto px-4">
+        <section className="py-12">
+           <div className="w-full max-w-3xl mx-auto">
+              <SearchBar />
+              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 justify-center">
+                {hotSearches.map(item => (
+                   <Link href={`/search?q=${item}`} key={item} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    {item}
+                  </Link>
+                ))}
+              </div>
+           </div>
         </section>
+
+        <div className="pb-12">
+          {/* This is the AI powered recommendation section, which is now the main product grid */}
+          <NearbyRecommendations />
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Luna Exchange',
+  title: 'LUNA',
   description: 'Your trusted marketplace for secure, multi-currency transactions.',
 };
 

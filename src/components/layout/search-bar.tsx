@@ -79,14 +79,14 @@ export function SearchBar() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
                     placeholder="搜点什么"
-                    className="w-full rounded-full rounded-r-none border-r-0 bg-background/70 text-foreground ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary"
+                    className="w-full h-14 text-lg rounded-lg rounded-r-none border-2 border-r-0 border-primary/50 bg-card/50 focus-visible:ring-primary focus-visible:border-primary"
                 />
-                 <Button onClick={() => handleSearch(searchTerm)} className="rounded-full rounded-l-none bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-                    <Search className="h-4 w-4 mr-1" />
+                 <Button onClick={() => handleSearch(searchTerm)} className="h-14 px-6 rounded-lg rounded-l-none bg-secondary hover:bg-secondary/90 text-secondary-foreground text-lg">
+                    <Search className="h-5 w-5 mr-2" />
                     搜索
                 </Button>
                 {isLoading && (
-                    <Loader2 className="absolute right-24 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                    <Loader2 className="absolute right-[120px] top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground animate-spin" />
                 )}
             </div>
         </PopoverTrigger>
