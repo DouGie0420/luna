@@ -10,7 +10,7 @@ export function PageHeaderWithBackAndClose() {
     const { t } = useTranslation();
 
     return (
-        <div className="sticky top-20 z-30 border-b border-primary/50 bg-background/80 backdrop-blur-sm">
+        <div className="sticky top-20 z-30 border-y border-primary/50 bg-background/80 backdrop-blur-sm">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
                 <BackButton />
                 <Button asChild variant="ghost" className="text-muted-foreground hover:text-foreground">
