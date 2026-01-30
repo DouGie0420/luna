@@ -54,7 +54,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div className="group relative flex h-14 items-center overflow-hidden bg-black/20 text-lg">
+          <div className="group relative flex h-14 items-center border border-primary/30 bg-transparent text-lg animate-glow">
               <Input
                   ref={inputRef}
                   value={searchTerm}
@@ -70,10 +70,6 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
               {isLoading && (
                   <Loader2 className="absolute right-[160px] top-1/2 h-6 w-6 -translate-y-1/2 animate-spin text-muted-foreground" />
               )}
-              {/* Underline base */}
-              <div className="absolute bottom-0 left-0 h-px w-full bg-primary/30" />
-              {/* Animated glow line */}
-              <div className="absolute bottom-0 left-0 h-px w-1/4 animate-glow-line bg-primary shadow-[0_0_8px_hsl(var(--primary))]"></div>
           </div>
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
