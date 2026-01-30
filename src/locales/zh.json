@@ -257,7 +257,9 @@
     "buyNow": "立即购买",
     "loading": "加载中...",
     "kycRequiredTitle": "需要KYC认证",
-    "kycRequiredDescription": "您必须先完成KYC认证才能购买商品。"
+    "kycRequiredDescription": "您必须先完成KYC认证才能购买商品。",
+    "selectPaymentTitle": "请选择支付方式",
+    "selectPaymentDescription": "您需要先选择一种支付方式才能继续购买。"
   },
   "homePage": {
     "verifiedMerchants": "认证商户",

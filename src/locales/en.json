@@ -257,7 +257,9 @@
     "buyNow": "Buy Now",
     "loading": "Loading...",
     "kycRequiredTitle": "KYC Required",
-    "kycRequiredDescription": "You must complete KYC verification before purchasing."
+    "kycRequiredDescription": "You must complete KYC verification before purchasing.",
+    "selectPaymentTitle": "Select Payment Method",
+    "selectPaymentDescription": "You must select a payment method to proceed."
   },
   "homePage": {
     "verifiedMerchants": "Verified Merchants",

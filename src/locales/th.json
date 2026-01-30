@@ -257,7 +257,9 @@
     "buyNow": "ซื้อตอนนี้",
     "loading": "กำลังโหลด...",
     "kycRequiredTitle": "ต้องการ KYC",
-    "kycRequiredDescription": "คุณต้องยืนยัน KYC ให้เสร็จสิ้นก่อนทำการสั่งซื้อ"
+    "kycRequiredDescription": "คุณต้องยืนยัน KYC ให้เสร็จสิ้นก่อนทำการสั่งซื้อ",
+    "selectPaymentTitle": "เลือกช่องทางการชำระเงิน",
+    "selectPaymentDescription": "คุณต้องเลือกช่องทางการชำระเงินเพื่อดำเนินการต่อ"
   },
   "homePage": {
     "verifiedMerchants": "ร้านค้าที่ยืนยันแล้ว",

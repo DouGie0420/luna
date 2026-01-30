@@ -2,14 +2,12 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getProductById, getProducts } from '@/lib/data';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BuyNowButton } from '@/components/buy-now-button';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { ProductImageGallery } from '@/components/product-image-gallery';
-import { ProductPriceAndPayment } from '@/components/product-price-and-payment';
 import { ProductTitleWithBadge } from '@/components/product-title-with-badge';
 import { SellerProfileCard } from '@/components/seller-profile-card';
+import { ProductPurchaseActions } from '@/components/product-purchase-actions';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -35,14 +33,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <div className="lg:col-span-2 flex flex-col gap-6">
               <ProductTitleWithBadge product={product} />
               
-              <ProductPriceAndPayment product={product} />
-
-              <div className="flex gap-2">
-                  <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg">
-                      联系卖家
-                  </Button>
-                  <BuyNowButton product={product} />
-              </div>
+              <ProductPurchaseActions product={product} />
 
               <SellerProfileCard product={product} />
           </div>

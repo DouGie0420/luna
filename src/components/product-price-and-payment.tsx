@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { Product } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { ShieldCheck } from 'lucide-react';
@@ -22,9 +22,15 @@ const FEES = {
     PromptPay: 3
 };
 
-export function ProductPriceAndPayment({ product }: { product: Product }) {
+interface ProductPriceAndPaymentProps {
+  product: Product;
+  selectedPayment: PaymentMethod | null;
+  setSelectedPayment: (method: PaymentMethod | null) => void;
+}
+
+
+export function ProductPriceAndPayment({ product, selectedPayment, setSelectedPayment }: ProductPriceAndPaymentProps) {
     const { t } = useTranslation();
-    const [selectedPayment, setSelectedPayment] = useState<PaymentMethod | null>(null);
 
     // Normalize base price to THB for calculation
     const basePriceInTHB = useMemo(() => {

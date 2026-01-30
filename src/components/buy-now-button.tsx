@@ -8,7 +8,9 @@ import type { Product } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { useTranslation } from '@/hooks/use-translation';
 
-export function BuyNowButton({ product }: { product: Product }) {
+type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
+
+export function BuyNowButton({ product, selectedPayment }: { product: Product, selectedPayment: PaymentMethod | null }) {
     const { t } = useTranslation();
     const { user, profile, loading } = useUser();
     const router = useRouter();
@@ -28,10 +30,20 @@ export function BuyNowButton({ product }: { product: Product }) {
             });
             // Optionally redirect to KYC page
             setTimeout(() => router.push('/account/kyc'), 2000);
-        } else {
-            // Proceed to checkout
-            router.push(`/products/${product.id}/checkout`);
+            return;
         }
+        
+        if (!selectedPayment) {
+            toast({
+                variant: 'destructive',
+                title: t('buyNowButton.selectPaymentTitle'),
+                description: t('buyNowButton.selectPaymentDescription'),
+            });
+            return;
+        }
+        
+        // Proceed to checkout
+        router.push(`/products/${product.id}/checkout`);
     };
 
     if (loading) {
