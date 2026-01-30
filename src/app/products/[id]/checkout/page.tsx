@@ -191,7 +191,7 @@ export default function CheckoutPage() {
 
             <RotatingQuote />
             
-            <div className="pt-[24px]">
+            <div className="pt-[16px]">
               <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -264,14 +264,14 @@ export default function CheckoutPage() {
                     </div>
                  </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-4 p-6 pt-6 border-t">
+              <CardFooter className="flex-col items-stretch gap-4 pt-6">
                  <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
                  <div className="w-full space-y-2 pt-2">
-                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary [background-image:repeating-linear-gradient(-45deg,hsl(var(--accent))_0,hsl(var(--accent))_0.5rem,hsl(var(--secondary))_0.5rem,hsl(var(--secondary))_1rem)] [background-size:1rem_1rem] animate-stripes-move">
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-secondary [background-image:repeating-linear-gradient(-45deg,hsl(var(--accent))_0,hsl(var(--accent))_0.5rem,hsl(var(--secondary))_0.5rem,hsl(var(--secondary))_1rem)] [background-size:2rem_2rem] animate-stripes-move">
                         <Progress value={progress} className="w-full h-2 rounded-full bg-transparent" />
                         <div className="absolute inset-0 flex items-center justify-center">
                            <span className="text-sm font-bold text-primary-foreground [text-shadow:0_1px_2px_hsl(var(--background)/0.7)]">
