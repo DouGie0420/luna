@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem } from 'lucide-react';
+import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem, Users, UserPlus } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
 import Link from 'next/link';
@@ -108,6 +108,20 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 <Link href={`/user/${seller.id}/sold`} className="font-bold hover:underline">
                                     {seller.itemsSold ?? 0}
                                 </Link>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                            <Users className="h-6 w-6 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                <p className="font-bold">{seller.followersCount || 0}</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                            <UserPlus className="h-6 w-6 text-primary" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                <p className="font-bold">{seller.followingCount || 0}</p>
                             </div>
                         </div>
                     </div>
