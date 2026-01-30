@@ -10,7 +10,7 @@ import type { Product, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -167,7 +167,7 @@ export default function OrderDetailPage() {
     }
 
     return (
-        <div className="pb-24">
+        <div>
             <div className="container mx-auto max-w-2xl px-4 py-8">
                 <div className="space-y-4">
                     
@@ -240,14 +240,16 @@ export default function OrderDetailPage() {
                         </CardContent>
                     </Card>
 
-                </div>
-            </div>
+                    <Card>
+                        <CardFooter className="p-4 pt-4 justify-end gap-2">
+                            <Button variant="ghost"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
+                            <Button variant="ghost"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
+                            <Button variant="outline">{t('orderDetails.buyAgain')}</Button>
+                            <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
+                        </CardFooter>
+                    </Card>
 
-            <div className="fixed bottom-0 left-0 w-full bg-background border-t p-3 flex items-center justify-end gap-2">
-                <Button variant="ghost"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
-                <Button variant="ghost"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
-                <Button variant="outline">{t('orderDetails.buyAgain')}</Button>
-                <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
+                </div>
             </div>
         </div>
     );
