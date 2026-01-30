@@ -51,12 +51,12 @@ export function AnnouncementBar() {
                     </p>
                 </div>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] flex max-h-[80vh] flex-col">
                 <DialogHeader>
                     <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
                 </DialogHeader>
                 <div 
-                  className="mt-4 space-y-4 text-sm"
+                  className="space-y-4 text-sm overflow-y-auto"
                   dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
                 />
             </DialogContent>
