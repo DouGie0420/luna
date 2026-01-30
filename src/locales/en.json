@@ -3,7 +3,8 @@
     "login": "Login",
     "register": "Register",
     "close": "Close",
-    "submit": "Submit"
+    "submit": "Submit",
+    "back": "Back"
   },
   "loginPage": {
     "title": "Login",

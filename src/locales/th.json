@@ -3,7 +3,8 @@
     "login": "เข้าสู่ระบบ",
     "register": "ลงทะเบียน",
     "close": "ปิด",
-    "submit": "ส่ง"
+    "submit": "ส่ง",
+    "back": "กลับ"
   },
   "loginPage": {
     "title": "เข้าสู่ระบบ",

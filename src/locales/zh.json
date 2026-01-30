@@ -3,7 +3,8 @@
     "login": "登录",
     "register": "注册",
     "close": "关闭",
-    "submit": "提交"
+    "submit": "提交",
+    "back": "返回"
   },
   "loginPage": {
     "title": "登录",

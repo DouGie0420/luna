@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star, MapPin, ShieldCheck } from 'lucide-react';
 import { BuyNowButton } from '@/components/buy-now-button';
+import { BackButton } from '@/components/back-button';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -27,6 +28,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
   return (
     <div className="container mx-auto px-4 py-12">
+      <div className="mb-6">
+        <BackButton />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
         {/* Left Column: Image Carousel & Actions */}
         <div className="lg:col-span-3">
