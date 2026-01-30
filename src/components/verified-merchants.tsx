@@ -13,8 +13,10 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import type { User } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/hooks/use-translation';
 
 export function VerifiedMerchants() {
+    const { t } = useTranslation();
     const [proUsers, setProUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -38,7 +40,7 @@ export function VerifiedMerchants() {
 
     return (
         <section className="container mx-auto px-4 py-12 md:py-16">
-            <h2 className="font-headline text-3xl font-semibold mb-6">认证商户</h2>
+            <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.verifiedMerchants')}</h2>
             <div className="relative">
                 {isLoading || proUsers.length === 0 ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">

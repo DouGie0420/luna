@@ -240,6 +240,11 @@
     "deleteSuccess": "Item deleted successfully",
     "featureComingSoon": "Feature coming soon!"
   },
+  "homePage": {
+    "verifiedMerchants": "Verified Merchants",
+    "canyonOfTheMoon": "Canyon of the Moon",
+    "recommendedForYou": "Recommended For You"
+  },
   "seaOfTranquility": {
     "title": "Lacus Somniorum",
     "enter": "Enter the Lake",

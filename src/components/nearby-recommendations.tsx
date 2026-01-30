@@ -13,9 +13,11 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { useTranslation } from '@/hooks/use-translation';
 
 
 export function NearbyRecommendations() {
+  const { t } = useTranslation();
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export function NearbyRecommendations() {
 
   return (
     <section>
-      <h2 className="font-headline text-3xl font-semibold mb-6">为你精选</h2>
+      <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.recommendedForYou')}</h2>
       <div className="p-6">
         {isLoading || recommendations.length === 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

@@ -240,6 +240,11 @@
     "deleteSuccess": "商品已删除",
     "featureComingSoon": "功能即将推出！"
   },
+  "homePage": {
+    "verifiedMerchants": "认证商户",
+    "canyonOfTheMoon": "月之峡谷",
+    "recommendedForYou": "为你精选"
+  },
   "seaOfTranquility": {
     "title": "梦境之湖",
     "enter": "进入梦境之湖",

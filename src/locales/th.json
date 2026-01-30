@@ -240,6 +240,11 @@
     "deleteSuccess": "ลบรายการสำเร็จแล้ว",
     "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!"
   },
+  "homePage": {
+    "verifiedMerchants": "ร้านค้าที่ยืนยันแล้ว",
+    "canyonOfTheMoon": "หุบเขาแห่งดวงจันทร์",
+    "recommendedForYou": "แนะนำสำหรับคุณ"
+  },
   "seaOfTranquility": {
     "title": "ทะเลสาบแห่งความฝัน",
     "enter": "เข้าสู่ทะเลสาบ",
