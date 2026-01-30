@@ -8,9 +8,103 @@ import { useTranslation } from '@/hooks/use-translation';
 import { type Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { 
+    DropdownMenu, 
+    DropdownMenuContent, 
+    DropdownMenuItem, 
+    DropdownMenuSeparator, 
+    DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { 
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Bookmark } from 'lucide-react';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+
+function ProductActions({ product, onDelete }: { product: Product; onDelete: (productId: string) => void; }) {
+    const { t } = useTranslation();
+    const { toast } = useToast();
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+    const handleShare = () => {
+        const productUrl = `${window.location.origin}/products/${product.id}`;
+        navigator.clipboard.writeText(productUrl);
+        toast({
+            title: t('productCardActions.linkCopied'),
+        });
+    };
+
+    const handleDelete = () => {
+        onDelete(product.id);
+        toast({
+            title: t('productCardActions.deleteSuccess'),
+        });
+        setIsDeleteDialogOpen(false);
+    };
+
+    const handleComingSoon = () => {
+        toast({
+            title: t('productCardActions.featureComingSoon'),
+        });
+    };
+
+    return (
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={handleComingSoon}>
+                        <Edit className="mr-2 h-4 w-4"/>
+                        <span>{t('productCardActions.edit')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={handleComingSoon}>
+                        <Sparkles className="mr-2 h-4 w-4"/>
+                        <span>{t('productCardActions.polish')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={handleShare}>
+                        <Share2 className="mr-2 h-4 w-4"/>
+                        <span>{t('productCardActions.share')}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                        className="text-destructive focus:text-destructive-foreground focus:bg-destructive"
+                        onSelect={() => setIsDeleteDialogOpen(true)}
+                    >
+                        <Trash2 className="mr-2 h-4 w-4"/>
+                        <span>{t('productCardActions.delete')}</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>{t('productCardActions.deleteConfirmTitle')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {t('productCardActions.deleteConfirmDescription')}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('productCardActions.deleteCancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+                        {t('productCardActions.deleteConfirmAction')}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
 
 export default function MyListingsPage() {
     const { t } = useTranslation();
@@ -26,6 +120,10 @@ export default function MyListingsPage() {
         };
         fetchProducts();
     }, []);
+
+    const handleDeleteProduct = (productId: string) => {
+        setUserProducts(currentProducts => currentProducts.filter(p => p.id !== productId));
+    };
 
     if (loading) {
         return (
@@ -100,32 +198,7 @@ export default function MyListingsPage() {
                                     </p>
                                 </div>
                                 <div>
-                                    <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>
-                                            <Edit className="mr-2 h-4 w-4"/>
-                                            <span>{t('productCardActions.edit')}</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <Sparkles className="mr-2 h-4 w-4"/>
-                                            <span>{t('productCardActions.polish')}</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                            <Share2 className="mr-2 h-4 w-4"/>
-                                            <span>{t('productCardActions.share')}</span>
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive focus:text-destructive-foreground focus:bg-destructive">
-                                            <Trash2 className="mr-2 h-4 w-4"/>
-                                            <span>{t('productCardActions.delete')}</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                    </DropdownMenu>
+                                    <ProductActions product={product} onDelete={handleDeleteProduct} />
                                 </div>
                             </CardFooter>
                         </Card>

@@ -214,6 +214,13 @@
     "edit": "编辑商品",
     "delete": "删除商品",
     "polish": "擦亮宝贝",
-    "share": "分享链接"
+    "share": "分享链接",
+    "linkCopied": "商品链接已复制到剪贴板！",
+    "deleteConfirmTitle": "确认删除",
+    "deleteConfirmDescription": "您确定要删除此商品吗？此操作无法撤销。",
+    "deleteConfirmAction": "确认删除",
+    "deleteCancel": "取消",
+    "deleteSuccess": "商品已删除",
+    "featureComingSoon": "功能即将推出！"
   }
 }

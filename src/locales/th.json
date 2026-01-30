@@ -214,6 +214,13 @@
     "edit": "แก้ไขรายการ",
     "delete": "ลบรายการ",
     "polish": "โปรโมท",
-    "share": "แชร์ลิงก์"
+    "share": "แชร์ลิงก์",
+    "linkCopied": "คัดลอกลิงก์สินค้าไปยังคลิปบอร์ดแล้ว!",
+    "deleteConfirmTitle": "ยืนยันการลบ",
+    "deleteConfirmDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบรายการนี้? การกระทำนี้ไม่สามารถยกเลิกได้",
+    "deleteConfirmAction": "ยืนยันการลบ",
+    "deleteCancel": "ยกเลิก",
+    "deleteSuccess": "ลบรายการสำเร็จแล้ว",
+    "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!"
   }
 }
