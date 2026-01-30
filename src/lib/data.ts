@@ -17,6 +17,8 @@ const users: User[] = [
     goodReviews: 110,
     neutralReviews: 8,
     badReviews: 2,
+    creditScore: 950,
+    creditLevel: 'Gold',
   },
   {
     id: 'user2',
@@ -33,6 +35,8 @@ const users: User[] = [
     goodReviews: 83,
     neutralReviews: 2,
     badReviews: 0,
+    creditScore: 985,
+    creditLevel: 'Platinum',
   },
   {
     id: 'user3',
@@ -49,6 +53,8 @@ const users: User[] = [
     goodReviews: 35,
     neutralReviews: 5,
     badReviews: 2,
+    creditScore: 820,
+    creditLevel: 'Silver',
   },
   {
     id: 'user4',
@@ -65,6 +71,8 @@ const users: User[] = [
     goodReviews: 205,
     neutralReviews: 5,
     badReviews: 0,
+    creditScore: 1200,
+    creditLevel: 'Diamond',
   },
   {
     id: 'user5',
@@ -80,6 +88,8 @@ const users: User[] = [
     goodReviews: 140,
     neutralReviews: 10,
     badReviews: 0,
+    creditScore: 900,
+    creditLevel: 'Gold',
   },
   {
     id: 'user6',
@@ -95,6 +105,8 @@ const users: User[] = [
     goodReviews: 90,
     neutralReviews: 4,
     badReviews: 1,
+    creditScore: 960,
+    creditLevel: 'Gold',
   },
   {
     id: 'user7',
@@ -109,6 +121,8 @@ const users: User[] = [
     goodReviews: 28,
     neutralReviews: 2,
     badReviews: 3,
+    creditScore: 750,
+    creditLevel: 'Bronze',
   },
   {
     id: 'user8',
@@ -125,6 +139,8 @@ const users: User[] = [
     goodReviews: 18,
     neutralReviews: 0,
     badReviews: 0,
+    creditScore: 500,
+    creditLevel: 'Newcomer',
   },
   {
     id: 'user9',
@@ -141,6 +157,8 @@ const users: User[] = [
     goodReviews: 70,
     neutralReviews: 8,
     badReviews: 0,
+    creditScore: 880,
+    creditLevel: 'Silver',
   },
   {
     id: 'user10',
@@ -157,6 +175,8 @@ const users: User[] = [
     goodReviews: 130,
     neutralReviews: 1,
     badReviews: 1,
+    creditScore: 1050,
+    creditLevel: 'Platinum',
   },
 ];
 

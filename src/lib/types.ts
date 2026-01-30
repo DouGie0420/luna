@@ -39,6 +39,8 @@ export type User = {
   goodReviews?: number;
   neutralReviews?: number;
   badReviews?: number;
+  creditScore?: number;
+  creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';

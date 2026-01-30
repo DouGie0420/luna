@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown } from 'lucide-react';
+import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -79,6 +79,17 @@ export function SellerProfileCard({ product }: { product: Product }) {
                     </DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg animate-glow">
+                        <Gem className="h-10 w-10 text-primary" />
+                        <div className="flex-1">
+                            <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
+                            <p className="text-2xl font-bold">{seller.creditLevel || 'Newcomer'}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
+                            <p className="text-2xl font-bold">{seller.creditScore || 0}</p>
+                        </div>
+                    </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center gap-3 rounded-lg border p-3">
                             <ShoppingBag className="h-6 w-6 text-primary" />
