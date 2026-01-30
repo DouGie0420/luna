@@ -9,9 +9,9 @@ export function Header() {
   const hotSearches = ["热水袋", "羽绒服", "电动车", "男童羽绒服", "巧克力", "手机壳", "女衣", "牛仔裤"];
   
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-primary border-primary/20">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm border-border/40">
       <div className="container mx-auto flex h-24 items-center justify-between gap-8 px-4">
-        <div className="flex items-center self-start pt-6">
+        <div className="flex items-center self-stretch">
           <Logo />
         </div>
 
@@ -21,14 +21,14 @@ export function Header() {
           </div>
           <div className="flex gap-x-3">
             {hotSearches.map(item => (
-               <Link href={`/search?q=${item}`} key={item} className="text-xs text-primary-foreground/70 hover:text-primary-foreground">
+               <Link href={`/search?q=${item}`} key={item} className="text-xs text-muted-foreground hover:text-foreground">
                 {item}
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-4 self-start pt-6">
+        <div className="flex items-center gap-4 self-stretch">
           <UserNav />
            <Button asChild variant="secondary" className="rounded-full">
               <Link href="/products/new">
