@@ -54,21 +54,21 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div className="group relative flex h-14 items-center border border-primary/30 bg-transparent text-lg animate-glow">
+          <div className="group relative flex h-16 items-center rounded-full border border-primary/30 bg-transparent text-xl animate-glow overflow-hidden">
               <Input
                   ref={inputRef}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
                   placeholder={placeholder}
-                  className="h-full w-full appearance-none rounded-none border-0 bg-transparent pl-6 pr-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
+                  className="h-full w-full appearance-none rounded-none border-0 bg-transparent pl-8 pr-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
               />
-              <Button onClick={() => handleSearch(searchTerm)} className="h-full shrink-0 rounded-none bg-primary px-8 text-lg text-primary-foreground hover:bg-primary/90">
-                  <Search className="mr-2 h-6 w-6" />
+              <Button onClick={() => handleSearch(searchTerm)} className="h-full shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground hover:bg-primary/90">
+                  <Search className="mr-2 h-7 w-7" />
                   搜索
               </Button>
               {isLoading && (
-                  <Loader2 className="absolute right-[160px] top-1/2 h-6 w-6 -translate-y-1/2 animate-spin text-muted-foreground" />
+                  <Loader2 className="absolute right-[180px] top-1/2 h-7 w-7 -translate-y-1/2 animate-spin text-muted-foreground" />
               )}
           </div>
         </PopoverTrigger>
