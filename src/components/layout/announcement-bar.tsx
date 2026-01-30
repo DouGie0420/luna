@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   Dialog,
@@ -6,10 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog';
 import { Megaphone } from 'lucide-react';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { SnakeBorder } from "../snake-border";
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { SnakeBorder } from '../snake-border';
 
 const announcements = [
     { 
@@ -36,40 +36,45 @@ const announcements = [
 ];
 
 export function AnnouncementBar() {
-    // We'll show the second announcement to demonstrate rich content.
-    const currentAnnouncement = announcements[1];
+  const currentAnnouncement = announcements[1];
 
-    if (!currentAnnouncement) {
-        return null;
-    }
+  if (!currentAnnouncement) {
+    return null;
+  }
 
-    return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <div className="group flex max-w-md cursor-pointer items-center gap-2 transition-colors lg:max-w-xl">
-                    <Megaphone className="h-4 w-4 flex-shrink-0 text-primary" />
-                    <p className="truncate text-sm text-muted-foreground group-hover:text-foreground">
-                        {currentAnnouncement.title}
-                    </p>
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="group flex max-w-md cursor-pointer items-center gap-2 transition-colors lg:max-w-xl">
+          <Megaphone className="h-4 w-4 flex-shrink-0 text-primary" />
+          <p className="truncate text-sm text-muted-foreground group-hover:text-foreground">
+            {currentAnnouncement.title}
+          </p>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 flex flex-col overflow-hidden border-0 bg-card shadow-xl shadow-primary/20">
+        <div className="pixel-grid absolute inset-0 -z-20 opacity-40" />
+        
+        <div className="relative z-10 flex flex-col flex-1 min-h-0">
+            <div className="flex-shrink-0 p-6 pb-2">
+                <DialogHeader className="p-0 text-left">
+                <DialogTitle className="font-headline text-2xl">
+                    {currentAnnouncement.title}
+                </DialogTitle>
+                </DialogHeader>
+            </div>
+            <ScrollArea className="flex-1 min-h-0">
+                <div className="px-6 pb-6">
+                <div
+                    className="space-y-4 text-sm"
+                    dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
+                />
                 </div>
-            </DialogTrigger>
-            <DialogContent className="relative flex flex-col sm:max-w-[600px] max-h-[80vh] p-0 overflow-hidden border-0 bg-card shadow-xl shadow-primary/20">
-                <div className="pixel-grid absolute inset-0 -z-10 opacity-40" />
-                <div className="flex-shrink-0 p-6 pb-2">
-                    <DialogHeader className="p-0 text-left">
-                        <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>
-                    </DialogHeader>
-                </div>
-                <ScrollArea className="flex-1">
-                     <div className="px-6 pb-6">
-                        <div
-                        className="space-y-4 text-sm"
-                        dangerouslySetInnerHTML={{ __html: currentAnnouncement.content }}
-                        />
-                    </div>
-                </ScrollArea>
-                <SnakeBorder />
-            </DialogContent>
-        </Dialog>
-    );
+            </ScrollArea>
+        </div>
+
+        <SnakeBorder className="absolute inset-0 z-0" />
+      </DialogContent>
+    </Dialog>
+  );
 }
