@@ -44,7 +44,10 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
                     </Badge>
                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Star className="h-3 w-3 fill-primary text-primary" />
-                        <span>{user.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', (user.itemsOnSale ?? 0).toString())})</span>
+                        <span>{user.rating.toFixed(1)}</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                        <span>{t('sellerProfile.onSaleCount').replace('{count}', (user.itemsOnSale ?? 0).toString())}</span>
                     </div>
                 </div>
             </div>
