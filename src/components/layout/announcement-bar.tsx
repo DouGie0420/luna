@@ -22,7 +22,7 @@ const announcements = [
         title: "【活动】赛博周一，全场商品限时折扣！", 
         content: `
             <p class="text-muted-foreground">赛博周一狂欢开启！即日起至下周一，全场电子产品、赛博配件享受高达30%的折扣，快来选购你的下一件装备吧！</p>
-            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop" alt="Cyber Monday" class="my-4 rounded-md" />
+            <img src="https://picsum.photos/seed/announcement1/1920/1080" alt="Cyber Monday" class="my-4 rounded-md" />
             <p class="text-muted-foreground">我们还有炫酷的动态GIF展示！</p>
             <img src="https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif" alt="Hacker GIF" class="my-4 rounded-md" />
             <p class="text-muted-foreground mt-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh.</p>

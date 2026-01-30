@@ -17,7 +17,7 @@ const promos = [
     title: '未来已来',
     description: '探索最新潮的赛博装备',
     imageUrl:
-      'https://images.unsplash.com/photo-1581092921441-982d31c36814?q=80&w=1920&auto=format&fit=crop',
+      'https://picsum.photos/seed/promo1/1920/822',
     imageHint: 'futuristic technology',
     link: '/promo/cyber-monday?id=future-is-here',
   },
@@ -25,7 +25,7 @@ const promos = [
     title: '城市霓虹',
     description: '穿梭于光影之间的时尚单品',
     imageUrl:
-      'https://images.unsplash.com/photo-1534430480872-3498386e7856?q=80&w=1920&auto=format&fit=crop',
+      'https://picsum.photos/seed/promo2/1920/822',
     imageHint: 'neon city',
     link: '/promo/cyber-monday?id=city-neon',
   },
@@ -33,7 +33,7 @@ const promos = [
     title: '数字浪潮',
     description: '体验前所未有的虚拟现实',
     imageUrl:
-      'https://images.unsplash.com/photo-1639762681057-408e52192e50?q=80&w=1920&auto=format&fit=crop',
+      'https://picsum.photos/seed/promo3/1920/822',
     imageHint: 'cyberpunk character',
     link: '/promo/cyber-monday?id=digital-wave',
   },

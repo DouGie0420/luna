@@ -18,7 +18,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
       <Card className={cn("overflow-hidden h-full transition-all duration-200 border-primary/20 hover:border-primary", className)}>
         <div className="relative h-24 w-full">
             <Image 
-                src="https://images.unsplash.com/photo-1511447333015-45b65e60f6d5?q=80&w=1080&auto=format&fit=crop"
+                src="https://picsum.photos/seed/merchant-bg/1080/432"
                 alt={`${user.name}'s shop background`}
                 fill
                 className="object-cover"

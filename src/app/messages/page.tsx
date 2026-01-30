@@ -9,9 +9,9 @@ import { Send } from "lucide-react";
 export default function MessagesPage() {
   // Placeholder data
   const contacts = [
-    { id: 'user2', name: 'Billie Jean', avatarUrl: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=100&auto=format&fit=crop', lastMessage: 'See you then!', online: true },
-    { id: 'user3', name: 'Charlie Brown', avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop', lastMessage: 'Okay, sounds good.', online: false },
-    { id: 'user1', name: 'Alex Doe', avatarUrl: 'https://images.unsplash.com/photo-1581094119822-2c5950a21345?q=80&w=100&auto=format&fit=crop', lastMessage: 'Is this still available?', online: false },
+    { id: 'user2', name: 'Billie Jean', avatarUrl: 'https://picsum.photos/seed/user2/100/100', lastMessage: 'See you then!', online: true },
+    { id: 'user3', name: 'Charlie Brown', avatarUrl: 'https://picsum.photos/seed/user3/100/100', lastMessage: 'Okay, sounds good.', online: false },
+    { id: 'user1', name: 'Alex Doe', avatarUrl: 'https://picsum.photos/seed/user1/100/100', lastMessage: 'Is this still available?', online: false },
   ];
   const selectedContact = contacts[0];
   const messages = [

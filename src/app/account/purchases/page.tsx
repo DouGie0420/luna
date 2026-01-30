@@ -16,32 +16,32 @@ import { useTranslation } from "@/hooks/use-translation"
 const purchases = [
     { 
       id: "ORD004", 
-      product: { name: "Ceramic Vase", image: "https://images.unsplash.com/photo-1597589684358-2c2e07e8a3a4?q=80&w=600&auto=format&fit=crop", imageHint: "glitch art" }, 
-      seller: { name: "Alex Doe", avatar: "https://images.unsplash.com/photo-1581094119822-2c5950a21345?q=80&w=100&auto=format&fit=crop" },
+      product: { name: "Ceramic Vase", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art" }, 
+      seller: { name: "Alex Doe", avatar: "https://picsum.photos/seed/user1/100/100" },
       amount: "2,500 THB", 
       status: "In Escrow", 
       date: "2023-10-28" 
     },
     { 
       id: "ORD005", 
-      product: { name: "Gen-5 Smart Watch", image: "https://images.unsplash.com/photo-1617097429142-d0f735d45c43?q=80&w=600&auto=format&fit=crop", imageHint: "futuristic watch" }, 
-      seller: { name: "Charlie Brown", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&auto=format&fit=crop" },
+      product: { name: "Gen-5 Smart Watch", image: "https://picsum.photos/seed/purchase2/600/400", imageHint: "futuristic watch" }, 
+      seller: { name: "Charlie Brown", avatar: "https://picsum.photos/seed/user3/100/100" },
       amount: "150 USDT", 
       status: "Shipped", 
       date: "2023-10-27" 
     },
     { 
       id: "ORD002", 
-      product: { name: "Handmade Leather Wallet", image: "https://images.unsplash.com/photo-1549492423-400259a5e3c2?q=80&w=600&auto=format&fit=crop", imageHint: "neon abstract" }, 
-      seller: { name: "Billie Jean", avatar: "https://images.unsplash.com/photo-1554151228-14d9def656e4?q=80&w=100&auto=format&fit=crop" },
+      product: { name: "Handmade Leather Wallet", image: "https://picsum.photos/seed/purchase3/600/400", imageHint: "neon abstract" }, 
+      seller: { name: "Billie Jean", avatar: "https://picsum.photos/seed/user2/100/100" },
       amount: "120 RMB", 
       status: "Completed", 
       date: "2023-10-25" 
     },
     { 
       id: "ORD006", 
-      product: { name: "Vintage Film Camera", image: "https://images.unsplash.com/photo-1639762681057-408e52192e50?q=80&w=600&auto=format&fit=crop", imageHint: "cyberpunk character" }, 
-      seller: { name: "Diana Prince", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=100&auto=format&fit=crop" },
+      product: { name: "Vintage Film Camera", image: "https://picsum.photos/seed/purchase4/600/400", imageHint: "cyberpunk character" }, 
+      seller: { name: "Diana Prince", avatar: "https://picsum.photos/seed/user4/100/100" },
       amount: "6,500 THB", 
       status: "Disputed", 
       date: "2023-10-24" 
