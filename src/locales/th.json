@@ -132,5 +132,14 @@
     "descriptionLabel": "คำอธิบาย",
     "descriptionPlaceholder": "โปรดอธิบายปัญหาของคุณโดยละเอียด...",
     "submitTicket": "ส่งตั๋ว"
+  },
+  "accountLayout": {
+    "profile": "โปรไฟล์",
+    "myListings": "รายการของฉัน",
+    "myPurchases": "การซื้อของฉัน",
+    "wallet": "กระเป๋าเงิน",
+    "kycVerification": "การยืนยัน KYC",
+    "settings": "ตั้งค่า",
+    "logout": "ออกจากระบบ"
   }
 }

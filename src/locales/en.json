@@ -132,5 +132,14 @@
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Please describe your issue in detail...",
     "submitTicket": "Submit Ticket"
+  },
+  "accountLayout": {
+    "profile": "Profile",
+    "myListings": "My Listings",
+    "myPurchases": "My Purchases",
+    "wallet": "Wallet",
+    "kycVerification": "KYC Verification",
+    "settings": "Settings",
+    "logout": "Logout"
   }
 }

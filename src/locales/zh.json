@@ -132,5 +132,14 @@
     "descriptionLabel": "描述",
     "descriptionPlaceholder": "请详细描述您的问题...",
     "submitTicket": "提交工单"
+  },
+  "accountLayout": {
+    "profile": "我的页面",
+    "myListings": "我发布的",
+    "myPurchases": "我的购买",
+    "wallet": "我的钱包",
+    "kycVerification": "KYC认证",
+    "settings": "设置",
+    "logout": "退出登录"
   }
 }

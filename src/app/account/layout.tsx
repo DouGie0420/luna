@@ -24,6 +24,9 @@ import {
 import { usePathname } from 'next/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close'
+import { useAuth, useUser } from '@/firebase'
+import { useTranslation } from '@/hooks/use-translation'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AccountLayout({
   children,
@@ -31,23 +34,64 @@ export default function AccountLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
-  
+  const { t } = useTranslation()
+  const { user, profile } = useUser()
+  const auth = useAuth()
+  const { toast } = useToast()
+
   const isActive = (path: string) => pathname === path
+
+  const handleLogout = async () => {
+    const isTestUser = user?.uid === 'test-user-uid'
+    if (isTestUser) {
+      localStorage.removeItem('isTestUser')
+      toast({
+        title: t('userNav.logout'),
+        description: t('userNav.logoutTestSuccess'),
+      })
+      window.location.href = '/' // Full reload to clear state
+      return
+    }
+
+    if (auth) {
+      await auth.signOut()
+      toast({
+        title: t('userNav.logout'),
+        description: t('userNav.logoutSuccess'),
+      })
+      window.location.href = '/'
+    }
+  }
 
   return (
     <>
       <PageHeaderWithBackAndClose />
       <SidebarProvider>
-        <Sidebar side="left" collapsible="icon" className="top-32 h-[calc(100svh-8rem)]">
+        <Sidebar
+          side="left"
+          collapsible="icon"
+          className="top-32 h-[calc(100svh-8rem)]"
+        >
           <SidebarHeader>
             <div className="flex flex-col items-center gap-2 p-4">
               <Avatar className="h-20 w-20">
-                <AvatarImage src="https://picsum.photos/seed/user-avatar/100/100" alt="@user" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarImage
+                  src={profile?.photoURL || user?.photoURL || ''}
+                  alt={profile?.displayName || user?.displayName || 'User'}
+                />
+                <AvatarFallback>
+                  {profile?.displayName?.charAt(0) ||
+                    user?.displayName?.charAt(0) ||
+                    'U'}
+                </AvatarFallback>
               </Avatar>
               <div className="text-center group-data-[collapsible=icon]:hidden">
-                <p className="font-semibold">User</p>
-                <p className="text-xs text-muted-foreground">user@example.com</p>
+                <p className="font-semibold">
+                  {profile?.displayName || user?.displayName || 'User'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {user?.email || 'user@example.com'}
+                </p>
               </div>
             </div>
           </SidebarHeader>
@@ -57,31 +101,40 @@ export default function AccountLayout({
                 <SidebarMenuButton asChild isActive={isActive('/account')}>
                   <Link href="/account">
                     <User />
-                    Profile
+                    {t('accountLayout.profile')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/account/listings')}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/account/listings')}
+                >
                   <Link href="/account/listings">
                     <ShoppingBag />
-                    My Listings
+                    {t('accountLayout.myListings')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/account/purchases')}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/account/purchases')}
+                >
                   <Link href="/account/purchases">
                     <ClipboardList />
-                    My Purchases
+                    {t('accountLayout.myPurchases')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/account/wallet')}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/account/wallet')}
+                >
                   <Link href="/account/wallet">
                     <Wallet />
-                    Wallet
+                    {t('accountLayout.wallet')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -89,28 +142,26 @@ export default function AccountLayout({
                 <SidebarMenuButton asChild isActive={isActive('/account/kyc')}>
                   <Link href="/account/kyc">
                     <ShieldCheck />
-                    KYC Verification
+                    {t('accountLayout.kycVerification')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton>
                   <Settings />
-                  Settings
+                  {t('accountLayout.settings')}
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton onClick={handleLogout}>
                   <LogOut />
-                  Logout
+                  {t('accountLayout.logout')}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
         </Sidebar>
-        <SidebarInset className="pt-12">
-          {children}
-        </SidebarInset>
+        <SidebarInset className="pt-12">{children}</SidebarInset>
       </SidebarProvider>
     </>
   )

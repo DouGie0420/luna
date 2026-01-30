@@ -44,6 +44,7 @@ export function UserNav() {
         title: t('userNav.logout'),
         description: t('userNav.logoutSuccess'),
       });
+      window.location.href = '/';
     }
   };
 
