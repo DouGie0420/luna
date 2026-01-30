@@ -36,7 +36,7 @@ export function SeaOfTranquility() {
                         </Link>
                     </Button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     {[...Array(4)].map((_, i) => (
                         <div key={i} className="flex flex-col space-y-3">
                             <Skeleton className="aspect-video w-full" />
@@ -63,7 +63,7 @@ export function SeaOfTranquility() {
                 </Button>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {posts.map(post => (
                     <BbsPostCard key={post.id} post={post} />
                 ))}
