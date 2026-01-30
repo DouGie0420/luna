@@ -258,17 +258,20 @@ export default function OrderDetailPage() {
     );
 }
 
-const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => (
-    <div className="flex justify-between items-center">
-        <span className="text-muted-foreground">{label}</span>
-        <div className="flex items-center gap-2">
-            {isLink ? (
-                <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
-            ) : (
-                <span className="font-medium text-right">{value}</span>
-            )}
-            {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy(value)}>{t('accountPage.copy')}</Button>}
-            {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
+const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="flex justify-between items-center">
+            <span className="text-muted-foreground">{label}</span>
+            <div className="flex items-center gap-2">
+                {isLink ? (
+                    <Link href={href} className="font-semibold text-primary hover:underline">{value}</Link>
+                ) : (
+                    <span className="font-medium text-right">{value}</span>
+                )}
+                {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy && onCopy(value)}>{t('accountPage.copy')}</Button>}
+                {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
+            </div>
         </div>
-    </div>
-);
+    );
+};
