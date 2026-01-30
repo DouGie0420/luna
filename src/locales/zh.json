@@ -136,7 +136,7 @@
     "consignmentDescription": "勾选此项表示您希望使用官方寄售服务。我们的团队将与您联系后续事宜。"
   },
   "product": {
-    "consignmentBadge": "[寄售商品]"
+    "consignmentBadge": "寄售商品"
   },
   "supportPage": {
     "title": "联系客服",

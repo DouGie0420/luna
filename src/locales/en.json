@@ -136,7 +136,7 @@
     "consignmentDescription": "Check this to use our official consignment service. Our team will contact you for further steps."
   },
   "product": {
-    "consignmentBadge": "[Consignment]"
+    "consignmentBadge": "Consignment"
   },
   "supportPage": {
     "title": "Contact Support",

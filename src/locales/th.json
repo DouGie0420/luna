@@ -136,7 +136,7 @@
     "consignmentDescription": "เลือกช่องนี้เพื่อใช้บริการฝากขายอย่างเป็นทางการของเรา ทีมงานของเราจะติดต่อคุณสำหรับขั้นตอนต่อไป"
   },
   "product": {
-    "consignmentBadge": "[ฝากขาย]"
+    "consignmentBadge": "ฝากขาย"
   },
   "supportPage": {
     "title": "ติดต่อฝ่ายสนับสนุน",

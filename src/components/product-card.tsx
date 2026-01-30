@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin } from 'lucide-react';
+import { MapPin, Gem } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
@@ -37,7 +37,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </CardTitle>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {product.isConsignment && (
-                <Badge variant="destructive" className="animate-glow-green border-lime-400/50">
+                <Badge variant="outline" className="gap-1.5 border-lime-400/50 bg-lime-400/10 text-lime-300 animate-glow-green px-3 py-1 text-sm">
+                    <Gem className="h-3.5 w-3.5" />
                     {t('product.consignmentBadge')}
                 </Badge>
             )}
