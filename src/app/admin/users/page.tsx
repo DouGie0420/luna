@@ -43,7 +43,7 @@ export default async function AdminUsersPage() {
                             </TableCell>
                             <TableCell>{user.rating} ({user.reviews} reviews)</TableCell>
                             <TableCell>
-                                <Badge variant={user.id === 'user1' ? "default" : "secondary"} className={user.id === 'user1' ? 'bg-green-500' : ''}>
+                                <Badge variant={user.id === 'user1' ? "default" : "secondary"}>
                                     {user.id === 'user1' ? 'Verified' : 'Pending'}
                                 </Badge>
                             </TableCell>

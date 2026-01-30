@@ -3,74 +3,74 @@
     {
       "id": "vintage-camera",
       "description": "A classic film camera in great condition.",
-      "imageUrl": "https://images.unsplash.com/photo-1520549233664-03f65c1d1327?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8dmludGFnZSUyMGNhbWVyYXxlbnwwfHx8fDE3Njk3Mjc3MjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "vintage camera"
+      "imageUrl": "https://images.unsplash.com/photo-1639762681057-408e52192e50?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "cyberpunk character"
     },
     {
       "id": "leather-wallet",
       "description": "Handmade genuine leather wallet, durable and stylish.",
-      "imageUrl": "https://images.unsplash.com/photo-1531190260877-c8d11eb5afaf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGVhdGhlciUyMHdhbGxldHxlbnwwfHx8fDE3Njk2OTAzMjd8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "leather wallet"
+      "imageUrl": "https://images.unsplash.com/photo-1549492423-400259a5e3c2?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "neon abstract"
     },
     {
       "id": "smart-watch",
       "description": "Latest generation smart watch with all features.",
-      "imageUrl": "https://images.unsplash.com/photo-1546868871-7041f2a55e12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzbWFydCUyMHdhdGNofGVufDB8fHx8MTc2OTY2NjU2OXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "smart watch"
+      "imageUrl": "https://images.unsplash.com/photo-1617097429142-d0f735d45c43?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "futuristic watch"
     },
     {
       "id": "wireless-headphones",
       "description": "Noise-cancelling over-ear wireless headphones.",
-      "imageUrl": "https://images.unsplash.com/photo-1598331668826-20cecc596b86?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2lyZWxlc3MlMjBoZWFkcGhvbmVzfGVufDB8fHx8MTc2OTcyNzcyMnww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "wireless headphones"
+      "imageUrl": "https://images.unsplash.com/photo-1618366712122-5134d115814e?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "cyberpunk headphones"
     },
     {
       "id": "designer-sunglasses",
       "description": "Stylish designer sunglasses for sun protection.",
-      "imageUrl": "https://images.unsplash.com/photo-1624043553718-f369dab781aa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZGVzaWduZXIlMjBzdW5nbGFzc2VzfGVufDB8fHx8MTc2OTczNDM5OXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "designer sunglasses"
+      "imageUrl": "https://images.unsplash.com/photo-1635338101435-87175a59a4c5?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "cyberpunk glasses"
     },
     {
       "id": "gaming-console",
       "description": "Next-gen gaming console, barely used.",
-      "imageUrl": "https://images.unsplash.com/photo-1550745165-9bc0b252726f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FtaW5nJTIwY29uc29sZXxlbnwwfHx8fDE3Njk2ODQxNzJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "gaming console"
+      "imageUrl": "https://images.unsplash.com/photo-1589254065909-b7086229d08c?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "futuristic console"
     },
     {
       "id": "ceramic-vase",
       "description": "Hand-painted ceramic vase, perfect for home decor.",
-      "imageUrl": "https://images.unsplash.com/photo-1631125915732-b98f8774f675?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjZXJhbWljJTIwdmFzZXxlbnwwfHx8fDE3Njk2NjU4MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "ceramic vase"
+      "imageUrl": "https://images.unsplash.com/photo-1597589684358-2c2e07e8a3a4?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "glitch art"
     },
     {
       "id": "mountain-bike",
       "description": "Professional mountain bike, all-terrain.",
-      "imageUrl": "https://images.unsplash.com/photo-1534150034764-046bf225d3fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtb3VudGFpbiUyMGJpa2V8ZW58MHx8fHwxNzY5NjY2NjgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "mountain bike"
+      "imageUrl": "https://images.unsplash.com/photo-1610465229233-28639535384c?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "cyberpunk vehicle"
     },
     {
       "id": "ukulele",
       "description": "A beautiful soprano ukulele with a warm, bright tone. Perfect for beginners and experienced players alike. Comes with a carrying case.",
-      "imageUrl": "https://images.unsplash.com/photo-1621875833619-370c48ffa953?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx1a3VsZWxlfGVufDB8fHx8MTc2OTczNDM5OXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "ukulele"
+      "imageUrl": "https://images.unsplash.com/photo-1521404928647-89c8360d23a1?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "neon instrument"
     },
     {
       "id": "drone",
       "description": "A high-quality quadcopter drone with a 4K camera. Stable flight, long battery life, and intuitive controls. Great for aerial photography and videography.",
-      "imageUrl": "https://images.unsplash.com/photo-1488263590619-bc1fff43b6c1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkcm9uZXxlbnwwfHx8fDE3Njk3MzQzOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "drone"
+      "imageUrl": "https://images.unsplash.com/photo-1601121141499-17ae80afc03a?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "futuristic drone"
     },
     {
       "id": "espresso-machine",
       "description": "A semi-automatic espresso machine for making cafe-quality coffee at home. Features a powerful steam wand for frothing milk.",
-      "imageUrl": "https://images.unsplash.com/photo-1595928642581-f50f4f3453a5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxlc3ByZXNzbyUyMG1hY2hpbmV8ZW58MHx8fHwxNzY5NjcxMDc1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "espresso machine"
+      "imageUrl": "https://images.unsplash.com/photo-1551029413-5853f63e6345?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "sci-fi machine"
     },
     {
       "id": "leather-backpack",
       "description": "A stylish and durable leather backpack with multiple compartments. Perfect for work, travel, or everyday use.",
-      "imageUrl": "https://images.unsplash.com/photo-1569397592157-3ef5ee016cf6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsZWF0aGVyJTIwYmFja3BhY2t8ZW58MHx8fHwxNzY5NjY5NjY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "leather backpack"
+      "imageUrl": "https://images.unsplash.com/photo-1620392178732-c65191b3512b?q=80&w=1080&auto=format&fit=crop",
+      "imageHint": "cyberpunk bag"
     }
   ]
 }

@@ -18,9 +18,9 @@ export function UserNav() {
 
   if (!isLoggedIn) {
     return (
-        <div className="flex items-center gap-2 text-sm font-medium text-black dark:text-white">
+        <div className="flex items-center gap-2 text-sm font-medium text-primary-foreground">
             <Link href="/login" className="hover:underline">登录</Link>
-            <div className="h-3 w-px bg-black/50 dark:bg-white/50" />
+            <div className="h-3 w-px bg-primary-foreground/50" />
             <Link href="/register" className="hover:underline">注册</Link>
         </div>
     )
@@ -29,10 +29,10 @@ export function UserNav() {
   return (
     <div className="flex items-center gap-4">
         <Link href="/messages" title="消息">
-            <MessageSquare className="h-5 w-5 text-black/90 hover:text-black dark:text-white/90 dark:hover:text-white" />
+            <MessageSquare className="h-5 w-5 text-primary-foreground/90 hover:text-primary-foreground" />
         </Link>
         <Link href="/account/purchases" title="订单">
-            <ShoppingCart className="h-5 w-5 text-black/90 hover:text-black dark:text-white/90 dark:hover:text-white" />
+            <ShoppingCart className="h-5 w-5 text-primary-foreground/90 hover:text-primary-foreground" />
         </Link>
         <DropdownMenu>
         <DropdownMenuTrigger asChild>

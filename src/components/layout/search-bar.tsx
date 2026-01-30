@@ -79,9 +79,9 @@ export function SearchBar() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
                     placeholder="搜点什么"
-                    className="w-full rounded-full rounded-r-none border-r-0 bg-white text-black ring-offset-0 focus-visible:ring-2 focus-visible:ring-yellow-500"
+                    className="w-full rounded-full rounded-r-none border-r-0 bg-background/70 text-foreground ring-offset-0 focus-visible:ring-2 focus-visible:ring-primary"
                 />
-                 <Button onClick={() => handleSearch(searchTerm)} className="rounded-full rounded-l-none bg-yellow-400 hover:bg-yellow-500 text-black">
+                 <Button onClick={() => handleSearch(searchTerm)} className="rounded-full rounded-l-none bg-secondary hover:bg-secondary/90 text-secondary-foreground">
                     <Search className="h-4 w-4 mr-1" />
                     搜索
                 </Button>

@@ -54,33 +54,33 @@ export default async function HomePage() {
         </aside>
         <main className="col-span-12 md:col-span-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-orange-100 p-4 rounded-lg border border-orange-200 flex items-center">
+            <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 flex items-center">
                 <div>
-                    <h3 className="font-bold text-orange-900">闲鱼抄底好物</h3>
-                    <p className="text-sm text-orange-800">超绝性价比</p>
+                    <h3 className="font-bold text-primary-foreground">闲鱼抄底好物</h3>
+                    <p className="text-sm text-primary-foreground/80">超绝性价比</p>
                 </div>
-                <Image src="https://picsum.photos/seed/promo1/80/80" alt="promo1" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="abstract illustration" />
+                <Image src="https://images.unsplash.com/photo-1603356033288-23b25e4d35fc?w=80&h=80&fit=crop" alt="promo1" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="neon city" />
             </div>
-             <div className="bg-blue-100 p-4 rounded-lg border border-blue-200 flex items-center">
+             <div className="bg-secondary/10 p-4 rounded-lg border border-secondary/30 flex items-center">
                  <div>
-                    <h3 className="font-bold text-blue-900">衣橱捡漏</h3>
-                    <p className="text-sm text-blue-800">时尚美衣低价淘</p>
+                    <h3 className="font-bold text-foreground">衣橱捡漏</h3>
+                    <p className="text-sm text-muted-foreground">时尚美衣低价淘</p>
                  </div>
-                 <Image src="https://picsum.photos/seed/promo2/80/80" alt="promo2" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="fashion clothes" />
+                 <Image src="https://images.unsplash.com/photo-1635338101435-87175a59a4c5?w=80&h=80&fit=crop" alt="promo2" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="cyberpunk glasses" />
             </div>
-             <div className="bg-green-100 p-4 rounded-lg border border-green-200 flex items-center">
+             <div className="bg-accent/10 p-4 rounded-lg border border-accent/30 flex items-center">
                  <div>
-                    <h3 className="font-bold text-green-900">手机数码</h3>
-                    <p className="text-sm text-green-800">热门装备</p>
+                    <h3 className="font-bold text-accent-foreground">手机数码</h3>
+                    <p className="text-sm text-accent-foreground/80">热门装备</p>
                  </div>
-                 <Image src="https://picsum.photos/seed/promo3/80/80" alt="promo3" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="gadgets" />
+                 <Image src="https://images.unsplash.com/photo-1618366712122-5134d115814e?w=80&h=80&fit=crop" alt="promo3" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="cyberpunk headphones" />
             </div>
-             <div className="bg-purple-100 p-4 rounded-lg border border-purple-200 flex items-center">
+             <div className="bg-primary/10 p-4 rounded-lg border border-primary/30 flex items-center">
                  <div>
-                    <h3 className="font-bold text-purple-900">省钱卡券</h3>
-                    <p className="text-sm text-purple-800">超值优惠</p>
+                    <h3 className="font-bold text-primary-foreground">省钱卡券</h3>
+                    <p className="text-sm text-primary-foreground/80">超值优惠</p>
                  </div>
-                 <Image src="https://picsum.photos/seed/promo4/80/80" alt="promo4" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="coupon ticket" />
+                 <Image src="https://images.unsplash.com/photo-1589879728410-b98a49c4dd74?w=80&h=80&fit=crop" alt="promo4" width={50} height={50} className="rounded-full ml-auto" data-ai-hint="neon sign" />
             </div>
           </div>
           

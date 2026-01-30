@@ -14,13 +14,13 @@ export default function KYCPage() {
             <Card className="mb-8">
                 <CardHeader>
                     <div className="flex items-center gap-4">
-                        <ShieldCheck className="h-8 w-8 text-green-500" />
+                        <ShieldCheck className="h-8 w-8 text-primary" />
                         <div>
                             <CardTitle>Current Status</CardTitle>
-                             <Badge className={
-                                kycStatus === "Verified" ? "bg-green-500 hover:bg-green-600" :
-                                kycStatus === "Pending" ? "bg-yellow-500 hover:bg-yellow-600" :
-                                "bg-red-500 hover:bg-red-600"
+                             <Badge variant={
+                                kycStatus === "Verified" ? "default" :
+                                kycStatus === "Pending" ? "secondary" :
+                                "destructive"
                             }>{kycStatus}</Badge>
                         </div>
                     </div>
