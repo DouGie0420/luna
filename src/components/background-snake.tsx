@@ -15,7 +15,7 @@ export const BackgroundSnake: React.FC<BackgroundSnakeProps> = ({
   className,
   pixelSize = 20, // larger pixels for the background snake
   speed = 100, // slower speed
-  color = 'hsl(var(--primary))',
+  color = 'hsl(284 20% 90%)',
   length = 30,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
