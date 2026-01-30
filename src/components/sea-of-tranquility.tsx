@@ -4,7 +4,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, ThumbsUp, ArrowRight } from 'lucide-react';
+import { Star, ThumbsUp, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 // Placeholder data for BBS posts
@@ -71,12 +71,12 @@ export function SeaOfTranquility() {
                         <CardContent>
                              <div className="flex justify-end items-center gap-4 text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1.5">
-                                    <MessageSquare className="h-4 w-4" />
-                                    <span>{post.replies}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
                                     <ThumbsUp className="h-4 w-4" />
                                     <span>{post.likes}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Star className="h-4 w-4" />
+                                    <span>{post.replies}</span>
                                 </div>
                             </div>
                         </CardContent>
