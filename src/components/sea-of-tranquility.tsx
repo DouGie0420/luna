@@ -46,7 +46,7 @@ export function SeaOfTranquility() {
         <section className="container mx-auto px-4 py-12 md:py-16">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-headline text-3xl font-semibold">{t('seaOfTranquility.title')}</h2>
-                <Button asChild variant="outline" className="rounded-full border-primary/50 text-primary hover:bg-primary/10 hover:text-primary">
+                <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground font-bold">
                     <Link href="/bbs">
                         {t('seaOfTranquility.enter')} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
