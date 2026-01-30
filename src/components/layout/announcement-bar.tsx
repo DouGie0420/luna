@@ -52,7 +52,7 @@ export function AnnouncementBar() {
           </p>
         </div>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 flex flex-col overflow-hidden border-0 bg-card shadow-xl shadow-primary/20">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 flex flex-col border-0 bg-card shadow-xl shadow-primary/20">
         <div className="pixel-grid absolute inset-0 -z-20 opacity-40" />
         
         <div className="relative z-10 flex flex-col flex-1 min-h-0">
