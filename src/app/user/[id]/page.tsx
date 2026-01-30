@@ -100,10 +100,10 @@ export default function UserProfilePage() {
                             <div>
                                 <CardTitle>{user.name}</CardTitle>
                                 {user.location && (
-                                    <CardDescription className="flex items-center gap-1 mt-1">
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                         <MapPin className="h-4 w-4" />
-                                        {user.location.city}, {user.location.country}
-                                    </CardDescription>
+                                        <span>{user.location.city}, {user.location.countryCode}</span>
+                                    </div>
                                 )}
                             </div>
                         </div>

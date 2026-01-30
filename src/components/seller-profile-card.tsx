@@ -34,9 +34,9 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     <Star className="h-4 w-4 fill-primary text-primary" />
                                     <span>{seller.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', (seller.itemsOnSale ?? 0).toString())})</span>
                                 </div>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                     <MapPin className="h-4 w-4" />
-                                    <span>{location.city}, {location.country}</span>
+                                    <span>{location.city}, {location.countryCode}</span>
                                 </div>
                             </div>
                             <div className="flex flex-col items-start gap-1 text-sm font-medium">

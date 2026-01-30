@@ -10,6 +10,7 @@ export type Product = {
   location: {
     city: string;
     country: string;
+    countryCode: string;
     lat: number;
     lng: number;
   };
@@ -31,6 +32,7 @@ export type User = {
   location?: {
     city: string;
     country: string;
+    countryCode: string;
     lat: number;
     lng: number;
   };
