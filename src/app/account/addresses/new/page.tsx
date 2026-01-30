@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Trash2 } from "lucide-react";
-import { useTranslation } from "@/hooks/use-translation";
+import { Trash2, Loader2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,51 +18,145 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import Link from 'next/link';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import type { UserAddress } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import { addDoc, updateDoc, deleteDoc, doc, collection } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock data for demonstration
-const mockAddress = {
-    id: 'addr1',
-    recipientName: 'Alex Doe',
-    phone: '+66 81 234 5678',
-    country: 'Thailand',
-    province: 'Bangkok',
-    city: 'Bangkok',
-    addressLine1: '123 Cyberpunk Road, Sukhumvit Soi 11',
+const EMPTY_ADDRESS: Omit<UserAddress, 'id'> = {
+    recipientName: '',
+    phone: '',
+    country: '',
+    province: '',
+    city: '',
+    addressLine1: '',
     addressLine2: '',
-    postalCode: '10110',
-    isDefault: true,
+    postalCode: '',
+    isDefault: false,
 };
+
+function AddressFormSkeleton() {
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64 mt-2" />
+            </CardHeader>
+            <CardContent className="grid gap-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
+                {[...Array(5)].map((_, i) => (
+                    <div key={i} className="grid gap-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                ))}
+                <div className="flex justify-between items-center mt-4">
+                    <Skeleton className="h-10 w-24" />
+                    <Skeleton className="h-10 w-32" />
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export default function AddressFormPage() {
     const searchParams = useSearchParams();
-    const { t } = useTranslation();
+    const router = useRouter();
+    const { toast } = useToast();
+    const { user, loading: userLoading } = useUser();
+    const firestore = useFirestore();
+
     const addressId = searchParams.get('id');
     const isEditMode = Boolean(addressId);
     
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    // In a real app, you'd fetch the address data if in edit mode
-    const [formData, setFormData] = useState(isEditMode ? mockAddress : {
-        recipientName: '',
-        phone: '',
-        country: '',
-        province: '',
-        city: '',
-        addressLine1: '',
-        addressLine2: '',
-        postalCode: '',
-        isDefault: false,
-    });
+    const addressRef = useMemo(() => {
+        if (!firestore || !user?.uid || !isEditMode) return null;
+        return doc(firestore, 'users', user.uid, 'addresses', addressId!);
+    }, [firestore, user?.uid, isEditMode, addressId]);
+
+    const { data: addressData, loading: addressLoading } = useDoc<UserAddress>(addressRef);
+
+    const [formData, setFormData] = useState<Omit<UserAddress, 'id'>>(EMPTY_ADDRESS);
     
+    useEffect(() => {
+        if (isEditMode && addressData) {
+            setFormData(addressData);
+        }
+    }, [isEditMode, addressData]);
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     }
 
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!firestore || !user) {
+            toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in.' });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            const dataToSave = { ...formData };
+            if ('id' in dataToSave) {
+              delete (dataToSave as any).id;
+            }
+
+            if (isEditMode) {
+                const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId!);
+                await updateDoc(docRef, dataToSave);
+                toast({ title: 'Address Updated' });
+            } else {
+                const collectionRef = collection(firestore, 'users', user.uid, 'addresses');
+                await addDoc(collectionRef, dataToSave);
+                toast({ title: 'Address Saved' });
+            }
+            router.push('/account/addresses');
+        } catch (error) {
+            console.error('Error saving address:', error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to save address.' });
+            setIsSubmitting(false);
+        }
+    };
+    
+    const handleDelete = async () => {
+        if (!firestore || !user || !addressId) return;
+
+        setIsSubmitting(true);
+        try {
+            const docRef = doc(firestore, 'users', user.uid, 'addresses', addressId);
+            await deleteDoc(docRef);
+            toast({ title: 'Address Deleted' });
+            router.push('/account/addresses');
+        } catch (error) {
+            console.error('Error deleting address:', error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete address.'});
+            setIsSubmitting(false);
+        } finally {
+            setIsDeleteDialogOpen(false);
+        }
+    };
+    
+    const isLoading = userLoading || (isEditMode && addressLoading);
+
     return (
         <>
             <div className="container mx-auto px-4 py-12 max-w-2xl">
+                {isLoading ? <AddressFormSkeleton /> : (
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-3xl font-headline">
@@ -74,43 +167,43 @@ export default function AddressFormPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <form className="grid gap-6">
+                        <form className="grid gap-6" onSubmit={handleSubmit}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="recipientName">Recipient Name</Label>
-                                    <Input id="recipientName" name="recipientName" value={formData.recipientName} onChange={handleInputChange} />
+                                    <Input id="recipientName" name="recipientName" value={formData.recipientName} onChange={handleInputChange} required />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="phone">Phone Number</Label>
-                                    <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleInputChange} />
+                                    <Input id="phone" name="phone" type="tel" value={formData.phone} onChange={handleInputChange} required />
                                 </div>
                             </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="addressLine1">Address Line 1</Label>
-                                <Input id="addressLine1" name="addressLine1" placeholder="Street address, building, apartment number" value={formData.addressLine1} onChange={handleInputChange} />
+                                <Input id="addressLine1" name="addressLine1" placeholder="Street address, building, apartment number" value={formData.addressLine1} onChange={handleInputChange} required />
                             </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="addressLine2">Address Line 2 (Optional)</Label>
-                                <Input id="addressLine2" name="addressLine2" value={formData.addressLine2} onChange={handleInputChange} />
+                                <Input id="addressLine2" name="addressLine2" value={formData.addressLine2 || ''} onChange={handleInputChange} />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-2">
                                     <Label htmlFor="city">City</Label>
-                                    <Input id="city" name="city" value={formData.city} onChange={handleInputChange} />
+                                    <Input id="city" name="city" value={formData.city} onChange={handleInputChange} required />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="province">Province / State</Label>
-                                    <Input id="province" name="province" value={formData.province} onChange={handleInputChange} />
+                                    <Input id="province" name="province" value={formData.province} onChange={handleInputChange} required />
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                <div className="grid gap-2">
                                     <Label htmlFor="postalCode">Postal Code</Label>
-                                    <Input id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleInputChange} />
+                                    <Input id="postalCode" name="postalCode" value={formData.postalCode} onChange={handleInputChange} required />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="country">Country</Label>
-                                    <Input id="country" name="country" value={formData.country} onChange={handleInputChange} />
+                                    <Input id="country" name="country" value={formData.country} onChange={handleInputChange} required />
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -120,16 +213,20 @@ export default function AddressFormPage() {
                             <div className="flex justify-between items-center mt-4">
                                 <div>
                                     {isEditMode && (
-                                        <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)}>
+                                        <Button type="button" variant="destructive" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmitting}>
                                             <Trash2 className="mr-2 h-4 w-4" /> Delete
                                         </Button>
                                     )}
                                 </div>
-                                <Button type="submit" size="lg">Save Address</Button>
+                                <Button type="submit" size="lg" disabled={isSubmitting}>
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Save Address
+                                </Button>
                             </div>
                         </form>
                     </CardContent>
                 </Card>
+                )}
             </div>
              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
@@ -142,10 +239,8 @@ export default function AddressFormPage() {
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={() => {
-                                // Handle deletion logic here
-                                setIsDeleteDialogOpen(false);
-                            }}
+                            onClick={handleDelete}
+                            disabled={isSubmitting}
                             className="bg-destructive hover:bg-destructive/90"
                         >
                             Confirm Delete
