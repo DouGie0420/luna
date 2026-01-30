@@ -12,6 +12,20 @@ import type { Product, Promo } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
+// Define a fallback promo object. This serves as default content and ensures the page
+// works immediately, even if the corresponding Firestore document hasn't been created yet.
+// When the Firestore document IS created, its data will override this fallback.
+const fallbackPromo: Promo = {
+    id: 'cyber-monday-fallback',
+    heroTitle: 'CYBER MONDAY',
+    heroDescription: 'GLITCH IN THE SYSTEM! UNREAL DEALS ON ALL TECH & APPAREL.',
+    heroBackgroundGif: 'https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif',
+    primaryButtonText: 'Shop All Deals',
+    secondaryButtonText: 'View Rules',
+    productsSectionTitle: 'Featured Cyber Deals',
+    featuredProductIds: ['vintage-camera', 'smart-watch', 'wireless-headphones', 'gaming-console', 'drone', 'leather-backpack', 'ukulele', 'espresso-machine']
+};
+
 function PromoPageSkeleton() {
     return (
         <div className="container mx-auto px-4 py-12 md:py-20">
@@ -39,7 +53,7 @@ function PromoPageSkeleton() {
                 </div>
              </div>
         </div>
-    )
+    );
 }
 
 
@@ -50,23 +64,28 @@ export default function CyberMondayPromoPage() {
         firestore ? doc(firestore, 'promos', 'cyber-monday') : null,
         [firestore]
     );
-    const { data: promo, loading: promoLoading } = useDoc<Promo>(promoRef);
+    const { data: promoFromDb, loading: promoLoading } = useDoc<Promo>(promoRef);
+
+    // This is the data that will be displayed. It uses the live data from Firestore if it exists,
+    // otherwise it falls back to the local `fallbackPromo` object.
+    const promo = promoFromDb || fallbackPromo;
 
     const [products, setProducts] = useState<Product[]>([]);
     const [loadingProducts, setLoadingProducts] = useState(true);
 
     useEffect(() => {
-        if (!promo) return;
-
+        // This effect runs whenever the promo object itself changes.
+        // It's guaranteed to have a `promo` object to work with (either live or fallback).
         const fetchProducts = async () => {
             setLoadingProducts(true);
             try {
                 const allProducts = await getProducts();
                 const featuredIds = promo.featuredProductIds || [];
-                // Fallback to first 8 products if specific ones aren't defined in DB
+                
                 const promoProducts = featuredIds.length > 0 
                     ? allProducts.filter(p => featuredIds.includes(p.id))
-                    : allProducts.slice(0, 8);
+                    : allProducts.slice(0, 8); // Fallback if no IDs are specified
+                
                 setProducts(promoProducts);
             } catch (error) {
                 console.error("Failed to fetch products for promo", error);
@@ -76,9 +95,10 @@ export default function CyberMondayPromoPage() {
         };
 
         fetchProducts();
-    }, [promo]);
+    }, [promo]); // The promo object itself is the dependency. It changes from fallback to DB data.
     
 
+    // Show a skeleton screen only on the very first load while we check Firestore.
     if (promoLoading) {
         return (
             <>
@@ -87,22 +107,6 @@ export default function CyberMondayPromoPage() {
             </>
         )
     }
-
-    if (!promo) {
-        return (
-             <>
-                <PageHeaderWithBackAndClose />
-                <div className="container mx-auto px-4 py-12 md:py-20 text-center">
-                    <h1 className="font-headline text-4xl">Promotion Not Found</h1>
-                    <p className="mt-4 text-muted-foreground">The requested promotion could not be loaded. It might be expired or removed.</p>
-                    <Button asChild className="mt-6">
-                        <Link href="/">Return to Homepage</Link>
-                    </Button>
-                </div>
-             </>
-        )
-    }
-
 
     return (
         <>
