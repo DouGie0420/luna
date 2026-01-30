@@ -11,7 +11,7 @@ export function PageHeaderWithBackAndClose() {
 
     return (
         <div className="sticky top-20 z-30 border-y border-primary/50 bg-background/80 backdrop-blur-sm">
-            <div className="container mx-auto flex h-12 items-center justify-between px-4">
+            <div className="flex h-12 items-center justify-between px-6 md:px-8 lg:px-12">
                 <BackButton />
                 <Button asChild variant="ghost" className="rounded-full bg-lime-400/20 text-lime-300 border border-lime-400/50 hover:bg-lime-400/30 hover:text-lime-200 h-8 px-3">
                     <Link href="/">
