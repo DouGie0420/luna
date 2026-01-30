@@ -21,6 +21,7 @@ import { upsertUserProfile } from "@/lib/user";
 import { useToast } from "@/hooks/use-toast";
 import { X } from "lucide-react";
 import React from "react";
+import { useTranslation } from "@/hooks/use-translation";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -31,6 +32,7 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const auth = useFirebaseAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -40,8 +42,8 @@ export default function LoginPage() {
     e.preventDefault();
     localStorage.setItem('isTestUser', 'true');
     toast({
-      title: "测试登录成功",
-      description: "您正在以测试用户身份登录。即将跳转到您的账户页面...",
+      title: t('loginPage.testLoginSuccessTitle'),
+      description: t('loginPage.testLoginSuccessDescription'),
     });
     // Use a full page reload to ensure the user hook re-initializes
     window.location.href = '/account';
@@ -56,16 +58,16 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       await upsertUserProfile(firestore, result.user);
       toast({
-        title: "登录成功",
-        description: `欢迎回来，${result.user.displayName}`,
+        title: t('loginPage.loginSuccessTitle'),
+        description: t('loginPage.loginSuccessDescription').replace('{displayName}', result.user.displayName || 'User'),
       });
       router.push('/account');
     } catch (error: any) {
       console.error("Social login error:", error);
       toast({
         variant: 'destructive',
-        title: "登录失败",
-        description: error.message || "无法通过社交账号登录，请稍后再试。",
+        title: t('loginPage.loginFailedTitle'),
+        description: error.message || t('loginPage.loginFailedDescription'),
       });
     }
   };
@@ -76,31 +78,31 @@ export default function LoginPage() {
         <Button asChild variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7 text-muted-foreground hover:text-foreground">
           <Link href="/">
             <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t('common.close')}</span>
           </Link>
         </Button>
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">登录</CardTitle>
+          <CardTitle className="text-2xl font-headline">{t('loginPage.title')}</CardTitle>
           <CardDescription>
-            输入您的电子邮件以登录您的帐户。
+            {t('loginPage.description')}
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">电子邮件</Label>
-            <Input id="email" type="email" placeholder="m@example.com" defaultValue="test@example.com" required />
+            <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
+            <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} defaultValue="test@example.com" required />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">密码</Label>
+            <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
             <Input id="password" type="password" defaultValue="password" required />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button className="w-full" onClick={handleTestLogin}>登录</Button>
+          <Button className="w-full" onClick={handleTestLogin}>{t('common.login')}</Button>
           
           <div className="relative w-full">
             <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
-            <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">或继续</span>
+            <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('loginPage.orContinueWith')}</span>
           </div>
 
           <div className="w-full grid grid-cols-2 gap-2">
@@ -115,9 +117,9 @@ export default function LoginPage() {
           </div>
 
           <div className="text-center text-sm">
-            还没有帐户？{" "}
+            {t('loginPage.noAccount')}{" "}
             <Link href="/register" className="underline">
-              注册
+              {t('common.register')}
             </Link>
           </div>
         </CardFooter>

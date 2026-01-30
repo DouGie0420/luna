@@ -1,0 +1,61 @@
+{
+  "common": {
+    "login": "Login",
+    "register": "Register",
+    "close": "Close",
+    "submit": "Submit"
+  },
+  "loginPage": {
+    "title": "Login",
+    "description": "Enter your email to login to your account.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "m@example.com",
+    "passwordLabel": "Password",
+    "orContinueWith": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "testLoginSuccessTitle": "Test Login Successful",
+    "testLoginSuccessDescription": "You are logging in as a test user. Redirecting to your account...",
+    "loginSuccessTitle": "Login Successful",
+    "loginSuccessDescription": "Welcome back, {displayName}",
+    "loginFailedTitle": "Login Failed",
+    "loginFailedDescription": "Could not sign in with social account. Please try again later."
+  },
+  "registerPage": {
+    "title": "Create your LUNA account",
+    "description": "Join us and start your cyberpunk trading journey.",
+    "loginIdLabel": "Login ID",
+    "loginIdPlaceholder": "Unique login ID",
+    "loginIdDescription": "This will be your unique, unchangeable login name.",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "How will people call you?",
+    "usernameDescription": "This is your display name within the platform and can be changed.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "m@example.com",
+    "sendVerificationCode": "Send Code",
+    "phoneLabel": "Phone Number (Optional)",
+    "phonePlaceholder": "+1 123 456 7890",
+    "passwordLabel": "Password",
+    "confirmPasswordLabel": "Confirm Password",
+    "termsAgreement": "I have read and agree to the",
+    "termsOfService": "Terms of Service",
+    "termsRequirement": "You must agree to our terms to continue.",
+    "createAccount": "Create Account",
+    "orRegisterWith": "Or register with",
+    "alreadyHaveAccount": "Already have an account?",
+    "registrationSuccessTitle": "Registration Successful",
+    "registrationSuccessDescription": "Welcome, {displayName}! Your account has been created.",
+    "registrationFailedTitle": "Registration Failed",
+    "registrationFailedDescription": "Could not register with social account. Please try again later."
+  },
+  "userNav": {
+    "myAccount": "My Account",
+    "myListings": "My Listings",
+    "kycVerification": "KYC Verification",
+    "logout": "Logout",
+    "listAnItem": "List Item",
+    "messages": "Messages",
+    "orders": "Orders",
+    "logoutTestSuccess": "You have logged out of the test account.",
+    "logoutSuccess": "You have been successfully logged out."
+  }
+}

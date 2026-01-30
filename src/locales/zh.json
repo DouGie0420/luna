@@ -1,0 +1,61 @@
+{
+  "common": {
+    "login": "登录",
+    "register": "注册",
+    "close": "关闭",
+    "submit": "提交"
+  },
+  "loginPage": {
+    "title": "登录",
+    "description": "输入您的电子邮件以登录您的帐户。",
+    "emailLabel": "电子邮件",
+    "emailPlaceholder": "m@example.com",
+    "passwordLabel": "密码",
+    "orContinueWith": "或继续",
+    "noAccount": "还没有帐户？",
+    "testLoginSuccessTitle": "测试登录成功",
+    "testLoginSuccessDescription": "您正在以测试用户身份登录。即将跳转到您的账户页面...",
+    "loginSuccessTitle": "登录成功",
+    "loginSuccessDescription": "欢迎回来, {displayName}",
+    "loginFailedTitle": "登录失败",
+    "loginFailedDescription": "无法通过社交账号登录，请稍后再试。"
+  },
+  "registerPage": {
+    "title": "创建您的 LUNA 账户",
+    "description": "加入我们，开始您的赛博朋克交易之旅。",
+    "loginIdLabel": "登录ID",
+    "loginIdPlaceholder": "唯一的登录ID",
+    "loginIdDescription": "这将是您唯一的、不可更改的登录名。",
+    "usernameLabel": "用户名",
+    "usernamePlaceholder": "人们将如何称呼您？",
+    "usernameDescription": "这是您在平台内显示的昵称，可以修改。",
+    "emailLabel": "电子邮箱",
+    "emailPlaceholder": "m@example.com",
+    "sendVerificationCode": "发送验证码",
+    "phoneLabel": "手机号码 (可选)",
+    "phonePlaceholder": "+86 138 0013 8000",
+    "passwordLabel": "密码",
+    "confirmPasswordLabel": "确认密码",
+    "termsAgreement": "我已阅读并同意",
+    "termsOfService": "服务条款",
+    "termsRequirement": "您必须同意我们的服务条款才能继续。",
+    "createAccount": "创建账户",
+    "orRegisterWith": "或通过以下方式注册",
+    "alreadyHaveAccount": "已经有账户了？",
+    "registrationSuccessTitle": "注册成功",
+    "registrationSuccessDescription": "欢迎, {displayName}！您的账户已创建。",
+    "registrationFailedTitle": "注册失败",
+    "registrationFailedDescription": "无法通过社交账号注册，请稍后再试。"
+  },
+  "userNav": {
+    "myAccount": "我的页面",
+    "myListings": "我发布的",
+    "kycVerification": "KYC认证",
+    "logout": "退出登录",
+    "listAnItem": "发布",
+    "messages": "消息",
+    "orders": "订单",
+    "logoutTestSuccess": "您已从测试账户退出。",
+    "logoutSuccess": "您已成功退出。"
+  }
+}

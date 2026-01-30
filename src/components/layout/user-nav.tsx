@@ -17,8 +17,10 @@ import { useUser, useAuth } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import React from "react";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function UserNav() {
+  const { t } = useTranslation();
   const { user, profile, loading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
@@ -29,8 +31,8 @@ export function UserNav() {
     if (isTestUser) {
       localStorage.removeItem('isTestUser');
       toast({
-        title: "已退出登录",
-        description: "您已从测试账户退出。",
+        title: t('userNav.logout'),
+        description: t('userNav.logoutTestSuccess'),
       });
       window.location.href = '/'; // Full reload to clear state
       return;
@@ -39,8 +41,8 @@ export function UserNav() {
     if (auth) {
       await auth.signOut();
       toast({
-        title: "已退出登录",
-        description: "您已成功退出。",
+        title: t('userNav.logout'),
+        description: t('userNav.logoutSuccess'),
       });
     }
   };
@@ -69,10 +71,10 @@ export function UserNav() {
     return (
         <div className="flex items-center gap-2">
              <Button asChild variant="default" className="rounded-full animate-glow">
-                <Link href="/login">登录</Link>
+                <Link href="/login">{t('common.login')}</Link>
             </Button>
             <Button asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
-                <Link href="/register">注册</Link>
+                <Link href="/register">{t('common.register')}</Link>
             </Button>
         </div>
     )
@@ -80,10 +82,10 @@ export function UserNav() {
 
   return (
     <div className="flex items-center gap-4">
-        <Link href="/messages" title="消息">
+        <Link href="/messages" title={t('userNav.messages')}>
             <MessageSquare className="h-5 w-5 text-foreground/90 hover:text-foreground" />
         </Link>
-        <Link href="/account/purchases" title="订单">
+        <Link href="/account/purchases" title={t('userNav.orders')}>
             <ShoppingCart className="h-5 w-5 text-foreground/90 hover:text-foreground" />
         </Link>
         <DropdownMenu>
@@ -109,26 +111,26 @@ export function UserNav() {
             <DropdownMenuItem asChild>
                 <Link href="/account">
                 <User className="mr-2 h-4 w-4" />
-                <span>我的页面</span>
+                <span>{t('userNav.myAccount')}</span>
                 </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
                 <Link href="/account/listings">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>我发布的</span>
+                <span>{t('userNav.myListings')}</span>
                 </Link>
             </DropdownMenuItem>
              <DropdownMenuItem asChild>
                 <Link href="/account/kyc">
                 <User className="mr-2 h-4 w-4" />
-                <span>KYC认证</span>
+                <span>{t('userNav.kycVerification')}</span>
                 </Link>
             </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
-              <span>退出登录</span>
+              <span>{t('userNav.logout')}</span>
             </DropdownMenuItem>
         </DropdownMenuContent>
         </DropdownMenu>
@@ -136,7 +138,7 @@ export function UserNav() {
         <Button asChild variant="default" className="rounded-none">
             <Link href="/products/new" onClick={handleListProductClick}>
                 <PlusCircle className="mr-2 h-4 w-4" />
-                发布
+                {t('userNav.listAnItem')}
             </Link>
         </Button>
     </div>

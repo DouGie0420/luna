@@ -6,6 +6,8 @@ import { Footer } from '@/components/layout/footer';
 import { BackgroundSnake } from '@/components/background-snake';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { LanguageProvider } from '@/context/language-provider';
+import { LanguageSelector } from '@/components/language-selector';
 
 export default function RootLayout({
   children,
@@ -21,15 +23,18 @@ export default function RootLayout({
       </head>
       <body className={cn("font-body", "bg-background text-foreground")}>
         <FirebaseClientProvider>
-          <div className="pixel-grid-bg" />
-          <BackgroundSnake />
-          <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-grow">{children}</main>
-              <Footer />
-          </div>
-          <Toaster />
-          <FirebaseErrorListener />
+          <LanguageProvider>
+            <div className="pixel-grid-bg" />
+            <BackgroundSnake />
+            <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+            </div>
+            <Toaster />
+            <FirebaseErrorListener />
+            <LanguageSelector />
+          </LanguageProvider>
         </FirebaseClientProvider>
       </body>
     </html>
