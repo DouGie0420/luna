@@ -423,6 +423,9 @@
     "cannotCommentDescription": "您需要登录并完成认证才能发表评论。",
     "loginToComment_link": "登录",
     "loginToComment_text": "并完成认证后即可留言。",
-    "commentPosted": "留言已发布"
+    "commentPosted": "留言已发布",
+    "reply": "回复",
+    "replyTo": "回复",
+    "cancelReply": "取消回复"
   }
 }

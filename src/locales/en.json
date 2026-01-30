@@ -423,6 +423,9 @@
     "cannotCommentDescription": "You need to be logged in and verified to comment.",
     "loginToComment_link": "Login",
     "loginToComment_text": "and get verified to leave a comment.",
-    "commentPosted": "Comment posted"
+    "commentPosted": "Comment posted",
+    "reply": "Reply",
+    "replyTo": "Replying to",
+    "cancelReply": "Cancel Reply"
   }
 }

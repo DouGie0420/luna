@@ -42,16 +42,16 @@ export default async function ProductPage({ params }: { params: { id: string } }
         
         {/* Description and other sections below */}
         <div className="mt-12 flex flex-col gap-8">
-              <ProductCommentSection productId={product.id} />
-            
-              <Card>
-                  <CardHeader>
-                      <CardTitle>商品描述</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
-                  </CardContent>
-              </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>商品描述</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                </CardContent>
+            </Card>
+
+            <ProductCommentSection productId={product.id} />
         </div>
 
 
