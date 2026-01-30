@@ -75,7 +75,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="sticky top-20 z-30 border-y border-primary/50 bg-background/80 backdrop-blur-sm">
-        <div className="container mx-auto flex h-16 items-center justify-end px-4">
+        <div className="container mx-auto flex h-12 items-center justify-end px-4">
           <Button asChild variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
             <Link href="/">
               <X className="h-4 w-4" />
