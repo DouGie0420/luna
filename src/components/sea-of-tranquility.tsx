@@ -91,19 +91,20 @@ export function SeaOfTranquility() {
                                         </Avatar>
                                         <div className="flex-1">
                                             <CardTitle className="font-headline text-lg leading-tight transition-colors group-hover:text-primary">{t(post.titleKey)}</CardTitle>
-                                            <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-xs text-muted-foreground mt-2">
-                                                <span>{post.author.name}</span>
-                                                <span className="text-muted-foreground/50">•</span>
-                                                <span>{timeAgo}</span>
-                                                {post.author.location && (
-                                                    <>
-                                                        <span className="text-muted-foreground/50">•</span>
-                                                        <div className="flex items-center gap-1">
-                                                            <MapPin className="h-3 w-3" />
-                                                            <span>{post.author.location.city}, {post.author.location.countryCode}</span>
-                                                        </div>
-                                                    </>
-                                                )}
+                                            <div className="mt-2">
+                                                <p className="text-sm font-semibold text-muted-foreground">{post.author.name}</p>
+                                                <div className="flex items-center flex-wrap gap-x-2 text-xs text-muted-foreground">
+                                                    <span>{timeAgo}</span>
+                                                    {post.author.location && (
+                                                        <>
+                                                            <span className="text-muted-foreground/50">•</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <MapPin className="h-3 w-3" />
+                                                                <span>{post.author.location.city}, {post.author.location.countryCode}</span>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
