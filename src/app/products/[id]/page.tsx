@@ -9,6 +9,7 @@ import { Star, MapPin, ShieldCheck } from 'lucide-react';
 import { BuyNowButton } from '@/components/buy-now-button';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { ProductImageGallery } from '@/components/product-image-gallery';
+import { ProductPriceAndPayment } from '@/components/product-price-and-payment';
 
 export default async function ProductPage({ params }: { params: { id: string } }) {
   const product = await getProductById(params.id);
@@ -34,25 +35,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
           <div className="lg:col-span-2 flex flex-col gap-6">
               <h1 className="font-headline text-3xl font-bold">{product.name}</h1>
               
-              <div className="bg-card p-4 border border-border">
-                  <p className="text-4xl font-bold text-primary">
-                      ¥{product.price.toLocaleString()}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                      <ShieldCheck className="h-4 w-4 text-primary"/>
-                      <span>描述不符包邮退</span>
-                  </div>
-              </div>
-
-              <div>
-                  <h3 className="text-lg font-semibold mb-3">支付方式</h3>
-                  <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" className="h-12 text-base">USDT</Button>
-                      <Button variant="outline" className="h-12 text-base">支付宝</Button>
-                      <Button variant="outline" className="h-12 text-base">微信支付</Button>
-                      <Button variant="outline" className="h-12 text-base">PromptPay</Button>
-                  </div>
-              </div>
+              <ProductPriceAndPayment product={product} />
 
               <div className="flex gap-2">
                   <Button size="lg" variant="secondary" className="flex-1 h-14 text-lg">
@@ -63,12 +46,12 @@ export default async function ProductPage({ params }: { params: { id: string } }
 
               <Card>
                   <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                           <Avatar className="h-16 w-16">
                               <AvatarImage src={product.seller.avatarUrl} alt={product.seller.name} />
                               <AvatarFallback>{product.seller.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <div>
+                          <div className="flex-1">
                               <p className="font-bold text-lg">{product.seller.name}</p>
                               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                   <Star className="h-4 w-4 fill-primary text-primary" />
@@ -78,6 +61,26 @@ export default async function ProductPage({ params }: { params: { id: string } }
                                   <MapPin className="h-4 w-4" />
                                   <span>{product.location.city}, {product.location.country}</span>
                               </div>
+                          </div>
+                          <div className="flex flex-col items-start gap-1 text-sm font-medium">
+                              {product.seller.isPro && (
+                                  <div className="flex items-center gap-1.5 text-green-400">
+                                      <ShieldCheck className="h-4 w-4" />
+                                      <span>PRO</span>
+                                  </div>
+                              )}
+                              {product.seller.isWeb3Verified && (
+                                  <div className="flex items-center gap-1.5 text-blue-400">
+                                      <ShieldCheck className="h-4 w-4" />
+                                      <span>WEB3</span>
+                                  </div>
+                              )}
+                              {product.seller.kycStatus === 'Verified' && (
+                                  <div className="flex items-center gap-1.5 text-cyan-400">
+                                      <ShieldCheck className="h-4 w-4" />
+                                      <span>KYC</span>
+                                  </div>
+                              )}
                           </div>
                       </div>
                   </CardContent>

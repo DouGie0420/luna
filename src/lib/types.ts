@@ -24,6 +24,9 @@ export type User = {
   avatarUrl: string;
   rating: number;
   reviews: number;
+  isPro?: boolean;
+  isWeb3Verified?: boolean;
+  kycStatus?: KycStatus;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';

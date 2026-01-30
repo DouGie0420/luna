@@ -1,4 +1,4 @@
-import type { Product, User } from './types';
+import type { Product, User, KycStatus } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -8,6 +8,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user1/100/100',
     rating: 4.8,
     reviews: 120,
+    isPro: true,
+    isWeb3Verified: false,
+    kycStatus: 'Verified',
   },
   {
     id: 'user2',
@@ -15,6 +18,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user2/100/100',
     rating: 4.9,
     reviews: 85,
+    isPro: false,
+    isWeb3Verified: true,
+    kycStatus: 'Verified',
   },
   {
     id: 'user3',
@@ -22,6 +28,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user3/100/100',
     rating: 4.5,
     reviews: 42,
+    isPro: true,
+    isWeb3Verified: true,
+    kycStatus: 'Verified',
   },
   {
     id: 'user4',
@@ -29,6 +38,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user4/100/100',
     rating: 4.9,
     reviews: 210,
+    isPro: true,
+    isWeb3Verified: true,
+    kycStatus: 'Not Verified',
   },
   {
     id: 'user5',
@@ -36,6 +48,8 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user5/100/100',
     rating: 4.7,
     reviews: 150,
+    isPro: true,
+    kycStatus: 'Pending',
   },
   {
     id: 'user6',
@@ -43,6 +57,8 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user6/100/100',
     rating: 4.8,
     reviews: 95,
+    isWeb3Verified: true,
+    kycStatus: 'Verified',
   },
   {
     id: 'user7',
@@ -50,6 +66,7 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user7/100/100',
     rating: 4.3,
     reviews: 33,
+    kycStatus: 'Verified',
   },
   {
     id: 'user8',
@@ -57,6 +74,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user8/100/100',
     rating: 5.0,
     reviews: 18,
+    isPro: false,
+    isWeb3Verified: false,
+    kycStatus: 'Not Verified',
   },
   {
     id: 'user9',
@@ -64,6 +84,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user9/100/100',
     rating: 4.6,
     reviews: 78,
+    isPro: true,
+    isWeb3Verified: true,
+    kycStatus: 'Verified',
   },
   {
     id: 'user10',
@@ -71,6 +94,9 @@ const users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/user10/100/100',
     rating: 4.9,
     reviews: 132,
+    isPro: true,
+    isWeb3Verified: true,
+    kycStatus: 'Verified',
   },
 ];
 
@@ -93,8 +119,8 @@ const products: Product[] = [
     id: 'leather-wallet',
     name: 'Handmade Leather Wallet',
     description: 'A durable and stylish wallet crafted from genuine full-grain leather. Ages beautifully and holds all your essentials.',
-    price: 120,
-    currency: 'RMB',
+    price: 650,
+    currency: 'THB', // Was 120 RMB
     images: [PlaceHolderImages.find(p => p.id === 'leather-wallet')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'leather-wallet')?.imageHint || ''],
     seller: users[1],
@@ -107,8 +133,8 @@ const products: Product[] = [
     id: 'smart-watch',
     name: 'Gen-5 Smart Watch',
     description: 'A sleek smart watch with fitness tracking, notifications, and a vibrant display. Compatible with both Android and iOS.',
-    price: 150,
-    currency: 'USDT',
+    price: 5250,
+    currency: 'THB', // Was 150 USDT
     images: [PlaceHolderImages.find(p => p.id === 'smart-watch')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'smart-watch')?.imageHint || ''],
     seller: users[2],
@@ -135,8 +161,8 @@ const products: Product[] = [
     id: 'designer-sunglasses',
     name: 'Designer Sunglasses',
     description: 'Protect your eyes in style with these authentic designer sunglasses. 100% UV protection and a timeless design.',
-    price: 450,
-    currency: 'RMB',
+    price: 2340,
+    currency: 'THB', // was 450 RMB
     images: [PlaceHolderImages.find(p => p.id === 'designer-sunglasses')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'designer-sunglasses')?.imageHint || ''],
     seller: users[1],
@@ -149,8 +175,8 @@ const products: Product[] = [
     id: 'gaming-console',
     name: 'Next-Gen Gaming Console',
     description: 'Experience the future of gaming with this powerful console. Barely used and comes with two controllers and all original cables.',
-    price: 400,
-    currency: 'USDT',
+    price: 13200,
+    currency: 'THB', // Was 400 USDT
     images: [PlaceHolderImages.find(p => p.id === 'gaming-console')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'gaming-console')?.imageHint || ''],
     seller: users[2],
@@ -219,8 +245,8 @@ const products: Product[] = [
     id: 'espresso-machine',
     name: 'Semi-Automatic Espresso Machine',
     description: 'A semi-automatic espresso machine for making cafe-quality coffee at home. Features a powerful steam wand for frothing milk.',
-    price: 350,
-    currency: 'RMB',
+    price: 1820,
+    currency: 'THB', // Was 350 RMB
     images: [PlaceHolderImages.find(p => p.id === 'espresso-machine')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'espresso-machine')?.imageHint || ''],
     seller: users[5],
@@ -233,8 +259,8 @@ const products: Product[] = [
     id: 'leather-backpack',
     name: 'Vintage Leather Backpack',
     description: 'A stylish and durable leather backpack with multiple compartments. Perfect for work, travel, or everyday use.',
-    price: 200,
-    currency: 'USDT',
+    price: 6600,
+    currency: 'THB', // Was 200 USDT
     images: [PlaceHolderImages.find(p => p.id === 'leather-backpack')?.imageUrl || ''],
     imageHints: [PlaceHolderImages.find(p => p.id === 'leather-backpack')?.imageHint || ''],
     seller: users[6],
