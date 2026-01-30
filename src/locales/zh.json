@@ -58,5 +58,8 @@
     "orders": "订单",
     "logoutTestSuccess": "您已从测试账户退出。",
     "logoutSuccess": "您已成功退出。"
+  },
+  "support": {
+    "title": "联系客服"
   }
 }

@@ -8,6 +8,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { LanguageProvider } from '@/context/language-provider';
 import { LanguageSelector } from '@/components/language-selector';
+import { FloatingSupportButton } from '@/components/floating-support-button';
 
 export default function RootLayout({
   children,
@@ -34,6 +35,7 @@ export default function RootLayout({
             <Toaster />
             <FirebaseErrorListener />
             <LanguageSelector />
+            <FloatingSupportButton />
           </LanguageProvider>
         </FirebaseClientProvider>
       </body>

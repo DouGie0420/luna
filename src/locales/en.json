@@ -58,5 +58,8 @@
     "orders": "Orders",
     "logoutTestSuccess": "You have logged out of the test account.",
     "logoutSuccess": "You have been successfully logged out."
+  },
+  "support": {
+    "title": "Contact Support"
   }
 }
