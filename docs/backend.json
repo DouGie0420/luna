@@ -23,6 +23,15 @@
           "format": "uri",
           "description": "URL of the user's profile picture."
         },
+        "gender": {
+          "type": "string",
+          "description": "The user's gender.",
+          "enum": ["男", "女", "其他", "保密"]
+        },
+        "location": {
+            "type": "string",
+            "description": "The user's city."
+        },
         "kycStatus": {
           "type": "string",
           "description": "The user's KYC verification status.",

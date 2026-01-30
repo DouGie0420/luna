@@ -11,6 +11,13 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useUser } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -82,9 +89,25 @@ export default function AccountProfilePage() {
                                 <Input id="email" type="email" defaultValue={profile?.email || user?.email || ''} readOnly className="text-muted-foreground" />
                             </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="avatar">{t('accountPage.avatarUrl')}</Label>
-                            <Input id="avatar" defaultValue={profile?.photoURL || user?.photoURL || ''} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="gender">{t('accountPage.gender')}</Label>
+                                <Select defaultValue={profile?.gender || '保密'}>
+                                    <SelectTrigger id="gender">
+                                        <SelectValue placeholder={t('accountPage.genderSelectPlaceholder')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="男">{t('accountPage.genderMale')}</SelectItem>
+                                        <SelectItem value="女">{t('accountPage.genderFemale')}</SelectItem>
+                                        <SelectItem value="其他">{t('accountPage.genderOther')}</SelectItem>
+                                        <SelectItem value="保密">{t('accountPage.genderSecret')}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="location">{t('accountPage.location')}</Label>
+                                <Input id="location" defaultValue={profile?.location || ''} placeholder={t('accountPage.locationPlaceholder')} />
+                            </div>
                         </div>
                         <Separator />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

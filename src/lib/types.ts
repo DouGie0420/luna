@@ -31,6 +31,8 @@ export type UserProfile = {
     email: string;
     displayName: string;
     photoURL: string;
+    gender?: '男' | '女' | '其他' | '保密';
+    location?: string;
     kycStatus: KycStatus;
     createdAt?: any;
     lastLogin?: any;
