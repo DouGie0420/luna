@@ -5,5 +5,15 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+
+    // Rules for promotional content
+    match /promos/{promoId} {
+      // Anyone can read promotional content
+      allow read: if true;
+
+      // For now, only authenticated users can write.
+      // This will be replaced with role-based access in a future step.
+      allow write: if request.auth != null;
+    }
   }
 }

@@ -35,3 +35,14 @@ export type UserProfile = {
     createdAt?: any;
     lastLogin?: any;
 }
+
+export type Promo = {
+  id: string;
+  heroTitle: string;
+  heroDescription: string;
+  heroBackgroundGif: string;
+  primaryButtonText: string;
+  secondaryButtonText: string;
+  productsSectionTitle: string;
+  featuredProductIds: string[];
+};

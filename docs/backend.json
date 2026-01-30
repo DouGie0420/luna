@@ -38,6 +38,53 @@
         }
       },
       "required": ["uid", "email", "kycStatus", "createdAt"]
+    },
+    "Promo": {
+      "title": "Promotion",
+      "description": "Represents a promotional event or page, like Cyber Monday.",
+      "type": "object",
+      "properties": {
+        "heroTitle": {
+          "type": "string",
+          "description": "The main headline of the promo page."
+        },
+        "heroDescription": {
+          "type": "string",
+          "description": "The descriptive text under the main headline."
+        },
+        "heroBackgroundGif": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for the animated GIF in the hero section background."
+        },
+        "primaryButtonText": {
+          "type": "string",
+          "description": "Text for the main call-to-action button."
+        },
+        "secondaryButtonText": {
+          "type": "string",
+          "description": "Text for the secondary action button."
+        },
+        "productsSectionTitle": {
+          "type": "string",
+          "description": "The title for the featured products section."
+        },
+        "featuredProductIds": {
+          "type": "array",
+          "description": "A list of product IDs to feature in this promotion.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "heroTitle",
+        "heroDescription",
+        "heroBackgroundGif",
+        "primaryButtonText",
+        "secondaryButtonText",
+        "productsSectionTitle"
+      ]
     }
   },
   "auth": {
@@ -47,6 +94,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores public user profile data."
+    },
+    "/promos/{promoId}": {
+      "schema": { "$ref": "#/entities/Promo" },
+      "description": "Stores data for promotional pages."
     }
   }
 }
