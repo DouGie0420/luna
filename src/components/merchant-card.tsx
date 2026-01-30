@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Star, ShieldCheck } from 'lucide-react';
@@ -6,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { User } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface MerchantCardProps {
   user: User;
@@ -13,6 +16,8 @@ interface MerchantCardProps {
 }
 
 export function MerchantCard({ user, className }: MerchantCardProps) {
+  const { t } = useTranslation();
+
   return (
     <Link href={`/user/${user.id}`} className="group block">
       <Card className={cn("overflow-hidden h-full transition-all duration-200 border-primary/20 hover:border-primary", className)}>
@@ -39,7 +44,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
                     </Badge>
                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Star className="h-3 w-3 fill-primary text-primary" />
-                        <span>{user.rating} ({user.reviews} reviews)</span>
+                        <span>{user.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', (user.itemsOnSale ?? 0).toString())})</span>
                     </div>
                 </div>
             </div>
