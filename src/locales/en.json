@@ -239,5 +239,22 @@
     "deleteCancel": "Cancel",
     "deleteSuccess": "Item deleted successfully",
     "featureComingSoon": "Feature coming soon!"
+  },
+  "seaOfTranquility": {
+    "title": "Sea of Tranquility",
+    "enter": "Enter the Sea",
+    "postedBy": "Posted by",
+    "post1": {
+      "title": "[Discussion] Which city has the strongest cyberpunk vibe?"
+    },
+    "post2": {
+      "title": "[Share] Check out this retro-futuristic jacket I found!"
+    },
+    "post3": {
+      "title": "[Help] Looking for neon light strip recommendations for my drone."
+    },
+    "post4": {
+      "title": "[Showoff] My home server matrix, come take a look."
+    }
   }
 }

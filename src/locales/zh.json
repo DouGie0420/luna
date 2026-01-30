@@ -239,5 +239,22 @@
     "deleteCancel": "取消",
     "deleteSuccess": "商品已删除",
     "featureComingSoon": "功能即将推出！"
+  },
+  "seaOfTranquility": {
+    "title": "静海",
+    "enter": "进入静海",
+    "postedBy": "发布者",
+    "post1": {
+      "title": "【讨论】哪个城市的赛博朋克氛围最浓？"
+    },
+    "post2": {
+      "title": "【分享】我淘到的复古未来主义夹克，绝了！"
+    },
+    "post3": {
+      "title": "【求助】想给我的无人机换个霓虹灯带，有推荐的吗？"
+    },
+    "post4": {
+      "title": "【晒图】我的家庭服务器矩阵，欢迎围观"
+    }
   }
 }
