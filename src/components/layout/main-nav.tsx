@@ -10,24 +10,7 @@ export function MainNav({
       className={cn("hidden md:flex items-center space-x-4 lg:space-x-6", className)}
       {...props}
     >
-      <Link
-        href="/products/new"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        List an Item
-      </Link>
-      <Link
-        href="/support"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Support
-      </Link>
-      <Link
-        href="/admin"
-        className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-      >
-        Admin
-      </Link>
+      {/* Intentionally left empty to match the new design */}
     </nav>
   );
 }

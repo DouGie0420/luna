@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Popover,
   PopoverContent,
@@ -71,18 +72,21 @@ export function SearchBar() {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className="relative flex items-center">
                 <Input
                     ref={inputRef}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-                    placeholder="Search for items..."
-                    className="w-full pl-10"
+                    placeholder="搜点什么"
+                    className="w-full rounded-full rounded-r-none border-r-0 bg-white text-black ring-offset-0 focus-visible:ring-2 focus-visible:ring-yellow-500"
                 />
+                 <Button onClick={() => handleSearch(searchTerm)} className="rounded-full rounded-l-none bg-yellow-400 hover:bg-yellow-500 text-black">
+                    <Search className="h-4 w-4 mr-1" />
+                    搜索
+                </Button>
                 {isLoading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+                    <Loader2 className="absolute right-24 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
                 )}
             </div>
         </PopoverTrigger>

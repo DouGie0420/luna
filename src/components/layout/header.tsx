@@ -1,25 +1,39 @@
 import { Logo } from "./logo";
-import { MainNav } from "./main-nav";
 import { UserNav } from "./user-nav";
 import { SearchBar } from "./search-bar";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 
 export function Header() {
+  const hotSearches = ["热水袋", "羽绒服", "电动车", "男童羽绒服", "巧克力", "手机壳", "女衣", "牛仔裤"];
+  
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container mx-auto flex h-16 items-center gap-4 px-4">
-        <div className="flex items-center gap-6 md:gap-10">
+    <header className="sticky top-0 z-40 w-full border-b bg-primary">
+      <div className="container mx-auto flex h-24 items-center justify-between gap-8 px-4">
+        <div className="flex items-center self-start pt-6">
           <Logo />
-          <MainNav />
         </div>
 
-        <div className="flex-1 px-4">
-          <div className="mx-auto w-full max-w-md">
+        <div className="flex flex-1 flex-col items-center justify-center gap-2">
+          <div className="w-full max-w-xl">
             <SearchBar />
+          </div>
+          <div className="flex gap-x-3">
+            {hotSearches.map(item => (
+               <Link href={`/search?q=${item}`} key={item} className="text-xs text-black/70 hover:text-black dark:text-white/80 dark:hover:text-white">
+                {item}
+              </Link>
+            ))}
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-4 self-start pt-6">
           <UserNav />
+           <Button variant="secondary" className="bg-yellow-400 hover:bg-yellow-500 text-black rounded-full">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              发布
+           </Button>
         </div>
       </div>
     </header>
