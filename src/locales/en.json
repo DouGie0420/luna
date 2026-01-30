@@ -306,6 +306,11 @@
     "noSoldItemsDescription": "This user's sales history will appear here.",
     "latestListings": "Latest listings from {userName}",
     "followers": "Followers",
-    "following": "Following"
+    "following": "Following",
+    "usersFollowers": "{userName}'s Followers",
+    "usersFollowing": "{userName}'s Following",
+    "noFollowers": "{userName} doesn't have any followers yet.",
+    "notFollowingAnyone": "{userName} isn't following anyone yet.",
+    "follow": "Follow"
   }
 }

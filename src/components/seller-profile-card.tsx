@@ -92,38 +92,38 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                        <Link href={`/user/${seller.id}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <ShoppingBag className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                <Link href={`/user/${seller.id}/listings`} className="font-bold hover:underline">
+                                <span className="font-bold hover:underline">
                                     {seller.itemsOnSale ?? 0}
-                                </Link>
+                                </span>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                        </Link>
+                        <Link href={`/user/${seller.id}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <ShoppingCart className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                <Link href={`/user/${seller.id}/sold`} className="font-bold hover:underline">
+                                <span className="font-bold hover:underline">
                                     {seller.itemsSold ?? 0}
-                                </Link>
+                                </span>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                        </Link>
+                        <Link href={`/user/${seller.id}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <Users className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
                                 <p className="font-bold">{seller.followersCount || 0}</p>
                             </div>
-                        </div>
-                        <div className="flex items-center gap-3 rounded-lg border p-3">
+                        </Link>
+                        <Link href={`/user/${seller.id}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <UserPlus className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
                                 <p className="font-bold">{seller.followingCount || 0}</p>
                             </div>
-                        </div>
+                        </Link>
                     </div>
                     <div>
                         <h4 className="font-semibold mb-2">{t('sellerProfile.reviewDetails')}</h4>

@@ -29,6 +29,7 @@ import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus } from "luc
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
+import Link from "next/link";
 
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
@@ -251,20 +252,24 @@ export default function AccountProfilePage() {
                                     <p className="font-bold">{profile?.purchasesCount || 0}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <Users className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                    <p className="font-bold">{profile?.followersCount || 0}</p>
+                            <Link href={`/user/${user?.uid}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <Users className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="font-bold">{profile?.followersCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <UserPlus className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                    <p className="font-bold">{profile?.followingCount || 0}</p>
+                            </Link>
+                            <Link href={`/user/${user?.uid}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <UserPlus className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="font-bold">{profile?.followingCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>

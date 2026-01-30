@@ -306,6 +306,11 @@
     "noSoldItemsDescription": "该用户的销售历史将显示在此处。",
     "latestListings": "{userName} 的最新商品",
     "followers": "粉丝",
-    "following": "关注"
+    "following": "关注",
+    "usersFollowers": "{userName} 的粉丝",
+    "usersFollowing": "{userName} 关注的人",
+    "noFollowers": "{userName} 还没有任何粉丝。",
+    "notFollowingAnyone": "{userName} 还没有关注任何人。",
+    "follow": "关注"
   }
 }

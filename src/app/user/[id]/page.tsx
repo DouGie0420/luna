@@ -20,6 +20,7 @@ import type { User, Product } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProductCard } from "@/components/product-card";
+import Link from "next/link";
 
 export default function UserProfilePage() {
     const params = useParams();
@@ -144,20 +145,24 @@ export default function UserProfilePage() {
                                     <p className="font-bold">{user.itemsSold || 0}</p>
                                 </div>
                             </div>
-                             <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <Users className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                    <p className="font-bold">{user.followersCount || 0}</p>
+                             <Link href={`/user/${user.id}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <Users className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="font-bold">{user.followersCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <UserPlus className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                    <p className="font-bold">{user.followingCount || 0}</p>
+                            </Link>
+                            <Link href={`/user/${user.id}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <UserPlus className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="font-bold">{user.followingCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                         </div>
                     </CardContent>
                 </Card>

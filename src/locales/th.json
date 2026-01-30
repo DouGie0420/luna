@@ -306,6 +306,11 @@
     "noSoldItemsDescription": "ประวัติการขายของผู้ใช้นี้จะปรากฏที่นี่",
     "latestListings": "รายการล่าสุดจาก {userName}",
     "followers": "ผู้ติดตาม",
-    "following": "กำลังติดตาม"
+    "following": "กำลังติดตาม",
+    "usersFollowers": "ผู้ติดตามของ {userName}",
+    "usersFollowing": "กำลังติดตามของ {userName}",
+    "noFollowers": "{userName} ยังไม่มีผู้ติดตาม",
+    "notFollowingAnyone": "{userName} ยังไม่ได้ติดตามใคร",
+    "follow": "ติดตาม"
   }
 }
