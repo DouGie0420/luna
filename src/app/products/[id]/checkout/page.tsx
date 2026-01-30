@@ -256,7 +256,7 @@ export default function CheckoutPage() {
                     </div>
                  </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-4 pt-6 border-t">
+              <CardFooter className="flex-col items-start gap-4 p-6 pt-6 border-t">
                  <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
