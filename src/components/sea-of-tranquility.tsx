@@ -4,10 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageSquare, ThumbsUp, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getBbsPosts } from '@/lib/data';
 import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
@@ -30,13 +28,6 @@ export function SeaOfTranquility() {
         fetchPosts();
     }, []);
 
-    const handleComingSoon = (e: React.MouseEvent) => {
-        e.preventDefault();
-        toast({
-            title: t('productCardActions.featureComingSoon'),
-        });
-    };
-
     if (isLoading) {
         return (
             <section className="container mx-auto px-4 py-12 md:py-16">
@@ -50,23 +41,14 @@ export function SeaOfTranquility() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => (
-                        <Card key={i} className="bg-card/50 overflow-hidden flex flex-col">
-                             <Skeleton className="aspect-[3/2] w-full" />
-                             <div className="p-4 space-y-2 flex-grow">
-                                 <Skeleton className="h-5 w-3/4" />
-                                 <Skeleton className="h-4 w-full" />
-                                 <Skeleton className="h-4 w-5/6" />
-                             </div>
-                             <div className="p-4 pt-0 flex justify-between items-center">
-                                 <div className="flex items-center gap-2">
-                                     <Skeleton className="h-6 w-6 rounded-full" />
-                                     <Skeleton className="h-4 w-16" />
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                    <Skeleton className="h-4 w-12" />
-                                 </div>
-                             </div>
-                        </Card>
+                        <div key={i} className="flex flex-col space-y-3">
+                            <Skeleton className="aspect-video w-full" />
+                            <div className="space-y-2 p-4">
+                                <Skeleton className="h-4 w-4/5" />
+                                <Skeleton className="h-4 w-3/5" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                        </div>
                     ))}
                 </div>
             </section>

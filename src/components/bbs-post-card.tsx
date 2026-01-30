@@ -26,7 +26,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
                 {post.images && post.images.length > 0 && (
                     <CardHeader className="p-0">
-                        <div className="aspect-[3/2] relative overflow-hidden">
+                        <div className="aspect-video relative overflow-hidden">
                             <Image
                                 src={post.images[0]}
                                 alt={t(post.titleKey)}

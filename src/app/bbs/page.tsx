@@ -52,7 +52,7 @@ function BbsPageSkeleton() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (
                     <div key={i} className="flex flex-col space-y-3">
-                        <Skeleton className="aspect-[16/9] w-full" />
+                        <Skeleton className="aspect-video w-full" />
                         <div className="space-y-2 p-4">
                             <Skeleton className="h-4 w-4/5" />
                             <Skeleton className="h-4 w-3/5" />
