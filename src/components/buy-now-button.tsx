@@ -42,8 +42,8 @@ export function BuyNowButton({ product, selectedPayment }: { product: Product, s
             return;
         }
         
-        // Proceed to checkout
-        router.push(`/products/${product.id}/checkout`);
+        // Proceed to checkout, passing the selected payment method
+        router.push(`/products/${product.id}/checkout?paymentMethod=${selectedPayment}`);
     };
 
     if (loading) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, notFound, useRouter } from 'next/navigation';
+import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { getProductById } from '@/lib/data';
 import { useUser, useFirestore, useCollection } from '@/firebase';
@@ -36,6 +36,8 @@ const SHIPPING_FEES = {
 type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
 type ShippingMethodOption = 'Buyer Pays' | 'In-person';
 type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
+const VALID_PAYMENT_METHODS: PaymentMethod[] = ['USDT', 'Alipay', 'WeChat', 'PromptPay'];
+
 
 function CheckoutPageSkeleton() {
   return (
@@ -57,6 +59,7 @@ function CheckoutPageSkeleton() {
 export default function CheckoutPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
@@ -64,7 +67,16 @@ export default function CheckoutPage() {
   const [loadingProduct, setLoadingProduct] = useState(true);
 
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('USDT');
+  
+  const initialPaymentMethod = useMemo(() => {
+    const pm = searchParams.get('paymentMethod') as PaymentMethod | null;
+    if (pm && VALID_PAYMENT_METHODS.includes(pm)) {
+      return pm;
+    }
+    return 'USDT'; // Default fallback
+  }, [searchParams]);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(initialPaymentMethod);
   const [progress, setProgress] = useState(0);
 
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
