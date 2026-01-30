@@ -41,6 +41,8 @@ export type User = {
   badReviews?: number;
   creditScore?: number;
   creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
+  followersCount?: number;
+  followingCount?: number;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
@@ -60,6 +62,8 @@ export type UserProfile = {
     reviewsCount?: number;
     salesCount?: number;
     purchasesCount?: number;
+    followersCount?: number;
+    followingCount?: number;
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;

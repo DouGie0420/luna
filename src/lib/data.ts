@@ -19,6 +19,8 @@ const users: User[] = [
     badReviews: 2,
     creditScore: 950,
     creditLevel: 'Gold',
+    followersCount: 1200,
+    followingCount: 150,
   },
   {
     id: 'user2',
@@ -37,6 +39,8 @@ const users: User[] = [
     badReviews: 0,
     creditScore: 985,
     creditLevel: 'Platinum',
+    followersCount: 2500,
+    followingCount: 80,
   },
   {
     id: 'user3',
@@ -55,6 +59,8 @@ const users: User[] = [
     badReviews: 2,
     creditScore: 820,
     creditLevel: 'Silver',
+    followersCount: 500,
+    followingCount: 300,
   },
   {
     id: 'user4',
@@ -73,6 +79,8 @@ const users: User[] = [
     badReviews: 0,
     creditScore: 1200,
     creditLevel: 'Diamond',
+    followersCount: 10000,
+    followingCount: 5,
   },
   {
     id: 'user5',
@@ -90,6 +98,8 @@ const users: User[] = [
     badReviews: 0,
     creditScore: 900,
     creditLevel: 'Gold',
+    followersCount: 800,
+    followingCount: 20,
   },
   {
     id: 'user6',
@@ -107,6 +117,8 @@ const users: User[] = [
     badReviews: 1,
     creditScore: 960,
     creditLevel: 'Gold',
+    followersCount: 950,
+    followingCount: 180,
   },
   {
     id: 'user7',
@@ -123,6 +135,8 @@ const users: User[] = [
     badReviews: 3,
     creditScore: 750,
     creditLevel: 'Bronze',
+    followersCount: 200,
+    followingCount: 250,
   },
   {
     id: 'user8',
@@ -141,6 +155,8 @@ const users: User[] = [
     badReviews: 0,
     creditScore: 500,
     creditLevel: 'Newcomer',
+    followersCount: 150,
+    followingCount: 90,
   },
   {
     id: 'user9',
@@ -159,6 +175,8 @@ const users: User[] = [
     badReviews: 0,
     creditScore: 880,
     creditLevel: 'Silver',
+    followersCount: 650,
+    followingCount: 400,
   },
   {
     id: 'user10',
@@ -177,6 +195,8 @@ const users: User[] = [
     badReviews: 1,
     creditScore: 1050,
     creditLevel: 'Platinum',
+    followersCount: 5000,
+    followingCount: 120,
   },
 ];
 

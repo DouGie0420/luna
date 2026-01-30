@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Copy } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -226,7 +226,7 @@ export default function AccountProfilePage() {
                                 <p className="text-2xl font-bold">{profile?.creditScore || 0}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                              <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                 <Star className="h-6 w-6 text-primary" />
                                 <div>
@@ -249,6 +249,20 @@ export default function AccountProfilePage() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
                                     <p className="font-bold">{profile?.purchasesCount || 0}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                <Users className="h-6 w-6 text-primary" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                    <p className="font-bold">{profile?.followersCount || 0}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                <UserPlus className="h-6 w-6 text-primary" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                    <p className="font-bold">{profile?.followingCount || 0}</p>
                                 </div>
                             </div>
                         </div>

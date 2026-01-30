@@ -65,6 +65,14 @@
           "type": "number",
           "description": "Total number of items purchased by the user."
         },
+        "followersCount": {
+          "type": "number",
+          "description": "The number of users following this user."
+        },
+        "followingCount": {
+          "type": "number",
+          "description": "The number of users this user is following."
+        },
         "creditScore": {
           "type": "number",
           "description": "A calculated score representing user's trustworthiness."

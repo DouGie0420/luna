@@ -304,6 +304,8 @@
     "usersSoldItems": "{userName}'s Sold Items",
     "noSoldItems": "No sold items to display.",
     "noSoldItemsDescription": "This user's sales history will appear here.",
-    "latestListings": "Latest listings from {userName}"
+    "latestListings": "Latest listings from {userName}",
+    "followers": "Followers",
+    "following": "Following"
   }
 }

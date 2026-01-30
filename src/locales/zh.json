@@ -304,6 +304,8 @@
     "usersSoldItems": "{userName} 的已售商品",
     "noSoldItems": "没有已售商品可显示。",
     "noSoldItemsDescription": "该用户的销售历史将显示在此处。",
-    "latestListings": "{userName} 的最新商品"
+    "latestListings": "{userName} 的最新商品",
+    "followers": "粉丝",
+    "following": "关注"
   }
 }
