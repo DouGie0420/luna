@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   onSnapshot,
   query,
@@ -24,10 +24,14 @@ import {
   DocumentData,
   FirestoreError,
   QuerySnapshot,
+  CollectionReference,
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { mockAddresses } from '@/lib/data';
+
+const TEST_USER_ID = 'test-user-uid';
 
 export function useCollection<T>(q: Query<DocumentData> | null) {
   const [data, setData] = useState<T[] | null>(null);
@@ -40,6 +44,15 @@ export function useCollection<T>(q: Query<DocumentData> | null) {
       setLoading(false);
       return;
     }
+
+    // Test user data mocking
+    const path = (q as CollectionReference).path;
+    if (path === `users/${TEST_USER_ID}/addresses`) {
+      setData(mockAddresses as T[]);
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
 
     const unsubscribe = onSnapshot(
@@ -55,13 +68,12 @@ export function useCollection<T>(q: Query<DocumentData> | null) {
       },
       (err: FirestoreError) => {
         const permissionError = new FirestorePermissionError({
-          path: q.path,
+          path: (q as CollectionReference).path,
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);
 
         setError(err);
-        console.error(err);
         setLoading(false);
       }
     );

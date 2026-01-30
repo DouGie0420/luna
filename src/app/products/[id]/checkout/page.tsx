@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getProductById } from '@/lib/data';
+import { getProductById, mockAddresses } from '@/lib/data';
 import { useUser } from '@/firebase';
 import type { Product, UserAddress } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
@@ -23,30 +23,6 @@ import { Progress } from "@/components/ui/progress";
 import { RotatingQuote } from '@/components/rotating-quote';
 import Link from 'next/link';
 
-
-const mockAddresses: UserAddress[] = [
-  {
-    id: 'addr1',
-    recipientName: 'Alex Doe',
-    phone: '+66 81 234 5678',
-    country: 'Thailand',
-    province: 'Bangkok',
-    city: 'Bangkok',
-    addressLine1: '123 Cyberpunk Road, Sukhumvit Soi 11',
-    postalCode: '10110',
-    isDefault: true,
-  },
-  {
-    id: 'addr2',
-    recipientName: 'Alex Doe',
-    phone: '+86 138 1234 5678',
-    country: 'China',
-    province: 'Shanghai',
-    city: 'Shanghai',
-    addressLine1: 'Room 101, No. 456 Neon Avenue, Pudong District',
-    postalCode: '200120',
-  },
-];
 
 const SHIPPING_FEES = {
   'Seller Pays': 0,
@@ -191,38 +167,40 @@ export default function CheckoutPage() {
 
             <RotatingQuote />
             
-            <Card>
-              <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                  <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
-                  </CardTitle>
-              </CardHeader>
-              <CardContent>
-                  {product.shippingMethod === 'Seller Pays' ? (
-                  <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
-                      <CheckCircle2 className="h-6 w-6" />
-                      <div>
-                      <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
-                      <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
-                      </div>
-                  </div>
-                  ) : (
-                  <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
-                      {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
-                      <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                          <div className="flex items-center gap-4">
-                              <RadioGroupItem value={method} id={method} />
-                              <div>
-                              <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
-                              <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
-                              </div>
-                          </div>
-                      </Label>
-                      ))}
-                  </RadioGroup>
-                  )}
-              </CardContent>
-            </Card>
+            <div className='pt-[16px]'>
+              <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                    <Truck className="h-5 w-5" /> {t('checkoutPage.shippingMethod')}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {product.shippingMethod === 'Seller Pays' ? (
+                    <div className="p-4 border rounded-lg bg-secondary/30 flex items-center gap-4 text-primary">
+                        <CheckCircle2 className="h-6 w-6" />
+                        <div>
+                        <p className="font-semibold">{t(`checkoutPage.shippingMethods.sellerpays`)}</p>
+                        <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.sellerpaysDesc`)}</p>
+                        </div>
+                    </div>
+                    ) : (
+                    <RadioGroup value={selectedShippingOption} onValueChange={(v: any) => setSelectedShippingOption(v)} className="flex flex-col md:flex-row gap-4">
+                        {(['Buyer Pays', 'In-person'] as ShippingMethodOption[]).map(method => (
+                        <Label key={method} htmlFor={method} className="flex-1 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                            <div className="flex items-center gap-4">
+                                <RadioGroupItem value={method} id={method} />
+                                <div>
+                                <p className="font-semibold">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}` as any)}</p>
+                                <p className="text-sm text-muted-foreground">{t(`checkoutPage.shippingMethods.${method.toLowerCase().replace(/[\s-]/g, '')}Desc` as any)}</p>
+                                </div>
+                            </div>
+                        </Label>
+                        ))}
+                    </RadioGroup>
+                    )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           {/* Right/Sidebar Column */}

@@ -11,6 +11,9 @@ import {
 import { useFirestore } from '@/firebase';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { mockAddresses } from '@/lib/data';
+
+const TEST_USER_ID = 'test-user-uid';
 
 export function useDoc<T>(ref: DocumentReference<DocumentData> | null) {
   const [data, setData] = useState<T | null>(null);
@@ -23,6 +26,16 @@ export function useDoc<T>(ref: DocumentReference<DocumentData> | null) {
       setLoading(false);
       return;
     }
+
+    // Test user data mocking
+    if (ref.path.startsWith(`users/${TEST_USER_ID}/addresses/`)) {
+      const addressId = ref.id;
+      const mockAddress = mockAddresses.find(addr => addr.id === addressId);
+      setData(mockAddress as T | null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     const unsubscribe = onSnapshot(
       ref,
@@ -43,7 +56,6 @@ export function useDoc<T>(ref: DocumentReference<DocumentData> | null) {
         errorEmitter.emit('permission-error', permissionError);
 
         setError(err);
-        console.error(err);
         setLoading(false);
       }
     );

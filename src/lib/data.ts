@@ -1,4 +1,4 @@
-import type { Product, User, KycStatus, BbsPost } from './types';
+import type { Product, User, KycStatus, BbsPost, UserAddress } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -471,6 +471,30 @@ const bbsPosts: BbsPost[] = [
         images: ['https://picsum.photos/seed/bbs-post6/800/450'],
         imageHints: ['retro wave']
     }
+];
+
+export const mockAddresses: UserAddress[] = [
+  {
+    id: 'addr1',
+    recipientName: 'Alex Doe',
+    phone: '+66 81 234 5678',
+    country: 'Thailand',
+    province: 'Bangkok',
+    city: 'Bangkok',
+    addressLine1: '123 Cyberpunk Road, Sukhumvit Soi 11',
+    postalCode: '10110',
+    isDefault: true,
+  },
+  {
+    id: 'addr2',
+    recipientName: 'Alex Doe',
+    phone: '+86 138 1234 5678',
+    country: 'China',
+    province: 'Shanghai',
+    city: 'Shanghai',
+    addressLine1: 'Room 101, No. 456 Neon Avenue, Pudong District',
+    postalCode: '200120',
+  },
 ];
 
 export async function getProducts(): Promise<Product[]> {
