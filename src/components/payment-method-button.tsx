@@ -52,7 +52,7 @@ export const PaymentMethodButton = React.forwardRef<HTMLButtonElement, PaymentMe
         return (
             <Button ref={ref} className={cn("h-12 text-sm justify-start", className)} {...props}>
                 <div className="mr-2 flex-shrink-0 flex items-center justify-center">{logos[method]}</div>
-                <span className="truncate">{label}</span>
+                <span>{label}</span>
             </Button>
         );
     }

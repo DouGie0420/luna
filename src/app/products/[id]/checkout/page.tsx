@@ -83,12 +83,16 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(mockAddresses.find(a => a.isDefault)?.id);
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('USDT');
-  const [progress, setProgress] = useState(13);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(90), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    if (progress < 90) {
+      const timer = setTimeout(() => {
+        setProgress(prevProgress => prevProgress + 1);
+      }, 20);
+      return () => clearTimeout(timer);
+    }
+  }, [progress]);
 
   const id = params.id as string;
 
@@ -241,7 +245,7 @@ export default function CheckoutPage() {
                 <Separator />
                  <div>
                     <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-2">
                         <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
                         <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
                         <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
@@ -249,16 +253,25 @@ export default function CheckoutPage() {
                     </div>
                  </div>
               </CardContent>
-              <CardFooter className="flex-col items-start gap-4 pt-6 border-t">
+              <CardFooter className="flex-col items-start gap-6 pt-6 border-t">
                  <div className="w-full flex justify-between font-bold text-lg">
                   <span>{t('checkoutPage.total')}</span>
                   <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                 </div>
                  <Button size="lg" className="w-full h-12 text-lg">{t('checkoutPage.confirmPurchase')}</Button>
-                 <Progress value={progress} className="w-full h-2 rounded-full" />
-                 <div className="flex items-center gap-2 text-xs text-muted-foreground text-center w-full justify-center">
-                    <AlertCircle className="h-4 w-4" />
-                    <p>{t('checkoutPage.escrowInfo')}</p>
+                 <div className="w-full space-y-2">
+                    <div className="relative h-2 w-full">
+                        <Progress value={progress} className="w-full h-2 rounded-full" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                           <span className="text-xs font-bold text-white" style={{ mixBlendMode: 'difference' }}>
+                                {Math.round(progress)}%
+                           </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground text-center w-full">
+                        <AlertCircle className="h-4 w-4" />
+                        <p>{t('checkoutPage.escrowInfo')}</p>
+                    </div>
                  </div>
               </CardFooter>
             </Card>
