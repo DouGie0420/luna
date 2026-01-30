@@ -17,8 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"Press Start 2P"', 'cursive'],
-        headline: ['"Press Start 2P"', 'cursive'],
+        body: ['"Press Start 2P"', 'sans-serif'],
+        headline: ['"Press Start 2P"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
