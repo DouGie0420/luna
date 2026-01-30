@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Truck, Copy, MessageCircle, MoreHorizontal, CheckCircle, Gem, ChevronDown, PackageSearch } from 'lucide-react';
+import { Truck, Copy, MessageCircle, CircleDollarSign, CheckCircle, Gem, ChevronDown, PackageSearch } from 'lucide-react';
 import { format } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -312,11 +312,10 @@ export default function OrderDetailPage() {
                     </Collapsible>
                 </Card>
 
-
                 <Card>
                     <CardFooter className="p-4 pt-4 justify-end gap-2">
                         <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
-                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MoreHorizontal className="mr-1 h-4 w-4" /> {t('orderDetails.more')}</Button>
+                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><CircleDollarSign className="mr-1 h-4 w-4" /> {t('orderDetails.requestRefund')}</Button>
                         <Button className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.buyAgain')}</Button>
                         <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
                     </CardFooter>
