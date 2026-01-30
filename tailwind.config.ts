@@ -95,10 +95,21 @@ export default {
             height: '0',
           },
         },
+        'glow': {
+          '0%, 100%': {
+            boxShadow: '0 0 5px hsl(var(--primary) / 0.6)',
+            backgroundColor: 'hsl(var(--primary) / 0.1)',
+          },
+          '50%': {
+            boxShadow: '0 0 15px 2px hsl(var(--primary) / 0.9)',
+            backgroundColor: 'hsl(var(--primary) / 0.2)',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'glow': 'glow 2.5s ease-in-out infinite',
       },
     },
   },
