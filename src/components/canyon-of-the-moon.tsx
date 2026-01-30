@@ -5,6 +5,14 @@ import { getProducts } from '@/lib/data';
 import { ProductCard } from './product-card';
 import { Skeleton } from './ui/skeleton';
 import type { Product } from '@/lib/types';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
 
 export function CanyonOfTheMoon() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -32,9 +40,9 @@ export function CanyonOfTheMoon() {
     <section className="container mx-auto px-4 py-12 md:py-16">
       <h2 className="font-headline text-3xl font-semibold mb-6">月之峡谷</h2>
       
-      {isLoading ? (
+      {isLoading || products.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
               <div key={i} className="flex flex-col space-y-3">
                 <div className="aspect-[4/3] w-full"><Skeleton className="w-full h-full" /></div>
                 <div className="space-y-2">
@@ -45,11 +53,31 @@ export function CanyonOfTheMoon() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            plugins={[
+              Autoplay({
+                delay: 4000,
+                stopOnInteraction: true,
+              }),
+            ]}
+            className="w-full"
+          >
+            <CarouselContent>
+              {products.map((product) => (
+                <CarouselItem key={product.id} className="sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+                  <div className="p-1 h-full">
+                    <ProductCard product={product} />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden lg:flex" />
+            <CarouselNext className="hidden lg:flex" />
+          </Carousel>
       )}
     </section>
   );
