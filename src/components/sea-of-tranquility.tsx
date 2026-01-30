@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
 import Link from 'next/link';
 import { getBbsPosts } from '@/lib/data';
 import type { BbsPost } from '@/lib/types';
@@ -13,12 +13,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import React from 'react';
+
 
 export function SeaOfTranquility() {
     const { t, language } = useTranslation();
     const [posts, setPosts] = useState<BbsPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const locales = { en: enUS, zh: zhCN, th: th };
+    const { toast } = useToast();
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -29,6 +33,13 @@ export function SeaOfTranquility() {
         };
         fetchPosts();
     }, []);
+
+    const handleActionClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast({
+            title: t('productCardActions.featureComingSoon'),
+        });
+    };
 
     if (isLoading) {
         return (
@@ -42,6 +53,7 @@ export function SeaOfTranquility() {
                     </Button>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                    {/* Main Post Skeleton */}
                     <div className="flex flex-col space-y-3">
                         <Skeleton className="aspect-video w-full" />
                         <div className="space-y-2 p-4">
@@ -49,10 +61,11 @@ export function SeaOfTranquility() {
                             <Skeleton className="h-4 w-1/2" />
                         </div>
                     </div>
+                    {/* Other Posts Skeleton */}
                     <div className="space-y-4">
                         {[...Array(3)].map((_, i) => (
                              <div key={i} className="flex items-center gap-4 p-2">
-                                <Skeleton className="h-16 w-16 md:h-20 md:w-20 shrink-0 rounded-md" />
+                                <Skeleton className="h-20 w-20 shrink-0 rounded-md" />
                                 <div className="space-y-2 flex-1">
                                     <Skeleton className="h-4 w-full" />
                                     <Skeleton className="h-4 w-2/3" />
@@ -97,25 +110,41 @@ export function SeaOfTranquility() {
 
                                 return (
                                     <Link key={post.id} href={`/bbs/${post.id}`} className="group block flex-1">
-                                        <Card className="flex items-center gap-4 p-4 h-full bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
-                                            {post.images && post.images.length > 0 && (
-                                                <div className="aspect-square w-20 md:w-24 relative shrink-0 overflow-hidden rounded-md">
-                                                    <Image
-                                                        src={post.images[0]}
-                                                        alt={t(post.titleKey)}
-                                                        fill
-                                                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                                        data-ai-hint={post.imageHints?.[0] || ''}
-                                                    />
+                                        <Card className="flex flex-col p-4 h-full bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+                                            <div className="flex items-start gap-4 flex-grow">
+                                                {post.images && post.images.length > 0 && (
+                                                    <div className="aspect-square w-20 md:w-24 relative shrink-0 overflow-hidden rounded-md">
+                                                        <Image
+                                                            src={post.images[0]}
+                                                            alt={t(post.titleKey)}
+                                                            fill
+                                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                            data-ai-hint={post.imageHints?.[0] || ''}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1">
+                                                    <h3 className="font-headline text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">{t(post.titleKey)}</h3>
+                                                    <p className="text-xs text-muted-foreground mt-2">
+                                                        <span>{post.author.name}</span>
+                                                        <span className="mx-1.5">&middot;</span>
+                                                        <span>{timeAgo}</span>
+                                                    </p>
                                                 </div>
-                                            )}
-                                            <div className="flex-1">
-                                                <h3 className="font-headline text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">{t(post.titleKey)}</h3>
-                                                <p className="text-xs text-muted-foreground mt-2">
-                                                    <span>{post.author.name}</span>
-                                                    <span className="mx-1.5">&middot;</span>
-                                                    <span>{timeAgo}</span>
-                                                </p>
+                                            </div>
+                                            <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full mt-3 pt-3 border-t border-border/50">
+                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
+                                                    <MessageSquare className="h-4 w-4" />
+                                                    <span>{post.replies}</span>
+                                                </button>
+                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
+                                                    <ThumbsUp className="h-4 w-4" />
+                                                    <span>{post.likes}</span>
+                                                </button>
+                                                <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
+                                                    <Eye className="h-4 w-4" />
+                                                    <span>{post.views}</span>
+                                                </button>
                                             </div>
                                         </Card>
                                     </Link>

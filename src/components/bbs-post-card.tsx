@@ -10,16 +10,26 @@ import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
+import React from 'react';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const { t, language } = useTranslation();
+    const { toast } = useToast();
     
     const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
         addSuffix: true,
         locale: locales[language] || enUS
     });
+
+    const handleActionClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast({
+            title: t('productCardActions.featureComingSoon'),
+        });
+    };
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block h-full">
@@ -71,18 +81,18 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full">
-                        <div className="flex items-center gap-1.5" title={`${post.replies} replies`}>
+                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5" title={`${post.likes} likes`}>
+                        </button>
+                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.likes}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5" title={`${post.views} views`}>
+                        </button>
+                        <button onClick={handleActionClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />
                             <span>{post.views}</span>
-                        </div>
+                        </button>
                     </div>
                 </CardFooter>
             </Card>
