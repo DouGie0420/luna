@@ -57,7 +57,10 @@
     "messages": "消息",
     "orders": "订单",
     "logoutTestSuccess": "您已从测试账户退出。",
-    "logoutSuccess": "您已成功退出。"
+    "logoutSuccess": "您已成功退出。",
+    "web3Login": "Web3 登录",
+    "web3LoginComingSoonTitle": "功能即将推出",
+    "web3LoginComingSoonDescription": "Web3钱包登录功能正在开发中。"
   },
   "support": {
     "title": "联系客服"

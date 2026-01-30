@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle } from "lucide-react";
+import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useUser, useAuth } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -47,6 +47,14 @@ export function UserNav() {
       window.location.href = '/';
     }
   };
+  
+  const handleWeb3Login = () => {
+    toast({
+      title: t('userNav.web3LoginComingSoonTitle'),
+      description: t('userNav.web3LoginComingSoonDescription'),
+    });
+  };
+
 
   const handleListProductClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (profile?.kycStatus !== 'Verified') {
@@ -71,6 +79,10 @@ export function UserNav() {
   if (!isLoggedIn) {
     return (
         <div className="flex items-center gap-2">
+             <Button variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={handleWeb3Login}>
+                <Wallet className="mr-2 h-4 w-4" />
+                {t('userNav.web3Login')}
+            </Button>
              <Button asChild variant="default" className="rounded-full animate-glow">
                 <Link href="/login">{t('common.login')}</Link>
             </Button>
