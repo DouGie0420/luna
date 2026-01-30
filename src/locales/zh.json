@@ -241,8 +241,8 @@
     "featureComingSoon": "功能即将推出！"
   },
   "seaOfTranquility": {
-    "title": "静海",
-    "enter": "进入静海",
+    "title": "梦境之湖",
+    "enter": "进入梦境之湖",
     "postedBy": "发布者",
     "post1": {
       "title": "【讨论】哪个城市的赛博朋克氛围最浓？"
@@ -258,8 +258,8 @@
     }
   },
   "bbsPage": {
-    "title": "静海",
-    "description": "数字广袤中的论道之所。",
+    "title": "梦境之湖",
+    "description": "意识在此交汇，思想在此共鸣。",
     "newPost": "发布新帖",
     "filterNewest": "最新",
     "filterTrending": "趋势",

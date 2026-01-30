@@ -241,8 +241,8 @@
     "featureComingSoon": "Feature coming soon!"
   },
   "seaOfTranquility": {
-    "title": "Sea of Tranquility",
-    "enter": "Enter the Sea",
+    "title": "Lacus Somniorum",
+    "enter": "Enter the Lake",
     "postedBy": "Posted by",
     "post1": {
       "title": "[Discussion] Which city has the strongest cyberpunk vibe?"
@@ -258,8 +258,8 @@
     }
   },
   "bbsPage": {
-    "title": "Sea of Tranquility",
-    "description": "A haven for discourse in the digital expanse.",
+    "title": "Lacus Somniorum",
+    "description": "Where consciousness converges and thoughts resonate.",
     "newPost": "New Post",
     "filterNewest": "Newest",
     "filterTrending": "Trending",

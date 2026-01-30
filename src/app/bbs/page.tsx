@@ -75,7 +75,7 @@ export default function BbsPage() {
                 <div className="relative text-center mb-12 py-16 overflow-hidden rounded-lg border border-primary/20 bg-card/50">
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10" />
                     <div className="absolute inset-0 bg-gradient-to-b from-card via-transparent to-transparent z-10" />
-                    <Image src="https://picsum.photos/seed/bbs-bg/1920/400" alt="Sea of Tranquility background" fill className="object-cover opacity-20" />
+                    <Image src="https://picsum.photos/seed/lacus-somniorum-bg/1920/400" alt="Lacus Somniorum background" fill className="object-cover opacity-20" />
                     <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary animate-glow [text-shadow:0_0_15px_hsl(var(--primary))] relative z-20">
                         {t('bbsPage.title')}
                     </h1>
