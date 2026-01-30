@@ -191,7 +191,7 @@ export default function CheckoutPage() {
 
             <RotatingQuote />
             
-            <div className="pt-[28px]">
+            <div className="pt-[24px]">
               <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
