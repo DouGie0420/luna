@@ -133,6 +133,10 @@ export default {
           from: { opacity: '0', transform: 'translateY(-10px)' },
           to: { opacity: '1', transform: 'translateY(0)' },
         },
+        'stripes-move': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '2rem 0' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -143,6 +147,7 @@ export default {
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
         'suggestion-fade-in': 'suggestion-fade-in 0.3s ease-out forwards',
+        'stripes-move': 'stripes-move 1.5s linear infinite',
       },
     },
   },
