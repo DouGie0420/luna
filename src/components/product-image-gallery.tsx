@@ -73,7 +73,7 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
     <>
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
         <DialogContent className="max-w-none w-screen h-screen p-0 border-0 bg-black/90">
-            <Carousel setApi={setLightboxApi} className="w-full h-full" opts={{ loop: true }}>
+            <Carousel setApi={setLightboxApi} className="w-full h-full" opts={{ loop: true, startIndex: selectedIndex }}>
                 <CarouselContent>
                     {images.map((img, index) => (
                         <CarouselItem key={index}>
@@ -90,11 +90,11 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
       </Dialog>
       
       <div className="relative">
-        <Carousel setApi={setMainApi} className="w-full group">
+        <Carousel setApi={setMainApi} className="w-full group" opts={{ loop: true }}>
           <CarouselContent>
             {images.map((img, index) => (
               <CarouselItem key={index} onClick={openLightbox}>
-                <div className="aspect-video relative cursor-zoom-in bg-muted overflow-hidden">
+                <div className="aspect-video relative cursor-zoom-in bg-muted overflow-hidden border-2 border-primary/30 transition-colors duration-300 group-hover:border-primary/60">
                   <Image
                     src={img}
                     alt={`${product.name} image ${index + 1}`}
@@ -106,6 +106,8 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
               </CarouselItem>
             ))}
           </CarouselContent>
+          <CarouselPrevious className="absolute left-4 text-white hidden group-hover:flex" />
+          <CarouselNext className="absolute right-4 text-white hidden group-hover:flex" />
         </Carousel>
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -127,7 +129,7 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
                   onClick={() => onThumbClick(index)} 
                   className={cn(
                     'overflow-hidden aspect-square relative cursor-pointer border-2 transition-all',
-                    selectedIndex === index ? 'border-primary' : 'border-transparent opacity-60 hover:opacity-100'
+                    selectedIndex === index ? 'border-primary' : 'border-border/40 opacity-60 hover:opacity-100 hover:border-primary/70'
                   )}
                 >
                   <Image 
