@@ -381,7 +381,6 @@
     },
     "refundOnMismatch": "Refund on description mismatch",
     "dealPrice": "Deal Price",
-    "inEscrow": "in Alipay escrow",
     "totalPrice": "Total Product Price",
     "discount": "discounted {amount}",
     "shippingFee": "Shipping Fee",
@@ -398,6 +397,7 @@
     "more": "More",
     "buyAgain": "Buy Again",
     "confirmReceipt": "Confirm Receipt",
-    "receiptConfirmed": "Receipt confirmed!"
+    "receiptConfirmed": "Receipt confirmed!",
+    "viewLogistics": "View Logistics"
   }
 }

@@ -381,7 +381,6 @@
     },
     "refundOnMismatch": "คืนเงินหากคำอธิบายไม่ตรงกัน",
     "dealPrice": "ราคาซื้อขาย",
-    "inEscrow": "ใน escrow ของ Alipay",
     "totalPrice": "ราคาสินค้ารวม",
     "discount": "ส่วนลด {amount}",
     "shippingFee": "ค่าจัดส่ง",
@@ -398,6 +397,7 @@
     "more": "เพิ่มเติม",
     "buyAgain": "ซื้ออีกครั้ง",
     "confirmReceipt": "ยืนยันการรับสินค้า",
-    "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!"
+    "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!",
+    "viewLogistics": "ดูการขนส่ง"
   }
 }

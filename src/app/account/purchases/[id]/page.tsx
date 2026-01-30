@@ -12,13 +12,14 @@ import { useToast } from '@/hooks/use-toast';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Truck, Copy, MessageCircle, MoreHorizontal, ShoppingCart, CheckCircle, Gem } from 'lucide-react';
-import { format, formatDistanceToNow, add } from 'date-fns';
-import { enUS, zhCN, th } from 'date-fns/locale';
+import { Truck, Copy, MessageCircle, MoreHorizontal, CheckCircle, Gem, ChevronDown, PackageSearch } from 'lucide-react';
+import { format } from 'date-fns';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+
 
 // --- Mock Data ---
 // In a real app, this would be fetched from a database
@@ -38,7 +39,7 @@ const mockOrders: any = {
         orderTime: "2026-01-22 16:23:42",
         paymentTime: "2026-01-22 16:23:47",
         shippingTime: "2026-01-22 16:37:46",
-        autoConfirmTime: add(new Date(), { days: 1, hours: 11, minutes: 57 }).toISOString()
+        autoConfirmTime: new Date(new Date().getTime() + 1.5 * 24 * 60 * 60 * 1000).toISOString()
     }
 };
 
@@ -120,23 +121,32 @@ function Countdown({ targetDate }: { targetDate: string }) {
     return <span>{t('orderDetails.countdown').replace('{time}', timerComponents)}</span>;
 }
 
-const InfoRow = ({ label, value, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
+const InfoRow = ({ label, value, copyValue, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: React.ReactNode; copyValue?: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
     const { t } = useTranslation();
+    
+    const handleCopyClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent collapsible trigger if inside another trigger
+        if (onCopy && copyValue) {
+            onCopy(copyValue);
+        }
+    };
+
     return (
         <div className="flex justify-between items-center">
             <span className="text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
                 {isLink ? (
-                    <Link href={href} className="font-semibold text-foreground hover:underline hover:text-primary transition-colors">{value}</Link>
+                    <Link href={href!} className="font-semibold text-foreground hover:underline hover:text-primary transition-colors">{value}</Link>
                 ) : (
-                    <span className="font-medium text-right">{value}</span>
+                    <div className="font-medium text-right">{value}</div>
                 )}
-                {onCopy && <Button variant="ghost" size="sm" onClick={() => onCopy && onCopy(value)}>{t('accountPage.copy')}</Button>}
+                {onCopy && copyValue && <Button variant="ghost" size="sm" onClick={handleCopyClick}>{t('accountPage.copy')}</Button>}
                 {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
             </div>
         </div>
     );
 };
+
 
 export default function OrderDetailPage() {
     const params = useParams();
@@ -148,6 +158,8 @@ export default function OrderDetailPage() {
     const [order, setOrder] = useState<any>(null);
     const [seller, setSeller] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isInfoOpen, setIsInfoOpen] = useState(false);
+
 
     useEffect(() => {
         setLoading(true);
@@ -202,8 +214,14 @@ export default function OrderDetailPage() {
                                     <Countdown targetDate={order.autoConfirmTime} />
                                 </CardDescription>
                             </div>
-                            <div className="h-16 w-16 flex items-center justify-center">
-                                <Truck className="h-16 w-16 text-muted-foreground" />
+                            <div className="flex items-center justify-center gap-4">
+                                {order.status === 'Shipped' && (
+                                    <Button variant="outline">
+                                        <PackageSearch className="mr-2 h-4 w-4" />
+                                        {t('orderDetails.viewLogistics')}
+                                    </Button>
+                                )}
+                                <Truck className="h-12 w-12 text-muted-foreground" />
                             </div>
                         </div>
                     </CardHeader>
@@ -220,7 +238,7 @@ export default function OrderDetailPage() {
                                 <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
                             </div>
                         </div>
-                        <div className="mt-4 border-t pt-4">
+                         <div className="mt-4 border-t pt-4">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-muted-foreground">{t('accountPage.creditScore')}</span>
                                 <div className="flex items-center gap-2 font-semibold">
@@ -257,21 +275,43 @@ export default function OrderDetailPage() {
                 </Card>
 
                 <Card>
-                    <CardContent className="pt-6 text-sm">
-                        <div className="space-y-3">
-                            <InfoRow label={t('orderDetails.orderNumber')} value={order.orderNumber} onCopy={handleCopy} />
-                            <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
-                            <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} onCopy={handleCopy} />
-                            <Separator />
-                            <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} onCopy={handleCopy} />
-                            <InfoRow label={t('orderDetails.sellerNickname')} value={seller.name} isLink href={`/user/${seller.id}`} />
-                            <Separator />
-                            <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
-                            <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
-                            <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
-                        </div>
-                    </CardContent>
+                    <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen} className="text-sm">
+                        <CollapsibleTrigger className="flex justify-between items-center w-full p-6">
+                            <span className="text-muted-foreground">{t('orderDetails.orderNumber')}</span>
+                            <div className="flex items-center gap-2">
+                                <span className="font-medium text-right">{order.orderNumber}</span>
+                                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopy(order.orderNumber); }}>{t('accountPage.copy')}</Button>
+                                <ChevronDown className={cn("h-4 w-4 transition-transform", isInfoOpen && "rotate-180")} />
+                            </div>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                            <div className="px-6 pb-6">
+                                <Separator className="mb-6"/>
+                                <div className="space-y-3">
+                                    <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
+                                    <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} copyValue={order.paymentTransactionId} onCopy={handleCopy} />
+                                    <Separator />
+                                    <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} copyValue={order.shippingAddress} onCopy={handleCopy} />
+                                    <InfoRow 
+                                        label={t('orderDetails.sellerNickname')} 
+                                        value={
+                                            <Badge variant="outline" className="px-3 py-1 rounded-full font-semibold border-primary/50 text-primary">
+                                                {seller.name}
+                                            </Badge>
+                                        } 
+                                        isLink 
+                                        href={`/user/${seller.id}`} 
+                                    />
+                                    <Separator />
+                                    <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
+                                    <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
+                                    <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
+                                </div>
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
                 </Card>
+
 
                 <Card>
                     <CardFooter className="p-4 pt-4 justify-end gap-2">

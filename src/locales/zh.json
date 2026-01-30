@@ -381,7 +381,6 @@
     },
     "refundOnMismatch": "描述不符全额退",
     "dealPrice": "成交价",
-    "inEscrow": "在支付宝担保账户中",
     "totalPrice": "商品总价",
     "discount": "已优惠{amount}",
     "shippingFee": "运费",
@@ -398,6 +397,7 @@
     "more": "更多",
     "buyAgain": "再次购买",
     "confirmReceipt": "确认收货",
-    "receiptConfirmed": "已确认收货！"
+    "receiptConfirmed": "已确认收货！",
+    "viewLogistics": "查看物流"
   }
 }
