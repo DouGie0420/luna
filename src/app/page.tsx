@@ -11,18 +11,7 @@ export default async function HomePage() {
       {/* The PromoCarousel section has been removed for debugging the white line issue. */}
       
       <div className="container mx-auto px-4">
-        <section className="py-12">
-           <div className="w-full max-w-5xl mx-auto">
-              <SearchBar />
-              <div className="flex flex-wrap gap-x-4 gap-y-2 mt-4 justify-center">
-                {hotSearches.map(item => (
-                   <Link href={`/search?q=${item}`} key={item} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {item}
-                  </Link>
-                ))}
-              </div>
-           </div>
-        </section>
+        {/* The SearchBar section has been removed for debugging the white line issue. */}
 
         <div className="pb-12">
           {/* This is the AI powered recommendation section, which is now the main product grid */}
