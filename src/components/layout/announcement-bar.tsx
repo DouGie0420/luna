@@ -8,7 +8,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Megaphone } from 'lucide-react';
-import { GlowingPixelGrid } from "@/components/glowing-pixel-grid";
 
 const announcements = [
     { 
@@ -54,7 +53,7 @@ export function AnnouncementBar() {
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] p-0 border-primary/20 overflow-hidden">
                 <div className="relative isolate w-full h-full bg-card">
-                    <GlowingPixelGrid className="opacity-40 blur-sm" />
+                    <div className="pixel-grid absolute inset-0 z-0 opacity-40" />
                     <div className="relative z-10 flex flex-col h-full">
                         <DialogHeader className="p-6 pb-2">
                             <DialogTitle className="font-headline text-2xl">{currentAnnouncement.title}</DialogTitle>

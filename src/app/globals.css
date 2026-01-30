@@ -112,4 +112,11 @@
     background-size: 30px 30px;
     image-rendering: pixelated;
   }
+  .pixel-grid {
+    background-image:
+      linear-gradient(hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 30px 30px;
+    image-rendering: pixelated;
+  }
 }
