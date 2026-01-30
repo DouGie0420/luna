@@ -2,19 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { getBbsPosts } from '@/lib/data';
 import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { BbsPostCard } from './bbs-post-card';
 
 export function SeaOfTranquility() {
     const { t } = useTranslation();
-    const { toast } = useToast();
     const [posts, setPosts] = useState<BbsPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
