@@ -1,7 +1,9 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import Image from "next/image";
+import { useTranslation } from "@/hooks/use-translation";
 
 const balances = [
     { currency: "THB", name: "Thai Baht", amount: "15,250.75", icon: "/flags/th.svg" },
@@ -11,13 +13,15 @@ const balances = [
 ];
 
 export default function WalletPage() {
+    const { t } = useTranslation();
+
     return (
         <div className="p-6 md:p-8 lg:p-12">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-3xl font-headline">My Wallet</h1>
+                <h1 className="text-3xl font-headline">{t('accountWallet.title')}</h1>
                 <div className="flex gap-2">
-                    <Button variant="outline"><ArrowDownLeft className="mr-2 h-4 w-4" /> Deposit</Button>
-                    <Button><ArrowUpRight className="mr-2 h-4 w-4" /> Withdraw</Button>
+                    <Button variant="outline"><ArrowDownLeft className="mr-2 h-4 w-4" /> {t('accountWallet.deposit')}</Button>
+                    <Button><ArrowUpRight className="mr-2 h-4 w-4" /> {t('accountWallet.withdraw')}</Button>
                 </div>
             </div>
 
@@ -41,10 +45,10 @@ export default function WalletPage() {
 
             <Card className="mt-8">
                 <CardHeader>
-                    <CardTitle>Transaction History</CardTitle>
+                    <CardTitle>{t('accountWallet.transactionHistory')}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Recent transactions will be displayed here.</p>
+                    <p className="text-muted-foreground">{t('accountWallet.noTransactions')}</p>
                 </CardContent>
             </Card>
         </div>

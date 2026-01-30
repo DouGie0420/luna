@@ -140,6 +140,57 @@
     "wallet": "กระเป๋าเงิน",
     "kycVerification": "การยืนยัน KYC",
     "settings": "ตั้งค่า",
-    "logout": "ออกจากระบบ"
+    "logout": "ออกจากระบบ",
+    "settingsTooltip": "ฟีเจอร์นี้จะมาในเร็วๆ นี้"
+  },
+  "accountListings": {
+    "title": "รายการของฉัน",
+    "newItem": "ลงรายการใหม่",
+    "noListingsTitle": "คุณยังไม่มีรายการที่ลงขาย",
+    "noListingsDescription": "เริ่มขายโดยการลงรายการสินค้าชิ้นแรกของคุณ",
+    "listItem": "ลงรายการสินค้า"
+  },
+  "accountPurchases": {
+    "title": "การซื้อของฉัน",
+    "tabs": {
+      "all": "ทั้งหมด",
+      "inEscrow": "ใน Escrow",
+      "shipped": "จัดส่งแล้ว",
+      "completed": "เสร็จสมบูรณ์",
+      "disputed": "มีข้อพิพาท"
+    },
+    "orderCard": {
+      "viewDetails": "ดูรายละเอียด",
+      "contactSeller": "ติดต่อผู้ขาย",
+      "leaveReview": "เขียนรีวิว",
+      "confirmReceipt": "ยืนยันการรับสินค้า"
+    },
+    "noOrdersTitle": "ไม่มีคำสั่งซื้อในหมวดหมู่นี้",
+    "noOrdersDescription": "คำสั่งซื้อของคุณจะปรากฏที่นี่เมื่อสถานะมีการเปลี่ยนแปลง"
+  },
+  "accountWallet": {
+    "title": "กระเป๋าเงินของฉัน",
+    "deposit": "ฝากเงิน",
+    "withdraw": "ถอนเงิน",
+    "transactionHistory": "ประวัติการทำธุรกรรม",
+    "noTransactions": "ธุรกรรมล่าสุดจะแสดงที่นี่"
+  },
+  "accountKYC": {
+    "title": "การยืนยัน KYC",
+    "currentStatus": "สถานะปัจจุบัน",
+    "status": {
+      "verified": "ยืนยันแล้ว",
+      "pending": "รอดำเนินการ",
+      "notVerified": "ยังไม่ได้ยืนยัน"
+    },
+    "status.pendingDescription": "เอกสารของคุณอยู่ระหว่างการตรวจสอบ ซึ่งโดยปกติจะใช้เวลา 1-2 วันทำการ",
+    "status.notVerifiedDescription": "โปรดยืนยันตัวตนเพื่อเข้าถึงฟีเจอร์ทั้งหมด",
+    "submitTitle": "ส่งเอกสารของคุณ",
+    "submitDescription": "โปรดอัปโหลดบัตรประจำตัวที่ทางราชการออกให้และรูปถ่ายตนเองเพื่อการยืนยัน",
+    "idUploadLabel": "บัตรประจำตัวที่ทางราชการออกให้",
+    "idUploadDescription": "เช่น หนังสือเดินทาง, ใบขับขี่",
+    "selfieUploadLabel": "รูปถ่ายตนเองพร้อมบัตรประจำตัว",
+    "selfieUploadDescription": "ถือบัตรประจำตัวของคุณไว้ข้างใบหน้า",
+    "submitButton": "ส่งเพื่อตรวจสอบ"
   }
 }

@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useTranslation } from "@/hooks/use-translation"
 
 const purchases = [
     { 
@@ -48,6 +49,7 @@ const purchases = [
 ]
 
 const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
+    const { t } = useTranslation();
     const getStatusBadgeVariant = (status: string) => {
         switch (status) {
             case 'Completed': return 'default';
@@ -80,12 +82,12 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
                 </div>
             </CardContent>
             <CardFooter className="p-4 flex justify-end gap-2">
-                <Button variant="ghost" size="sm">View Details</Button>
-                <Button variant="outline" size="sm">Contact Seller</Button>
+                <Button variant="ghost" size="sm">{t('accountPurchases.orderCard.viewDetails')}</Button>
+                <Button variant="outline" size="sm">{t('accountPurchases.orderCard.contactSeller')}</Button>
                 {order.status === 'Completed' ? (
-                     <Button size="sm">Leave Review</Button>
+                     <Button size="sm">{t('accountPurchases.orderCard.leaveReview')}</Button>
                 ) : (
-                    <Button size="sm">Confirm Receipt</Button>
+                    <Button size="sm">{t('accountPurchases.orderCard.confirmReceipt')}</Button>
                 )}
             </CardFooter>
         </Card>
@@ -94,13 +96,14 @@ const OrderCard = ({ order }: { order: typeof purchases[0] }) => {
 
 
 export default function MyPurchasesPage() {
+    const { t } = useTranslation();
     const renderOrders = (status?: string) => {
         const filteredOrders = status ? purchases.filter(o => o.status === status) : purchases;
         if (filteredOrders.length === 0) {
             return (
                 <div className="text-center py-20 border-2 border-dashed rounded-lg">
-                    <h2 className="text-xl font-semibold">No orders in this category.</h2>
-                    <p className="text-muted-foreground mt-2 mb-6">Your orders will appear here once their status changes.</p>
+                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
+                    <p className="text-muted-foreground mt-2 mb-6">{t('accountPurchases.noOrdersDescription')}</p>
                 </div>
             )
         }
@@ -113,15 +116,15 @@ export default function MyPurchasesPage() {
 
     return (
         <div className="p-6 md:p-8 lg:p-12">
-            <h1 className="text-3xl font-headline mb-6">My Purchases</h1>
+            <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
             
             <Tabs defaultValue="all">
                 <TabsList className="grid w-full grid-cols-5 mb-6">
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="in-escrow">In Escrow</TabsTrigger>
-                    <TabsTrigger value="shipped">Shipped</TabsTrigger>
-                    <TabsTrigger value="completed">Completed</TabsTrigger>
-                    <TabsTrigger value="disputed">Disputed</TabsTrigger>
+                    <TabsTrigger value="all">{t('accountPurchases.tabs.all')}</TabsTrigger>
+                    <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.inEscrow')}</TabsTrigger>
+                    <TabsTrigger value="shipped">{t('accountPurchases.tabs.shipped')}</TabsTrigger>
+                    <TabsTrigger value="completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
+                    <TabsTrigger value="disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="all">{renderOrders()}</TabsContent>
                 <TabsContent value="in-escrow">{renderOrders('In Escrow')}</TabsContent>

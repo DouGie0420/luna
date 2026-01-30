@@ -140,6 +140,57 @@
     "wallet": "Wallet",
     "kycVerification": "KYC Verification",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "settingsTooltip": "Feature coming soon"
+  },
+  "accountListings": {
+    "title": "My Listings",
+    "newItem": "List a New Item",
+    "noListingsTitle": "You have no active listings.",
+    "noListingsDescription": "Start selling by listing your first item.",
+    "listItem": "List an Item"
+  },
+  "accountPurchases": {
+    "title": "My Purchases",
+    "tabs": {
+      "all": "All",
+      "inEscrow": "In Escrow",
+      "shipped": "Shipped",
+      "completed": "Completed",
+      "disputed": "Disputed"
+    },
+    "orderCard": {
+      "viewDetails": "View Details",
+      "contactSeller": "Contact Seller",
+      "leaveReview": "Leave Review",
+      "confirmReceipt": "Confirm Receipt"
+    },
+    "noOrdersTitle": "No orders in this category.",
+    "noOrdersDescription": "Your orders will appear here once their status changes."
+  },
+  "accountWallet": {
+    "title": "My Wallet",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "transactionHistory": "Transaction History",
+    "noTransactions": "Recent transactions will be displayed here."
+  },
+  "accountKYC": {
+    "title": "KYC Verification",
+    "currentStatus": "Current Status",
+    "status": {
+      "verified": "Verified",
+      "pending": "Pending",
+      "notVerified": "Not Verified"
+    },
+    "status.pendingDescription": "Your documents are under review. This usually takes 1-2 business days.",
+    "status.notVerifiedDescription": "Please complete verification to access all features.",
+    "submitTitle": "Submit Your Documents",
+    "submitDescription": "Please upload a government-issued ID and a selfie for verification.",
+    "idUploadLabel": "Government-Issued ID",
+    "idUploadDescription": "e.g., Passport, Driver's License",
+    "selfieUploadLabel": "Selfie with ID",
+    "selfieUploadDescription": "Hold your ID next to your face.",
+    "submitButton": "Submit for Verification"
   }
 }

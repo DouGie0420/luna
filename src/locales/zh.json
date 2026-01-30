@@ -140,6 +140,57 @@
     "wallet": "我的钱包",
     "kycVerification": "KYC认证",
     "settings": "设置",
-    "logout": "退出登录"
+    "logout": "退出登录",
+    "settingsTooltip": "功能即将推出"
+  },
+  "accountListings": {
+    "title": "我发布的",
+    "newItem": "发布新商品",
+    "noListingsTitle": "您还没有任何在售商品。",
+    "noListingsDescription": "通过发布您的第一件商品开始销售吧。",
+    "listItem": "发布商品"
+  },
+  "accountPurchases": {
+    "title": "我的购买",
+    "tabs": {
+      "all": "全部",
+      "inEscrow": "托管中",
+      "shipped": "已发货",
+      "completed": "已完成",
+      "disputed": "争议中"
+    },
+    "orderCard": {
+      "viewDetails": "查看详情",
+      "contactSeller": "联系卖家",
+      "leaveReview": "去评价",
+      "confirmReceipt": "确认收货"
+    },
+    "noOrdersTitle": "此分类下没有订单。",
+    "noOrdersDescription": "当订单状态改变时，它们将显示在这里。"
+  },
+  "accountWallet": {
+    "title": "我的钱包",
+    "deposit": "充值",
+    "withdraw": "提现",
+    "transactionHistory": "交易记录",
+    "noTransactions": "最近的交易将显示在这里。"
+  },
+  "accountKYC": {
+    "title": "KYC认证",
+    "currentStatus": "当前状态",
+    "status": {
+      "verified": "已认证",
+      "pending": "审核中",
+      "notVerified": "未认证"
+    },
+    "status.pendingDescription": "您的文件正在审核中，通常需要1-2个工作日。",
+    "status.notVerifiedDescription": "请完成认证以使用所有功能。",
+    "submitTitle": "提交您的文件",
+    "submitDescription": "请上传政府颁发的身份证件和自拍照进行验证。",
+    "idUploadLabel": "政府颁发的身份证件",
+    "idUploadDescription": "例如：护照、驾驶执照",
+    "selfieUploadLabel": "手持证件自拍",
+    "selfieUploadDescription": "请将证件放在脸旁边拍照。",
+    "submitButton": "提交以供审核"
   }
 }

@@ -147,7 +147,7 @@ export default function AccountLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton>
+                <SidebarMenuButton disabled>
                   <Settings />
                   {t('accountLayout.settings')}
                 </SidebarMenuButton>
