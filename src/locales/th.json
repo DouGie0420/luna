@@ -61,5 +61,25 @@
   },
   "support": {
     "title": "ติดต่อฝ่ายสนับสนุน"
+  },
+  "accountPage": {
+    "title": "โปรไฟล์ของฉัน",
+    "personalInfo": "ข้อมูลส่วนตัว",
+    "personalInfoDescription": "อัปเดตรายละเอียดส่วนตัวและดูสถานะบัญชีของคุณ",
+    "fullName": "ชื่อเต็ม",
+    "email": "อีเมล",
+    "avatarUrl": "URL รูปภาพประจำตัว",
+    "kycStatus": "สถานะ KYC",
+    "joinedOn": "วันที่เข้าร่วม",
+    "lastLogin": "เข้าระบบล่าสุด",
+    "saveChanges": "บันทึกการเปลี่ยนแปลง",
+    "creditTitle": "เครดิตและชื่อเสียง",
+    "creditDescription": "สถานะปัจจุบันของคุณบนแพลตฟอร์ม",
+    "creditLevel": "ระดับเครดิต",
+    "creditScore": "คะแนนเครดิต",
+    "rating": "คะแนนเฉลี่ย",
+    "reviews": "รีวิว",
+    "sales": "ยอดขาย",
+    "purchases": "ยอดซื้อ"
   }
 }

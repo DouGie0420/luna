@@ -50,6 +50,12 @@ const testProfile: UserProfile = {
   kycStatus: 'Verified',
   createdAt: new Date(),
   lastLogin: new Date(),
+  rating: 4.9,
+  reviewsCount: 150,
+  salesCount: 88,
+  purchasesCount: 120,
+  creditScore: 985,
+  creditLevel: 'Gold',
 };
 
 

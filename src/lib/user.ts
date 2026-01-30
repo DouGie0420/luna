@@ -37,6 +37,12 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
                 kycStatus: 'Not Verified',
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
+                rating: 0,
+                reviewsCount: 0,
+                salesCount: 0,
+                purchasesCount: 0,
+                creditScore: 0,
+                creditLevel: 'Newcomer'
             };
             setDoc(userRef, newUserProfile).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({

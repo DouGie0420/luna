@@ -61,5 +61,25 @@
   },
   "support": {
     "title": "联系客服"
+  },
+  "accountPage": {
+    "title": "我的页面",
+    "personalInfo": "个人信息",
+    "personalInfoDescription": "更新您的个人信息并查看账户状态。",
+    "fullName": "全名",
+    "email": "电子邮箱",
+    "avatarUrl": "头像链接",
+    "kycStatus": "KYC状态",
+    "joinedOn": "加入时间",
+    "lastLogin": "上次登录",
+    "saveChanges": "保存更改",
+    "creditTitle": "信誉积分",
+    "creditDescription": "您在平台上的当前信誉状态。",
+    "creditLevel": "信用等级",
+    "creditScore": "信用分",
+    "rating": "平均评分",
+    "reviews": "条评价",
+    "sales": "总销量",
+    "purchases": "总购买数"
   }
 }

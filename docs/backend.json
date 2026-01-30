@@ -35,6 +35,31 @@
         "lastLogin": {
             "type": "string", 
             "format": "date-time"
+        },
+        "rating": {
+          "type": "number",
+          "description": "The user's average rating out of 5."
+        },
+        "reviewsCount": {
+          "type": "number",
+          "description": "Total number of reviews the user has received."
+        },
+        "salesCount": {
+          "type": "number",
+          "description": "Total number of items sold by the user."
+        },
+        "purchasesCount": {
+          "type": "number",
+          "description": "Total number of items purchased by the user."
+        },
+        "creditScore": {
+          "type": "number",
+          "description": "A calculated score representing user's trustworthiness."
+        },
+        "creditLevel": {
+          "type": "string",
+          "description": "The user's credit level.",
+          "enum": ["Newcomer", "Bronze", "Silver", "Gold", "Platinum", "Diamond"]
         }
       },
       "required": ["uid", "email", "kycStatus", "createdAt"]

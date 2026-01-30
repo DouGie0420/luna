@@ -34,6 +34,12 @@ export type UserProfile = {
     kycStatus: KycStatus;
     createdAt?: any;
     lastLogin?: any;
+    rating?: number;
+    reviewsCount?: number;
+    salesCount?: number;
+    purchasesCount?: number;
+    creditScore?: number;
+    creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
 }
 
 export type Promo = {

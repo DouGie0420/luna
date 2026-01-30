@@ -61,5 +61,25 @@
   },
   "support": {
     "title": "Contact Support"
+  },
+  "accountPage": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your personal details and view account status.",
+    "fullName": "Full Name",
+    "email": "Email",
+    "avatarUrl": "Avatar URL",
+    "kycStatus": "KYC Status",
+    "joinedOn": "Joined On",
+    "lastLogin": "Last Login",
+    "saveChanges": "Save Changes",
+    "creditTitle": "Credit & Reputation",
+    "creditDescription": "Your current standing on the platform.",
+    "creditLevel": "Credit Level",
+    "creditScore": "Credit Score",
+    "rating": "Avg. Rating",
+    "reviews": "reviews",
+    "sales": "Sales",
+    "purchases": "Purchases"
   }
 }
