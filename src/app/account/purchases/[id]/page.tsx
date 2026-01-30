@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Truck, Copy, MessageCircle, CircleDollarSign, CheckCircle, Gem, ChevronDown, PackageSearch } from 'lucide-react';
+import { Truck, Copy, MessageCircle, MoreHorizontal, CheckCircle, Gem, ChevronDown, PackageSearch, CircleDollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -164,6 +164,7 @@ export default function OrderDetailPage() {
     useEffect(() => {
         setLoading(true);
         const fetchData = async () => {
+            // In a real app, you'd fetch the order by its ID
             const fetchedOrder = mockOrders[orderId];
             if (fetchedOrder) {
                 const allUsers = await getUsers();
@@ -276,12 +277,14 @@ export default function OrderDetailPage() {
 
                 <Card>
                     <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen} className="text-sm">
-                        <CollapsibleTrigger className="flex justify-between items-center w-full p-6">
-                            <span className="text-muted-foreground">{t('orderDetails.orderNumber')}</span>
-                            <div className="flex items-center gap-2">
-                                <span className="font-medium text-right">{order.orderNumber}</span>
-                                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopy(order.orderNumber); }}>{t('accountPage.copy')}</Button>
-                                <ChevronDown className={cn("h-4 w-4 transition-transform", isInfoOpen && "rotate-180")} />
+                         <CollapsibleTrigger asChild>
+                            <div className="flex cursor-pointer items-center justify-between p-6">
+                                <span className="text-muted-foreground">{t('orderDetails.orderNumber')}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-medium text-right">{order.orderNumber}</span>
+                                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopy(order.orderNumber); }}>{t('accountPage.copy')}</Button>
+                                    <ChevronDown className={cn("h-4 w-4 transition-transform", isInfoOpen && "rotate-180")} />
+                                </div>
                             </div>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
@@ -311,7 +314,6 @@ export default function OrderDetailPage() {
                         </CollapsibleContent>
                     </Collapsible>
                 </Card>
-
                 <Card>
                     <CardFooter className="p-4 pt-4 justify-end gap-2">
                         <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
