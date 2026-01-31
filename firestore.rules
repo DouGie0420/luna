@@ -36,13 +36,15 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      // Anyone can read a user's public profile.
       allow read: if true;
       
-      // A user can update their own profile, but cannot change their own role.
-      // An admin can update any field, including the role.
-      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role)
-                   || isAdmin();
+      // An admin can update any field.
+      // A user can update their own profile, but cannot change their own role,
+      // EXCEPT for promoting themselves from 'guest' to 'user' after email verification.
+      allow update: if isAdmin() || (isOwner(userId) && (
+                      request.resource.data.role == resource.data.role ||
+                      (resource.data.role == 'guest' && request.resource.data.role == 'user' && request.auth.token.email_verified == true)
+                    ));
 
       // A user can create their own profile, but must have the 'guest' role initially.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
@@ -113,5 +115,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
