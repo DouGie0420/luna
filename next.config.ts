@@ -59,6 +59,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.marshmallowmob.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
   devIndicators: {
