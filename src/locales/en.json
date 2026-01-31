@@ -141,7 +141,9 @@
     "buyerPays": "Buyer Pays Shipping",
     "shippingTemplate": "Shipping Carrier",
     "aiAnalysis": "AI-powered Analysis",
-    "aiAnalysisDescription": "Check this to automatically generate a title and description from your uploaded image."
+    "aiAnalysisDescription": "Check this to automatically generate a title and description from your uploaded image.",
+    "submitSuccessTitle": "Item Listed!",
+    "submitSuccessDescription": "Your item is now live on the market."
   },
   "product": {
     "consignmentBadge": "Consignment",
@@ -257,7 +259,8 @@
     "deleteCancel": "Cancel",
     "deleteSuccess": "Item deleted successfully",
     "featureComingSoon": "Feature coming soon!",
-    "addedToFavorites": "Added to your favorites!"
+    "addedToFavorites": "Added to your favorites!",
+    "likeSuccess": "Liked! The author will be notified."
   },
   "buyNowButton": {
     "buyNow": "Buy Now",
@@ -288,7 +291,6 @@
     "searchPlaceholder": "Search posts...",
     "featuredBadge": "Featured",
     "linkCopied": "Post link copied to clipboard!",
-    "thankYouForLike": "Thanks for your like!",
     "loadMoreComments": "Load More Comments",
     "editPost": "Edit Post",
     "deletePost": "Delete Post",
@@ -445,7 +447,7 @@
     "commentPosted": "Comment posted",
     "reply": "Reply",
     "replyTo": "Replying to",
-    "cancelReply": "Cancel Reply",
+    "cancelReply": "Cancel",
     "delete": "Delete",
     "deleteConfirmTitle": "Confirm Deletion",
     "deleteConfirmDescription": "Are you sure you want to delete this comment? This action cannot be undone.",

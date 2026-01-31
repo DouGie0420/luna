@@ -29,6 +29,7 @@ import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Star } from 'luc
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useUser } from '@/firebase';
 
 function ProductActions({ product, onDelete }: { product: Product; onDelete: (productId: string) => void; }) {
     const { t } = useTranslation();
@@ -113,27 +114,63 @@ export default function MyListingsPage() {
     const { t } = useTranslation();
     const { toast } = useToast();
     const [userProducts, setUserProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [productsLoading, setProductsLoading] = useState(true);
     const [interactionState, setInteractionState] = useState<Record<string, { liked: boolean; favorited: boolean }>>({});
+    const { user, loading: userLoading } = useUser();
+
 
     useEffect(() => {
         const fetchProducts = async () => {
-            const allProducts = await getProducts();
-            // In a real app, this would be filtered by the current user
-            setUserProducts(allProducts.slice(0, 4));
-            setLoading(false);
+            if (!user) {
+                // When user is null (either loading or not logged in), don't fetch.
+                // If not loading and no user, we might want to show a login prompt, but for now, empty list is fine.
+                 if (!userLoading) {
+                    setProductsLoading(false);
+                }
+                return;
+            }
+
+            setProductsLoading(true);
+            const allProductsFromMock = await getProducts();
+            
+            // Filter mock products by current user
+            const myProductsFromMock = allProductsFromMock.filter(p => p.seller.id === user.uid);
+
+            // Get newly created products from localStorage
+            const localProductsJSON = localStorage.getItem('luna_new_products');
+            const localProducts: Product[] = localProductsJSON ? JSON.parse(localProductsJSON) : [];
+            
+            // Filter local products for current user
+            const myLocalProducts = localProducts.filter(p => p.seller.id === user.uid);
+            
+            // Combine and de-duplicate, showing newest (local) first
+            const combined = [...myLocalProducts, ...myProductsFromMock];
+            const uniqueProducts = Array.from(new Map(combined.map(p => [p.id, p])).values());
+
+            setUserProducts(uniqueProducts);
+            setProductsLoading(false);
         };
         fetchProducts();
-    }, []);
+    }, [user, userLoading]);
 
     const handleDeleteProduct = (productId: string) => {
+        // Also remove from localStorage if it exists there
+        const localProductsJSON = localStorage.getItem('luna_new_products');
+        if (localProductsJSON) {
+            const localProducts = JSON.parse(localProductsJSON);
+            const updatedLocalProducts = localProducts.filter((p: Product) => p.id !== productId);
+            localStorage.setItem('luna_new_products', JSON.stringify(updatedLocalProducts));
+        }
         setUserProducts(currentProducts => currentProducts.filter(p => p.id !== productId));
     };
-
+    
     const handleLike = (productId: string) => {
         setInteractionState(prev => {
             const current = prev[productId] || { liked: false, favorited: false };
             const newState = !current.liked;
+            if (newState) {
+                // toast({ title: t('productCardActions.likeSuccess') });
+            }
             return {
                 ...prev,
                 [productId]: { ...current, liked: newState }
@@ -154,8 +191,10 @@ export default function MyListingsPage() {
             };
         });
     };
+    
+    const isLoading = userLoading || productsLoading;
 
-    if (loading) {
+    if (isLoading) {
         return (
             <div className="p-6 md:p-8 lg:p-12">
                 <div className="flex justify-between items-center mb-6">
@@ -216,7 +255,7 @@ export default function MyListingsPage() {
                                         <Button
                                             variant="ghost"
                                             size="sm"
-                                            onClick={() => handleLike(product.id)}
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(product.id); }}
                                             className={cn(
                                                 "flex items-center gap-1 z-10 p-1 h-auto text-sm transition-colors",
                                                 isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500 rounded-md" : "hover:text-primary text-muted-foreground"
@@ -225,7 +264,7 @@ export default function MyListingsPage() {
                                             <Heart className="h-4 w-4" />
                                             <span>{(product.likes || 0) + (isLiked ? 1 : 0)} {t('accountListings.likes')}</span>
                                         </Button>
-                                        <button onClick={() => handleFavorite(product.id)} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
+                                        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavorite(product.id); }} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
                                             <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
                                             <span>{(product.favorites || 0) + (isFavorited ? 1 : 0)} {t('accountListings.favorites')}</span>
                                         </button>

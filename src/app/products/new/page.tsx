@@ -32,6 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
+import type { Product, User } from '@/lib/types';
 
 
 export default function NewProductPage() {
@@ -42,12 +43,17 @@ export default function NewProductPage() {
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [currency, setCurrency] = useState<'THB' | 'USDT' | 'RMB-alipay' | 'RMB-wechat'>('THB');
+  const [category, setCategory] = useState('');
   const [shippingMethod, setShippingMethod] = useState<'Seller Pays' | 'Buyer Pays'>('Buyer Pays');
   const [shippingCarrier, setShippingCarrier] = useState<'SF' | 'YTO' | null>('SF');
+  const [isConsignment, setIsConsignment] = useState(false);
   
   const [isAiAnalysisEnabled, setIsAiAnalysisEnabled] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
 
   useEffect(() => {
@@ -100,6 +106,72 @@ export default function NewProductPage() {
     setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !profile) {
+      toast({ variant: 'destructive', title: 'Please login to list an item.'});
+      return;
+    }
+    setIsSubmitting(true);
+
+    const imageUrls = await Promise.all(
+        uploadedImages.map(file => 
+            new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = error => reject(error);
+            })
+        )
+    );
+
+    const sellerData: User = {
+      id: user.uid,
+      name: profile.displayName || user.displayName || 'New Seller',
+      avatarUrl: profile.photoURL || user.photoURL || '',
+      rating: profile.rating || 0,
+      reviews: profile.reviewsCount || 0,
+      isPro: profile.isPro,
+      isWeb3Verified: profile.isWeb3Verified,
+      kycStatus: profile.kycStatus,
+      location: { city: profile.location || 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
+      itemsOnSale: profile.salesCount,
+      itemsSold: 0,
+      creditScore: profile.creditScore,
+      creditLevel: profile.creditLevel,
+      followersCount: profile.followersCount,
+      followingCount: profile.followingCount,
+      postsCount: 0,
+    };
+
+    const newProduct: Product = {
+      id: `prod_${Date.now()}`,
+      name,
+      description,
+      price: Number(price),
+      currency: currency.startsWith('RMB') ? 'RMB' : (currency as 'THB' | 'USDT'),
+      images: imageUrls.length > 0 ? imageUrls : ['https://picsum.photos/seed/default-product/600/400'],
+      imageHints: ['user uploaded'],
+      seller: sellerData,
+      location: sellerData.location || { city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
+      category: category || 'Electronics',
+      isConsignment,
+      shippingMethod,
+      likes: 0,
+      favorites: 0,
+    };
+
+    const localProductsJSON = localStorage.getItem('luna_new_products');
+    const localProducts = localProductsJSON ? JSON.parse(localProductsJSON) : [];
+    localStorage.setItem('luna_new_products', JSON.stringify([newProduct, ...localProducts]));
+
+    setIsSubmitting(false);
+    toast({
+        title: t('newProductPage.submitSuccessTitle'),
+        description: t('newProductPage.submitSuccessDescription'),
+    });
+    router.push('/account/listings');
+  };
 
   if (loading || !user) {
       return (
@@ -183,7 +255,7 @@ export default function NewProductPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="grid gap-6">
+              <form className="grid gap-6" onSubmit={handleSubmit}>
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
                     <Checkbox id="ai-analysis" checked={isAiAnalysisEnabled} onCheckedChange={(checked) => setIsAiAnalysisEnabled(!!checked)} />
                     <div className="grid gap-1.5 leading-none">
@@ -221,6 +293,7 @@ export default function NewProductPage() {
                             className="sr-only"
                             onChange={handleImageUpload}
                             accept="image/*"
+                            multiple
                         />
                         <label htmlFor="image-upload" className="cursor-pointer">
                             <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
@@ -253,11 +326,11 @@ export default function NewProductPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="price">{t('newProductPage.price')}</Label>
-                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} />
+                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
-                        <Select defaultValue="THB">
+                        <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
                             <SelectTrigger>
                                 <SelectValue placeholder={t('newProductPage.selectCurrency')} />
                             </SelectTrigger>
@@ -272,7 +345,7 @@ export default function NewProductPage() {
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="category">{t('newProductPage.category')}</Label>
-                    <Select>
+                    <Select value={category} onValueChange={(v: any) => setCategory(v)}>
                         <SelectTrigger>
                             <SelectValue placeholder={t('newProductPage.selectCategory')} />
                         </SelectTrigger>
@@ -317,7 +390,7 @@ export default function NewProductPage() {
                 )}
 
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
-                    <Checkbox id="consignment" />
+                    <Checkbox id="consignment" checked={isConsignment} onCheckedChange={checked => setIsConsignment(!!checked)} />
                     <div className="grid gap-1.5 leading-none">
                     <Label
                         htmlFor="consignment"
@@ -332,7 +405,10 @@ export default function NewProductPage() {
                 </div>
                
                 <div className="flex justify-end">
-                    <Button type="submit" size="lg">{t('newProductPage.listItem')}</Button>
+                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('newProductPage.listItem')}
+                    </Button>
                 </div>
               </form>
             </CardContent>

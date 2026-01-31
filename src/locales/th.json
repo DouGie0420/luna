@@ -141,7 +141,9 @@
     "buyerPays": "ผู้ซื้อจ่ายค่าส่ง",
     "shippingTemplate": "รูปแบบการจัดส่ง",
     "aiAnalysis": "การวิเคราะห์ด้วย AI",
-    "aiAnalysisDescription": "เลือกช่องนี้เพื่อสร้างชื่อและคำอธิบายโดยอัตโนมัติจากรูปภาพที่คุณอัปโหลด"
+    "aiAnalysisDescription": "เลือกช่องนี้เพื่อสร้างชื่อและคำอธิบายโดยอัตโนมัติจากรูปภาพที่คุณอัปโหลด",
+    "submitSuccessTitle": "ลงขายสินค้าแล้ว!",
+    "submitSuccessDescription": "สินค้าของคุณพร้อมขายบนแพลตฟอร์มแล้ว"
   },
   "product": {
     "consignmentBadge": "ฝากขาย",
@@ -257,7 +259,8 @@
     "deleteCancel": "ยกเลิก",
     "deleteSuccess": "ลบรายการสำเร็จแล้ว",
     "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!",
-    "addedToFavorites": "เพิ่มในรายการโปรดแล้ว!"
+    "addedToFavorites": "เพิ่มในรายการโปรดแล้ว!",
+    "likeSuccess": "ถูกใจแล้ว! ผู้เขียนจะได้รับการแจ้งเตือน"
   },
   "buyNowButton": {
     "buyNow": "ซื้อตอนนี้",
@@ -288,7 +291,6 @@
     "searchPlaceholder": "ค้นหาโพสต์...",
     "featuredBadge": "แนะนำ",
     "linkCopied": "คัดลอกลิงก์โพสต์ไปยังคลิปบอร์ดแล้ว!",
-    "thankYouForLike": "ขอบคุณที่กดไลค์!",
     "loadMoreComments": "โหลดเพิ่มเติม",
     "editPost": "แก้ไขโพสต์",
     "deletePost": "ลบโพสต์",
@@ -445,7 +447,7 @@
     "commentPosted": "แสดงความคิดเห็นแล้ว",
     "reply": "ตอบกลับ",
     "replyTo": "กำลังตอบกลับ",
-    "cancelReply": "ยกเลิกการตอบกลับ",
+    "cancelReply": "ยกเลิก",
     "delete": "ลบ",
     "deleteConfirmTitle": "ยืนยันการลบ",
     "deleteConfirmDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบความคิดเห็นนี้? การกระทำนี้ไม่สามารถยกเลิกได้",

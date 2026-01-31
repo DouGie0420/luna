@@ -141,7 +141,9 @@
     "buyerPays": "买家承担运费",
     "shippingTemplate": "快递模板",
     "aiAnalysis": "AI智能分析",
-    "aiAnalysisDescription": "勾选此项，上传图片后将自动生成标题和描述。"
+    "aiAnalysisDescription": "勾选此项，上传图片后将自动生成标题和描述。",
+    "submitSuccessTitle": "商品已发布！",
+    "submitSuccessDescription": "您的商品现在已经在市场上架。"
   },
   "product": {
     "consignmentBadge": "寄售",
@@ -257,7 +259,8 @@
     "deleteCancel": "取消",
     "deleteSuccess": "商品已删除",
     "featureComingSoon": "功能即将推出！",
-    "addedToFavorites": "已加入您的收藏！"
+    "addedToFavorites": "已加入您的收藏！",
+    "likeSuccess": "点赞成功！作者将会收到通知。"
   },
   "buyNowButton": {
     "buyNow": "立即购买",
@@ -288,7 +291,6 @@
     "searchPlaceholder": "搜索帖子...",
     "featuredBadge": "精华",
     "linkCopied": "帖子链接已复制到剪贴板！",
-    "thankYouForLike": "谢谢你的赞！",
     "loadMoreComments": "加载更多",
     "editPost": "编辑帖子",
     "deletePost": "删除帖子",
@@ -445,7 +447,7 @@
     "commentPosted": "留言已发布",
     "reply": "回复",
     "replyTo": "回复",
-    "cancelReply": "取消回复",
+    "cancelReply": "取消",
     "delete": "删除",
     "deleteConfirmTitle": "确认删除",
     "deleteConfirmDescription": "您确定要删除这条留言吗？此操作无法撤销。",
