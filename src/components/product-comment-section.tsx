@@ -61,40 +61,22 @@ const CommentForm = ({
   value,
   onChange,
   onSubmit,
-  replyingTo,
-  onCancelReply,
+  onCancelClick,
 }: {
   isSubmitting: boolean
   value: string
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   onSubmit: () => void
-  replyingTo: { id: string; authorName: string } | null
-  onCancelReply: () => void
+  onCancelClick: () => void
 }) => {
   const { t } = useTranslation()
 
   return (
     <div className="space-y-2">
-      {replyingTo && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            {t('productComments.replyTo')} {replyingTo.authorName}...
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancelReply}
-            className="h-auto p-1 text-xs text-destructive hover:text-destructive"
-          >
-            <X className="mr-1 h-3 w-3" />
-            {t('productComments.cancelReply')}
-          </Button>
-        </div>
-      )}
       <Textarea
         value={value}
         onChange={onChange}
-        placeholder={!replyingTo ? t('productComments.placeholder') : ''}
+        placeholder={t('productComments.placeholder')}
         maxLength={500}
         rows={3}
       />
@@ -104,6 +86,9 @@ const CommentForm = ({
           <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
+          </Button>
+           <Button variant="outline" onClick={onCancelClick}>
+            {t('productComments.cancelReply')}
           </Button>
         </div>
       </div>
@@ -123,6 +108,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+
 
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
@@ -137,6 +124,12 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
         });
     }
+    
+    const handleConfirmCancelReply = () => {
+        setReplyingTo(null);
+        setNewComment('');
+        setIsCancelDialogOpen(false);
+    };
 
     const handlePostComment = () => {
         if (!newComment.trim() || !canInteract) {
@@ -151,7 +144,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 authorId: user.uid,
                 text: newComment,
                 date: new Date(),
-                parentId: replyingTo?.id,
+                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
@@ -215,51 +208,68 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
 
         return (
-            <div key={comment.id} className="flex items-start gap-3">
-                <Link href={`/user/${author?.id || comment.authorId}`}>
-                    <Avatar className="h-10 w-10">
-                        {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
-                        <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
-                    </Avatar>
-                </Link>
-                <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center flex-wrap gap-x-2">
-                             <Link href={`/user/${author?.id || comment.authorId}`} className="font-semibold text-sm hover:underline">
-                                {author?.name || 'User'}
-                            </Link>
-                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3 w-3" /> {author?.goodReviews ?? 0}</span>
-                                <span className="flex items-center gap-1 text-yellow-400"><Meh className="h-3 w-3" /> {author?.neutralReviews ?? 0}</span>
-                                <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3 w-3" /> {author?.badReviews ?? 0}</span>
+             <div key={comment.id}>
+                <div className="flex items-start gap-3">
+                    <Link href={`/user/${author?.id || comment.authorId}`}>
+                        <Avatar className="h-10 w-10">
+                            {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
+                            <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
+                        </Avatar>
+                    </Link>
+                    <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center flex-wrap gap-x-2">
+                                 <Link href={`/user/${author?.id || comment.authorId}`} className="font-semibold text-sm hover:underline">
+                                    {author?.name || 'User'}
+                                </Link>
+                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3 w-3" /> {author?.goodReviews ?? 0}</span>
+                                    <span className="flex items-center gap-1 text-yellow-400"><Meh className="h-3 w-3" /> {author?.neutralReviews ?? 0}</span>
+                                    <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3 w-3" /> {author?.badReviews ?? 0}</span>
+                                </div>
                             </div>
+                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{timeAgo}</p>
                         </div>
-                        <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{timeAgo}</p>
-                    </div>
-                    <p className="text-sm mt-1">{comment.text}</p>
-                    <div className="flex items-center gap-2">
-                        <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                            onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
-                        >
-                            <Reply className="mr-1 h-3 w-3" />
-                            {t('productComments.reply')}
-                        </Button>
-                        {user?.uid === comment.authorId && (
-                             <Button 
+                        <p className="text-sm mt-1">{comment.text}</p>
+                        <div className="flex items-center gap-2">
+                            <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="mt-1 h-auto p-1 text-xs text-destructive hover:text-destructive"
-                                onClick={() => setCommentToDelete(comment.id)}
+                                className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
                             >
-                                <Trash2 className="mr-1 h-3 w-3" />
-                                {t('productComments.delete')}
+                                <Reply className="mr-1 h-3 w-3" />
+                                {t('productComments.reply')}
                             </Button>
-                        )}
+                            {user?.uid === comment.authorId && (
+                                 <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="mt-1 h-auto p-1 text-xs text-destructive hover:text-destructive"
+                                    onClick={() => setCommentToDelete(comment.id)}
+                                >
+                                    <Trash2 className="mr-1 h-3 w-3" />
+                                    {t('productComments.delete')}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
+
+                {replyingTo?.id === comment.id && (
+                    <div className="mt-4 ml-12 pl-4 border-l-2">
+                        <p className="text-sm text-muted-foreground mb-2">
+                            {t('productComments.replyTo')} {replyingTo.authorName}...
+                        </p>
+                        <CommentForm
+                            isSubmitting={isSubmitting}
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onSubmit={handlePostComment}
+                            onCancelClick={() => setIsCancelDialogOpen(true)}
+                        />
+                    </div>
+                )}
             </div>
         );
     }
@@ -271,23 +281,30 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     <CardTitle>{t('productComments.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                    {/* Comment Form */}
-                    <div className="space-y-2">
-                        {canInteract ? (
-                            <CommentForm
-                                isSubmitting={isSubmitting}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onSubmit={handlePostComment}
-                                replyingTo={replyingTo}
-                                onCancelReply={() => setReplyingTo(null)}
-                            />
-                        ) : (
-                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
-                                <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                     {/* Comment Form Trigger / Area */}
+                    {canInteract ? (
+                         replyingTo?.id === 'root' ? (
+                            <div className="mb-8">
+                                <CommentForm
+                                    isSubmitting={isSubmitting}
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onSubmit={handlePostComment}
+                                    onCancelClick={() => setIsCancelDialogOpen(true)}
+                                />
                             </div>
-                        )}
-                    </div>
+                        ) : !replyingTo && (
+                            <div className="mb-8">
+                                <Button variant="outline" className="w-full" onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}>
+                                    {t('productComments.placeholder')}
+                                </Button>
+                            </div>
+                        )
+                    ) : (
+                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-8">
+                            <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                        </div>
+                    )}
                     
                     {nestedComments.length > 0 && <Separator />}
 
@@ -306,13 +323,11 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                             ))}
                         </div>
                     ) : (
-                        !canInteract && (
-                             <div className="text-center py-8 text-muted-foreground">
-                                <MessageSquare className="mx-auto h-8 w-8 mb-2" />
-                                <p>{t('productComments.noComments')}</p>
-                                <p className="text-xs">{t('productComments.beTheFirst')}</p>
-                            </div>
-                        )
+                         <div className="text-center py-8 text-muted-foreground">
+                            <MessageSquare className="mx-auto h-8 w-8 mb-2" />
+                            <p>{t('productComments.noComments')}</p>
+                            <p className="text-xs">{t('productComments.beTheFirst')}</p>
+                        </div>
                     )}
                     
                     {nestedComments.length > visibleCommentsCount && (
@@ -342,6 +357,20 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     >
                         {t('productComments.deleteConfirmAction')}
                     </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('productComments.cancelConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>{t('productComments.continueEditing')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmCancelReply} variant="destructive">
+                            {t('productComments.cancelConfirmAction')}
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

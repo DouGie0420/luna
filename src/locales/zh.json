@@ -444,6 +444,10 @@
     "deleteConfirmDescription": "您确定要删除这条留言吗？此操作无法撤销。",
     "deleteConfirmAction": "确认删除",
     "deleteCancel": "取消",
-    "commentDeleted": "留言已删除"
+    "commentDeleted": "留言已删除",
+    "cancelConfirmTitle": "取消回复",
+    "cancelConfirmDescription": "您输入的任何文字都将丢失。确定要取消吗？",
+    "cancelConfirmAction": "确认取消",
+    "continueEditing": "继续编辑"
   }
 }

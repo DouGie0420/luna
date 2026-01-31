@@ -444,6 +444,10 @@
     "deleteConfirmDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบความคิดเห็นนี้? การกระทำนี้ไม่สามารถยกเลิกได้",
     "deleteConfirmAction": "ยืนยันการลบ",
     "deleteCancel": "ยกเลิก",
-    "commentDeleted": "ลบความคิดเห็นแล้ว"
+    "commentDeleted": "ลบความคิดเห็นแล้ว",
+    "cancelConfirmTitle": "ยกเลิกการตอบกลับ",
+    "cancelConfirmDescription": "ข้อความใดๆ ที่คุณป้อนจะหายไป คุณแน่ใจหรือไม่ว่าต้องการยกเลิก?",
+    "cancelConfirmAction": "ยืนยันการยกเลิก",
+    "continueEditing": "แก้ไขต่อ"
   }
 }

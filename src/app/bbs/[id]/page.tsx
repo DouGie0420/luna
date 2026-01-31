@@ -107,48 +107,24 @@ const CommentForm = ({
   value,
   onChange,
   onSubmit,
-  replyingTo,
-  onCancelReply,
+  onCancelClick,
 }: {
   isSubmitting: boolean
   value: string
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
   onSubmit: () => void
-  replyingTo: { id: string; authorName: string } | null
-  onCancelReply: () => void
+  onCancelClick: () => void
 }) => {
   const { t } = useTranslation()
 
   return (
     <div className="space-y-2">
-      {replyingTo && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            {t('productComments.replyTo')} {replyingTo.authorName}...
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onCancelReply}
-            className="h-auto p-1 text-xs text-destructive hover:text-destructive"
-          >
-            <X className="mr-1 h-3 w-3" />
-            {t('productComments.cancelReply')}
-          </Button>
-        </div>
-      )}
       <Textarea
         value={value}
         onChange={onChange}
-        placeholder={!replyingTo ? t('productComments.placeholder') : ''}
+        placeholder={t('productComments.placeholder')}
         maxLength={2000}
         rows={3}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            onSubmit()
-          }
-        }}
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
@@ -156,6 +132,9 @@ const CommentForm = ({
           <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
+          </Button>
+          <Button variant="outline" onClick={onCancelClick}>
+            {t('productComments.cancelReply')}
           </Button>
         </div>
       </div>
@@ -179,6 +158,7 @@ export default function BbsPostPage() {
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -223,7 +203,7 @@ export default function BbsPostPage() {
                 authorId: user.uid,
                 text: newComment,
                 date: new Date(),
-                parentId: replyingTo?.id,
+                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
@@ -231,6 +211,12 @@ export default function BbsPostPage() {
             setIsSubmitting(false);
             toast({ title: t('productComments.commentPosted') });
         }, 500);
+    };
+
+    const handleConfirmCancelReply = () => {
+        setReplyingTo(null);
+        setNewComment('');
+        setIsCancelDialogOpen(false);
     };
     
     const handleLoadMoreComments = () => {
@@ -322,34 +308,50 @@ export default function BbsPostPage() {
         const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
 
         return (
-            <div key={comment.id} className="flex items-start gap-3">
-                <Link href={`/user/${author?.id || comment.authorId}`}>
-                    <Avatar className="h-8 w-8">
-                        {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
-                        <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
-                    </Avatar>
-                </Link>
-                <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
-                        <Link href={`/user/${author?.id || comment.authorId}`}>
-                            <span className="text-sm font-semibold text-muted-foreground hover:underline">{author?.name}</span>
-                        </Link>
-                         {author?.location && <p className="text-xs text-muted-foreground/80">&middot; {author.location.city}</p>}
-                    </div>
-                    <p className="text-sm my-1">{comment.text}</p>
-                    <div className="flex items-center justify-between">
-                       <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                            onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
-                        >
-                            <MessageSquare className="mr-1 h-3 w-3" />
-                            {t('productComments.reply')}
-                        </Button>
-                        <p className="text-xs text-muted-foreground">{timeAgo}</p>
+            <div key={comment.id}>
+                <div className="flex items-start gap-3">
+                    <Link href={`/user/${author?.id || comment.authorId}`}>
+                        <Avatar className="h-8 w-8">
+                            {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
+                            <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
+                        </Avatar>
+                    </Link>
+                    <div className="flex-1">
+                        <div className="flex items-baseline gap-2">
+                            <Link href={`/user/${author?.id || comment.authorId}`}>
+                                <span className="text-sm font-semibold text-muted-foreground hover:underline">{author?.name}</span>
+                            </Link>
+                             {author?.location && <p className="text-xs text-muted-foreground/80">&middot; {author.location.city}</p>}
+                        </div>
+                        <p className="text-sm my-1">{comment.text}</p>
+                        <div className="flex items-center justify-between">
+                           <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
+                            >
+                                <MessageSquare className="mr-1 h-3 w-3" />
+                                {t('productComments.reply')}
+                            </Button>
+                            <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                        </div>
                     </div>
                 </div>
+                 {replyingTo?.id === comment.id && (
+                    <div className="mt-4 ml-11 pl-4 border-l-2">
+                         <p className="text-sm text-muted-foreground mb-2">
+                            {t('productComments.replyTo')} {replyingTo.authorName}...
+                        </p>
+                        <CommentForm
+                            isSubmitting={isSubmitting}
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onSubmit={handlePostComment}
+                            onCancelClick={() => setIsCancelDialogOpen(true)}
+                        />
+                    </div>
+                )}
             </div>
         );
     }
@@ -430,27 +432,35 @@ export default function BbsPostPage() {
                     {/* Comments */}
                      <div id="comments" className="px-6 pb-6 scroll-mt-24">
                         <Separator className="my-6" />
+                        <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
-                        {/* Comment Form */}
-                         <div className="space-y-2 mb-8">
-                            {canInteract ? (
-                                <CommentForm
-                                    isSubmitting={isSubmitting}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    onSubmit={handlePostComment}
-                                    replyingTo={replyingTo}
-                                    onCancelReply={() => setReplyingTo(null)}
-                                />
-                            ) : (
-                                <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
-                                    <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                        {/* Comment Form Trigger / Area */}
+                        {canInteract ? (
+                             replyingTo?.id === 'root' ? (
+                                <div className="mb-8">
+                                    <CommentForm
+                                        isSubmitting={isSubmitting}
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onSubmit={handlePostComment}
+                                        onCancelClick={() => setIsCancelDialogOpen(true)}
+                                    />
                                 </div>
-                            )}
-                        </div>
+                            ) : !replyingTo && (
+                                <div className="mb-8">
+                                    <Button variant="outline" className="w-full" onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}>
+                                        {t('productComments.placeholder')}
+                                    </Button>
+                                </div>
+                            )
+                        ) : (
+                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-8">
+                                <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                            </div>
+                        )}
+
 
                         <div className="space-y-6">
-                            <p className="text-lg font-semibold">{nestedComments.length} 条评论</p>
                             {nestedComments.slice(0, visibleCommentsCount).map((comment) => (
                                 <div key={comment.id}>
                                     {renderComment(comment)}
@@ -482,6 +492,20 @@ export default function BbsPostPage() {
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>{t('bbsPage.deleteCancel')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">{t('bbsPage.deleteConfirmAction')}</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('productComments.cancelConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                         <AlertDialogCancel>{t('productComments.continueEditing')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmCancelReply} variant="destructive">
+                            {t('productComments.cancelConfirmAction')}
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
