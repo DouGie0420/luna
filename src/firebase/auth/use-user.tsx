@@ -138,34 +138,37 @@ export const useUser = (): UserState => {
     }
 
     if (!auth || !firestore) {
-      // Firebase context might not be available yet
       if (!userState.loading) {
         setUserState((s) => ({ ...s, loading: true }));
       }
       return;
     }
 
+    let unsubscribeProfile = () => {}; // Initialize as a no-op function.
+
     const unsubscribeAuth = onAuthStateChanged(
       auth,
       async (user) => {
+        // Clean up previous profile listener on any auth state change
+        unsubscribeProfile();
+
         if (user) {
-          // User is signed in, now we force a reload to get the latest state (e.g. emailVerified)
+          // User is signed in, force a reload to get the latest state (e.g. emailVerified)
           await user.reload();
-          const freshUser = auth.currentUser; // The user object from onAuthStateChanged can be stale. Get the freshest one.
+          const freshUser = auth.currentUser;
           
           if (!freshUser) {
              setUserState({ user: null, profile: null, loading: false, error: null });
              return;
           }
 
-          // Listen for profile changes in Firestore
+          // Set up new listener for the current user's profile
           const profileRef = doc(firestore, 'users', freshUser.uid);
-          const unsubscribeProfile = onSnapshot(
+          unsubscribeProfile = onSnapshot(
             profileRef,
             (profileDoc) => {
               if (profileDoc.exists()) {
                 const profileData = profileDoc.data() as UserProfile;
-                
                 const updates: Partial<UserProfile> = {};
 
                 // Sync email verification status from Auth to Firestore if it's newly verified
@@ -178,20 +181,19 @@ export const useUser = (): UserState => {
                     updates.role = 'user';
                 }
                 
-                // If there are updates to be made, make them
+                // If there are updates to be made, make them, and optimistically update the UI
                 if (Object.keys(updates).length > 0 && firestore) {
-                    updateUserProfile(firestore, freshUser.uid, updates).then(() => {
-                        console.log(`User ${freshUser.uid} profile updated:`, updates);
-                    });
-                     // Optimistically update the local profile state so the UI reacts instantly
-                     const updatedProfile = { ...profileData, ...updates };
+                    const updatedProfile = { ...profileData, ...updates };
                      setUserState({
                         user: freshUser,
                         profile: updatedProfile,
                         loading: false,
                         error: null,
                       });
+                    // Fire and forget the update. The listener will catch the official change from Firestore anyway.
+                    updateUserProfile(firestore, freshUser.uid, updates);
                 } else {
+                     // No updates needed, just set the state with fresh data.
                      setUserState({
                         user: freshUser,
                         profile: profileData,
@@ -199,7 +201,6 @@ export const useUser = (): UserState => {
                         error: null,
                       });
                 }
-
               } else {
                 // Profile doesn't exist yet. This might happen briefly after signup.
                  setUserState({ user: freshUser, profile: null, loading: false, error: null });
@@ -210,8 +211,6 @@ export const useUser = (): UserState => {
               setUserState({ user: freshUser, profile: null, loading: false, error });
             }
           );
-          
-          return () => unsubscribeProfile();
         } else {
           // User is signed out
           setUserState({ user: null, profile: null, loading: false, error: null });
@@ -223,7 +222,11 @@ export const useUser = (): UserState => {
       }
     );
 
-    return () => unsubscribeAuth();
+    // Main cleanup function for the useEffect hook
+    return () => {
+      unsubscribeAuth();
+      unsubscribeProfile();
+    };
   }, [auth, firestore]);
 
   return userState;
