@@ -106,7 +106,7 @@ export default function KYCPage() {
     };
     
     const handleSubmit = async () => {
-        if (!idFile || !selfieFile) {
+        if (!idFile || !selfieFile || !idPreview || !selfiePreview) {
             toast({
                 variant: "destructive",
                 title: "Missing Documents",
@@ -126,12 +126,10 @@ export default function KYCPage() {
 
         setIsSubmitting(true);
         try {
-            // In a real app, you would upload files to a storage service here.
-            // For this prototype, we'll just update the status and add mock URLs.
             await updateUserProfile(firestore, user.uid, { 
                 kycStatus: 'Pending',
-                kycIdPhotoUrl: `https://picsum.photos/seed/${user.uid}-id/600/400`,
-                kycSelfieUrl: `https://picsum.photos/seed/${user.uid}-selfie/600/400`,
+                kycIdPhotoUrl: idPreview,
+                kycSelfieUrl: selfiePreview,
             });
             toast({
                 title: "Documents Submitted",
