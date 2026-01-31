@@ -41,7 +41,7 @@ service cloud.firestore {
       // Only admins can list all users.
       allow list: if isAdmin();
       
-      // A user can create their own profile document, but it must be for their own UID and their initial role must be 'guest'.
+      // A user can create their own profile document.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
 
       // Update rules are complex to prevent users from elevating their own privileges.
@@ -51,28 +51,20 @@ service cloud.firestore {
         // Or the user is updating their own profile within allowed boundaries.
         (isOwner(userId) &&
           // --- PROTECTED FIELDS: User cannot change these core data points ---
-          request.resource.data.email == resource.data.email &&
           request.resource.data.creditScore == resource.data.creditScore &&
           request.resource.data.creditLevel == resource.data.creditLevel &&
           request.resource.data.kycStatus == resource.data.kycStatus &&
           request.resource.data.isPro == resource.data.isPro &&
           
-          // --- ALLOWED FIELDS: User can change these cosmetic/Web3 data points ---
-          // (No explicit check needed, as we are not denying them)
-          // photoURL
-          // displayName
-          // gender
-          // location
-          // bio
-          
-          // --- LOGIC: Role can only be promoted from guest to user ---
+          // --- LOGIC: Role can only be promoted from guest to user, or stay the same ---
           (request.resource.data.role == resource.data.role ||
-            (resource.data.role == 'guest' && request.resource.data.role == 'user' && resource.data.emailVerified == true)) &&
+            (resource.data.role == 'guest' && request.resource.data.role == 'user')) &&
 
-          // --- LOGIC: isNftVerified can only be set to true if the user's wallet is already verified ---
-          (request.resource.data.isNftVerified == false || resource.data.isWeb3Verified == true) &&
-          // User cannot set isWeb3Verified themselves, it's done server-side/trusted client
-          request.resource.data.isWeb3Verified == resource.data.isWeb3Verified
+          // --- LOGIC: emailVerified can only go from false to true, or stay true ---
+          (resource.data.emailVerified == false || request.resource.data.emailVerified == true) &&
+
+          // --- LOGIC: isNftVerified can be set to true only if web3 is verified ---
+          (request.resource.data.isNftVerified == false || request.resource.data.isWeb3Verified == true)
         );
       
       // Only admins can delete user documents.
