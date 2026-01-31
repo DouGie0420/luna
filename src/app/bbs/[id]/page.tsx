@@ -39,6 +39,7 @@ import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check }
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
+import { cn } from '@/lib/utils';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -219,7 +220,9 @@ export default function BbsPostPage() {
     };
 
     const handlePostComment = () => {
-        if (!newComment.trim() || !canInteract) {
+        if (!newComment.trim()) return;
+
+        if (!canInteract) {
             handleInteractionNotAllowed();
             return;
         }
@@ -231,7 +234,7 @@ export default function BbsPostPage() {
                 authorId: user.uid,
                 text: newComment,
                 date: new Date(),
-                parentId: replyingTo?.id,
+                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
@@ -368,13 +371,28 @@ export default function BbsPostPage() {
                 </div>
                  {replyingTo?.id === comment.id && (
                     <div className="mt-4 ml-11 pl-4 border-l-2">
-                        <CommentForm
-                            isSubmitting={isSubmitting}
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onSubmit={handlePostComment}
-                            onCancelClick={() => setIsCancelDialogOpen(true)}
-                        />
+                         <div className="space-y-2">
+                            <Textarea
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder={`${t('productComments.replyTo')} ${replyingTo.authorName}...`}
+                                maxLength={2000}
+                                rows={3}
+                                autoFocus
+                            />
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs text-muted-foreground">{newComment.length} / 2000</p>
+                                <div className="flex items-center gap-2">
+                                <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {t('productComments.submit')}
+                                </Button>
+                                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
+                                    {t('productComments.cancelReply')}
+                                </Button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>
@@ -396,18 +414,30 @@ export default function BbsPostPage() {
                             </Avatar>
                             <div>
                                 <p className="font-bold group-hover:underline">{post.author.name}</p>
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                    <span>{post.author.followersCount || 0} {t('userProfile.followers')}</span>
-                                    <span className="mx-1">&middot;</span>
-                                    <span>{post.author.followingCount || 0} {t('userProfile.following')}</span>
-                                    <span className="mx-1">&middot;</span>
-                                    <span>{post.author.postsCount || 0} {t('userProfile.posts')}</span>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                    <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
+                                        <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
+                                    </Link>
+                                    <span>&middot;</span>
+                                    <Link href={`/user/${post.author.id}/following`} className="hover:underline">
+                                        <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
+                                    </Link>
+                                    <span>&middot;</span>
+                                     <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
+                                        <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
+                                    </Link>
                                 </div>
                             </div>
                         </Link>
                         <div className="flex items-center gap-2">
                             {!isOwner && (
-                                <Button size="sm" onClick={handleFollowToggle} disabled={!canInteract} variant={isFollowing ? 'outline' : 'default'}>
+                                 <Button
+                                    size="sm"
+                                    onClick={handleFollowToggle}
+                                    disabled={!canInteract}
+                                    variant={'default'}
+                                    className={cn(isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
+                                >
                                     {isFollowing ? (
                                         <><Check className="mr-2 h-4 w-4" /> {t('userProfile.alreadyFollowing')}</>
                                     ) : (
@@ -466,27 +496,30 @@ export default function BbsPostPage() {
                         <Separator className="my-6" />
                         <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
-                        {/* Comment Form Trigger / Area */}
-                        {canInteract ? (
-                             !replyingTo ? (
-                                <Button 
-                                    variant="outline" 
-                                    className="w-full justify-start text-muted-foreground hover:text-foreground hover:border-primary/50 bg-background h-auto p-4 border-input"
-                                    onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
-                                >
-                                    {t('productComments.placeholder')}
-                                </Button>
-                            ) : replyingTo.id === 'root' ? (
+                         {canInteract && !replyingTo && (
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-start text-muted-foreground hover:text-foreground hover:border-primary/50 bg-background h-auto p-4 border-input"
+                                onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
+                            >
+                                {t('productComments.placeholder')}
+                            </Button>
+                        )}
+                        
+                        {replyingTo?.id === 'root' && (
+                             <div className="mt-4">
                                 <CommentForm
                                     isSubmitting={isSubmitting}
                                     value={newComment}
                                     onChange={(e) => setNewComment(e.target.value)}
                                     onSubmit={handlePostComment}
-                                    onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
+                                    onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
                                 />
-                             ) : null
-                        ) : (
-                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
+                            </div>
+                        )}
+                        
+                        {!canInteract && (
+                             <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                                 <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                             </div>
                         )}
@@ -534,10 +567,10 @@ export default function BbsPostPage() {
                         <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                         <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">{t('productComments.continueEditing')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmCancelReply} variant="destructive">
+                         <Button onClick={() => setIsCancelDialogOpen(false)}>{t('productComments.continueEditing')}</Button>
+                        <Button onClick={handleConfirmCancelReply} variant="destructive">
                             {t('productComments.cancelConfirmAction')}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useUser } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 export default function UserProfilePage() {
     const params = useParams();
@@ -138,10 +139,28 @@ export default function UserProfilePage() {
                                             <span>{user.location.city}, {user.location.countryCode}</span>
                                         </div>
                                     )}
+                                     <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
+                                        <Link href={`/user/${user.id}/followers`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${user.id}/following`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${user.id}/listings`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                              {currentUser && currentUser.uid !== userId && (
-                                <Button onClick={handleFollowToggle} disabled={!canInteract} variant={isFollowing ? 'outline' : 'default'}>
+                                <Button 
+                                    onClick={handleFollowToggle} 
+                                    disabled={!canInteract} 
+                                    variant={'default'}
+                                    className={cn(isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
+                                >
                                     {isFollowing ? (
                                         <><Check className="mr-2 h-4 w-4" />{t('userProfile.alreadyFollowing')}</>
                                     ) : (
@@ -189,24 +208,6 @@ export default function UserProfilePage() {
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
                                         <p className="font-bold group-hover:underline">{user.itemsSold || 0}</p>
-                                    </div>
-                                </div>
-                            </Link>
-                             <Link href={`/user/${user.id}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <Users className="h-6 w-6 text-primary" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                        <p className="font-bold group-hover:underline">{user.followersCount || 0}</p>
-                                    </div>
-                                </div>
-                            </Link>
-                            <Link href={`/user/${user.id}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <UserPlus className="h-6 w-6 text-primary" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                        <p className="font-bold group-hover:underline">{user.followingCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
