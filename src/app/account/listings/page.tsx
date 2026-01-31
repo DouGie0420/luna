@@ -134,9 +134,6 @@ export default function MyListingsPage() {
         setInteractionState(prev => {
             const current = prev[productId] || { liked: false, favorited: false };
             const newState = !current.liked;
-            if (newState) {
-                toast({ title: t('bbsPage.thankYouForLike') });
-            }
             return {
                 ...prev,
                 [productId]: { ...current, liked: newState }
@@ -216,10 +213,18 @@ export default function MyListingsPage() {
                                         </CardTitle>
                                     </Link>
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                                        <button onClick={() => handleLike(product.id)} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
-                                            <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleLike(product.id)}
+                                            className={cn(
+                                                "flex items-center gap-1 z-10 p-1 h-auto text-sm transition-colors",
+                                                isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500 rounded-md" : "hover:text-primary text-muted-foreground"
+                                            )}
+                                        >
+                                            <Heart className="h-4 w-4" />
                                             <span>{(product.likes || 0) + (isLiked ? 1 : 0)} {t('accountListings.likes')}</span>
-                                        </button>
+                                        </Button>
                                         <button onClick={() => handleFavorite(product.id)} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
                                             <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
                                             <span>{(product.favorites || 0) + (isFavorited ? 1 : 0)} {t('accountListings.favorites')}</span>

@@ -10,26 +10,27 @@ import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
-import { useToast } from '@/hooks/use-toast';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const router = useRouter();
     const { t, language } = useTranslation();
-    const { toast } = useToast();
+    const [isLiked, setIsLiked] = useState(false);
     
     const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
         addSuffix: true,
         locale: locales[language] || enUS
     });
 
-    const handleInteraction = (e: React.MouseEvent, action: () => void) => {
+    const handleInteraction = (e: React.MouseEvent, action?: () => void) => {
         e.stopPropagation();
         e.preventDefault();
-        action();
+        if (action) action();
     };
 
     const handleCommentClick = (e: React.MouseEvent) => {
@@ -40,18 +41,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
     const handleLikeClick = (e: React.MouseEvent) => {
         handleInteraction(e, () => {
-            toast({
-                title: t('bbsPage.thankYouForLike'),
-            });
+            setIsLiked(prev => !prev);
         });
     };
     
     const handleViewsClick = (e: React.MouseEvent) => {
-        handleInteraction(e, () => {
-            toast({
-                title: t('productCardActions.featureComingSoon'),
-            });
-        });
+        handleInteraction(e);
     };
 
     return (
@@ -104,14 +99,23 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full">
-                        <button onClick={handleCommentClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
+                        <Button variant="ghost" size="sm" onClick={handleCommentClick} className="flex items-center gap-1.5 z-10 hover:text-primary p-1 h-auto text-xs text-muted-foreground" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
-                        </button>
-                        <button onClick={handleLikeClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
-                            <ThumbsUp className="h-4 w-4" />
-                            <span>{post.likes}</span>
-                        </button>
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleLikeClick}
+                            className={cn(
+                                "p-1 h-auto text-xs text-muted-foreground rounded-md",
+                                isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:text-primary"
+                            )}
+                            title={`${post.likes} likes`}
+                        >
+                            <ThumbsUp className="h-4 w-4 mr-1" />
+                            <span>{post.likes + (isLiked ? 1 : 0)}</span>
+                        </Button>
                         <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />
                             <span>{post.views}</span>

@@ -16,6 +16,7 @@ import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 
 export function SeaOfTranquility() {
@@ -25,6 +26,7 @@ export function SeaOfTranquility() {
     const [isLoading, setIsLoading] = useState(true);
     const locales = { en: enUS, zh: zhCN, th: th };
     const { toast } = useToast();
+    const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         const fetchPosts = async () => {
@@ -36,10 +38,10 @@ export function SeaOfTranquility() {
         fetchPosts();
     }, []);
 
-    const handleInteraction = (e: React.MouseEvent, action: () => void) => {
+    const handleInteraction = (e: React.MouseEvent, action?: () => void) => {
         e.stopPropagation();
         e.preventDefault();
-        action();
+        if (action) action();
     };
 
     const handleCommentClick = (e: React.MouseEvent, postId: string) => {
@@ -48,20 +50,14 @@ export function SeaOfTranquility() {
         });
     };
 
-    const handleLikeClick = (e: React.MouseEvent) => {
+    const handleLikeClick = (e: React.MouseEvent, postId: string) => {
         handleInteraction(e, () => {
-            toast({
-                title: t('bbsPage.thankYouForLike'),
-            });
+            setLikedPosts(prev => ({ ...prev, [postId]: !prev[postId] }));
         });
     };
     
     const handleViewsClick = (e: React.MouseEvent) => {
-        handleInteraction(e, () => {
-            toast({
-                title: t('productCardActions.featureComingSoon'),
-            });
-        });
+        handleInteraction(e);
     };
 
     if (isLoading) {
@@ -130,6 +126,7 @@ export function SeaOfTranquility() {
                                     addSuffix: true,
                                     locale: locales[language] || enUS
                                 });
+                                const isLiked = likedPosts[post.id];
 
                                 return (
                                     <Link key={post.id} href={`/bbs/${post.id}`} className="group block flex-1">
@@ -156,14 +153,23 @@ export function SeaOfTranquility() {
                                                 </div>
                                             </div>
                                             <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full mt-3 pt-3 border-t border-border/50">
-                                                <button onClick={(e) => handleCommentClick(e, post.id)} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.replies} replies`}>
+                                                <Button variant="ghost" size="sm" onClick={(e) => handleCommentClick(e, post.id)} className="flex items-center gap-1.5 z-10 hover:text-primary p-1 h-auto text-xs text-muted-foreground" title={`${post.replies} replies`}>
                                                     <MessageSquare className="h-4 w-4" />
                                                     <span>{post.replies}</span>
-                                                </button>
-                                                <button onClick={handleLikeClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.likes} likes`}>
-                                                    <ThumbsUp className="h-4 w-4" />
-                                                    <span>{post.likes}</span>
-                                                </button>
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={(e) => handleLikeClick(e, post.id)}
+                                                    className={cn(
+                                                        "p-1 h-auto text-xs text-muted-foreground rounded-md",
+                                                        isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:text-primary"
+                                                    )}
+                                                    title={`${post.likes} likes`}
+                                                >
+                                                    <ThumbsUp className="h-4 w-4 mr-1" />
+                                                    <span>{post.likes + (isLiked ? 1 : 0)}</span>
+                                                </Button>
                                                 <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                                                     <Eye className="h-4 w-4" />
                                                     <span>{post.views}</span>

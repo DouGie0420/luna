@@ -111,7 +111,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-    const [likeToast, setLikeToast] = useState(false);
     const [replyToast, setReplyToast] = useState(false);
     const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
 
@@ -124,37 +123,21 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
     useEffect(() => {
         if (permissionErrorToast) {
-            setTimeout(() => {
-                toast({
-                    variant: 'destructive',
-                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-                });
-                setPermissionErrorToast(false);
-            }, 0);
+            toast({
+                variant: 'destructive',
+                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+            setPermissionErrorToast(false);
         }
     }, [permissionErrorToast, isGuest, t, toast]);
     
     useEffect(() => {
-        if (likeToast) {
-            setTimeout(() => {
-                toast({
-                    title: t('productComments.likeSuccess'),
-                    description: t('productComments.replyNotification'),
-                });
-                setLikeToast(false);
-            }, 0);
-        }
-    }, [likeToast, t, toast]);
-    
-    useEffect(() => {
         if (replyToast) {
-            setTimeout(() => {
-                toast({
-                    title: t('productComments.commentPosted'),
-                    description: t('productComments.replyNotification'),
-                });
-                setReplyToast(false);
-            }, 0);
+            toast({
+                title: t('productComments.commentPosted'),
+                description: t('productComments.replyNotification'),
+            });
+            setReplyToast(false);
         }
     }, [replyToast, t, toast]);
 
@@ -217,9 +200,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     
             if (type === 'like') {
                 newStatus = currentStatus === 'liked' ? null : 'liked';
-                if (newStatus === 'liked') {
-                    setLikeToast(true);
-                }
             } else { // dislike
                 newStatus = currentStatus === 'disliked' ? null : 'disliked';
             }
@@ -285,13 +265,29 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                 <span className="font-semibold text-foreground">{author?.name}</span>
                                 {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
-                            <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
-                                <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
-                                    <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
-                                </button>
-                                <button onClick={() => handleLikeDislike(comment.id, 'dislike')} className={cn("flex items-center gap-1.5 z-10 hover:text-destructive", isDisliked && "text-destructive fill-destructive")}>
-                                    <ThumbsDown className="h-4 w-4" /> <span>{author?.badReviews ?? 0}</span>
-                                </button>
+                            <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleLikeDislike(comment.id, 'like')}
+                                    className={cn(
+                                        "h-auto p-1.5 rounded-md",
+                                        isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
+                                    )}
+                                >
+                                    <ThumbsUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleLikeDislike(comment.id, 'dislike')}
+                                    className={cn(
+                                        "h-auto p-1.5 rounded-md",
+                                        isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
+                                    )}
+                                >
+                                    <ThumbsDown className="h-4 w-4" />
+                                </Button>
                                 <span>{timeAgo}</span>
                             </div>
                         </div>

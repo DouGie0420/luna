@@ -15,6 +15,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Heart, Star, Share2 } from 'lucide-react';
@@ -107,11 +108,7 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
         handleInteractionNotAllowed();
         return;
     }
-    const newLikedState = !isLiked;
-    setIsLiked(newLikedState);
-    if(newLikedState) {
-      toast({ title: t('bbsPage.thankYouForLike') });
-    }
+    setIsLiked(prev => !prev);
   }
 
   const handleFavoriteClick = () => {
@@ -171,8 +168,16 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
         </Carousel>
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          <Button onClick={handleLikeClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-rose-500 backdrop-blur-sm animate-glow">
-              <Heart className={cn("h-5 w-5", isLiked && "text-yellow-400 fill-yellow-400")} />
+            <Button
+                onClick={handleLikeClick}
+                variant="ghost"
+                size="icon"
+                className={cn(
+                    "rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow",
+                    isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-black/70 hover:text-rose-500"
+                )}
+            >
+              <Heart className="h-5 w-5" />
           </Button>
           <Button onClick={handleFavoriteClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
               <Star className={cn("h-5 w-5", isFavorited && "text-yellow-400 fill-yellow-400")} />
