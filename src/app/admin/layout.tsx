@@ -77,6 +77,24 @@ export default function AdminLayout({
       )
   }
 
+  // Check for email verification if user signed up with email/password
+  if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
+    return (
+       <div className="flex h-screen w-full items-center justify-center p-4">
+            <Alert variant="destructive" className="max-w-lg">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>{t('admin.layout.verifyEmailPrompt')}</AlertTitle>
+                <AlertDescription>
+                   {t('admin.layout.verifyEmailCTA')}
+                </AlertDescription>
+                 <div className="mt-4">
+                    <Link href="/" className="text-sm font-semibold underline">{t('admin.layout.goHome')}</Link>
+                </div>
+            </Alert>
+        </div>
+    )
+  }
+
   return (
     <SidebarProvider>
       <Sidebar>

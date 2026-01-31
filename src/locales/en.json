@@ -42,7 +42,8 @@
     "alreadyHaveAccount": "Already have an account?",
     "registrationSuccessTitle": "Registration Successful",
     "registrationFailedTitle": "Registration Failed",
-    "registrationFailedDescription": "Could not register with social account. Please try again later."
+    "registrationFailedDescription": "Could not register with social account. Please try again later.",
+    "emailVerificationSent": "Verification email sent. Please check your inbox."
   },
   "userNav": {
     "myAccount": "My Account",
@@ -480,7 +481,9 @@
       "logout": "Logout",
       "accessDenied": "Access Denied",
       "accessDeniedDescription": "You do not have permission to view this page. This area is for administrators only.",
-      "goHome": "Go back to Home"
+      "goHome": "Go back to Home",
+      "verifyEmailPrompt": "Please verify your email to activate admin privileges.",
+      "verifyEmailCTA": "A verification link has been sent to your email. Please check your inbox (and spam folder)."
     },
     "dashboardPage": {
       "totalUsers": "Total Users",

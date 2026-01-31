@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { useFirebaseAuth } from "@/firebase/auth/use-user"
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
@@ -70,6 +70,9 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
+      // Send verification email
+      await sendEmailVerification(user);
+
       const additionalData: Partial<UserProfile> = {
         displayName: username,
         phone,
@@ -80,7 +83,8 @@ export default function RegisterPage() {
 
       toast({
         title: t('registerPage.registrationSuccessTitle'),
-        duration: 3000,
+        description: t('registerPage.emailVerificationSent'),
+        duration: 5000,
         variant: 'success',
       });
       router.push('/');
