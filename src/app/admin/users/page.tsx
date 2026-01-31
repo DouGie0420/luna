@@ -20,10 +20,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, CheckCircle } from "lucide-react"
-import { formatDistanceToNow } from "date-fns";
+import { Loader2 } from "lucide-react"
+import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
+import { Badge } from "@/components/ui/badge";
 
 type UserRole = NonNullable<UserProfile['role']>;
 
@@ -80,24 +81,30 @@ export default function AdminUsersPage() {
                     {users && users.length > 0 ? (
                         users.map(user => (
                             <TableRow key={user.uid}>
-                                <TableCell className="font-medium flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarImage src={user.photoURL} alt={user.displayName} />
-                                        <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                                    </Avatar>
-                                    <p>{user.displayName}</p>
+                                <TableCell className="font-medium">
+                                    <div className="flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarImage src={user.photoURL} alt={user.displayName} />
+                                            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                                        </Avatar>
+                                        <p>{user.displayName}</p>
+                                    </div>
                                 </TableCell>
-                                <TableCell className="text-muted-foreground flex items-center gap-2">
-                                    {user.email}
-                                    {user.emailVerified && (
-                                        <CheckCircle className="h-5 w-5 text-green-400" title={t('admin.usersPage.emailVerified')} />
-                                    )}
+                                <TableCell>
+                                    <div className="font-medium">{user.email}</div>
+                                    <div>
+                                        {user.emailVerified ? (
+                                            <Badge variant="default" className="mt-1 border-green-500/50 bg-green-500/20 text-green-300">Verified</Badge>
+                                        ) : (
+                                            <Badge variant="destructive" className="mt-1 border-red-500/50 bg-red-500/20 text-red-300">Not Verified</Badge>
+                                        )}
+                                    </div>
                                 </TableCell>
                                 <TableCell>
                                      <span className="text-muted-foreground">{user.kycStatus}</span>
                                 </TableCell>
                                 <TableCell>
-                                    {user.createdAt?.toDate ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
+                                    {user.createdAt?.toDate ? format(user.createdAt.toDate(), 'yyyy/MM/dd') : 'N/A'}
                                 </TableCell>
                                 <TableCell>
                                      <Select 
