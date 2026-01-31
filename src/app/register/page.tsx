@@ -1,7 +1,6 @@
-
 'use client'
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -17,12 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { useFirebaseAuth } from "@/firebase/auth/use-user"
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification, User as FirebaseUser } from "firebase/auth"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
 import { useToast } from "@/hooks/use-toast"
-import { X, Loader2, MailCheck } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
 import type { UserProfile } from "@/lib/types";
 
@@ -42,9 +41,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [uiState, setUiState] = useState<'form' | 'pending_verification'>('form');
-  const [registeredUser, setRegisteredUser] = useState<FirebaseUser | null>(null);
-  
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -52,15 +48,6 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (cooldown > 0) {
-      timer = setTimeout(() => setCooldown(prev => prev - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [cooldown]);
 
   const handleEmailRegister = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -81,20 +68,18 @@ export default function RegisterPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      setRegisteredUser(user);
-
-      // Send verification email
-      await sendEmailVerification(user);
 
       const additionalData: Partial<UserProfile> = {
         displayName: username,
         phone,
         email,
       };
-
+      
       await upsertUserProfile(firestore, user, additionalData);
       
-      setUiState('pending_verification');
+      await sendEmailVerification(user);
+
+      router.push(`/verify-email?email=${email}`);
 
     } catch (error: any) {
       let description = "An unknown error occurred.";
@@ -121,16 +106,6 @@ export default function RegisterPage() {
     }
   };
 
-  const handleResendVerification = async () => {
-    if (!registeredUser || cooldown > 0) return;
-    try {
-        await sendEmailVerification(registeredUser);
-        toast({ title: t('registerPage.emailVerificationResent') });
-        setCooldown(60);
-    } catch (error: any) {
-        toast({ variant: 'destructive', title: 'Error', description: error.message });
-    }
-  };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
     if (!auth || !firestore) return;
@@ -158,35 +133,6 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
-
-  if (uiState === 'pending_verification') {
-    return (
-        <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
-            <Card className="w-full max-w-md mx-auto relative text-center">
-                 <CardHeader>
-                    <MailCheck className="mx-auto h-16 w-16 text-green-400" />
-                    <CardTitle className="text-2xl font-headline mt-4">{t('registerPage.emailVerificationSent')}</CardTitle>
-                    <CardDescription>
-                        {t('registerPage.checkYourInbox').replace('{email}', email)}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">
-                        {t('registerPage.didNotReceiveEmail')}
-                    </p>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4">
-                    <Button className="w-full" onClick={handleResendVerification} disabled={cooldown > 0}>
-                        {cooldown > 0 ? `${t('registerPage.resendIn')} ${cooldown}s` : t('registerPage.resendEmail')}
-                    </Button>
-                    <Button variant="ghost" asChild>
-                      <Link href="/">{t('common.close')}</Link>
-                    </Button>
-                </CardFooter>
-            </Card>
-        </div>
-    )
-  }
 
   return (
     <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
@@ -285,5 +231,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
-    

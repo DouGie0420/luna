@@ -43,11 +43,14 @@
     "registrationSuccessTitle": "Registration Successful",
     "registrationFailedTitle": "Registration Failed",
     "registrationFailedDescription": "Could not register with social account. Please try again later.",
-    "emailVerificationSent": "Verification Email Sent!",
-    "emailVerificationResent": "Verification email has been resent.",
-    "checkYourInbox": "Please check your inbox at {email} and click the link to activate your account.",
-    "didNotReceiveEmail": "Didn't receive the email?",
-    "resendEmail": "Resend Email",
+    "emailVerificationResent": "Verification email has been resent."
+  },
+  "verify-email": {
+    "title": "Verify Your Email",
+    "description": "A verification link has been sent to {email}. Please check your inbox (and spam folder) and click the link to activate your account.",
+    "verifiedLogin": "Verified? Login",
+    "didNotReceive": "Didn't receive the email?",
+    "resend": "Resend Email",
     "resendIn": "Resend in"
   },
   "userNav": {

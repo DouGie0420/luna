@@ -43,11 +43,14 @@
     "registrationSuccessTitle": "ลงทะเบียนสำเร็จ",
     "registrationFailedTitle": "การลงทะเบียนล้มเหลว",
     "registrationFailedDescription": "ไม่สามารถลงทะเบียนด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง",
-    "emailVerificationSent": "ส่งอีเมลยืนยันแล้ว!",
-    "emailVerificationResent": "ส่งอีเมลยืนยันอีกครั้งแล้ว",
-    "checkYourInbox": "โปรดตรวจสอบกล่องจดหมายของคุณที่ {email} และคลิกลิงก์เพื่อเปิดใช้งานบัญชีของคุณ",
-    "didNotReceiveEmail": "ไม่ได้รับอีเมลใช่ไหม",
-    "resendEmail": "ส่งอีเมลอีกครั้ง",
+    "emailVerificationResent": "ส่งอีเมลยืนยันอีกครั้งแล้ว"
+  },
+  "verify-email": {
+    "title": "ยืนยันอีเมลของคุณ",
+    "description": "ลิงก์ยืนยันถูกส่งไปยัง {email} แล้ว โปรดตรวจสอบกล่องจดหมายของคุณ (และโฟลเดอร์สแปม) และคลิกลิงก์เพื่อเปิดใช้งานบัญชีของคุณ",
+    "verifiedLogin": "ยืนยันแล้ว? เข้าสู่ระบบ",
+    "didNotReceive": "ไม่ได้รับอีเมลใช่ไหม",
+    "resend": "ส่งอีเมลอีกครั้ง",
     "resendIn": "ส่งอีกครั้งใน"
   },
   "userNav": {

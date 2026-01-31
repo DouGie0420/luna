@@ -43,11 +43,14 @@
     "registrationSuccessTitle": "注册成功",
     "registrationFailedTitle": "注册失败",
     "registrationFailedDescription": "无法通过社交账号注册，请稍后再试。",
-    "emailVerificationSent": "验证邮件已发送！",
-    "emailVerificationResent": "验证邮件已重新发送。",
-    "checkYourInbox": "请检查您的邮箱 {email} 并点击链接以激活您的账户。",
-    "didNotReceiveEmail": "没有收到邮件？",
-    "resendEmail": "重新发送邮件",
+    "emailVerificationResent": "验证邮件已重新发送。"
+  },
+  "verify-email": {
+    "title": "验证您的邮箱",
+    "description": "一封验证邮件已发送至 {email}。请检查您的收件箱（以及垃圾邮件文件夹）并点击链接以激活您的账户。",
+    "verifiedLogin": "已验证？去登录",
+    "didNotReceive": "没有收到邮件？",
+    "resend": "重新发送",
     "resendIn": "秒后可重发"
   },
   "userNav": {
