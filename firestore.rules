@@ -49,12 +49,21 @@ service cloud.firestore {
       allow update: if 
         // Admins can update any user document.
         isAdmin() || 
-        // Users can update their own document IF...
+        // Or the user is updating their own profile within allowed boundaries.
         (isOwner(userId) && (
-          // 1. They are NOT changing their role.
-          request.resource.data.role == resource.data.role ||
-          // 2. They ARE changing their role, but only from 'guest' to 'user', and their email is verified in the database.
-          (resource.data.role == 'guest' && request.resource.data.role == 'user' && resource.data.emailVerified == true)
+            // A user CANNOT change these core fields. Any update attempting to change them will fail.
+            request.resource.data.email == resource.data.email &&
+            request.resource.data.kycStatus == resource.data.kycStatus &&
+            request.resource.data.creditScore == resource.data.creditScore &&
+            request.resource.data.creditLevel == resource.data.creditLevel &&
+
+            // The 'role' field has special logic:
+            (
+              // EITHER the role is not changing...
+              request.resource.data.role == resource.data.role ||
+              // ...OR it's the one-time promotion from 'guest' to 'user' after email verification.
+              (resource.data.role == 'guest' && request.resource.data.role == 'user' && request.auth.token.email_verified == true)
+            )
         ));
       
       // Only admins can delete user documents.
