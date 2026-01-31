@@ -40,10 +40,10 @@ service cloud.firestore {
       
       // An admin can update any field.
       // A user can update their own profile, but cannot change their own role,
-      // EXCEPT for promoting themselves from 'guest' to 'user' after email verification.
+      // EXCEPT for promoting themselves from 'guest' to 'user' after their email is verified.
       allow update: if isAdmin() || (isOwner(userId) && (
                       request.resource.data.role == resource.data.role ||
-                      (resource.data.role == 'guest' && request.resource.data.role == 'user' && request.auth.token.email_verified == true)
+                      (resource.data.role == 'guest' && resource.data.emailVerified == true && request.resource.data.role == 'user')
                     ));
 
       // A user can create their own profile, but must have the 'guest' role initially.
