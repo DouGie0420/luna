@@ -426,6 +426,12 @@
     "commentPosted": "แสดงความคิดเห็นแล้ว",
     "reply": "ตอบกลับ",
     "replyTo": "กำลังตอบกลับ",
-    "cancelReply": "ยกเลิกการตอบกลับ"
+    "cancelReply": "ยกเลิกการตอบกลับ",
+    "delete": "ลบ",
+    "deleteConfirmTitle": "ยืนยันการลบ",
+    "deleteConfirmDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบความคิดเห็นนี้? การกระทำนี้ไม่สามารถยกเลิกได้",
+    "deleteConfirmAction": "ยืนยันการลบ",
+    "deleteCancel": "ยกเลิก",
+    "commentDeleted": "ลบความคิดเห็นแล้ว"
   }
 }

@@ -50,7 +50,7 @@ export default async function ProductPage({ params }: { params: { id: string } }
                     <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
                 </CardContent>
             </Card>
-
+            
             <ProductCommentSection productId={product.id} />
         </div>
 

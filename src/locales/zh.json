@@ -426,6 +426,12 @@
     "commentPosted": "留言已发布",
     "reply": "回复",
     "replyTo": "回复",
-    "cancelReply": "取消回复"
+    "cancelReply": "取消回复",
+    "delete": "删除",
+    "deleteConfirmTitle": "确认删除",
+    "deleteConfirmDescription": "您确定要删除这条留言吗？此操作无法撤销。",
+    "deleteConfirmAction": "确认删除",
+    "deleteCancel": "取消",
+    "commentDeleted": "留言已删除"
   }
 }
