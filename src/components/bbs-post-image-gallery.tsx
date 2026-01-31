@@ -37,6 +37,8 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
 
   const images = post.images || [];
   const imageHints = post.imageHints || [];
@@ -95,7 +97,23 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
         handleInteractionNotAllowed();
         return;
     }
-    toast({ title: t('bbsPage.thankYouForLike') });
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    if(newLikedState) {
+      toast({ title: t('bbsPage.thankYouForLike') });
+    }
+  }
+
+  const handleFavoriteClick = () => {
+    if (!canInteract) {
+        handleInteractionNotAllowed();
+        return;
+    }
+    const newFavoriteState = !isFavorited;
+    setIsFavorited(newFavoriteState);
+    if(newFavoriteState) {
+        toast({ title: t('productCardActions.addedToFavorites') });
+    }
   }
 
   return (
@@ -141,10 +159,10 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
           <Button onClick={handleLikeClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-rose-500 backdrop-blur-sm animate-glow">
-              <Heart className="h-5 w-5" />
+              <Heart className={cn("h-5 w-5", isLiked && "text-yellow-400 fill-yellow-400")} />
           </Button>
-          <Button onClick={handleLikeClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
-              <Star className="h-5 w-5" />
+          <Button onClick={handleFavoriteClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
+              <Star className={cn("h-5 w-5", isFavorited && "text-yellow-400 fill-yellow-400")} />
           </Button>
           <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">
               <Share2 className="h-5 w-5" />

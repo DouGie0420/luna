@@ -253,7 +253,8 @@
     "deleteConfirmAction": "确认删除",
     "deleteCancel": "取消",
     "deleteSuccess": "商品已删除",
-    "featureComingSoon": "功能即将推出！"
+    "featureComingSoon": "功能即将推出！",
+    "addedToFavorites": "已加入您的收藏！"
   },
   "buyNowButton": {
     "buyNow": "立即购买",

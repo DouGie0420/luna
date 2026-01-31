@@ -253,7 +253,8 @@
     "deleteConfirmAction": "Confirm Delete",
     "deleteCancel": "Cancel",
     "deleteSuccess": "Item deleted successfully",
-    "featureComingSoon": "Feature coming soon!"
+    "featureComingSoon": "Feature coming soon!",
+    "addedToFavorites": "Added to your favorites!"
   },
   "buyNowButton": {
     "buyNow": "Buy Now",

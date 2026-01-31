@@ -25,9 +25,10 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Bookmark } from 'lucide-react';
+import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Star } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 function ProductActions({ product, onDelete }: { product: Product; onDelete: (productId: string) => void; }) {
     const { t } = useTranslation();
@@ -110,8 +111,10 @@ function ProductActions({ product, onDelete }: { product: Product; onDelete: (pr
 
 export default function MyListingsPage() {
     const { t } = useTranslation();
+    const { toast } = useToast();
     const [userProducts, setUserProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [interactionState, setInteractionState] = useState<Record<string, { liked: boolean; favorited: boolean }>>({});
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -125,6 +128,34 @@ export default function MyListingsPage() {
 
     const handleDeleteProduct = (productId: string) => {
         setUserProducts(currentProducts => currentProducts.filter(p => p.id !== productId));
+    };
+
+    const handleLike = (productId: string) => {
+        setInteractionState(prev => {
+            const current = prev[productId] || { liked: false, favorited: false };
+            const newState = !current.liked;
+            if (newState) {
+                toast({ title: t('bbsPage.thankYouForLike') });
+            }
+            return {
+                ...prev,
+                [productId]: { ...current, liked: newState }
+            };
+        });
+    };
+    
+    const handleFavorite = (productId: string) => {
+        setInteractionState(prev => {
+            const current = prev[productId] || { liked: false, favorited: false };
+            const newState = !current.favorited;
+            if (newState) {
+                toast({ title: t('productCardActions.addedToFavorites') });
+            }
+            return {
+                ...prev,
+                [productId]: { ...current, favorited: newState }
+            };
+        });
     };
 
     if (loading) {
@@ -160,51 +191,55 @@ export default function MyListingsPage() {
 
             {userProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {userProducts.map((product) => (
-                        <Card key={product.id} className="overflow-hidden h-full flex flex-col group">
-                            <CardHeader className="p-0">
-                                <div className="aspect-[4/3] relative overflow-hidden">
-                                <Link href={`/products/${product.id}`}>
-                                    <Image
-                                    src={product.images[0]}
-                                    alt={product.name}
-                                    fill
-                                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                                    data-ai-hint={product.imageHints[0]}
-                                    />
-                                </Link>
-                                </div>
-                            </CardHeader>
-                            <CardContent className="p-4 flex-grow">
-                                <Link href={`/products/${product.id}`}>
-                                    <CardTitle className="font-headline text-lg mb-2 leading-tight hover:underline">
-                                        {product.name}
-                                    </CardTitle>
-                                </Link>
-                                <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
-                                    <div className="flex items-center gap-1">
-                                        <Heart className="h-4 w-4" />
-                                        <span>{product.likes || 0} {t('accountListings.likes')}</span>
+                    {userProducts.map((product) => {
+                        const isLiked = interactionState[product.id]?.liked;
+                        const isFavorited = interactionState[product.id]?.favorited;
+                        return (
+                            <Card key={product.id} className="overflow-hidden h-full flex flex-col group">
+                                <CardHeader className="p-0">
+                                    <div className="aspect-[4/3] relative overflow-hidden">
+                                    <Link href={`/products/${product.id}`}>
+                                        <Image
+                                        src={product.images[0]}
+                                        alt={product.name}
+                                        fill
+                                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                        data-ai-hint={product.imageHints[0]}
+                                        />
+                                    </Link>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <Bookmark className="h-4 w-4" />
-                                        <span>{product.favorites || 0} {t('accountListings.favorites')}</span>
+                                </CardHeader>
+                                <CardContent className="p-4 flex-grow">
+                                    <Link href={`/products/${product.id}`}>
+                                        <CardTitle className="font-headline text-lg mb-2 leading-tight hover:underline">
+                                            {product.name}
+                                        </CardTitle>
+                                    </Link>
+                                    <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2">
+                                        <button onClick={() => handleLike(product.id)} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
+                                            <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                                            <span>{(product.likes || 0) + (isLiked ? 1 : 0)} {t('accountListings.likes')}</span>
+                                        </button>
+                                        <button onClick={() => handleFavorite(product.id)} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">
+                                            <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                                            <span>{(product.favorites || 0) + (isFavorited ? 1 : 0)} {t('accountListings.favorites')}</span>
+                                        </button>
                                     </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="p-4 flex justify-between items-center">
-                                <div>
-                                    <p className="text-lg font-semibold text-primary">
-                                    {product.price.toLocaleString()}
-                                    <span className="text-xs text-muted-foreground ml-1">{product.currency}</span>
-                                    </p>
-                                </div>
-                                <div>
-                                    <ProductActions product={product} onDelete={handleDeleteProduct} />
-                                </div>
-                            </CardFooter>
-                        </Card>
-                    ))}
+                                </CardContent>
+                                <CardFooter className="p-4 flex justify-between items-center">
+                                    <div>
+                                        <p className="text-lg font-semibold text-primary">
+                                        {product.price.toLocaleString()}
+                                        <span className="text-xs text-muted-foreground ml-1">{product.currency}</span>
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <ProductActions product={product} onDelete={handleDeleteProduct} />
+                                    </div>
+                                </CardFooter>
+                            </Card>
+                        )
+                    })}
                 </div>
             ) : (
                 <div className="text-center py-20 border-2 border-dashed rounded-lg">

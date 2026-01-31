@@ -61,19 +61,23 @@ const CommentForm = ({
     value, 
     onChange, 
     onSubmit,
-    placeholder 
+    placeholder,
+    isReplying,
+    onCancelReply
 } : {
     isSubmitting: boolean;
     value: string;
     onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
     onSubmit: () => void;
     placeholder: string;
+    isReplying?: boolean;
+    onCancelReply?: () => void;
 }) => {
     const { t } = useTranslation();
     return (
         <div className="space-y-2">
+            <div className="text-sm text-muted-foreground">{placeholder}</div>
             <Textarea
-                placeholder={placeholder}
                 value={value}
                 onChange={onChange}
                 maxLength={500}
@@ -81,10 +85,17 @@ const CommentForm = ({
             />
             <div className="flex justify-between items-center">
                 <p className="text-xs text-muted-foreground">{value.length} / 500</p>
-                <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
-                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {t('productComments.submit')}
-                </Button>
+                <div className="flex items-center gap-2">
+                    {isReplying && (
+                        <Button variant="outline" onClick={onCancelReply} disabled={isSubmitting}>
+                            {t('productComments.cancelReply')}
+                        </Button>
+                    )}
+                    <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('productComments.submit')}
+                    </Button>
+                </div>
             </div>
         </div>
     )
@@ -250,6 +261,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                 onChange={(e) => setNewComment(e.target.value)}
                                 onSubmit={handlePostComment}
                                 placeholder={placeholderText}
+                                isReplying={true}
+                                onCancelReply={() => setReplyingTo(null)}
                             />
                         </div>
                     )}
@@ -270,22 +283,13 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         {canInteract ? (
                             <>
                                 {!replyingTo && (
-                                        <CommentForm 
+                                    <CommentForm 
                                         isSubmitting={isSubmitting}
                                         value={newComment}
                                         onChange={(e) => setNewComment(e.target.value)}
                                         onSubmit={handlePostComment}
                                         placeholder={placeholderText}
                                     />
-                                )}
-                                {replyingTo && (
-                                    <div className="flex items-center justify-between text-sm mb-2">
-                                        <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
-                                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
-                                            <X className="mr-1 h-3 w-3" />
-                                            {t('productComments.cancelReply')}
-                                        </Button>
-                                    </div>
                                 )}
                             </>
                         ) : (

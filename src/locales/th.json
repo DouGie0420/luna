@@ -253,7 +253,8 @@
     "deleteConfirmAction": "ยืนยันการลบ",
     "deleteCancel": "ยกเลิก",
     "deleteSuccess": "ลบรายการสำเร็จแล้ว",
-    "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!"
+    "featureComingSoon": "ฟีเจอร์นี้จะมาในเร็วๆ นี้!",
+    "addedToFavorites": "เพิ่มในรายการโปรดแล้ว!"
   },
   "buyNowButton": {
     "buyNow": "ซื้อตอนนี้",
