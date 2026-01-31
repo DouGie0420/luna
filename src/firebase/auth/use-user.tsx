@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { onAuthStateChanged, type Auth, type User as FirebaseUser, type UserInfo, type UserMetadata, type IdTokenResult, Unsubscribe } from 'firebase/auth';
 import { doc, onSnapshot, type Firestore } from 'firebase/firestore';
 import { FirebaseContext } from '@/firebase/provider';
@@ -100,29 +100,29 @@ export const useUser = (): UserState => {
 
   const auth = useFirebaseAuth();
   const firestore = useContext(FirebaseContext)?.firestore;
-  
+
   useEffect(() => {
-    // This effect should only run once on mount to set up listeners.
-    // The dependencies `auth` and `firestore` should be stable.
+    // This effect should only run once, or when auth/firestore instances change.
+    // All subsequent logic is handled by the listeners.
+    
     if (!auth || !firestore) {
-      setUserState(s => s.loading ? s : { ...s, loading: true });
+      setUserState(s => ({ ...s, loading: true }));
       return;
     }
-
+    
     // --- Test User Logic ---
     if (typeof window !== 'undefined' && localStorage.getItem('isTestUser') === 'true') {
       setUserState({ user: testUser, profile: testProfile, loading: false, error: null });
       return;
     }
 
-    // --- Wallet User Logic (Non-Firebase Auth) ---
+    // --- Wallet User Logic ---
     const walletUserString = typeof window !== 'undefined' ? localStorage.getItem('walletUser') : null;
     if (walletUserString) {
         const walletUser = JSON.parse(walletUserString);
         const mockUser = createMockFirebaseUser(walletUser);
         const profileRef = doc(firestore, 'users', mockUser.uid);
-
-        const unsubscribeProfile = onSnapshot(profileRef, 
+        const unsubscribe = onSnapshot(profileRef, 
             (docSnapshot) => {
                 setUserState({
                     user: mockUser,
@@ -136,76 +136,61 @@ export const useUser = (): UserState => {
                 setUserState({ user: mockUser, profile: null, loading: false, error });
             }
         );
-        return () => unsubscribeProfile();
+        return () => unsubscribe();
     }
     
     // --- Standard Firebase Auth Logic ---
-    let profileUnsubscribe: Unsubscribe | null = null;
-    
-    const authUnsubscribe = onAuthStateChanged(auth, async (user) => {
-        // Clean up previous profile listener if it exists
-        if (profileUnsubscribe) {
-            profileUnsubscribe();
-            profileUnsubscribe = null;
-        }
+    let profileUnsubscribe: Unsubscribe | undefined;
 
-        if (user) {
-            await user.reload(); // Always get the freshest auth state
-            const freshUser = auth.currentUser; // The user object from reload
+    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+      // Clean up previous profile listener if it exists
+      if (profileUnsubscribe) {
+        profileUnsubscribe();
+      }
 
-            if (!freshUser) {
-                setUserState({ user: null, profile: null, loading: false, error: null });
-                return;
-            }
-
-            const profileRef = doc(firestore, 'users', freshUser.uid);
-            profileUnsubscribe = onSnapshot(profileRef, 
-                (profileDoc) => {
-                    const profileData = profileDoc.exists() ? (profileDoc.data() as UserProfile) : null;
-                    
-                    // Use functional update to avoid stale state issues.
-                    setUserState(prevState => ({
-                        ...prevState,
-                        user: freshUser,
-                        profile: profileData,
-                        loading: false,
-                        error: null,
-                    }));
-
-                    // Side-effect to sync auth state to firestore profile
-                    if (profileData) {
-                        const updates: Partial<UserProfile> = {};
-                        if (freshUser.emailVerified && !profileData.emailVerified) {
-                            updates.emailVerified = true;
-                        }
-                        if (freshUser.emailVerified && profileData.role === 'guest') {
-                            updates.role = 'user';
-                        }
-                        if (Object.keys(updates).length > 0) {
-                            updateUserProfile(firestore, freshUser.uid, updates);
-                        }
-                    }
-                },
-                (error) => {
-                    console.error('Error fetching user profile:', error);
-                    setUserState(prevState => ({ ...prevState, user: freshUser, profile: null, loading: false, error }));
+      if (user) {
+        const profileRef = doc(firestore, 'users', user.uid);
+        
+        // Set up a new listener for the current user's profile
+        profileUnsubscribe = onSnapshot(profileRef,
+          (profileDoc) => {
+            const profileData = profileDoc.exists() ? (profileDoc.data() as UserProfile) : null;
+            
+            // Side-effect to sync auth state (like email verification) to the Firestore profile
+            if (profileData) {
+                const updates: Partial<UserProfile> = {};
+                if (user.emailVerified && !profileData.emailVerified) {
+                    updates.emailVerified = true;
                 }
-            );
-        } else {
-            // User is signed out
-            setUserState({ user: null, profile: null, loading: false, error: null });
-        }
-    }, (error) => {
-        console.error('Auth state change error:', error);
-        setUserState({ user: null, profile: null, loading: false, error });
+                if (user.emailVerified && profileData.role === 'guest') {
+                    updates.role = 'user';
+                }
+                if (Object.keys(updates).length > 0) {
+                    updateUserProfile(firestore, user.uid, updates);
+                }
+            }
+            
+            // This is the single point of truth for updating the state for a logged-in user.
+            // It runs whenever the profile data changes.
+            setUserState({ user, profile: profileData, loading: false, error: null });
+          },
+          (error) => {
+            console.error('Profile snapshot error:', error);
+            setUserState({ user, profile: null, loading: false, error });
+          }
+        );
+      } else {
+        // User is signed out, clear all state
+        setUserState({ user: null, profile: null, loading: false, error: null });
+      }
     });
 
     // Cleanup function for the main useEffect
     return () => {
-        authUnsubscribe();
-        if (profileUnsubscribe) {
-            profileUnsubscribe();
-        }
+      authUnsubscribe();
+      if (profileUnsubscribe) {
+        profileUnsubscribe();
+      }
     };
   }, [auth, firestore]);
 
