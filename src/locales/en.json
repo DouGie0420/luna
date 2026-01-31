@@ -460,5 +460,14 @@
     "continueEditing": "Continue Editing",
     "likeSuccess": "Liked! The author will be notified.",
     "replyNotification": "The author will be notified of your reply."
+  },
+  "searchPage": {
+    "title": "Search",
+    "resultsFor": "Search Results for \"{query}\"",
+    "noResultsFor": "No results found for \"{query}\"",
+    "tryAnotherSearch": "Try another search",
+    "noResultsDescription": "We couldn't find any items matching your search.",
+    "searchForAnything": "Search for anything",
+    "searchHint": "Enter a keyword in the search bar above to get started."
   }
 }

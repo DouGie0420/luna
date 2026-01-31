@@ -460,5 +460,14 @@
     "continueEditing": "继续编辑",
     "likeSuccess": "点赞成功！作者将会收到通知。",
     "replyNotification": "作者将会收到您的回复通知。"
+  },
+  "searchPage": {
+    "title": "搜索",
+    "resultsFor": "“{query}”的搜索结果",
+    "noResultsFor": "未找到“{query}”的相关结果",
+    "tryAnotherSearch": "尝试其他搜索",
+    "noResultsDescription": "我们找不到与您的搜索匹配的任何商品。",
+    "searchForAnything": "搜索任何东西",
+    "searchHint": "在上面的搜索栏中输入关键字以开始。"
   }
 }

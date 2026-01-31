@@ -460,5 +460,14 @@
     "continueEditing": "แก้ไขต่อ",
     "likeSuccess": "ถูกใจแล้ว! ผู้เขียนจะได้รับการแจ้งเตือน",
     "replyNotification": "ผู้เขียนจะได้รับการแจ้งเตือนการตอบกลับของคุณ"
+  },
+  "searchPage": {
+    "title": "ค้นหา",
+    "resultsFor": "ผลการค้นหาสำหรับ \"{query}\"",
+    "noResultsFor": "ไม่พบผลลัพธ์สำหรับ \"{query}\"",
+    "tryAnotherSearch": "ลองค้นหาอีกครั้ง",
+    "noResultsDescription": "เราไม่พบรายการใดที่ตรงกับการค้นหาของคุณ",
+    "searchForAnything": "ค้นหาอะไรก็ได้",
+    "searchHint": "ป้อนคำหลักในแถบค้นหาด้านบนเพื่อเริ่มต้น"
   }
 }
