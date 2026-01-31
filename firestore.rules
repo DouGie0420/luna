@@ -53,7 +53,8 @@ service cloud.firestore {
           // --- PROTECTED FIELDS: User cannot change these core data points ---
           request.resource.data.creditScore == resource.data.creditScore &&
           request.resource.data.creditLevel == resource.data.creditLevel &&
-          request.resource.data.kycStatus == resource.data.kycStatus &&
+          // --- LOGIC: User can submit for KYC by changing status from Not Verified to Pending ---
+          (request.resource.data.kycStatus == resource.data.kycStatus || (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) &&
           request.resource.data.isPro == resource.data.isPro &&
           
           // --- LOGIC: Role can only be promoted from guest to user, or stay the same ---
