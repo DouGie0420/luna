@@ -32,7 +32,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -86,10 +85,10 @@ function PostPageSkeleton() {
             <div className="container mx-auto px-4 py-12 max-w-4xl">
                 <Card>
                     <div className="p-4 border-b">
-                        <div className="flex items-center gap-4">
-                            <Skeleton className="h-16 w-16 rounded-full" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-5 w-32" />
+                        <div className="flex items-start gap-4">
+                            <Skeleton className="h-20 w-20 rounded-full" />
+                            <div className="flex-1 space-y-3 pt-1">
+                                <Skeleton className="h-6 w-32" />
                                 <Skeleton className="h-4 w-48" />
                                 <Skeleton className="h-4 w-64" />
                             </div>
@@ -145,7 +144,7 @@ const CommentForm = ({
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
-          <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={onCancelClick}>
+          <Button variant="default" onClick={onCancelClick}>
             {t('productComments.cancelReply')}
           </Button>
         </div>
@@ -214,12 +213,9 @@ export default function BbsPostPage() {
 
     useEffect(() => {
         if(user && post) {
-            const postAuthorIdNum = parseInt(post.author.id.replace('user', ''));
-            if (user.uid === 'test-user-uid' && postAuthorIdNum % 2 === 0) {
-                setIsFollowing(true);
-            } else {
-                setIsFollowing(false);
-            }
+            // Mock following state
+            const isFollowed = localStorage.getItem(`follow_${post.author.id}`) === 'true';
+            setIsFollowing(isFollowed);
         }
     }, [user, post]);
 
@@ -275,13 +271,16 @@ export default function BbsPostPage() {
     }
 
     const handleFollowToggle = () => {
-        if (!canInteract) {
+        if (!canInteract || !post) {
             handleInteractionNotAllowed();
             return;
         }
         setIsFollowing(prev => {
-            setFollowToast(!prev ? 'followed' : 'unfollowed');
-            return !prev;
+            const newState = !prev;
+            setFollowToast(newState ? 'followed' : 'unfollowed');
+            // Mock persistence
+            localStorage.setItem(`follow_${post.author.id}`, String(newState));
+            return newState;
         });
     };
 
@@ -434,12 +433,12 @@ export default function BbsPostPage() {
                         </Avatar>
                     </Link>
                     <div className="flex-1">
-                        <div className="flex items-center justify-between">
+                         <div className="flex items-center justify-between">
                              <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
                             <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
+                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                                 <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
                                     <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
                                 </button>
@@ -492,7 +491,7 @@ export default function BbsPostPage() {
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {t('productComments.submit')}
                                 </Button>
-                                <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
+                                <Button variant="default" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
                                     {t('productComments.cancelReply')}
                                 </Button>
                                 </div>

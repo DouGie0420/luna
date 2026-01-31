@@ -87,7 +87,7 @@ const CommentForm = ({
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
-           <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={onCancelClick}>
+           <Button variant="default" onClick={onCancelClick}>
             {t('productComments.cancelReply')}
           </Button>
         </div>
@@ -139,6 +139,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             setTimeout(() => {
                 toast({
                     title: t('productComments.likeSuccess'),
+                    description: t('productComments.replyNotification'),
                 });
                 setLikeToast(false);
             }, 0);
@@ -182,7 +183,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 authorId: user.uid,
                 text: newComment,
                 date: new Date(),
-                parentId: replyingTo?.id,
+                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
