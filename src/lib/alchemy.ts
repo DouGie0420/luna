@@ -34,7 +34,7 @@ export const getNftsForOwner = async (ownerAddress: string): Promise<SimplifiedN
     try {
         const nfts = await alchemy.nft.getNftsForOwner(ownerAddress);
         return nfts.ownedNfts
-            .filter(nft => nft.media.length > 0 && nft.media[0].gateway)
+            .filter(nft => nft.media && nft.media.length > 0 && nft.media[0].gateway)
             .map(nft => ({
                 name: nft.name || `#${nft.tokenId}`,
                 imageUrl: resolveIpfsUrl(nft.media[0].gateway),
