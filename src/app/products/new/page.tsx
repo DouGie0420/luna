@@ -170,7 +170,7 @@ export default function NewProductPage() {
         title: t('newProductPage.submitSuccessTitle'),
         description: t('newProductPage.submitSuccessDescription'),
     });
-    router.push('/account/listings');
+    router.push(`/products/${newProduct.id}`);
   };
 
   if (loading || !user) {
