@@ -82,36 +82,34 @@ service cloud.firestore {
 
     // ORDERS
     match /orders/{orderId} {
-       // Only the buyer, seller, or an admin can access an order.
-       allow read, write: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
+       // get, update, delete can check resource.data
+       allow get, update, delete: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
                          || request.auth.uid == resource.data.sellerId))
                          || isAdmin();
-       // Only a signed-in user can create an order, and they must be the buyer.
+       // list CANNOT check resource.data, so only admins can list all orders.
+       allow list: if isAdmin();
+       // create checks request.resource.data
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
-    allow list: if isAdmin();
     
     // REVIEWS
     match /reviews/{reviewId} {
        // Anyone can read reviews.
        allow read: if true;
-       // Only the reviewer, the reviewee, or an admin can modify/delete a review.
-       allow write: if (isSignedIn() && (request.auth.uid == resource.data.reviewerId
-                         || request.auth.uid == resource.data.revieweeId))
-                         || isAdmin();
        // Only the reviewer can create a review.
        allow create: if isOwner(request.resource.data.reviewerId);
+       // Only the reviewer or an admin can modify/delete a review.
+       allow update, delete: if isOwner(resource.data.reviewerId) || isAdmin();
     }
 
     // SUPPORT TICKETS (Managed by Support/Admins)
     match /supportTickets/{ticketId} {
-        // Allow the user who created the ticket, support staff, and admins to read/update.
-        allow read, update: if (isSignedIn() && request.auth.uid == resource.data.userId) || isSupport();
-        // Allow any signed-in user to create a ticket.
+        // get, update, delete can check resource.data for individual tickets
+        allow get, update, delete: if (isSignedIn() && request.auth.uid == resource.data.userId) || isSupport();
+        // list can only check request context, not individual documents
+        allow list: if isSupport();
+        // any signed-in user can create a ticket
         allow create: if isSignedIn();
-        // Only support staff and admins can delete tickets.
-        allow delete: if isSupport();
     }
-    allow list: if isSupport();
   }
 }
