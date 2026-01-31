@@ -108,17 +108,19 @@ function SearchPageContent() {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="text-center py-20 rounded-full bg-card/50 animate-glow-border-muted">
-                                        <SearchIcon className="mx-auto h-12 w-12 text-primary/50 animate-pulse" />
-                                        <h1 className="text-3xl font-headline mt-6 mb-2 text-yellow-400" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
-                                            {t('searchPage.noResultsFor').replace('{query}', query)}
-                                        </h1>
-                                        <h2 className="text-xl font-headline text-muted-foreground mb-2" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.3s forwards' }}>
-                                            {t('searchPage.tryAnotherSearch')}
-                                        </h2>
-                                        <p className="text-muted-foreground" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.5s forwards' }}>
-                                            {t('searchPage.noResultsDescription')}
-                                        </p>
+                                    <div className="text-center">
+                                        <div className="inline-block text-center py-8 px-16 rounded-full bg-card/50 animate-glow-border-muted">
+                                            <SearchIcon className="mx-auto h-12 w-12 text-primary/50 animate-pulse" />
+                                            <h1 className="text-3xl font-headline mt-6 mb-2 text-yellow-400" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
+                                                {t('searchPage.noResultsFor').replace('{query}', query)}
+                                            </h1>
+                                            <h2 className="text-xl font-headline text-muted-foreground mb-2" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.3s forwards' }}>
+                                                {t('searchPage.tryAnotherSearch')}
+                                            </h2>
+                                            <p className="text-muted-foreground" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.5s forwards' }}>
+                                                {t('searchPage.noResultsDescription')}
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </>
