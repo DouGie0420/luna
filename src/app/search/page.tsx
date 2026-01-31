@@ -96,22 +96,29 @@ function SearchPageContent() {
                     <div>
                         {query ? (
                             <>
-                                <h1 className="text-3xl font-headline mb-8">
-                                    {results.length > 0 
-                                        ? t('searchPage.resultsFor').replace('{query}', query)
-                                        : t('searchPage.noResultsFor').replace('{query}', query)
-                                    }
-                                </h1>
                                 {results.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                                        {results.map(product => (
-                                            <ProductCard key={product.id} product={product} />
-                                        ))}
-                                    </div>
+                                    <>
+                                        <h1 className="text-3xl font-headline mb-8">
+                                            {t('searchPage.resultsFor').replace('{query}', query)}
+                                        </h1>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                                            {results.map(product => (
+                                                <ProductCard key={product.id} product={product} />
+                                            ))}
+                                        </div>
+                                    </>
                                 ) : (
-                                    <div className="text-center py-20 border-2 border-dashed rounded-lg border-border/50">
-                                        <h2 className="text-2xl font-headline mb-2">{t('searchPage.tryAnotherSearch')}</h2>
-                                        <p className="text-muted-foreground">{t('searchPage.noResultsDescription')}</p>
+                                    <div className="text-center py-20 border-2 border-dashed rounded-lg border-primary/30 bg-card/50">
+                                        <SearchIcon className="mx-auto h-12 w-12 text-primary/50 animate-pulse" />
+                                        <h1 className="text-3xl font-headline mt-6 mb-2 text-primary opacity-0" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
+                                            {t('searchPage.noResultsFor').replace('{query}', query)}
+                                        </h1>
+                                        <h2 className="text-xl font-headline text-muted-foreground mb-2 opacity-0" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.3s forwards' }}>
+                                            {t('searchPage.tryAnotherSearch')}
+                                        </h2>
+                                        <p className="text-muted-foreground opacity-0" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.5s forwards' }}>
+                                            {t('searchPage.noResultsDescription')}
+                                        </p>
                                     </div>
                                 )}
                             </>
