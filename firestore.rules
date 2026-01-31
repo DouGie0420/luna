@@ -17,10 +17,7 @@ service cloud.firestore {
     }
     
     function getUserRole() {
-      if (!isSignedIn()) {
-        return 'guest';
-      }
-      return getUserData().role;
+      return isSignedIn() ? getUserData().role : 'guest';
     }
 
     function isAdmin() {
@@ -42,11 +39,10 @@ service cloud.firestore {
       // Anyone can read a user's public profile.
       allow read: if true;
       
-      // Only the user or an admin can update their own profile.
-      // Admins can also change roles.
-      allow update: if (isOwner(userId))
-                   || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
-                   || (isAdmin() && !request.resource.data.diff(resource.data).affectedKeys().has('role'));
+      // A user can update their own profile, but cannot change their own role.
+      // An admin can update any field, including the role.
+      allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role)
+                   || isAdmin();
 
       // Users cannot be created directly, only through auth trigger logic.
       // Admins can't create users either.
