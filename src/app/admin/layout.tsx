@@ -182,7 +182,8 @@ export default function AdminLayout({
                 <LogOut />
                 Logout
               </SidebarMenuButton>
-            </SidebarMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
