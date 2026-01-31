@@ -402,7 +402,7 @@ const bbsPosts: BbsPost[] = [
       author: users[4],
       tags: ['硬件改造', 'DIY', '教程'],
       replies: 42,
-      likes: 128,
+      likes: 1280,
       views: 2500,
       favorites: 95,
       createdAt: '2024-07-28T10:00:00Z',

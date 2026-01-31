@@ -37,7 +37,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin } from 'lucide-react';
+import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -602,6 +602,12 @@ export default function BbsPostPage() {
                         <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{t(post.contentKey)}</p>
 
                         <div className="flex flex-wrap gap-2 mt-6">
+                        {post.isFeatured && (
+                            <Badge variant="outline" className="text-xs border-amber-400/50 bg-amber-400/10 text-amber-300">
+                                <Star className="mr-1 h-3 w-3 fill-amber-300" />
+                                {t('bbsPage.featuredBadge')}
+                            </Badge>
+                        )}
                         {post.tags.map(tag => (
                             <Badge key={tag} variant="secondary">#{tag}</Badge>
                         ))}

@@ -31,9 +31,26 @@ export function SeaOfTranquility() {
     useEffect(() => {
         const fetchPosts = async () => {
             setIsLoading(true);
-            const fetchedPosts = await getBbsPosts();
-            setPosts(fetchedPosts.slice(0, 4));
-            setIsLoading(false);
+            try {
+                const allPosts = await getBbsPosts();
+
+                const featured = allPosts.filter(p => p.isFeatured);
+                const notFeatured = allPosts.filter(p => !p.isFeatured);
+
+                // Sort both by date to ensure newest are picked if needed
+                featured.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                notFeatured.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                // Combine, prioritizing featured posts, and take the top 6 for the UI
+                const displayPosts = [...featured, ...notFeatured].slice(0, 6);
+
+                setPosts(displayPosts);
+            } catch (err) {
+                console.error("Failed to fetch posts for Sea of Tranquility.", err);
+                setPosts([]);
+            } finally {
+                setIsLoading(false);
+            }
         };
         fetchPosts();
     }, []);
@@ -82,7 +99,7 @@ export function SeaOfTranquility() {
                     </div>
                     {/* Other Posts Skeleton */}
                     <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
+                        {[...Array(5)].map((_, i) => (
                              <div key={i} className="flex items-center gap-4 p-2">
                                 <Skeleton className="h-20 w-20 shrink-0 rounded-md" />
                                 <div className="space-y-2 flex-1">
