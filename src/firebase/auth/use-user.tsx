@@ -62,6 +62,26 @@ const testProfile: UserProfile = {
   creditLevel: 'Gold',
 };
 
+function createMockFirebaseUser(userInfo: { uid: string, displayName: string, photoURL: string }): FirebaseUser {
+    return {
+        uid: userInfo.uid,
+        email: null,
+        displayName: userInfo.displayName,
+        photoURL: userInfo.photoURL,
+        providerId: 'web3',
+        emailVerified: false,
+        isAnonymous: false,
+        metadata: { creationTime: new Date().toUTCString(), lastSignInTime: new Date().toUTCString() } as UserMetadata,
+        providerData: [],
+        refreshToken: 'mock-refresh-token',
+        tenantId: null,
+        delete: async () => {},
+        getIdToken: async () => 'mock-id-token',
+        getIdTokenResult: async () => ({ token: 'mock-id-token' } as IdTokenResult),
+        reload: async () => {},
+        toJSON: () => ({ ...userInfo, email: null }),
+    };
+}
 
 export const useFirebaseAuth = (): Auth | null => {
   const firebase = useContext(FirebaseContext);
@@ -91,6 +111,27 @@ export const useUser = (): UserState => {
           error: null,
         });
         return; // Don't attach real auth listener
+      }
+      
+      const walletUserString = localStorage.getItem('walletUser');
+      if (walletUserString && firestore) {
+          const walletUser = JSON.parse(walletUserString);
+          const mockUser = createMockFirebaseUser(walletUser);
+          
+          // For wallet user, we also fetch their profile from Firestore
+          const profileRef = doc(firestore, 'users', mockUser.uid);
+          const unsubscribeProfile = onSnapshot(profileRef, (doc) => {
+              setUserState({
+                  user: mockUser,
+                  profile: doc.exists() ? (doc.data() as UserProfile) : null,
+                  loading: false,
+                  error: null,
+              });
+          }, (error) => {
+              setUserState({ user: mockUser, profile: null, loading: false, error });
+          });
+          
+          return () => unsubscribeProfile();
       }
     }
 

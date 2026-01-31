@@ -39,7 +39,7 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
                 bio: '',
                 kycStatus: 'Not Verified',
                 isPro: false,
-                isWeb3Verified: false,
+                isWeb3Verified: true, // Mark as Web3 verified
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
                 rating: 0,
@@ -72,6 +72,64 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
         throw permissionError;
     }
 }
+
+
+export async function upsertWalletUser(db: Firestore, address: string): Promise<UserProfile> {
+    const userRef = doc(db, 'users', address);
+    try {
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+            const userProfile = userDoc.data() as UserProfile;
+            const updateData = { lastLogin: serverTimestamp() };
+            updateDoc(userRef, updateData).catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: userRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+            return { ...userProfile, ...updateData };
+        } else {
+            const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+            const newUserProfile: UserProfile = {
+                uid: address,
+                displayName: shortAddress,
+                photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${address}`,
+                kycStatus: 'Not Verified',
+                isWeb3Verified: true,
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp(),
+                rating: 0,
+                reviewsCount: 0,
+                salesCount: 0,
+                purchasesCount: 0,
+                followersCount: 0,
+                followingCount: 0,
+                creditScore: 0,
+                creditLevel: 'Newcomer',
+            };
+            setDoc(userRef, newUserProfile).catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: userRef.path,
+                    operation: 'create',
+                    requestResourceData: newUserProfile,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+            return newUserProfile;
+        }
+    } catch (error) {
+        console.error("Error upserting wallet user profile: ", error);
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'get',
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+    }
+}
+
 
 export function updateUserProfile(db: Firestore, uid: string, data: Partial<UserProfile>) {
     const userRef = doc(db, 'users', uid);

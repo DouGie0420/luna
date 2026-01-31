@@ -152,7 +152,6 @@
       },
       "required": [
         "uid",
-        "email",
         "kycStatus",
         "createdAt"
       ]

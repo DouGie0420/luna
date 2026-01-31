@@ -13,16 +13,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet } from "lucide-react";
 import Link from "next/link";
-import { useUser, useAuth } from "@/firebase";
+import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "../ui/skeleton";
 import React from "react";
 import { useTranslation } from "@/hooks/use-translation";
+import { signInWithMetaMask } from "@/lib/wallet";
 
 export function UserNav() {
   const { t } = useTranslation();
   const { user, profile, loading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const isLoggedIn = !!user;
   const isTestUser = user?.uid === 'test-user-uid';
@@ -30,29 +32,49 @@ export function UserNav() {
   const handleLogout = async () => {
     if (isTestUser) {
       localStorage.removeItem('isTestUser');
-      toast({
-        title: t('userNav.logout'),
-        description: t('userNav.logoutTestSuccess'),
-      });
-      window.location.href = '/'; // Full reload to clear state
-      return;
+    }
+    // Also clear wallet user
+    if (localStorage.getItem('walletUser')) {
+      localStorage.removeItem('walletUser');
     }
     
-    if (auth) {
+    if (auth && auth.currentUser) {
       await auth.signOut();
-      toast({
-        title: t('userNav.logout'),
-        description: t('userNav.logoutSuccess'),
-      });
-      window.location.href = '/';
     }
+
+    toast({
+      title: t('userNav.logout'),
+      description: t('userNav.logoutSuccess'),
+    });
+    window.location.href = '/';
   };
   
-  const handleWeb3Login = () => {
-    toast({
-      title: t('userNav.web3LoginComingSoonTitle'),
-      description: t('userNav.web3LoginComingSoonDescription'),
-    });
+  const handleWeb3Login = async () => {
+    if (!firestore) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Firebase is not ready, please try again in a moment.",
+        });
+        return;
+    }
+    try {
+        const profile = await signInWithMetaMask(firestore);
+        if (profile) {
+            toast({
+                title: "Wallet Connected",
+                description: `Logged in as ${profile.displayName}`,
+            });
+            // Use a full page reload to ensure the useUser hook re-initializes
+            window.location.href = '/account';
+        }
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Connection Failed",
+            description: error.message || "An unknown error occurred.",
+        });
+    }
   };
 
 
@@ -121,9 +143,9 @@ export function UserNav() {
         <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user.displayName || "User"}</p>
+                <p className="text-sm font-medium leading-none">{profile?.displayName || user.displayName || "User"}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  {user.email}
+                  {profile?.email || user.email}
                 </p>
             </div>
             </DropdownMenuLabel>

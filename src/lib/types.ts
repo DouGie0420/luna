@@ -53,7 +53,7 @@ export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
 
 export type UserProfile = {
     uid: string;
-    email: string;
+    email?: string;
     displayName: string;
     photoURL: string;
     gender?: '男' | '女' | '其他' | '保密';
