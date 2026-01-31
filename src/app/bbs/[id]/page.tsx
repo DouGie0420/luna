@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound } from 'next/navigation';
@@ -19,28 +19,38 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { ThumbsUp, Star, Share2, Plus, MessageSquare, MapPin, Calendar } from 'lucide-react';
+import { ThumbsUp, Star, Share2, Plus, MessageSquare, MapPin, Calendar, X, Reply } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
+type Comment = {
+  id: string;
+  authorId: string;
+  text: string;
+  date: Date;
+  parentId?: string;
+};
+
+type NestedComment = Comment & {
+    replies: NestedComment[];
+};
+
 // Placeholder comments
-const initialComments = [
-    { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
-    { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
-    { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
-    { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
-    { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
-    { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
-    { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
-    { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
-    { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
-    { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
-    { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
-    { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
+const initialComments: Comment[] = [
+    { id: 'c1', authorId: 'user10', text: '这件商品还有吗？', date: new Date(Date.now() - 5 * 60 * 60 * 1000) },
+    { id: 'c8', authorId: 'user1', text: '有货！', date: new Date(Date.now() - 4 * 60 * 60 * 1000), parentId: 'c1' },
+    { id: 'c2', authorId: 'user3', text: '价格可以商量吗？', date: new Date(Date.now() - 2 * 60 * 60 * 1000) },
+    { id: 'c3', authorId: 'user2', text: '太棒了！我有一个类似的，非常喜欢。', date: new Date(Date.now() - 1 * 60 * 60 * 1000) },
+    { id: 'c4', authorId: 'user1', text: '有国际保修吗？', date: new Date(Date.now() - 55 * 60 * 1000) },
+    { id: 'c9', authorId: 'user3', text: '问得好，我也想知道。', date: new Date(Date.now() - 50 * 60 * 1000), parentId: 'c4' },
+    { id: 'c5', authorId: 'user6', text: '这太适合我的设置了。', date: new Date(Date.now() - 45 * 60 * 1000) },
+    { id: 'c6', authorId: 'user5', text: '刚订了一个，等不及了！', date: new Date(Date.now() - 30 * 60 * 1000) },
+    { id: 'c7', authorId: 'user4', text: '看起来不错，但电池续航怎么样？', date: new Date(Date.now() - 2 * 60 * 1000) },
 ];
+
 
 const COMMENTS_INITIAL_LOAD = 10;
 const COMMENTS_LOAD_MORE = 10;
@@ -86,10 +96,11 @@ export default function BbsPostPage() {
     const [loading, setLoading] = useState(true);
 
     const { user, profile } = useUser();
-    const [comments, setComments] = useState(initialComments);
+    const [comments, setComments] = useState<Comment[]>(initialComments);
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
+    const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -140,13 +151,16 @@ export default function BbsPostPage() {
 
         setIsSubmitting(true);
         setTimeout(() => {
-            const newCommentObject = {
-                user: user.uid,
+            const newCommentObject: Comment = {
+                id: `c${Date.now()}`,
+                authorId: user.uid,
                 text: newComment,
-                time: '刚刚',
+                date: new Date(),
+                parentId: replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
+            setReplyingTo(null);
             setIsSubmitting(false);
             toast({ title: t('productComments.commentPosted') });
         }, 500);
@@ -155,6 +169,32 @@ export default function BbsPostPage() {
     const handleLoadMoreComments = () => {
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
+
+    const nestedComments = useMemo(() => {
+        const commentMap: { [key: string]: NestedComment } = {};
+        comments.forEach(comment => {
+            commentMap[comment.id] = { ...comment, date: new Date(comment.date), replies: [] };
+        });
+    
+        const topLevelComments: NestedComment[] = [];
+        comments.forEach(comment => {
+            if (comment.parentId && commentMap[comment.parentId]) {
+                commentMap[comment.parentId].replies.push(commentMap[comment.id]);
+            } else {
+                topLevelComments.push(commentMap[comment.id]);
+            }
+        });
+        
+        topLevelComments.sort((a, b) => b.date.getTime() - a.date.getTime());
+        topLevelComments.forEach(comment => {
+            if (comment.replies) {
+              comment.replies.sort((a, b) => a.date.getTime() - b.date.getTime());
+            }
+        });
+    
+        return topLevelComments;
+    }, [comments]);
+
 
     if (loading) {
         return (
@@ -170,18 +210,64 @@ export default function BbsPostPage() {
     }
     
     const postDate = new Date(post.createdAt);
-    const timeAgo = formatDistanceToNow(postDate, { addSuffix: true, locale: locales[language] || enUS });
-
-    const getUserById = (userId: string) => {
-        if (user && userId === user.uid) {
-            return {
+    
+    const getUserById = (userId: string): User | undefined => {
+       if (user && userId === user.uid) {
+            const currentUserAsLibUser: User = {
                 id: user.uid,
                 name: profile?.displayName || user.displayName || 'You',
                 avatarUrl: profile?.photoURL || user.photoURL || '',
-            } as User;
+                rating: profile?.rating || 0,
+                reviews: profile?.reviewsCount || 0,
+                followersCount: profile?.followersCount || 0,
+                followingCount: profile?.followingCount || 0,
+                location: profile?.location ? { city: profile.location, country: '?', countryCode: '?', lat: 0, lng: 0 } : undefined,
+            };
+            return currentUserAsLibUser;
         }
         return users.find(u => u.id === userId);
     };
+
+    const placeholderText = replyingTo 
+        ? `${t('productComments.replyTo')} ${replyingTo.authorName}...` 
+        : t('productComments.placeholder');
+    
+    const renderComment = (comment: NestedComment) => {
+        const author = getUserById(comment.authorId);
+        const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
+
+        return (
+            <div key={comment.id} className="flex items-start gap-3">
+                <Link href={`/user/${author?.id || comment.authorId}`}>
+                    <Avatar className="h-8 w-8">
+                        {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
+                        <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
+                    </Avatar>
+                </Link>
+                <div className="flex-1">
+                    <div className="flex items-baseline gap-2">
+                        <Link href={`/user/${author?.id || comment.authorId}`}>
+                            <span className="text-sm font-semibold text-muted-foreground hover:underline">{author?.name}</span>
+                        </Link>
+                         {author?.location && <p className="text-xs text-muted-foreground/80">&middot; {author.location.city}</p>}
+                    </div>
+                    <p className="text-sm my-1">{comment.text}</p>
+                    <div className="flex items-center justify-between">
+                       <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
+                            onClick={() => setReplyingTo({ id: comment.id, authorName: author?.name || 'User' })}
+                        >
+                            <MessageSquare className="mr-1 h-3 w-3" />
+                            {t('productComments.reply')}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -198,20 +284,16 @@ export default function BbsPostPage() {
                             </Avatar>
                             <div>
                                 <p className="font-bold group-hover:underline">{post.author.name}</p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    {post.author.location && (
-                                        <>
-                                            <span>{post.author.location.city}</span>
-                                            <span className="mx-1">&middot;</span>
-                                        </>
-                                    )}
-                                    <span>{timeAgo}</span>
+                                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                    <span>{post.author.followersCount || 0} {t('userProfile.followers')}</span>
+                                    <span className="mx-1">&middot;</span>
+                                    <span>{post.author.followingCount || 0} {t('userProfile.following')}</span>
                                 </div>
                             </div>
                         </Link>
                         <Button size="sm">
                             <Plus className="mr-2 h-4 w-4" />
-                            关注
+                            {t('userProfile.follow')}
                         </Button>
                     </div>
 
@@ -250,45 +332,20 @@ export default function BbsPostPage() {
                     {/* Comments */}
                      <div id="comments" className="px-6 pb-6 scroll-mt-24">
                         <Separator className="my-6" />
-                        <div className="space-y-6">
-                            <p className="text-lg font-semibold">{comments.length} 条评论</p>
-                            {comments.slice(0, visibleCommentsCount).map((comment, index) => {
-                                const user = getUserById(comment.user);
-                                return user ? (
-                                    <div key={index} className="flex items-start gap-3">
-                                        <Link href={`/user/${user.id}`}>
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                        </Link>
-                                        <div className="flex-1">
-                                            <div className="flex items-baseline gap-2">
-                                                <Link href={`/user/${user.id}`}>
-                                                    <span className="text-sm font-semibold text-muted-foreground hover:underline">{user.name}</span>
-                                                </Link>
-                                                <p className="text-xs text-muted-foreground">{comment.time}</p>
-                                            </div>
-                                            <p className="text-sm">{comment.text}</p>
-                                        </div>
-                                    </div>
-                                ) : null;
-                            })}
-                            {comments.length > visibleCommentsCount && (
-                                <div className="text-center mt-6">
-                                    <Button variant="outline" onClick={handleLoadMoreComments}>
-                                        {t('bbsPage.loadMoreComments')}
+
+                        {/* Comment Form */}
+                        <div className="space-y-2 mb-8">
+                            {replyingTo && (
+                                <div className="flex items-center justify-between text-sm mb-2">
+                                    <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
+                                    <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
+                                        <X className="mr-1 h-3 w-3" />
+                                        {t('productComments.cancelReply')}
                                     </Button>
                                 </div>
                             )}
-                        </div>
-                    </div>
-                    
-                    {/* Actions Footer */}
-                    <div className="sticky bottom-0 p-4 border-t bg-card/80 backdrop-blur-sm z-20">
-                        <div className="space-y-2">
                             <Textarea
-                                placeholder={t('productComments.placeholder')}
+                                placeholder={placeholderText}
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 maxLength={2000}
@@ -307,6 +364,27 @@ export default function BbsPostPage() {
                                     {t('productComments.submit')}
                                 </Button>
                             </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <p className="text-lg font-semibold">{nestedComments.length} 条评论</p>
+                            {nestedComments.slice(0, visibleCommentsCount).map((comment) => (
+                                <div key={comment.id}>
+                                    {renderComment(comment)}
+                                    {comment.replies.length > 0 && (
+                                        <div className="ml-8 mt-4 space-y-4 border-l-2 pl-4">
+                                            {comment.replies.map(reply => renderComment(reply))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                            {nestedComments.length > visibleCommentsCount && (
+                                <div className="text-center mt-6">
+                                    <Button variant="outline" onClick={handleLoadMoreComments}>
+                                        {t('bbsPage.loadMoreComments')}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
