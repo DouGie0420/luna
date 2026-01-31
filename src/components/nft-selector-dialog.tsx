@@ -29,7 +29,12 @@ export function NftSelectorDialog({ open, onOpenChange, nfts, onSelect, isUpdati
     const { t } = useTranslation();
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+            onOpenChange(isOpen);
+            if (!isOpen) {
+                setSelectedNft(null); // Reset selection on close
+            }
+        }}>
             <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Select Your NFT Avatar</DialogTitle>
@@ -37,7 +42,7 @@ export function NftSelectorDialog({ open, onOpenChange, nfts, onSelect, isUpdati
                 </DialogHeader>
                 <ScrollArea className="h-96 pr-6">
                     {nfts.length === 0 ? (
-                        <p className="text-muted-foreground text-center">No NFTs found in your wallet.</p>
+                        <p className="text-muted-foreground text-center py-10">No image-based NFTs found in your wallet.</p>
                     ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
                             {nfts.map((nft) => (
