@@ -1,7 +1,6 @@
 import { Logo } from "./logo";
 import { UserNav } from "./user-nav";
 import { AnnouncementBar } from "./announcement-bar";
-import { LanguageSwitcher } from "@/components/language-switcher";
 import { GlowingPixelGrid } from "../glowing-pixel-grid";
 
 export function Header() {
@@ -16,7 +15,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          <LanguageSwitcher />
           <UserNav />
         </div>
       </div>

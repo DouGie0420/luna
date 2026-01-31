@@ -23,6 +23,7 @@ import { updateUserProfile } from "@/lib/user";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { getNftsForOwner, type SimplifiedNft } from "@/lib/alchemy";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 
 export function UserNav() {
@@ -198,6 +199,8 @@ export function UserNav() {
     }
   };
   
+  const isLoading = isLinkingWallet || isSyncingNfts || loading;
+  
   if (loading) {
     return (
       <div className="flex items-center gap-4">
@@ -208,35 +211,11 @@ export function UserNav() {
     );
   }
 
-  const WalletButton = () => {
-    const isLoading = isLinkingWallet || isSyncingNfts || loading;
-    const shortAddress = (profile?.walletAddress)
-      ? `${profile.walletAddress.slice(0, 6)}...${profile.walletAddress.slice(-4)}`
-      : '';
-
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        className={cn(
-          "rounded-full border-primary text-primary hover:bg-primary/10 hover:text-primary",
-          profile?.isNftVerified ? 'animate-glow-pink-neon' : 'animate-glow'
-        )}
-        onClick={handleWalletAction}
-        disabled={isLoading}
-      >
-        {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wallet className="mr-2 h-4 w-4" />}
-        {(profile?.isNftVerified && shortAddress) ? shortAddress : t('userNav.web3Wallet')}
-      </Button>
-    )
-  }
-
   if (!isLoggedIn) {
     return (
       <>
         <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
         <div className="flex items-center gap-2">
-             <WalletButton />
              <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/login">{t('common.login')}</Link>
             </Button>
@@ -251,8 +230,24 @@ export function UserNav() {
   return (
     <>
       <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
-      <div className="flex items-center gap-4">
-          <WalletButton />
+      <div className="flex items-center gap-2">
+          <div className={cn(
+            "relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate",
+            profile?.isNftVerified && 'animate-glow-pink-neon'
+          )}>
+              <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-full w-full rounded-full bg-background hover:bg-transparent"
+                  onClick={handleWalletAction}
+                  disabled={isLoading}
+                  title={t('userNav.web3Wallet')}
+              >
+                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
+                  <span className="sr-only">{t('userNav.web3Wallet')}</span>
+              </Button>
+          </div>
+          <LanguageSwitcher />
           <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
               <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
                   <Link href="/messages" title={t('userNav.messages')}>
