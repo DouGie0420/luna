@@ -256,25 +256,18 @@ export default function BbsPostPage() {
                     {/* Actions Footer */}
                     <div className="sticky bottom-0 p-4 border-t bg-card/80 backdrop-blur-sm z-20">
                         <div className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                                <Input
-                                    placeholder={t('productComments.placeholder')}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handlePostComment();
-                                        }
-                                    }}
-                                    className="pr-32"
-                                />
-                                <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
-                                    <Button variant="ghost" size="icon"><Star /></Button>
-                                    <Button variant="ghost" size="icon"><MessageSquare /></Button>
-                                    <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
-                                </div>
-                            </div>
+                            <Input
+                                placeholder={t('productComments.placeholder')}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        handlePostComment();
+                                    }
+                                }}
+                                className="flex-1"
+                            />
                             <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
                                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {t('productComments.submit')}
