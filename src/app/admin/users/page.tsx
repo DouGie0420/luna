@@ -1,6 +1,6 @@
 'use client';
 
-import { useCollection, useFirestore } from "@/firebase";
+import { useCollection, useFirestore, useUser } from "@/firebase";
 import { collection, query, doc, updateDoc } from "firebase/firestore";
 import type { UserProfile } from "@/lib/types";
 import {
@@ -18,15 +18,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2 } from "lucide-react"
+import { Loader2, MoreHorizontal } from "lucide-react"
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
 
-type UserRole = UserProfile['role'];
+type UserRole = NonNullable<UserProfile['role']>;
+
+const roleHierarchy = {
+    admin: 3,
+    staff: 2,
+    support: 1,
+    user: 0
+}
 
 export default function AdminUsersPage() {
+    const { profile: currentUserProfile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const usersQuery = firestore ? query(collection(firestore, 'users')) : null;
@@ -41,12 +57,77 @@ export default function AdminUsersPage() {
         toast({ title: "Role Updated", description: `User ${uid.slice(0, 6)}... is now a ${role}.` });
       } catch (error) {
         console.error("Failed to update role:", error);
-        toast({ variant: "destructive", title: "Update Failed", description: "Could not update user role." });
+        toast({ variant: "destructive", title: "Update Failed", description: "You do not have permission to change this user's role." });
       }
     };
+    
+    const visibleUsers = useMemo(() => {
+        if (!users || !currentUserProfile?.role) return [];
+
+        const currentUserLevel = roleHierarchy[currentUserProfile.role] || 0;
+
+        if (currentUserProfile.role === 'admin') {
+            return users;
+        }
+
+        return users.filter(user => {
+            const userLevel = roleHierarchy[user.role || 'user'] || 0;
+            return currentUserLevel > userLevel;
+        });
+
+    }, [users, currentUserProfile]);
 
     if (loading) {
         return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+    
+    const renderRoleCell = (user: UserProfile) => {
+      const userRole = user.role || 'user';
+
+      if (currentUserProfile?.role === 'admin') {
+        // Admins can edit anyone's role, including other admins
+        return (
+          <Select defaultValue={userRole} onValueChange={(value: UserRole) => handleRoleChange(user.uid, value)}>
+              <SelectTrigger className="w-[120px]" disabled={currentUserProfile.uid === user.uid}>
+                  <SelectValue placeholder="Set role" />
+              </SelectTrigger>
+              <SelectContent>
+                  <SelectItem value="user">user</SelectItem>
+                  <SelectItem value="support">support</SelectItem>
+                  <SelectItem value="staff">staff</SelectItem>
+                  <SelectItem value="admin">admin</SelectItem>
+              </SelectContent>
+          </Select>
+        )
+      }
+      // Staff and Support see roles as text
+      return <Badge variant={userRole === 'user' ? 'outline' : 'secondary'}>{userRole}</Badge>;
+    }
+
+    const renderActionsCell = (user: UserProfile) => {
+      if (currentUserProfile?.role === 'admin') {
+        return (
+          <Button variant="ghost" size="icon" disabled>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        );
+      }
+      if (currentUserProfile?.role === 'staff') {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+                <DropdownMenuItem disabled>Reset Password (soon)</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      }
+      // Support has no actions
+      return null;
     }
 
     return (
@@ -60,10 +141,11 @@ export default function AdminUsersPage() {
                         <TableHead>KYC Status</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead>Role</TableHead>
+                        {currentUserProfile?.role !== 'support' && <TableHead className="text-right">Actions</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {users && users.map(user => (
+                    {visibleUsers.map(user => (
                         <TableRow key={user.uid}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar>
@@ -82,18 +164,13 @@ export default function AdminUsersPage() {
                                 {user.createdAt?.toDate ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
                             </TableCell>
                              <TableCell>
-                                <Select defaultValue={user.role} onValueChange={(value: UserRole) => handleRoleChange(user.uid, value)}>
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Set role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="user">user</SelectItem>
-                                        <SelectItem value="support">support</SelectItem>
-                                        <SelectItem value="staff">staff</SelectItem>
-                                        <SelectItem value="admin">admin</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                                {renderRoleCell(user)}
                             </TableCell>
+                            {currentUserProfile?.role !== 'support' && (
+                              <TableCell className="text-right">
+                                {renderActionsCell(user)}
+                              </TableCell>
+                            )}
                         </TableRow>
                     ))}
                 </TableBody>

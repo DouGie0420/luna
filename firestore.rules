@@ -3,7 +3,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Global helper functions to check user roles.
+    // --- Helper Functions ---
     function isSignedIn() {
       return request.auth != null;
     }
@@ -15,27 +15,45 @@ service cloud.firestore {
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
+    
+    function getUserRole() {
+      if (!isSignedIn()) {
+        return 'guest';
+      }
+      return getUserData().role;
+    }
 
     function isAdmin() {
-      return isSignedIn() && getUserData().role == 'admin';
+      return getUserRole() == 'admin';
     }
 
     function isStaff() {
-      return isSignedIn() && (getUserData().role == 'staff' || isAdmin());
+      return getUserRole() == 'staff' || isAdmin();
     }
 
     function isSupport() {
-        return isSignedIn() && (getUserData().role == 'support' || isAdmin());
+      return getUserRole() == 'support' || isStaff() || isAdmin();
     }
+    
+    // --- Collection Rules ---
 
-    // USER PROFILES & SUBCOLLECTIONS
+    // USER PROFILES
     match /users/{userId} {
-      // Anyone can read a user's profile.
+      // Anyone can read a user's public profile.
       allow read: if true;
-      // Only the user themselves or an admin can update their profile.
-      allow write: if isOwner(userId) || isAdmin();
+      
+      // Only the user or an admin can update their own profile.
+      // Admins can also change roles.
+      allow update: if (isOwner(userId))
+                   || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
+                   || (isAdmin() && !request.resource.data.diff(resource.data).affectedKeys().has('role'));
 
-      // User subcollections are private to the user or admins.
+      // Users cannot be created directly, only through auth trigger logic.
+      // Admins can't create users either.
+      allow create: if false;
+      allow delete: if isAdmin(); // Only admins can delete user documents.
+
+      // User Subcollections
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isAdmin();
       }
@@ -44,7 +62,7 @@ service cloud.firestore {
       }
       match /notifications/{notificationId} {
         // Users can only access their own notifications.
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId);
       }
     }
 
@@ -54,7 +72,7 @@ service cloud.firestore {
       allow read: if true;
       // Any signed-in user can create a product, but must set themselves as the seller.
       allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid;
-      // Only the original seller or a staff/admin can update/delete a product.
+      // Only the original seller or staff/admin can update/delete a product.
       allow update, delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
     }
     
@@ -69,8 +87,8 @@ service cloud.firestore {
     // ORDERS
     match /orders/{orderId} {
        // Only the buyer, seller, or an admin can access an order.
-       allow read, write: if isOwner(resource.data.buyerId) 
-                         || isOwner(resource.data.sellerId) 
+       allow read, write: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
+                         || request.auth.uid == resource.data.sellerId))
                          || isAdmin();
        // Only a signed-in user can create an order, and they must be the buyer.
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
@@ -78,9 +96,11 @@ service cloud.firestore {
     
     // REVIEWS
     match /reviews/{reviewId} {
-       // Only the reviewer, the reviewee, or an admin can access a review.
-       allow read, write: if isOwner(resource.data.reviewerId)
-                         || isOwner(resource.data.revieweeId)
+       // Anyone can read reviews.
+       allow read: if true;
+       // Only the reviewer, the reviewee, or an admin can modify/delete a review.
+       allow write: if (isSignedIn() && (request.auth.uid == resource.data.reviewerId
+                         || request.auth.uid == resource.data.revieweeId))
                          || isAdmin();
        // Only the reviewer can create a review.
        allow create: if isOwner(request.resource.data.reviewerId);
@@ -88,8 +108,8 @@ service cloud.firestore {
 
     // SUPPORT TICKETS (Managed by Support/Admins)
     match /supportTickets/{ticketId} {
-        // Allow the user who created the ticket, support staff, and admins to access.
-        allow read, update: if isOwner(resource.data.userId) || isSupport();
+        // Allow the user who created the ticket, support staff, and admins to read/update.
+        allow read, update: if (isSignedIn() && request.auth.uid == resource.data.userId) || isSupport();
         // Allow any signed-in user to create a ticket.
         allow create: if isSignedIn();
         // Only support staff and admins can delete tickets.

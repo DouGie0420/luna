@@ -1,4 +1,3 @@
-
 'use client'
 
 import * as React from 'react'
@@ -53,7 +52,7 @@ export default function AdminLayout({
   const pathname = usePathname()
   const { user, profile, loading } = useUser()
   
-  const isActive = (path: string) => pathname === path || (path === '/admin' && pathname.startsWith('/admin/'))
+  const isActive = (path: string) => pathname.startsWith(path);
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -87,7 +86,7 @@ export default function AdminLayout({
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin')}>
+              <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                 <Link href="/admin">
                   <LayoutDashboard />
                   Dashboard
@@ -95,7 +94,7 @@ export default function AdminLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {hasRole(profile?.role, ['admin']) && (
+            {hasRole(profile?.role, ['admin', 'staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -146,7 +145,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {hasRole(profile?.role, ['admin']) && (
+            {hasRole(profile?.role, ['admin', 'staff']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                   <Link href="/admin/kyc-list">
