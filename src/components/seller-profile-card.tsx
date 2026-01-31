@@ -96,32 +96,32 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <ShoppingBag className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                <span className="font-bold hover:underline">
+                                <p className="font-bold hover:underline">
                                     {seller.itemsOnSale ?? 0}
-                                </span>
+                                </p>
                             </div>
                         </Link>
                         <Link href={`/user/${seller.id}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <ShoppingCart className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                <span className="font-bold hover:underline">
+                                <p className="font-bold hover:underline">
                                     {seller.itemsSold ?? 0}
-                                </span>
+                                </p>
                             </div>
                         </Link>
                         <Link href={`/user/${seller.id}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <Users className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                <p className="font-bold">{seller.followersCount || 0}</p>
+                                <p className="font-bold hover:underline">{seller.followersCount || 0}</p>
                             </div>
                         </Link>
                         <Link href={`/user/${seller.id}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <UserPlus className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                <p className="font-bold">{seller.followingCount || 0}</p>
+                                <p className="font-bold hover:underline">{seller.followingCount || 0}</p>
                             </div>
                         </Link>
                     </div>
@@ -155,19 +155,25 @@ export function SellerProfileCard({ product }: { product: Product }) {
 
                     <div>
                         <h4 className="font-semibold mb-2">{t('sellerProfile.reviewDetails')}</h4>
-                        <div className="space-y-2">
-                             <div className="flex justify-between items-center text-sm">
-                                <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
-                                <span className="font-medium">{seller.goodReviews ?? 0}</span>
-                            </div>
-                             <div className="flex justify-between items-center text-sm">
-                                <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
-                                <span className="font-medium">{seller.neutralReviews ?? 0}</span>
-                            </div>
-                             <div className="flex justify-between items-center text-sm">
-                                <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
-                                <span className="font-medium">{seller.badReviews ?? 0}</span>
-                            </div>
+                        <div className="space-y-1">
+                             <Link href={`/user/${seller.id}/reviews?type=good`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
+                                    <span className="font-medium hover:underline">{seller.goodReviews ?? 0}</span>
+                                </div>
+                             </Link>
+                             <Link href={`/user/${seller.id}/reviews?type=neutral`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
+                                    <span className="font-medium hover:underline">{seller.neutralReviews ?? 0}</span>
+                                </div>
+                             </Link>
+                             <Link href={`/user/${seller.id}/reviews?type=bad`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
+                                    <span className="font-medium hover:underline">{seller.badReviews ?? 0}</span>
+                                </div>
+                             </Link>
                         </div>
                     </div>
                 </div>

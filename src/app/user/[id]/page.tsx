@@ -131,39 +131,39 @@ export default function UserProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                            <Link href={`/user/${user.id}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/user/${user.id}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold">{user.itemsOnSale || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.itemsOnSale || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/user/${user.id}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/user/${user.id}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                        <p className="font-bold">{user.itemsSold || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.itemsSold || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                             <Link href={`/user/${user.id}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                             <Link href={`/user/${user.id}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                        <p className="font-bold">{user.followersCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.followersCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/user/${user.id}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/user/${user.id}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                        <p className="font-bold">{user.followingCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.followingCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
