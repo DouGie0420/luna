@@ -3,7 +3,7 @@
 import { useCollection, useFirestore, useUser } from "@/firebase";
 import { useMemo } from 'react';
 import { collection, query, doc, updateDoc } from "firebase/firestore";
-import type { UserProfile } from "@/lib/types";
+import type { UserProfile, KycStatus } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -36,24 +36,24 @@ export default function AdminUsersPage() {
     const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
     const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
-    const handleRoleChange = async (uid: string, role: UserRole) => {
-      if (!firestore || !role) return;
-      
-      const userRef = doc(firestore, "users", uid);
-      try {
-        await updateDoc(userRef, { role });
-        toast({ 
-            title: t('admin.usersPage.roleUpdated'), 
-            description: t('admin.usersPage.roleUpdatedDesc', { uid: uid.slice(0, 6), role }) 
-        });
-      } catch (error) {
-        console.error("Failed to update role:", error);
-        toast({ 
-            variant: "destructive", 
-            title: t('admin.usersPage.updateFailed'), 
-            description: t('admin.usersPage.updateFailedDesc')
-        });
-      }
+    const handleFieldUpdate = async (uid: string, field: string, value: any) => {
+        if (!firestore || currentUserProfile?.uid === uid) return;
+
+        const userRef = doc(firestore, "users", uid);
+        try {
+            await updateDoc(userRef, { [field]: value });
+            toast({ 
+                title: `${field.charAt(0).toUpperCase() + field.slice(1)} Updated`, 
+                description: `User ${uid.slice(0, 6)}... ${field} set to ${value}.` 
+            });
+        } catch (error) {
+            console.error(`Failed to update ${field}:`, error);
+            toast({ 
+                variant: "destructive", 
+                title: 'Update Failed', 
+                description: `Could not update ${field}.`
+            });
+        }
     };
     
     if (loading) {
@@ -92,16 +92,39 @@ export default function AdminUsersPage() {
                                 </TableCell>
                                 <TableCell>
                                     <div className="font-medium">{user.email}</div>
-                                    <div>
-                                        {user.emailVerified ? (
-                                            <Badge variant="default" className="mt-1 border-green-500/50 bg-green-500/20 text-green-300">Verified</Badge>
-                                        ) : (
-                                            <Badge variant="destructive" className="mt-1 border-red-500/50 bg-red-500/20 text-red-300">Not Verified</Badge>
-                                        )}
-                                    </div>
+                                     <Select 
+                                        value={user.emailVerified ? 'true' : 'false'}
+                                        onValueChange={(value) => handleFieldUpdate(user.uid, 'emailVerified', value === 'true')}
+                                        disabled={currentUserProfile?.uid === user.uid}
+                                    >
+                                        <SelectTrigger className="w-[120px] mt-1">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">
+                                                <Badge variant="default" className="border-green-500/50 bg-green-500/20 text-green-300">Verified</Badge>
+                                            </SelectItem>
+                                            <SelectItem value="false">
+                                                <Badge variant="destructive" className="border-red-500/50 bg-red-500/20 text-red-300">Not Verified</Badge>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </TableCell>
                                 <TableCell>
-                                     <span className="text-muted-foreground">{user.kycStatus}</span>
+                                     <Select
+                                        value={user.kycStatus}
+                                        onValueChange={(value: KycStatus) => handleFieldUpdate(user.uid, 'kycStatus', value)}
+                                        disabled={currentUserProfile?.uid === user.uid}
+                                    >
+                                        <SelectTrigger className="w-[120px]">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Verified">Verified</SelectItem>
+                                            <SelectItem value="Not Verified">Not Verified</SelectItem>
+                                            <SelectItem value="Pending">Pending</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </TableCell>
                                 <TableCell>
                                     {user.createdAt?.toDate ? format(user.createdAt.toDate(), 'yyyy/MM/dd') : 'N/A'}
@@ -109,7 +132,7 @@ export default function AdminUsersPage() {
                                 <TableCell>
                                      <Select 
                                         defaultValue={user.role || 'guest'} 
-                                        onValueChange={(value: UserRole) => handleRoleChange(user.uid, value)}
+                                        onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
                                         disabled={currentUserProfile?.uid === user.uid}
                                     >
                                         <SelectTrigger className="w-[120px]">
