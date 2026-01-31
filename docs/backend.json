@@ -164,6 +164,15 @@
         "lunarSoil": {
           "type": "number",
           "description": "The user's balance of Lunar Soil, the platform's loyalty points, measured in grams (克)."
+        },
+        "role": {
+          "type": "string",
+          "description": "User role",
+          "enum": [
+            "user",
+            "staff",
+            "admin"
+          ]
         }
       },
       "required": [
@@ -469,6 +478,44 @@
         "expiresAt",
         "source"
       ]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Represents a system notification for a user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "info",
+            "success",
+            "warning",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "message",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -519,6 +566,12 @@
         "$ref": "#/entities/LunarSoilLedgerEntry"
       },
       "description": "Ledger for a user's Lunar Soil transactions to handle expiration."
+    },
+    "/notifications/{notificationId}": {
+      "schema": {
+        "$ref": "#/entities/Notification"
+      },
+      "description": "Stores user notifications."
     }
   }
 }

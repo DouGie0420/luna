@@ -12,6 +12,7 @@ import {
   LogOut,
   Settings,
   ShieldAlert,
+  Loader2
 } from 'lucide-react'
 
 import {
@@ -28,6 +29,8 @@ import {
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/layout/logo'
 import { usePathname } from 'next/navigation'
+import { useUser } from '@/firebase'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function AdminLayout({
   children,
@@ -35,8 +38,30 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { user, profile, loading } = useUser()
   
   const isActive = (path: string) => pathname === path
+
+  if (loading) {
+    return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+  }
+
+  if (!user || profile?.role !== 'admin') {
+      return (
+        <div className="flex h-screen w-full items-center justify-center p-4">
+            <Alert variant="destructive" className="max-w-lg">
+                <ShieldAlert className="h-4 w-4" />
+                <AlertTitle>Access Denied</AlertTitle>
+                <AlertDescription>
+                You do not have permission to view this page. This area is for administrators only.
+                </AlertDescription>
+                <div className="mt-4">
+                    <Link href="/" className="text-sm font-semibold underline">Go back to Home</Link>
+                </div>
+            </Alert>
+        </div>
+      )
+  }
 
   return (
     <SidebarProvider>
@@ -111,8 +136,7 @@ export default function AdminLayout({
                 <LogOut />
                 Logout
               </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
+            </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>

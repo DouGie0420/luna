@@ -55,6 +55,7 @@ export async function upsertUserProfile(
                 followingCount: 0,
                 creditScore: 0,
                 creditLevel: 'Newcomer',
+                role: 'user',
                 ...additionalData
             };
             setDoc(userRef, newUserProfile).catch((serverError) => {
@@ -115,6 +116,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
                 followingCount: 0,
                 creditScore: 0,
                 creditLevel: 'Newcomer',
+                role: 'user',
             };
             setDoc(userRef, newUserProfile).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({

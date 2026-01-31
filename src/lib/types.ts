@@ -78,6 +78,7 @@ export type UserProfile = {
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;
+    role?: 'admin' | 'staff' | 'user';
 }
 
 export type Promo = {
@@ -159,4 +160,14 @@ export type BbsPost = {
   imageHints?: string[];
   isFeatured?: boolean;
   favorites?: number;
+};
+
+export type Notification = {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: any;
+  type: 'info' | 'success' | 'warning' | 'error';
 };
