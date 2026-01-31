@@ -109,9 +109,9 @@ function SearchPageContent() {
                                         ))}
                                     </div>
                                 ) : (
-                                    <div className="text-center py-20 border-2 border-dashed rounded-lg">
-                                        <h2 className="text-xl font-semibold">{t('searchPage.tryAnotherSearch')}</h2>
-                                        <p className="text-muted-foreground mt-2 mb-6">{t('searchPage.noResultsDescription')}</p>
+                                    <div className="text-center py-20 border-2 border-dashed rounded-lg border-border/50">
+                                        <h2 className="text-2xl font-headline mb-2">{t('searchPage.tryAnotherSearch')}</h2>
+                                        <p className="text-muted-foreground">{t('searchPage.noResultsDescription')}</p>
                                     </div>
                                 )}
                             </>
