@@ -36,7 +36,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Plus, MessageSquare, MapPin, Calendar, X, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
 
@@ -102,55 +102,65 @@ function PostPageSkeleton() {
     );
 }
 
-const CommentForm = ({ 
-    isSubmitting, 
-    value, 
-    onChange, 
-    onSubmit,
-    placeholder,
-    isReplying,
-    onCancelReply
-} : {
-    isSubmitting: boolean;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    onSubmit: () => void;
-    placeholder: string;
-    isReplying?: boolean;
-    onCancelReply?: () => void;
+const CommentForm = ({
+  isSubmitting,
+  value,
+  onChange,
+  onSubmit,
+  replyingTo,
+  onCancelReply,
+}: {
+  isSubmitting: boolean
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onSubmit: () => void
+  replyingTo: { id: string; authorName: string } | null
+  onCancelReply: () => void
 }) => {
-    const { t } = useTranslation();
-    return (
-        <div className="space-y-2">
-             <div className="text-sm text-muted-foreground">{placeholder}</div>
-            <Textarea
-                value={value}
-                onChange={onChange}
-                maxLength={2000}
-                rows={3}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        onSubmit();
-                    }
-                }}
-            />
-            <div className="flex justify-between items-center">
-                <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
-                <div className="flex items-center gap-2">
-                    {isReplying && (
-                        <Button variant="outline" onClick={onCancelReply} disabled={isSubmitting}>
-                            {t('productComments.cancelReply')}
-                        </Button>
-                    )}
-                    <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {t('productComments.submit')}
-                    </Button>
-                </div>
-            </div>
+  const { t } = useTranslation()
+
+  return (
+    <div className="space-y-2">
+      {replyingTo && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            {t('productComments.replyTo')} {replyingTo.authorName}...
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCancelReply}
+            className="h-auto p-1 text-xs text-destructive hover:text-destructive"
+          >
+            <X className="mr-1 h-3 w-3" />
+            {t('productComments.cancelReply')}
+          </Button>
         </div>
-    )
+      )}
+      <Textarea
+        value={value}
+        onChange={onChange}
+        placeholder={!replyingTo ? t('productComments.placeholder') : ''}
+        maxLength={2000}
+        rows={3}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            onSubmit()
+          }
+        }}
+      />
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
+        <div className="flex items-center gap-2">
+          <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t('productComments.submit')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function BbsPostPage() {
@@ -201,7 +211,10 @@ export default function BbsPostPage() {
     }, [id]);
 
     const handlePostComment = () => {
-        if (!newComment.trim() || !canInteract) return;
+        if (!newComment.trim() || !canInteract) {
+            handleInteractionNotAllowed();
+            return;
+        }
 
         setIsSubmitting(true);
         setTimeout(() => {
@@ -303,10 +316,6 @@ export default function BbsPostPage() {
         }
         return users.find(u => u.id === userId);
     };
-
-    const placeholderText = replyingTo 
-        ? `${t('productComments.replyTo')} ${replyingTo.authorName}...` 
-        : t('productComments.placeholder');
     
     const renderComment = (comment: NestedComment) => {
         const author = getUserById(comment.authorId);
@@ -340,20 +349,6 @@ export default function BbsPostPage() {
                         </Button>
                         <p className="text-xs text-muted-foreground">{timeAgo}</p>
                     </div>
-
-                    {replyingTo?.id === comment.id && (
-                         <div className="mt-4">
-                            <CommentForm 
-                                isSubmitting={isSubmitting}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onSubmit={handlePostComment}
-                                placeholder={placeholderText}
-                                isReplying={true}
-                                onCancelReply={() => setReplyingTo(null)}
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
         );
@@ -439,17 +434,14 @@ export default function BbsPostPage() {
                         {/* Comment Form */}
                          <div className="space-y-2 mb-8">
                             {canInteract ? (
-                                <>
-                                    {!replyingTo && (
-                                         <CommentForm 
-                                            isSubmitting={isSubmitting}
-                                            value={newComment}
-                                            onChange={(e) => setNewComment(e.target.value)}
-                                            onSubmit={handlePostComment}
-                                            placeholder={placeholderText}
-                                        />
-                                    )}
-                                </>
+                                <CommentForm
+                                    isSubmitting={isSubmitting}
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onSubmit={handlePostComment}
+                                    replyingTo={replyingTo}
+                                    onCancelReply={() => setReplyingTo(null)}
+                                />
                             ) : (
                                 <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                                     <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
@@ -471,7 +463,7 @@ export default function BbsPostPage() {
                             ))}
                             {nestedComments.length > visibleCommentsCount && (
                                 <div className="text-center mt-6">
-                                    <Button variant="outline" onClick={handleLoadMoreComments}>
+                                    <Button variant="outline" onClick={handleLoadMoreComments} disabled={!canInteract}>
                                         {t('bbsPage.loadMoreComments')}
                                     </Button>
                                 </div>

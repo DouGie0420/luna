@@ -56,49 +56,59 @@ const COMMENTS_INITIAL_LOAD = 5;
 const COMMENTS_LOAD_MORE = 10;
 const locales = { en: enUS, zh: zhCN, th: th };
 
-const CommentForm = ({ 
-    isSubmitting, 
-    value, 
-    onChange, 
-    onSubmit,
-    placeholder,
-    isReplying,
-    onCancelReply
-} : {
-    isSubmitting: boolean;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-    onSubmit: () => void;
-    placeholder: string;
-    isReplying?: boolean;
-    onCancelReply?: () => void;
+const CommentForm = ({
+  isSubmitting,
+  value,
+  onChange,
+  onSubmit,
+  replyingTo,
+  onCancelReply,
+}: {
+  isSubmitting: boolean
+  value: string
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
+  onSubmit: () => void
+  replyingTo: { id: string; authorName: string } | null
+  onCancelReply: () => void
 }) => {
-    const { t } = useTranslation();
-    return (
-        <div className="space-y-2">
-            <div className="text-sm text-muted-foreground">{placeholder}</div>
-            <Textarea
-                value={value}
-                onChange={onChange}
-                maxLength={500}
-                rows={3}
-            />
-            <div className="flex justify-between items-center">
-                <p className="text-xs text-muted-foreground">{value.length} / 500</p>
-                <div className="flex items-center gap-2">
-                    {isReplying && (
-                        <Button variant="outline" onClick={onCancelReply} disabled={isSubmitting}>
-                            {t('productComments.cancelReply')}
-                        </Button>
-                    )}
-                    <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {t('productComments.submit')}
-                    </Button>
-                </div>
-            </div>
+  const { t } = useTranslation()
+
+  return (
+    <div className="space-y-2">
+      {replyingTo && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            {t('productComments.replyTo')} {replyingTo.authorName}...
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onCancelReply}
+            className="h-auto p-1 text-xs text-destructive hover:text-destructive"
+          >
+            <X className="mr-1 h-3 w-3" />
+            {t('productComments.cancelReply')}
+          </Button>
         </div>
-    )
+      )}
+      <Textarea
+        value={value}
+        onChange={onChange}
+        placeholder={!replyingTo ? t('productComments.placeholder') : ''}
+        maxLength={500}
+        rows={3}
+      />
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted-foreground">{value.length} / 500</p>
+        <div className="flex items-center gap-2">
+          <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {t('productComments.submit')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export function ProductCommentSection({ productId }: { productId: string }) {
@@ -200,10 +210,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         return users.find(u => u.id === userId);
     };
 
-    const placeholderText = replyingTo 
-        ? `${t('productComments.replyTo')} ${replyingTo.authorName}...` 
-        : t('productComments.placeholder');
-
     const renderComment = (comment: NestedComment, isReply: boolean = false) => {
         const author = getUserById(comment.authorId);
         const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
@@ -253,19 +259,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                             </Button>
                         )}
                     </div>
-                    {replyingTo?.id === comment.id && (
-                         <div className="mt-4">
-                            <CommentForm 
-                                isSubmitting={isSubmitting}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onSubmit={handlePostComment}
-                                placeholder={placeholderText}
-                                isReplying={true}
-                                onCancelReply={() => setReplyingTo(null)}
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
         );
@@ -281,17 +274,14 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     {/* Comment Form */}
                     <div className="space-y-2">
                         {canInteract ? (
-                            <>
-                                {!replyingTo && (
-                                    <CommentForm 
-                                        isSubmitting={isSubmitting}
-                                        value={newComment}
-                                        onChange={(e) => setNewComment(e.target.value)}
-                                        onSubmit={handlePostComment}
-                                        placeholder={placeholderText}
-                                    />
-                                )}
-                            </>
+                            <CommentForm
+                                isSubmitting={isSubmitting}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onSubmit={handlePostComment}
+                                replyingTo={replyingTo}
+                                onCancelReply={() => setReplyingTo(null)}
+                            />
                         ) : (
                             <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                                 <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
