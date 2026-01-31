@@ -166,6 +166,8 @@ export default function BbsPostPage() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
+    const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+    const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -211,13 +213,26 @@ export default function BbsPostPage() {
 
     useEffect(() => {
         if (permissionErrorToast) {
-            toast({
-                variant: 'destructive',
-                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-            });
-            setPermissionErrorToast(false);
+            setTimeout(() => {
+                toast({
+                    variant: 'destructive',
+                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+                });
+                setPermissionErrorToast(false);
+            }, 0);
         }
     }, [permissionErrorToast, isGuest, t, toast]);
+    
+    useEffect(() => {
+        if (followToast) {
+            setTimeout(() => {
+                toast({
+                    title: followToast === 'followed' ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
+                });
+                setFollowToast(null);
+            }, 0);
+        }
+    }, [followToast, t, toast]);
 
 
     const handleFollowToggle = () => {
@@ -226,9 +241,7 @@ export default function BbsPostPage() {
             return;
         }
         setIsFollowing(prev => {
-            toast({
-                title: !prev ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
-            });
+            setFollowToast(!prev ? 'followed' : 'unfollowed');
             return !prev;
         });
     };
@@ -256,6 +269,13 @@ export default function BbsPostPage() {
             setIsSubmitting(false);
             toast({ title: t('productComments.commentPosted') });
         }, 500);
+    };
+    
+    const handleDeleteComment = () => {
+        if (!commentToDelete) return;
+        setComments(prev => prev.filter(c => c.id !== commentToDelete && c.parentId !== commentToDelete));
+        setCommentToDelete(null);
+        toast({ title: t('productComments.commentDeleted') });
     };
 
     const handleConfirmCancelReply = () => {
@@ -356,17 +376,15 @@ export default function BbsPostPage() {
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center flex-wrap gap-x-2 text-sm">
+                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
                             </div>
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>
                                 <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-4 w-4" /> {author?.badReviews ?? 0}</span>
+                                {author?.location && <span className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</span>}
                                 <span>{timeAgo}</span>
                             </div>
-                        </div>
-                         <div className="flex items-center gap-x-2 text-xs text-muted-foreground my-1">
-                            {author?.location && <p>{author.location.city}, {author.location.countryCode}</p>}
                         </div>
                         <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
                         <div className="flex items-center justify-start gap-2">
@@ -430,25 +448,27 @@ export default function BbsPostPage() {
                 <Card className="w-full overflow-hidden shadow-2xl shadow-primary/10">
                     
                     {/* Author Header */}
-                    <div className="p-4 border-b flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                    <div className="p-4 border-b flex items-start justify-between">
+                        <div className="flex items-start gap-4">
                             <Link href={`/user/${post.author.id}`}>
-                                <Avatar className="h-16 w-16">
+                                <Avatar className="h-20 w-20">
                                     <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
                                     <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                             </Link>
-                            <div className="flex flex-col gap-1">
+                            <div className="flex flex-col gap-1.5 pt-1">
                                 <h2 className="font-bold text-xl">{post.author.name}</h2>
-                                <p className="text-sm text-muted-foreground">
-                                    <span className="font-semibold text-red-400">{post.author.creditLevel || t('userProfile.noVerifications')}</span>
+                                
+                                <p className="text-sm font-semibold text-red-400">
+                                    {post.author.creditLevel || t('userProfile.noVerifications')}
                                     {post.author.location && (
                                         <>
-                                            <span className="mx-2">&middot;</span>
-                                            <span>{post.author.location.city}, {post.author.location.countryCode}</span>
+                                            <span className="mx-2 text-muted-foreground font-normal">&middot;</span>
+                                            <span className="text-muted-foreground font-normal">{post.author.location.city}, {post.author.location.countryCode}</span>
                                         </>
                                     )}
                                 </p>
+
                                 <div className="flex items-center gap-x-4 text-sm text-muted-foreground">
                                     <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
                                         {t('userProfile.followers')} <span className="font-bold text-foreground">{post.author.followersCount || 0}</span>
@@ -529,18 +549,17 @@ export default function BbsPostPage() {
                         <Separator className="my-6" />
                         <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
-                         {canInteract ? (
-                            (!replyingTo || replyingTo.id !== 'root') && (
-                                 <Button
-                                    variant="outline"
-                                    className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto mb-6"
-                                    onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
-                                >
-                                    {t('productComments.placeholder')}
-                                </Button>
-                            )
-                        ) : (
-                             <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
+                        {canInteract && !replyingTo && (
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto mb-6"
+                                onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}
+                            >
+                                {t('productComments.placeholder')}
+                            </Button>
+                        )}
+                        {!user && (
+                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
                                 <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                             </div>
                         )}

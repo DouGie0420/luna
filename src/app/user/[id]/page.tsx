@@ -39,6 +39,9 @@ export default function UserProfilePage() {
     const [isFollowing, setIsFollowing] = useState(false);
     const { toast } = useToast();
     const canInteract = currentUser && currentUserProfile?.kycStatus === 'Verified';
+    
+    const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
+    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
 
     useEffect(() => {
         if (!userId) return;
@@ -66,19 +69,38 @@ export default function UserProfilePage() {
             setIsFollowing(Math.random() > 0.5);
         }
     }, [currentUser, user]);
+    
+    useEffect(() => {
+        if (permissionErrorToast) {
+            setTimeout(() => {
+                toast({
+                    variant: 'destructive',
+                    title: !currentUser ? t('common.loginToInteract') : t('common.verifyToInteract'),
+                });
+                setPermissionErrorToast(false);
+            }, 0);
+        }
+    }, [permissionErrorToast, currentUser, t, toast]);
+
+    useEffect(() => {
+        if (followToast) {
+            setTimeout(() => {
+                toast({
+                    title: followToast === 'followed' ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
+                });
+                setFollowToast(null);
+            }, 0);
+        }
+    }, [followToast, t, toast]);
+
 
     const handleFollowToggle = () => {
         if (!canInteract) {
-            toast({
-                variant: 'destructive',
-                title: !currentUser ? t('common.loginToInteract') : t('common.verifyToInteract'),
-            });
+            setPermissionErrorToast(true);
             return;
         }
         setIsFollowing(prev => {
-            toast({
-                title: !prev ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
-            });
+            setFollowToast(!prev ? 'followed' : 'unfollowed');
             return !prev;
         });
     };
@@ -134,22 +156,20 @@ export default function UserProfilePage() {
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
                                         <CardTitle>{user.name}</CardTitle>
-                                        <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                            <Link href={`/user/${user.id}/followers`} className="hover:underline">
-                                                <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
-                                            </Link>
-                                            <span>&middot;</span>
-                                            <Link href={`/user/${user.id}/following`} className="hover:underline">
-                                                <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
-                                            </Link>
-                                            <span>&middot;</span>
-                                            <Link href={`/user/${user.id}/listings`} className="hover:underline">
-                                                <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
-                                            </Link>
-                                        </div>
                                     </div>
-                                    <div className="mt-2">
-                                        <p className="text-sm text-muted-foreground">{user.creditLevel || t('userProfile.noVerifications')}</p>
+                                    <Separator className="my-1.5" />
+                                    <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
+                                        <Link href={`/user/${user.id}/followers`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${user.id}/following`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${user.id}/listings`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
