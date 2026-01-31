@@ -23,12 +23,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -176,8 +170,6 @@ export default function BbsPostPage() {
     
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
     const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
-    const [likeToast, setLikeToast] = useState(false);
-    const [replyToast, setReplyToast] = useState(false);
     
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
     const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
@@ -244,30 +236,6 @@ export default function BbsPostPage() {
         }
     }, [followToast, t, toast]);
 
-    useEffect(() => {
-        if (likeToast) {
-            setTimeout(() => {
-                toast({
-                    title: t('productComments.likeSuccess'),
-                    description: t('productComments.replyNotification'),
-                });
-                setLikeToast(false);
-            }, 0);
-        }
-    }, [likeToast, t, toast]);
-    
-    useEffect(() => {
-        if (replyToast) {
-            setTimeout(() => {
-                toast({
-                    title: t('productComments.commentPosted'),
-                    description: t('productComments.replyNotification'),
-                });
-                setReplyToast(false);
-            }, 0);
-        }
-    }, [replyToast, t, toast]);
-
     const handleInteractionNotAllowed = () => {
         setPermissionErrorToast(true);
     }
@@ -307,7 +275,10 @@ export default function BbsPostPage() {
             setNewComment('');
             setReplyingTo(null);
             setIsSubmitting(false);
-            setReplyToast(true);
+            toast({
+                title: t('productComments.commentPosted'),
+                description: t('productComments.replyNotification'),
+            });
         }, 500);
     };
     
@@ -355,7 +326,7 @@ export default function BbsPostPage() {
             if (type === 'like') {
                 newStatus = currentStatus === 'liked' ? null : 'liked';
                 if (newStatus === 'liked') {
-                    setLikeToast(true);
+                    // No toast on like
                 }
             } else { // dislike
                 newStatus = currentStatus === 'disliked' ? null : 'disliked';
@@ -436,17 +407,33 @@ export default function BbsPostPage() {
                     </Link>
                     <div className="flex-1">
                          <div className="flex items-center justify-between">
-                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
+                            <div>
                                 <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
+                                {author?.location && <p className="text-xs text-muted-foreground inline ml-2">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
-                            <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
-                                <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
-                                    <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
-                                </button>
-                                <button onClick={() => handleLikeDislike(comment.id, 'dislike')} className={cn("flex items-center gap-1.5 z-10 hover:text-destructive", isDisliked && "text-destructive fill-destructive")}>
-                                    <ThumbsDown className="h-4 w-4" /> <span>{author?.badReviews ?? 0}</span>
-                                </button>
+                            <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => handleLikeDislike(comment.id, 'like')}
+                                    className={cn(
+                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
+                                        isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
+                                    )}
+                                >
+                                    <ThumbsUp className="h-4 w-4" />
+                                    <span>{author?.goodReviews ?? 0}</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => handleLikeDislike(comment.id, 'dislike')}
+                                    className={cn(
+                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
+                                        isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
+                                    )}
+                                >
+                                    <ThumbsDown className="h-4 w-4" />
+                                    <span>{author?.badReviews ?? 0}</span>
+                                </Button>
                                 <span>{timeAgo}</span>
                             </div>
                         </div>
@@ -528,27 +515,30 @@ export default function BbsPostPage() {
                                     <Image src={post.author.avatarUrl} alt={post.author.name} width={512} height={512} className="rounded-lg" />
                                 </DialogContent>
                             </Dialog>
-                            <div className="flex flex-col gap-1.5 pt-1">
-                                <Link href={`/user/${post.author.id}`} className="hover:underline">
-                                    <h2 className="font-bold text-xl">{post.author.name}</h2>
-                                </Link>
-                                <p className="text-sm font-semibold text-red-400">
-                                    {post.author.creditLevel || t('userProfile.noVerifications')}
-                                    {post.author.location && (
-                                        <>
-                                            <span className="mx-2 text-muted-foreground font-normal">&middot;</span>
-                                            <span className="text-muted-foreground font-normal">{post.author.location.city}, {post.author.location.countryCode}</span>
-                                        </>
-                                    )}
-                                </p>
-
-                                <div className="flex items-center gap-x-4 text-sm text-muted-foreground">
+                            <div className="flex flex-col gap-1 pt-1">
+                                <div className="flex items-baseline gap-4">
+                                     <Link href={`/user/${post.author.id}`} className="hover:underline">
+                                        <h2 className="font-bold text-xl">{post.author.name}</h2>
+                                    </Link>
+                                    <p className="text-sm font-semibold text-red-400">
+                                        {post.author.creditLevel || t('userProfile.noVerifications')}
+                                        {post.author.location && (
+                                            <>
+                                                <span className="mx-2 text-muted-foreground font-normal">&middot;</span>
+                                                <span className="text-muted-foreground font-normal">{post.author.location.city}, {post.author.location.countryCode}</span>
+                                            </>
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
                                     <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
                                         {t('userProfile.followers')} <span className="font-bold text-foreground">{post.author.followersCount || 0}</span>
                                     </Link>
+                                    <span>&middot;</span>
                                     <Link href={`/user/${post.author.id}/following`} className="hover:underline">
                                         {t('userProfile.following')} <span className="font-bold text-foreground">{post.author.followingCount || 0}</span>
                                     </Link>
+                                    <span>&middot;</span>
                                     <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
                                         {t('userProfile.posts')} <span className="font-bold text-foreground">{post.author.postsCount || 0}</span>
                                     </Link>
@@ -625,7 +615,7 @@ export default function BbsPostPage() {
                         {canInteract && !replyingTo && (
                             <Button
                                 variant="outline"
-                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto mb-6"
+                                className="w-full justify-center rounded-lg border bg-card p-4 text-lg font-semibold text-foreground/80 hover:border-primary/50 hover:text-foreground h-auto mb-6"
                                 onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}
                             >
                                 {t('productComments.placeholder')}

@@ -111,7 +111,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-    const [replyToast, setReplyToast] = useState(false);
     const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
 
     const canInteract = user && profile?.kycStatus === 'Verified';
@@ -123,24 +122,16 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
     useEffect(() => {
         if (permissionErrorToast) {
-            toast({
-                variant: 'destructive',
-                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-            });
-            setPermissionErrorToast(false);
+            setTimeout(() => {
+                toast({
+                    variant: 'destructive',
+                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+                });
+                setPermissionErrorToast(false);
+            }, 0);
         }
     }, [permissionErrorToast, isGuest, t, toast]);
     
-    useEffect(() => {
-        if (replyToast) {
-            toast({
-                title: t('productComments.commentPosted'),
-                description: t('productComments.replyNotification'),
-            });
-            setReplyToast(false);
-        }
-    }, [replyToast, t, toast]);
-
     const handleInteractionNotAllowed = () => {
         setPermissionErrorToast(true);
     }
@@ -172,7 +163,10 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             setNewComment('');
             setReplyingTo(null);
             setIsSubmitting(false);
-            setReplyToast(true);
+            toast({
+                title: t('productComments.commentPosted'),
+                description: t('productComments.replyNotification'),
+            });
             if(visibleCommentsCount < COMMENTS_INITIAL_LOAD) setVisibleCommentsCount(COMMENTS_INITIAL_LOAD);
 
         }, 500);
@@ -261,32 +255,32 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
-                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
+                            <div>
                                 <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
+                                {author?.location && <p className="text-xs text-muted-foreground inline ml-2">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
                             <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                                 <Button
-                                    size="sm"
                                     variant="ghost"
                                     onClick={() => handleLikeDislike(comment.id, 'like')}
                                     className={cn(
-                                        "h-auto p-1.5 rounded-md",
+                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
                                         isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
                                     )}
                                 >
                                     <ThumbsUp className="h-4 w-4" />
+                                    <span>{author?.goodReviews ?? 0}</span>
                                 </Button>
                                 <Button
-                                    size="sm"
                                     variant="ghost"
                                     onClick={() => handleLikeDislike(comment.id, 'dislike')}
                                     className={cn(
-                                        "h-auto p-1.5 rounded-md",
+                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
                                         isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
                                     )}
                                 >
                                     <ThumbsDown className="h-4 w-4" />
+                                    <span>{author?.badReviews ?? 0}</span>
                                 </Button>
                                 <span>{timeAgo}</span>
                             </div>
@@ -344,7 +338,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         (!replyingTo || replyingTo.id !== 'root') && (
                             <Button
                                 variant="outline"
-                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto mb-6"
+                                className="w-full justify-center rounded-lg border bg-card p-4 text-lg font-semibold text-foreground/80 hover:border-primary/50 hover:text-foreground h-auto mb-6"
                                 onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                             >
                                 {t('productComments.placeholder')}
