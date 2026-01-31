@@ -18,12 +18,25 @@ export async function upsertUserProfile(
 
         if (userDoc.exists()) {
             const userProfile = userDoc.data() as UserProfile;
-            const updateData = {
+            
+            const updateData: { [key: string]: any } = {
                 lastLogin: serverTimestamp(),
                 photoURL: user.photoURL || userProfile.photoURL,
                 displayName: userProfile.displayName || user.displayName || 'User',
-                emailVerified: user.emailVerified || userProfile.emailVerified,
             };
+
+            // This is the critical part.
+            // We only want to change the stored emailVerified status if the user has *just now* become verified according to Firebase Auth.
+            // We NEVER want to downgrade a `true` in our database back to `false` just because the auth token is lagging.
+            if (userProfile.emailVerified !== true) {
+                // If the database profile is not verified, we can safely update it
+                // with the latest status from Firebase Auth.
+                updateData.emailVerified = user.emailVerified;
+            }
+            // If userProfile.emailVerified is already true, we do NOT add emailVerified
+            // to updateData, so the existing 'true' value is preserved.
+
+
             updateDoc(userRef, updateData).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
                     path: userRef.path,
