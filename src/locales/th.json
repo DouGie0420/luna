@@ -103,7 +103,15 @@
     "rating": "คะแนนเฉลี่ย",
     "reviews": "รีวิว",
     "sales": "ยอดขาย",
-    "purchases": "ยอดซื้อ"
+    "purchases": "ยอดซื้อ",
+    "verifyEmail": "ยืนยันอีเมล",
+    "verifyEmailSent": "ส่งอีเมลยืนยันแล้ว! โปรดตรวจสอบกล่องจดหมายของคุณ",
+    "resendIn": "ส่งอีกครั้งใน",
+    "emailVerification": "การยืนยันอีเมล",
+    "emailVerifiedStatus": {
+      "verified": "ยืนยันแล้ว",
+      "notVerified": "ยังไม่ได้ยืนยัน"
+    }
   },
   "newProductPage": {
     "title": "ลงรายการสินค้าใหม่",

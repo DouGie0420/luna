@@ -103,7 +103,15 @@
     "rating": "平均评分",
     "reviews": "条评价",
     "sales": "总销量",
-    "purchases": "总购买数"
+    "purchases": "总购买数",
+    "verifyEmail": "验证邮箱",
+    "verifyEmailSent": "验证邮件已发送！请检查收件箱。",
+    "resendIn": "秒后可重发",
+    "emailVerification": "邮箱验证",
+    "emailVerifiedStatus": {
+      "verified": "已验证",
+      "notVerified": "未验证"
+    }
   },
   "newProductPage": {
     "title": "发布新商品",

@@ -103,7 +103,15 @@
     "rating": "Avg. Rating",
     "reviews": "reviews",
     "sales": "Sales",
-    "purchases": "Purchases"
+    "purchases": "Purchases",
+    "verifyEmail": "Verify Email",
+    "verifyEmailSent": "Verification email sent! Check your inbox.",
+    "resendIn": "Resend in",
+    "emailVerification": "Email Verification",
+    "emailVerifiedStatus": {
+      "verified": "Verified",
+      "notVerified": "Not Verified"
+    }
   },
   "newProductPage": {
     "title": "List a New Item",

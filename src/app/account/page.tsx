@@ -25,13 +25,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
 import Link from "next/link";
 import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
+import { sendEmailVerification } from "firebase/auth";
 
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
@@ -49,6 +50,9 @@ export default function AccountProfilePage() {
     const [nfts, setNfts] = useState<SimplifiedNft[]>([]);
     const [isNftDialogOpen, setIsNftDialogOpen] = useState(false);
 
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [cooldown, setCooldown] = useState(0);
+
     useEffect(() => {
         if (profile) {
             setDisplayName(profile.displayName || '');
@@ -57,6 +61,13 @@ export default function AccountProfilePage() {
             setBio(profile.bio || '');
         }
     }, [profile]);
+    
+    useEffect(() => {
+        if (cooldown > 0) {
+            const timer = setTimeout(() => setCooldown(prev => prev - 1), 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [cooldown]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -86,6 +97,20 @@ export default function AccountProfilePage() {
                 title: 'Error',
                 description: 'Failed to update profile.'
             })
+        }
+    };
+    
+    const handleSendVerification = async () => {
+        if (!user || cooldown > 0 || isVerifying) return;
+        setIsVerifying(true);
+        try {
+            await sendEmailVerification(user);
+            toast({ title: t('accountPage.verifyEmailSent') });
+            setCooldown(60);
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Error', description: error.message });
+        } finally {
+            setIsVerifying(false);
         }
     };
 
@@ -206,8 +231,16 @@ export default function AccountProfilePage() {
                             </div>
                         </div>
                         <div className="grid gap-2">
-                                <Label htmlFor="email">{t('accountPage.email')}</Label>
+                            <Label htmlFor="email">{t('accountPage.email')}</Label>
+                            <div className="flex gap-2">
                                 <Input id="email" type="email" value={profile?.email || user?.email || ''} readOnly className="text-muted-foreground" />
+                                {user && !profile?.emailVerified && (
+                                    <Button type="button" onClick={handleSendVerification} disabled={cooldown > 0 || isVerifying}>
+                                        {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        {cooldown > 0 ? `${t('accountPage.resendIn')} ${cooldown}s` : t('accountPage.verifyEmail')}
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
@@ -252,15 +285,23 @@ export default function AccountProfilePage() {
                                 }>{profile?.kycStatus || 'N/A'}</Badge>
                             </div>
                             <div className="grid gap-2">
+                                <Label>{t('accountPage.emailVerification')}</Label>
+                                {profile?.emailVerified ? (
+                                    <div className="flex items-center pt-2">
+                                        <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
+                                        <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.verified')}</span>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center pt-2">
+                                        <XCircle className="h-5 w-5 text-destructive mr-2" />
+                                        <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.notVerified')}</span>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
                                 <Label>{t('accountPage.joinedOn')}</Label>
                                 <p className="text-sm text-muted-foreground pt-2">
                                     {profile?.createdAt?.toDate ? format(profile.createdAt.toDate(), 'PPP') : 'N/A'}
-                                </p>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>{t('accountPage.lastLogin')}</Label>
-                                <p className="text-sm text-muted-foreground pt-2">
-                                    {profile?.lastLogin?.toDate ? format(profile.lastLogin.toDate(), 'PPP p') : 'N/A'}
                                 </p>
                             </div>
                         </div>
