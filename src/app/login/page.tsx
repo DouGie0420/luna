@@ -71,15 +71,14 @@ export default function LoginPage() {
       await upsertUserProfile(firestore, userCredential.user);
       toast({
         title: t('loginPage.loginSuccessTitle'),
-        description: t('loginPage.loginSuccessDescription').replace('{displayName}', userCredential.user.displayName || 'User'),
+        duration: 3000,
+        variant: 'success',
       });
-      router.push('/account');
+      router.push('/');
     } catch (error: any) {
       let description = "An unknown error occurred.";
        switch (error.code) {
         case 'auth/invalid-credential':
-        case 'auth/user-not-found': // Legacy
-        case 'auth/wrong-password': // Legacy
           description = 'Invalid email or password.';
           break;
         case 'auth/invalid-email':
@@ -108,11 +107,12 @@ export default function LoginPage() {
       await upsertUserProfile(firestore, result.user);
       toast({
         title: t('loginPage.loginSuccessTitle'),
-        description: t('loginPage.loginSuccessDescription').replace('{displayName}', result.user.displayName || 'User'),
+        duration: 3000,
+        variant: 'success',
         x: e.clientX,
         y: e.clientY,
       });
-      router.push('/account');
+      router.push('/');
     } catch (error: any) {
       console.error("Social login error:", error);
       toast({

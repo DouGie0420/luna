@@ -80,9 +80,10 @@ export default function RegisterPage() {
 
       toast({
         title: t('registerPage.registrationSuccessTitle'),
-        description: t('registerPage.registrationSuccessDescription').replace('{displayName}', username),
+        duration: 3000,
+        variant: 'success',
       });
-      router.push('/account');
+      router.push('/');
     } catch (error: any) {
       let description = "An unknown error occurred.";
       switch (error.code) {
@@ -119,11 +120,12 @@ export default function RegisterPage() {
       await upsertUserProfile(firestore, result.user);
       toast({
         title: t('registerPage.registrationSuccessTitle'),
-        description: t('registerPage.registrationSuccessDescription').replace('{displayName}', result.user.displayName || 'User'),
+        duration: 3000,
+        variant: 'success',
         x: e.clientX,
         y: e.clientY,
       });
-      router.push('/account');
+      router.push('/');
     } catch (error: any) {
       console.error("Social login error:", error);
       toast({

@@ -18,9 +18,7 @@
     "orContinueWith": "หรือดำเนินการต่อด้วย",
     "noAccount": "ยังไม่มีบัญชี?",
     "testLoginSuccessTitle": "เข้าสู่ระบบทดสอบสำเร็จ",
-    "testLoginSuccessDescription": "คุณกำลังเข้าสู่ระบบในฐานะผู้ใช้ทดสอบ กำลังเปลี่ยนเส้นทางไปยังบัญชีของคุณ...",
     "loginSuccessTitle": "เข้าสู่ระบบสำเร็จ",
-    "loginSuccessDescription": "ยินดีต้อนรับกลับมา, {displayName}",
     "loginFailedTitle": "เข้าสู่ระบบล้มเหลว",
     "loginFailedDescription": "ไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง"
   },
@@ -43,7 +41,6 @@
     "orRegisterWith": "หรือลงทะเบียนด้วย",
     "alreadyHaveAccount": "มีบัญชีอยู่แล้ว?",
     "registrationSuccessTitle": "ลงทะเบียนสำเร็จ",
-    "registrationSuccessDescription": "ยินดีต้อนรับ, {displayName}! บัญชีของคุณถูกสร้างขึ้นแล้ว",
     "registrationFailedTitle": "การลงทะเบียนล้มเหลว",
     "registrationFailedDescription": "ไม่สามารถลงทะเบียนด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง"
   },

@@ -18,9 +18,7 @@
     "orContinueWith": "Or continue with",
     "noAccount": "Don't have an account?",
     "testLoginSuccessTitle": "Test Login Successful",
-    "testLoginSuccessDescription": "You are logging in as a test user. Redirecting to your account...",
     "loginSuccessTitle": "Login Successful",
-    "loginSuccessDescription": "Welcome back, {displayName}",
     "loginFailedTitle": "Login Failed",
     "loginFailedDescription": "Could not sign in with social account. Please try again later."
   },
@@ -43,7 +41,6 @@
     "orRegisterWith": "Or register with",
     "alreadyHaveAccount": "Already have an account?",
     "registrationSuccessTitle": "Registration Successful",
-    "registrationSuccessDescription": "Welcome, {displayName}! Your account has been created.",
     "registrationFailedTitle": "Registration Failed",
     "registrationFailedDescription": "Could not register with social account. Please try again later."
   },
