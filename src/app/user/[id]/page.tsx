@@ -131,20 +131,24 @@ export default function UserProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                             <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <ShoppingBag className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                    <p className="font-bold">{user.itemsOnSale || 0}</p>
+                            <Link href={`/user/${user.id}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <ShoppingBag className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                        <p className="font-bold">{user.itemsOnSale || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <ShoppingCart className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                    <p className="font-bold">{user.itemsSold || 0}</p>
+                            </Link>
+                            <Link href={`/user/${user.id}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <ShoppingCart className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
+                                        <p className="font-bold">{user.itemsSold || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                              <Link href={`/user/${user.id}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
