@@ -17,7 +17,6 @@ service cloud.firestore {
     }
     
     function getUserRole() {
-      // Check if the user is signed in and if their profile document exists before trying to access .role
       return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? getUserData().role : 'guest';
     }
 
@@ -50,21 +49,22 @@ service cloud.firestore {
         // Admins can update any user document.
         isAdmin() || 
         // Or the user is updating their own profile within allowed boundaries.
-        (isOwner(userId) && (
-            // A user CANNOT change these core fields. Any update attempting to change them will fail.
-            request.resource.data.email == resource.data.email &&
-            request.resource.data.kycStatus == resource.data.kycStatus &&
-            request.resource.data.creditScore == resource.data.creditScore &&
-            request.resource.data.creditLevel == resource.data.creditLevel &&
+        (isOwner(userId) &&
+          // --- PROTECTED FIELDS: User cannot change these core data points ---
+          request.resource.data.email == resource.data.email &&
+          request.resource.data.creditScore == resource.data.creditScore &&
+          request.resource.data.creditLevel == resource.data.creditLevel &&
+          request.resource.data.kycStatus == resource.data.kycStatus &&
+          request.resource.data.isPro == resource.data.isPro &&
+          request.resource.data.isWeb3Verified == resource.data.isWeb3Verified &&
+          
+          // --- LOGIC: Role can only be promoted from guest to user ---
+          (request.resource.data.role == resource.data.role ||
+            (resource.data.role == 'guest' && request.resource.data.role == 'user' && resource.data.emailVerified == true)) &&
 
-            // The 'role' field has special logic:
-            (
-              // EITHER the role is not changing...
-              request.resource.data.role == resource.data.role ||
-              // ...OR it's the one-time promotion from 'guest' to 'user' after email verification.
-              (resource.data.role == 'guest' && request.resource.data.role == 'user' && request.auth.token.email_verified == true)
-            )
-        ));
+          // --- LOGIC: isNftVerified can only be set to true if the user's wallet is already verified ---
+          (request.resource.data.isNftVerified == false || request.resource.data.isWeb3Verified == true)
+        );
       
       // Only admins can delete user documents.
       allow delete: if isAdmin();
