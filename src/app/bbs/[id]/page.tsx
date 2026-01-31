@@ -8,6 +8,8 @@ import { getBbsPostById, getUsers } from '@/lib/data';
 import type { BbsPost, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
 
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,7 +27,7 @@ import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
 const locales = { en: enUS, zh: zhCN, th: th };
 
 // Placeholder comments
-const comments = [
+const initialComments = [
     { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
     { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
     { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
@@ -72,6 +74,11 @@ export default function BbsPostPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { user, profile } = useUser();
+    const [comments, setComments] = useState(initialComments);
+    const [newComment, setNewComment] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const id = typeof params.id === 'string' ? params.id : '';
 
     useEffect(() => {
@@ -108,6 +115,31 @@ export default function BbsPostPage() {
         });
     };
 
+    const handlePostComment = () => {
+        if (!newComment.trim()) return;
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: t('productComments.cannotCommentTitle'),
+                description: t('productComments.loginToComment_link') + ' ' + t('productComments.loginToComment_text'),
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        setTimeout(() => {
+            const newCommentObject = {
+                user: user.uid,
+                text: newComment,
+                time: '刚刚',
+            };
+            setComments(prev => [newCommentObject, ...prev]);
+            setNewComment('');
+            setIsSubmitting(false);
+            toast({ title: t('productComments.commentPosted') });
+        }, 500);
+    };
+
     if (loading) {
         return (
             <>
@@ -124,7 +156,16 @@ export default function BbsPostPage() {
     const postDate = new Date(post.createdAt);
     const timeAgo = formatDistanceToNow(postDate, { addSuffix: true, locale: locales[language] || enUS });
 
-    const getUserById = (userId: string) => users.find(u => u.id === userId);
+    const getUserById = (userId: string) => {
+        if (user && userId === user.uid) {
+            return {
+                id: user.uid,
+                name: profile?.displayName || user.displayName || 'You',
+                avatarUrl: profile?.photoURL || user.photoURL || '',
+            } as User;
+        }
+        return users.find(u => u.id === userId);
+    };
 
     return (
         <>
@@ -214,14 +255,30 @@ export default function BbsPostPage() {
                     
                     {/* Actions Footer */}
                     <div className="sticky bottom-0 p-4 border-t bg-card/80 backdrop-blur-sm z-20">
-                        <div className="relative">
-                            <Input placeholder="说点什么吧..." className="pr-40" />
-                            <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center gap-1">
-                                    <Button variant="ghost" size="icon"><ThumbsUp /></Button>
+                        <div className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                                <Input
+                                    placeholder={t('productComments.placeholder')}
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handlePostComment();
+                                        }
+                                    }}
+                                    className="pr-32"
+                                />
+                                <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
                                     <Button variant="ghost" size="icon"><Star /></Button>
                                     <Button variant="ghost" size="icon"><MessageSquare /></Button>
                                     <Button variant="ghost" size="icon" onClick={handleShare}><Share2 /></Button>
+                                </div>
                             </div>
+                            <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {t('productComments.submit')}
+                            </Button>
                         </div>
                     </div>
 
