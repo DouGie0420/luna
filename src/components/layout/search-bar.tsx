@@ -113,8 +113,8 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
     <div className="relative w-full">
        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <PopoverTrigger asChild>
-          <div 
-            className="group relative flex h-16 items-center rounded-full border border-primary/30 bg-transparent text-xl animate-glow overflow-hidden"
+          <div
+            className="group relative flex h-16 items-center rounded-full border bg-transparent text-xl overflow-hidden animate-glow-border-primary"
             onClick={() => {
               if (suggestions.length > 0 || (searchTerm.length > 1 && !isLoading)) setIsPopoverOpen(true)
             }}

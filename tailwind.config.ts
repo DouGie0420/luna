@@ -129,6 +129,16 @@ export default {
             boxShadow: '0 0 20px 3px hsl(var(--foreground) / 0.4)',
           },
         },
+        'glow-border-primary': {
+          '0%, 100%': {
+            borderColor: 'hsl(var(--primary) / 0.7)',
+            boxShadow: '0 0 8px hsl(var(--primary) / 0.5)',
+          },
+          '50%': {
+            borderColor: 'hsl(var(--primary))',
+            boxShadow: '0 0 16px 2px hsl(var(--primary))',
+          },
+        },
         'glow-line': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
@@ -157,6 +167,7 @@ export default {
         'glow-muted': 'glow-muted 4s ease-in-out infinite',
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-border-muted': 'glow-border-muted 4s ease-in-out infinite',
+        'glow-border-primary': 'glow-border-primary 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
         'suggestion-fade-in': 'suggestion-fade-in 0.3s ease-out forwards',
