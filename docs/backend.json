@@ -56,6 +56,14 @@
           "type": "string",
           "description": "The user's unique ID from Firebase Auth."
         },
+        "loginId": {
+          "type": "string",
+          "description": "The user's unique login ID, chosen at registration."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
         "email": {
           "type": "string",
           "format": "email",
@@ -152,6 +160,7 @@
       },
       "required": [
         "uid",
+        "loginId",
         "kycStatus",
         "createdAt"
       ]
@@ -505,3 +514,5 @@
     }
   }
 }
+
+    

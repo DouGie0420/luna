@@ -1,6 +1,7 @@
 
 'use client'
 
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -16,14 +17,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { useFirebaseAuth } from "@/firebase/auth/use-user"
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
 import { useToast } from "@/hooks/use-toast"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
-import React from "react";
+import type { UserProfile } from "@/lib/types";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -41,9 +42,78 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  const [loginId, setLoginId] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleEmailRegister = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Firebase not ready. Please try again.' });
+      return;
+    }
+    if (password !== confirmPassword) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Passwords do not match.' });
+      return;
+    }
+    if (!termsAccepted) {
+      toast({ variant: 'destructive', title: 'Agreement Required', description: t('registerPage.termsRequirement') });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      const additionalData: Partial<UserProfile> = {
+        loginId,
+        displayName: username,
+        phone,
+        email,
+      };
+
+      await upsertUserProfile(firestore, user, additionalData);
+
+      toast({
+        title: t('registerPage.registrationSuccessTitle'),
+        description: t('registerPage.registrationSuccessDescription').replace('{displayName}', username),
+      });
+      router.push('/account');
+    } catch (error: any) {
+      let description = "An unknown error occurred.";
+      switch (error.code) {
+        case 'auth/email-already-in-use':
+          description = 'This email address is already in use by another account.';
+          break;
+        case 'auth/weak-password':
+          description = 'The password is too weak. Please use at least 6 characters.';
+          break;
+        case 'auth/invalid-email':
+          description = 'The email address is not valid.';
+          break;
+        default:
+          description = error.message;
+      }
+      toast({
+        variant: 'destructive',
+        title: t('registerPage.registrationFailedTitle'),
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
     if (!auth || !firestore) return;
 
+    setIsLoading(true);
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
 
     try {
@@ -65,6 +135,8 @@ export default function RegisterPage() {
         x: e.clientX,
         y: e.clientY,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -87,12 +159,12 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="login-id">{t('registerPage.loginIdLabel')}</Label>
-                <Input id="login-id" placeholder={t('registerPage.loginIdPlaceholder')} required />
+                <Input id="login-id" placeholder={t('registerPage.loginIdPlaceholder')} required value={loginId} onChange={(e) => setLoginId(e.target.value)} />
                 <p className="text-xs text-muted-foreground">{t('registerPage.loginIdDescription')}</p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="username">{t('registerPage.usernameLabel')}</Label>
-                <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required />
+                <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required value={username} onChange={(e) => setUsername(e.target.value)} />
                 <p className="text-xs text-muted-foreground">{t('registerPage.usernameDescription')}</p>
               </div>
             </div>
@@ -100,13 +172,13 @@ export default function RegisterPage() {
             <div className="grid gap-2">
               <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
               <div className="flex gap-2">
-                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required className="flex-1" />
-                <Button variant="secondary">{t('registerPage.sendVerificationCode')}</Button>
+                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required className="flex-1" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Button variant="secondary" disabled>{t('registerPage.sendVerificationCode')}</Button>
               </div>
             </div>
             <div className="grid gap-2">
                 <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
-                <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} />
+                <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
 
             <Separator />
@@ -114,16 +186,16 @@ export default function RegisterPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="password">{t('registerPage.passwordLabel')}</Label>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password-confirm">{t('registerPage.confirmPasswordLabel')}</Label>
-                <Input id="password-confirm" type="password" required />
+                <Input id="password-confirm" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
             </div>
 
             <div className="items-top flex space-x-2">
-                <Checkbox id="terms1" />
+                <Checkbox id="terms1" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(!!checked)} />
                 <div className="grid gap-1.5 leading-none">
                   <label
                     htmlFor="terms1"
@@ -142,7 +214,10 @@ export default function RegisterPage() {
 
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full">{t('registerPage.createAccount')}</Button>
+            <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('registerPage.createAccount')}
+            </Button>
             
             <div className="relative w-full">
               <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
@@ -150,11 +225,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)} disabled={isLoading}>
                   <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                   Google
                 </Button>
-                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)} disabled={isLoading}>
                   <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
                   Facebook
                 </Button>
@@ -171,3 +246,5 @@ export default function RegisterPage() {
     </div>
   )
 }
+
+    

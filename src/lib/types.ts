@@ -53,6 +53,8 @@ export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
 
 export type UserProfile = {
     uid: string;
+    loginId?: string;
+    phone?: string;
     email?: string;
     displayName: string;
     photoURL: string;
@@ -155,3 +157,5 @@ export type BbsPost = {
   isFeatured?: boolean;
   favorites?: number;
 };
+
+    

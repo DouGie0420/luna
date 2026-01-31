@@ -6,7 +6,11 @@ import type { UserProfile } from './types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
-export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): Promise<UserProfile> {
+export async function upsertUserProfile(
+    db: Firestore, 
+    user: FirebaseAuthUser,
+    additionalData: Partial<UserProfile> = {}
+): Promise<UserProfile> {
     const userRef = doc(db, 'users', user.uid);
     
     try {
@@ -17,7 +21,7 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
             const updateData = {
                 lastLogin: serverTimestamp(),
                 photoURL: user.photoURL || userProfile.photoURL,
-                displayName: user.displayName || userProfile.displayName,
+                displayName: userProfile.displayName || user.displayName || 'User',
             };
             updateDoc(userRef, updateData).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
@@ -31,15 +35,15 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
         } else {
             const newUserProfile: UserProfile = {
                 uid: user.uid,
-                email: user.email || '',
-                displayName: user.displayName || 'New User',
+                email: additionalData.email || user.email || '',
+                displayName: additionalData.displayName || user.displayName || 'New User',
                 photoURL: user.photoURL || `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
                 gender: '保密',
                 location: '',
                 bio: '',
                 kycStatus: 'Not Verified',
                 isPro: false,
-                isWeb3Verified: true, // Mark as Web3 verified
+                isWeb3Verified: false,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
                 rating: 0,
@@ -49,7 +53,8 @@ export async function upsertUserProfile(db: Firestore, user: FirebaseAuthUser): 
                 followersCount: 0,
                 followingCount: 0,
                 creditScore: 0,
-                creditLevel: 'Newcomer'
+                creditLevel: 'Newcomer',
+                ...additionalData
             };
             setDoc(userRef, newUserProfile).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
@@ -144,3 +149,5 @@ export function updateUserProfile(db: Firestore, uid: string, data: Partial<User
         throw serverError;
     });
 }
+
+    
