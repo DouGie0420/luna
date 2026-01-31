@@ -421,7 +421,7 @@ export default function BbsPostPage() {
                                     )}
                                 >
                                     <ThumbsUp className="h-4 w-4" />
-                                    <span>{author?.goodReviews ?? 0}</span>
+                                    <span>{(author?.goodReviews ?? 0) + (isLiked ? 1 : 0)}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -432,7 +432,7 @@ export default function BbsPostPage() {
                                     )}
                                 >
                                     <ThumbsDown className="h-4 w-4" />
-                                    <span>{author?.badReviews ?? 0}</span>
+                                    <span>{(author?.badReviews ?? 0) + (isDisliked ? 1 : 0)}</span>
                                 </Button>
                                 <span>{timeAgo}</span>
                             </div>

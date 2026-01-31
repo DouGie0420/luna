@@ -167,13 +167,9 @@ export default function MyListingsPage() {
     const handleLike = (productId: string) => {
         setInteractionState(prev => {
             const current = prev[productId] || { liked: false, favorited: false };
-            const newState = !current.liked;
-            if (newState) {
-                // toast({ title: t('productCardActions.likeSuccess') });
-            }
             return {
                 ...prev,
-                [productId]: { ...current, liked: newState }
+                [productId]: { ...current, liked: !current.liked }
             };
         });
     };
@@ -181,13 +177,13 @@ export default function MyListingsPage() {
     const handleFavorite = (productId: string) => {
         setInteractionState(prev => {
             const current = prev[productId] || { liked: false, favorited: false };
-            const newState = !current.favorited;
-            if (newState) {
+            const isNowFavorited = !current.favorited;
+            if (isNowFavorited) {
                 toast({ title: t('productCardActions.addedToFavorites') });
             }
             return {
                 ...prev,
-                [productId]: { ...current, favorited: newState }
+                [productId]: { ...current, favorited: isNowFavorited }
             };
         });
     };

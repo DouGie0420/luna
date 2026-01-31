@@ -171,16 +171,17 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
             <Button
                 onClick={handleLikeClick}
                 variant="ghost"
-                size="icon"
                 className={cn(
-                    "rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow",
+                    "rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm",
                     isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-black/70 hover:text-rose-500"
                 )}
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-4 w-4" />
+              <span>{(post.likes || 0) + (isLiked ? 1 : 0)}</span>
           </Button>
-          <Button onClick={handleFavoriteClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
-              <Star className={cn("h-5 w-5", isFavorited && "text-yellow-400 fill-yellow-400")} />
+          <Button onClick={handleFavoriteClick} variant="ghost" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm">
+              <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+              <span>{(post.favorites || 0) + (isFavorited ? 1 : 0)}</span>
           </Button>
           <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">
               <Share2 className="h-5 w-5" />
