@@ -52,6 +52,7 @@ const testProfile: UserProfile = {
   emailVerified: true,
   isPro: true,
   isWeb3Verified: true,
+  isNftVerified: true,
   createdAt: new Date(),
   lastLogin: new Date(),
   rating: 4.9,
@@ -106,88 +107,80 @@ export const useUser = (): UserState => {
       setUserState(s => ({ ...s, loading: true }));
       return;
     }
-    
-    // --- Test User Logic ---
-    if (typeof window !== 'undefined' && localStorage.getItem('isTestUser') === 'true') {
-      setUserState({ user: testUser, profile: testProfile, loading: false, error: null });
-      return;
-    }
 
-    // --- Wallet User Logic ---
-    const walletUserString = typeof window !== 'undefined' ? localStorage.getItem('walletUser') : null;
-    if (walletUserString) {
-        const walletUser = JSON.parse(walletUserString);
-        const mockUser = createMockFirebaseUser(walletUser);
-        const profileRef = doc(firestore, 'users', mockUser.uid);
-        const unsubscribe = onSnapshot(profileRef, 
-            (docSnapshot) => {
-                setUserState({
-                    user: mockUser,
-                    profile: docSnapshot.exists() ? (docSnapshot.data() as UserProfile) : null,
-                    loading: false,
-                    error: null,
-                });
-            },
-            (error) => {
-                console.error("Wallet user profile snapshot error:", error);
-                setUserState({ user: mockUser, profile: null, loading: false, error });
-            }
-        );
-        return () => unsubscribe();
-    }
-    
-    // --- Standard Firebase Auth Logic ---
-    let profileUnsubscribe: Unsubscribe | undefined;
+    let unsubscribe: Unsubscribe = () => {};
 
     const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-      // Clean up previous profile listener if it exists
-      if (profileUnsubscribe) {
-        profileUnsubscribe();
-      }
+      unsubscribe(); // Unsubscribe from previous profile listener
 
+      if (typeof window !== 'undefined' && localStorage.getItem('isTestUser') === 'true') {
+        setUserState({ user: testUser, profile: testProfile, loading: false, error: null });
+        return;
+      }
+      
+      const walletUserString = typeof window !== 'undefined' ? localStorage.getItem('walletUser') : null;
+      if (walletUserString) {
+          const walletUser = JSON.parse(walletUserString);
+          const mockUser = createMockFirebaseUser(walletUser);
+          const profileRef = doc(firestore, 'users', mockUser.uid);
+          unsubscribe = onSnapshot(profileRef, 
+              (docSnapshot) => {
+                  setUserState({
+                      user: mockUser,
+                      profile: docSnapshot.exists() ? (docSnapshot.data() as UserProfile) : null,
+                      loading: false,
+                      error: null,
+                  });
+              },
+              (error) => {
+                  console.error("Wallet user profile snapshot error:", error);
+                  setUserState({ user: mockUser, profile: null, loading: false, error });
+              }
+          );
+          return;
+      }
+      
       if (authUser) {
-        const profileRef = doc(firestore, 'users', authUser.uid);
-        
-        // Set up a new listener for the current user's profile
-        profileUnsubscribe = onSnapshot(profileRef,
-          (profileDoc) => {
-            const profileData = profileDoc.exists() ? (profileDoc.data() as UserProfile) : null;
-            
-            // Side-effect to sync auth state (like email verification) to the Firestore profile
-            if (profileData) {
-                const updates: Partial<UserProfile> = {};
-                if (authUser.emailVerified && !profileData.emailVerified) {
-                    updates.emailVerified = true;
-                }
-                if (authUser.emailVerified && profileData.role === 'guest') {
-                    updates.role = 'user';
-                }
-                if (Object.keys(updates).length > 0) {
-                    updateUserProfile(firestore, authUser.uid, updates);
-                }
+        // Reload user to get fresh emailVerified status
+        authUser.reload().then(() => {
+          const profileRef = doc(firestore, 'users', authUser.uid);
+          unsubscribe = onSnapshot(profileRef,
+            (profileDoc) => {
+              const profileData = profileDoc.exists() ? (profileDoc.data() as UserProfile) : null;
+
+              if (profileData) {
+                  const updates: Partial<UserProfile> = {};
+                  // Use fresh user from auth after reload
+                  if (auth.currentUser?.emailVerified && !profileData.emailVerified) {
+                      updates.emailVerified = true;
+                  }
+                  if (auth.currentUser?.emailVerified && profileData.role === 'guest') {
+                      updates.role = 'user';
+                  }
+                  if (Object.keys(updates).length > 0) {
+                      updateUserProfile(firestore, authUser.uid, updates);
+                  }
+              }
+              
+              setUserState({ user: auth.currentUser, profile: profileData, loading: false, error: null });
+            },
+            (error) => {
+              console.error('Profile snapshot error:', error);
+              setUserState({ user: auth.currentUser, profile: null, loading: false, error });
             }
-            
-            // This is the single point of truth for updating the state for a logged-in user.
-            // It runs whenever the profile data changes.
-            setUserState({ user: authUser, profile: profileData, loading: false, error: null });
-          },
-          (error) => {
-            console.error('Profile snapshot error:', error);
-            setUserState({ user: authUser, profile: null, loading: false, error });
-          }
-        );
+          );
+        }).catch(err => {
+            console.error("Failed to reload user", err);
+            setUserState({ user: null, profile: null, loading: false, error: err as Error });
+        })
       } else {
-        // User is signed out, clear all state
         setUserState({ user: null, profile: null, loading: false, error: null });
       }
     });
 
-    // Cleanup function for the main useEffect
     return () => {
       authUnsubscribe();
-      if (profileUnsubscribe) {
-        profileUnsubscribe();
-      }
+      unsubscribe();
     };
   }, [auth, firestore]);
 

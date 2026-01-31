@@ -254,7 +254,7 @@ export default function UserProfilePage() {
                                     ) : user.isWeb3Verified && (
                                         <div className="flex items-center gap-1.5 text-blue-400">
                                             <ShieldCheck className="h-4 w-4" />
-                                            <span>{t('userProfile.web3')}</span>
+                                            <span>WEB3</span>
                                         </div>
                                     )}
                                     {user.kycStatus === 'Verified' && (
