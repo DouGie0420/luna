@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -33,6 +33,7 @@ import Link from "next/link";
 import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
+import { cn } from "@/lib/utils";
 
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
@@ -68,13 +69,6 @@ export default function AccountProfilePage() {
             return () => clearTimeout(timer);
         }
     }, [cooldown]);
-
-    const handleCopy = (text: string) => {
-        navigator.clipboard.writeText(text);
-        toast({
-            title: t('accountPage.copied'),
-        });
-    };
 
     const handleSaveChanges = async () => {
         if (!firestore || !user) return;
@@ -215,25 +209,23 @@ export default function AccountProfilePage() {
                         <CardDescription>{t('accountPage.personalInfoDescription')}</CardDescription>
                     </CardHeader>
                     <CardContent className="grid gap-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
-                                <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                            </div>
-                             <div className="grid gap-2">
-                                <Label htmlFor="user-id">{t('accountPage.userId')}</Label>
-                                <div className="flex gap-2">
-                                    <Input id="user-id" value={user?.uid || ''} readOnly className="text-muted-foreground" />
-                                    <Button variant="outline" size="icon" onClick={() => handleCopy(user?.uid || '')}>
-                                        <Copy className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
+                            <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="email">{t('accountPage.email')}</Label>
                             <div className="flex gap-2">
-                                <Input id="email" type="email" value={profile?.email || user?.email || ''} readOnly className="text-muted-foreground" />
+                                <Input 
+                                    id="email" 
+                                    type="email" 
+                                    value={profile?.email || user?.email || ''} 
+                                    readOnly 
+                                    className={cn(
+                                        "text-muted-foreground", 
+                                        profile?.emailVerified && "border-dashed border-muted-foreground/30 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 cursor-default"
+                                    )}
+                                />
                                 {user && !profile?.emailVerified && (
                                     <Button type="button" onClick={handleSendVerification} disabled={cooldown > 0 || isVerifying}>
                                         {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
