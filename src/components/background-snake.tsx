@@ -39,58 +39,46 @@ export const BackgroundSnake: React.FC<BackgroundSnakeProps> = ({
     const rows = Math.floor(canvas.height / pixelSize);
 
     let snake: {x: number, y: number}[] = [];
-    const startX = Math.floor(cols / 2);
-    const startY = Math.floor(rows / 2);
-
+    
     for(let i = 0; i < length; i++) {
-        snake.push({x: startX - i, y: startY});
+        snake.push({x: 0 - i, y: 0});
     }
 
     let direction = 'right'; // right, down, left, up
-    let movesSinceTurn = 0;
-    let movesUntilTurn = Math.floor(Math.random() * 15) + 10;
 
     const update = () => {
       let head = { ...snake[0] };
-      const isAtTop = head.y <= 0;
-      const isAtBottom = head.y >= rows - 1;
-      const isAtLeft = head.x <= 0;
-      const isAtRight = head.x >= cols - 1;
-
-      // Change direction logic
-      if (movesSinceTurn >= movesUntilTurn || 
-          (isAtLeft && direction === 'left') ||
-          (isAtRight && direction === 'right') ||
-          (isAtTop && direction === 'up') ||
-          (isAtBottom && direction === 'down')
-      ) {
-          const directions = ['up', 'down', 'left', 'right'];
-          const oppositeDirections: {[key: string]: string} = {
-              'up': 'down', 'down': 'up', 'left': 'right', 'right': 'left',
-          };
-          let possibleDirections = directions.filter(d => d !== oppositeDirections[direction]);
-          
-          if(isAtLeft) possibleDirections = possibleDirections.filter(d => d !== 'left');
-          if(isAtRight) possibleDirections = possibleDirections.filter(d => d !== 'right');
-          if(isAtTop) possibleDirections = possibleDirections.filter(d => d !== 'up');
-          if(isAtBottom) possibleDirections = possibleDirections.filter(d => d !== 'down');
-          
-          if (possibleDirections.length > 0) {
-            direction = possibleDirections[Math.floor(Math.random() * possibleDirections.length)];
-          }
-          
-          movesSinceTurn = 0;
-          movesUntilTurn = Math.floor(Math.random() * 15) + 10;
-      }
 
       switch (direction) {
-        case 'right': head.x++; break;
-        case 'down': head.y++; break;
-        case 'left': head.x--; break;
-        case 'up': head.y--; break;
+        case 'right':
+          head.x++;
+          if (head.x >= cols - 1) {
+            head.x = cols - 1;
+            direction = 'down';
+          }
+          break;
+        case 'down':
+          head.y++;
+          if (head.y >= rows - 1) {
+            head.y = rows - 1;
+            direction = 'left';
+          }
+          break;
+        case 'left':
+          head.x--;
+          if (head.x <= 0) {
+            head.x = 0;
+            direction = 'up';
+          }
+          break;
+        case 'up':
+          head.y--;
+          if (head.y <= 0) {
+            head.y = 0;
+            direction = 'right';
+          }
+          break;
       }
-      
-      movesSinceTurn++;
       
       snake.pop();
       snake.unshift(head);
