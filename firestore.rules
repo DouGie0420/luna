@@ -3,11 +3,17 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // UID is the user's wallet address (lowercase) or a standard Firebase UID
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // WARNING: This rule is insecure and for development/testing only.
+      // It allows any user to read/write to any user's profile.
+      // For production, you MUST secure this with backend SIWE verification and use:
+      // allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if true;
 
       // Allow users to manage their own addresses subcollection
       match /addresses/{addressId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
+        // This rule is also insecure for now. In production, it should be:
+        // allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow read, write: if true;
       }
     }
 
