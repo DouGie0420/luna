@@ -70,16 +70,27 @@ export default function KycListPage() {
       const userRef = doc(firestore, 'users', targetUid);
       await updateDoc(userRef, { kycStatus: newStatus });
       
-      // Send notification
+      // Send notification based on template
       const notificationsCollection = collection(firestore, 'notifications');
-      await addDoc(notificationsCollection, {
-          userId: targetUid,
-          title: 'KYC Status Updated',
-          message: `Your KYC application has been ${newStatus}.`,
-          read: false,
-          createdAt: serverTimestamp(),
-          type: newStatus === 'Verified' ? 'success' : 'error'
-      });
+      const notification = newStatus === 'Verified'
+        ? {
+            userId: targetUid,
+            title: 'KYC 验证成功',
+            message: '您的赛博身份已激活，快去点亮勋章吧！',
+            read: false,
+            createdAt: serverTimestamp(),
+            type: 'success' as const
+          }
+        : {
+            userId: targetUid,
+            title: 'KYC 资料需修改',
+            message: '您的照片不符合规范，请重新上传。',
+            read: false,
+            createdAt: serverTimestamp(),
+            type: 'error' as const
+          };
+
+      await addDoc(notificationsCollection, notification);
 
       setApplications(prev => prev.filter(app => app.uid !== targetUid));
       toast({

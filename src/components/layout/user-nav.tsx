@@ -24,6 +24,7 @@ import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { getNftsForOwner, type SimplifiedNft } from "@/lib/alchemy";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { NotificationBell } from "@/components/notification-bell";
 
 
 export function UserNav() {
@@ -214,7 +215,6 @@ export function UserNav() {
   if (!isLoggedIn) {
     return (
       <>
-        <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
         <div className="flex items-center gap-2">
              <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
                 <Link href="/login">{t('common.login')}</Link>
@@ -231,6 +231,7 @@ export function UserNav() {
     <>
       <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
       <div className="flex items-center gap-2">
+          <NotificationBell />
           <div className={cn(
             "relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate",
             profile?.isNftVerified && 'animate-glow-pink-neon'
@@ -248,20 +249,6 @@ export function UserNav() {
               </Button>
           </div>
           <LanguageSwitcher />
-          <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-              <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
-                  <Link href="/messages" title={t('userNav.messages')}>
-                      <MessageSquare className="h-5 w-5" />
-                  </Link>
-              </Button>
-          </div>
-          <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-              <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
-                  <Link href="/account/purchases" title={t('userNav.orders')}>
-                      <ShoppingCart className="h-5 w-5" />
-                  </Link>
-              </Button>
-          </div>
           <DropdownMenu>
           <DropdownMenuTrigger asChild>
               <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
@@ -302,9 +289,15 @@ export function UserNav() {
                   </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                  <Link href="/account/kyc">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{t('userNav.kycVerification')}</span>
+                  <Link href="/account/purchases">
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      <span>{t('userNav.orders')}</span>
+                  </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                  <Link href="/messages">
+                      <MessageSquare className="mr-2 h-4 w-4" />
+                      <span>{t('userNav.messages')}</span>
                   </Link>
               </DropdownMenuItem>
               </DropdownMenuGroup>
