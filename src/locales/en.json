@@ -522,12 +522,19 @@
       "noSelfie": "No selfie submitted.",
       "approve": "Approve",
       "reject": "Reject",
+      "rejectConfirmTitle": "Confirm Rejection",
+      "rejectConfirmDescription": "Please provide a reason for rejecting the application for {userName}.",
+      "rejectionReasonLabel": "Rejection Reason",
+      "rejectionReasonPlaceholder": "e.g., ID photo is blurry, selfie does not match ID...",
+      "confirmReject": "Confirm Reject",
+      "kycRejectedNotification": "Your KYC application was rejected. Reason: {reason}",
       "userStatusUpdated": "User {status}",
       "userStatusUpdatedDesc": "User {uid}... status has been updated and they have been notified.",
       "actionFailed": "Action Failed",
       "actionFailedDesc": "Could not update user status. Check Firestore rules and permissions.",
       "fetchError": "Could not fetch KYC applications.",
-      "noPending": "No pending KYC applications."
+      "noPending": "No pending KYC applications.",
+      "deleteCancel": "Cancel"
     },
     "ordersPage": {
       "title": "Manage Orders",

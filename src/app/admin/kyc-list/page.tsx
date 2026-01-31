@@ -22,12 +22,24 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import Image from 'next/image';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
 
 export default function KycListPage() {
@@ -39,6 +51,9 @@ export default function KycListPage() {
   const [applications, setApplications] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  const [rejectionTarget, setRejectionTarget] = useState<UserProfile | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
     if (!firestore || !user) return;
@@ -63,41 +78,33 @@ export default function KycListPage() {
 
   }, [firestore, user, toast, t]);
 
-  const handleAction = async (targetUid: string, newStatus: 'Verified' | 'Not Verified') => {
+  const handleApprove = async (targetUid: string) => {
     setProcessingId(targetUid);
     
     if (!firestore) return;
 
     try {
       const userRef = doc(firestore, 'users', targetUid);
-      await updateDoc(userRef, { kycStatus: newStatus });
+      await updateDoc(userRef, { kycStatus: 'Verified' });
       
       const notificationsCollection = collection(firestore, 'users', targetUid, 'notifications');
-      const notification = newStatus === 'Verified'
-        ? {
+      const notification = {
             title: t('admin.kycListPage.userStatusUpdated', { status: 'Verified' }),
             message: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
             read: false,
             createdAt: serverTimestamp(),
             type: 'success' as const
-          }
-        : {
-            title: t('admin.kycListPage.userStatusUpdated', { status: 'Not Verified' }),
-            message: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
-            read: false,
-            createdAt: serverTimestamp(),
-            type: 'error' as const
           };
 
       await addDoc(notificationsCollection, notification);
 
       setApplications(prev => prev.filter(app => app.uid !== targetUid));
       toast({
-          title: t('admin.kycListPage.userStatusUpdated', { status: newStatus }),
+          title: t('admin.kycListPage.userStatusUpdated', { status: 'Verified' }),
           description: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
       });
     } catch (error) {
-      console.error("Error updating user status: ", error);
+      console.error("Error approving user: ", error);
       toast({
         variant: "destructive",
         title: t('admin.kycListPage.actionFailed'),
@@ -107,6 +114,46 @@ export default function KycListPage() {
       setProcessingId(null);
     }
   };
+
+  const handleReject = async () => {
+    if (!rejectionTarget || !rejectionReason.trim() || !firestore) return;
+
+    const targetUid = rejectionTarget.uid;
+    setProcessingId(targetUid);
+
+    try {
+      const userRef = doc(firestore, 'users', targetUid);
+      await updateDoc(userRef, { kycStatus: 'Not Verified' });
+
+      const notificationsCollection = collection(firestore, 'users', targetUid, 'notifications');
+      const notification = {
+            title: t('admin.kycListPage.userStatusUpdated', { status: 'Not Verified' }),
+            message: t('admin.kycListPage.kycRejectedNotification', { reason: rejectionReason }),
+            read: false,
+            createdAt: serverTimestamp(),
+            type: 'error' as const
+          };
+      await addDoc(notificationsCollection, notification);
+      
+      setApplications(prev => prev.filter(app => app.uid !== targetUid));
+      toast({
+          title: t('admin.kycListPage.userStatusUpdated', { status: 'Not Verified' }),
+          description: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
+      });
+
+    } catch (error) {
+       console.error("Error rejecting user: ", error);
+      toast({
+        variant: "destructive",
+        title: t('admin.kycListPage.actionFailed'),
+        description: t('admin.kycListPage.actionFailedDesc'),
+      });
+    } finally {
+      setProcessingId(null);
+      setRejectionTarget(null);
+      setRejectionReason('');
+    }
+  }
   
   if (userLoading || loading) {
     return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -170,7 +217,7 @@ export default function KycListPage() {
                     variant="ghost"
                     size="sm"
                     className="text-green-500 hover:text-green-600 hover:bg-green-500/10"
-                    onClick={() => handleAction(app.uid, 'Verified')}
+                    onClick={() => handleApprove(app.uid)}
                     disabled={processingId === app.uid}
                   >
                     {processingId === app.uid ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
@@ -180,7 +227,7 @@ export default function KycListPage() {
                     variant="ghost"
                     size="sm"
                     className="text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                    onClick={() => handleAction(app.uid, 'Not Verified')}
+                    onClick={() => setRejectionTarget(app)}
                     disabled={processingId === app.uid}
                   >
                     {processingId === app.uid ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
@@ -198,6 +245,33 @@ export default function KycListPage() {
           )}
         </TableBody>
       </Table>
+
+      <AlertDialog open={!!rejectionTarget} onOpenChange={(open) => !open && setRejectionTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('admin.kycListPage.rejectConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('admin.kycListPage.rejectConfirmDescription').replace('{userName}', rejectionTarget?.displayName || 'user')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="grid gap-2 py-4">
+            <Label htmlFor="rejection-reason">{t('admin.kycListPage.rejectionReasonLabel')}</Label>
+            <Textarea
+              id="rejection-reason"
+              placeholder={t('admin.kycListPage.rejectionReasonPlaceholder')}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setRejectionTarget(null)}>{t('admin.kycListPage.deleteCancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReject} disabled={!rejectionReason.trim() || !!processingId}>
+              {processingId === rejectionTarget?.uid && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('admin.kycListPage.confirmReject')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

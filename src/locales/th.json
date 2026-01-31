@@ -522,12 +522,19 @@
       "noSelfie": "ไม่ได้ส่งเซลฟี่",
       "approve": "อนุมัติ",
       "reject": "ปฏิเสธ",
+      "rejectConfirmTitle": "ยืนยันการปฏิเสธ",
+      "rejectConfirmDescription": "โปรดระบุเหตุผลในการปฏิเสธใบสมัครสำหรับ {userName}",
+      "rejectionReasonLabel": "เหตุผลในการปฏิเสธ",
+      "rejectionReasonPlaceholder": "เช่น รูปถ่ายบัตรประชาชนไม่ชัดเจน, รูปเซลฟี่ไม่ตรงกับบัตร...",
+      "confirmReject": "ยืนยันการปฏิเสธ",
+      "kycRejectedNotification": "ใบสมัคร KYC ของคุณถูกปฏิเสธ เหตุผล: {reason}",
       "userStatusUpdated": "ผู้ใช้ {status}",
       "userStatusUpdatedDesc": "สถานะผู้ใช้ {uid}... ได้รับการอัปเดตและพวกเขาได้รับแจ้งแล้ว",
       "actionFailed": "การดำเนินการล้มเหลว",
       "actionFailedDesc": "ไม่สามารถอัปเดตสถานะผู้ใช้ได้ ตรวจสอบกฎ Firestore และสิทธิ์",
       "fetchError": "ไม่สามารถดึงข้อมูลแอปพลิเคชัน KYC ได้",
-      "noPending": "ไม่มีแอปพลิเคชัน KYC ที่รอดำเนินการ"
+      "noPending": "ไม่มีแอปพลิเคชัน KYC ที่รอดำเนินการ",
+      "deleteCancel": "ยกเลิก"
     },
     "ordersPage": {
       "title": "จัดการคำสั่งซื้อ",

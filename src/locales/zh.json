@@ -522,12 +522,19 @@
       "noSelfie": "未提交自拍照。",
       "approve": "批准",
       "reject": "拒绝",
+      "rejectConfirmTitle": "确认拒绝",
+      "rejectConfirmDescription": "请提供拒绝用户 {userName} 申请的理由。",
+      "rejectionReasonLabel": "拒绝理由",
+      "rejectionReasonPlaceholder": "例如：证件照片模糊、自拍照与证件不符...",
+      "confirmReject": "确认拒绝",
+      "kycRejectedNotification": "您的KYC申请被拒绝。原因：{reason}",
       "userStatusUpdated": "用户 {status}",
       "userStatusUpdatedDesc": "用户 {uid}... 的状态已更新，并已通知。",
       "actionFailed": "操作失败",
       "actionFailedDesc": "无法更新用户状态。请检查Firestore规则和权限。",
       "fetchError": "无法获取KYC申请。",
-      "noPending": "没有待处理的KYC申请。"
+      "noPending": "没有待处理的KYC申请。",
+      "deleteCancel": "取消"
     },
     "ordersPage": {
       "title": "管理订单",
