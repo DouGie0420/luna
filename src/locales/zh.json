@@ -568,9 +568,8 @@
       "updateFailed": "更新失败",
       "updateFailedDesc": "您无权更改此用户的角色。",
       "setRole": "设置角色",
-      "resetPassword": "重置密码 (即将推出)"
+      "resetPassword": "重置密码 (即将推出)",
+      "noUsers": "暂无流浪者注册"
     }
   }
 }
-
-    

@@ -568,9 +568,8 @@
       "updateFailed": "Update Failed",
       "updateFailedDesc": "You do not have permission to change this user's role.",
       "setRole": "Set role",
-      "resetPassword": "Reset Password (soon)"
+      "resetPassword": "Reset Password (soon)",
+      "noUsers": "No users registered yet."
     }
   }
 }
-
-    
