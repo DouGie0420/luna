@@ -17,7 +17,8 @@ service cloud.firestore {
     }
     
     function getUserRole() {
-      return isSignedIn() ? getUserData().role : 'guest';
+      // Check if the user is signed in and if their profile document exists before trying to access .role
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? getUserData().role : 'guest';
     }
 
     function isAdmin() {
@@ -36,20 +37,28 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      allow read: if true;
+      // Anyone can read a user's public profile.
+      allow get: if true;
+      // Only admins can list all users.
+      allow list: if isAdmin();
       
-      // An admin can update any field.
-      // A user can update their own profile, but cannot change their own role,
-      // EXCEPT for promoting themselves from 'guest' to 'user' after their email is verified.
-      allow update: if isAdmin() || (isOwner(userId) && (
-                      request.resource.data.role == resource.data.role ||
-                      (resource.data.role == 'guest' && resource.data.emailVerified == true && request.resource.data.role == 'user')
-                    ));
-
-      // A user can create their own profile, but must have the 'guest' role initially.
+      // A user can create their own profile document, but it must be for their own UID and their initial role must be 'guest'.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
+
+      // Update rules are complex to prevent users from elevating their own privileges.
+      allow update: if 
+        // Admins can update any user document.
+        isAdmin() || 
+        // Users can update their own document IF...
+        (isOwner(userId) && (
+          // 1. They are NOT changing their role.
+          request.resource.data.role == resource.data.role ||
+          // 2. They ARE changing their role, but only from 'guest' to 'user', and their email is verified in the database.
+          (resource.data.role == 'guest' && request.resource.data.role == 'user' && resource.data.emailVerified == true)
+        ));
       
-      allow delete: if isAdmin(); // Only admins can delete user documents.
+      // Only admins can delete user documents.
+      allow delete: if isAdmin();
 
       // User Subcollections
       match /addresses/{addressId} {
@@ -59,7 +68,6 @@ service cloud.firestore {
          allow read, write: if isOwner(userId) || isAdmin();
       }
       match /notifications/{notificationId} {
-        // Users can only access their own notifications.
         allow read, write: if isOwner(userId);
       }
     }
@@ -84,7 +92,7 @@ service cloud.firestore {
 
     // ORDERS
     match /orders/{orderId} {
-       // get, update, delete can check resource.data
+       // get, update, delete can check resource.data for individual documents
        allow get, update, delete: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
                          || request.auth.uid == resource.data.sellerId))
                          || isAdmin();
