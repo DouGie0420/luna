@@ -119,10 +119,13 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     }, []);
     
     const handleInteractionNotAllowed = () => {
-        toast({
-            variant: 'destructive',
-            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-        });
+        // Defer toast to avoid state updates during render
+        setTimeout(() => {
+            toast({
+                variant: 'destructive',
+                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+        }, 0);
     }
     
     const handleConfirmCancelReply = () => {
@@ -132,7 +135,9 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     };
 
     const handlePostComment = () => {
-        if (!newComment.trim() || !canInteract) {
+        if (!newComment.trim()) return;
+
+        if (!canInteract) {
             handleInteractionNotAllowed();
             return;
         }

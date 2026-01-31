@@ -86,10 +86,13 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   };
 
   const handleInteractionNotAllowed = () => {
-    toast({
-        variant: 'destructive',
-        title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-    });
+    // Defer toast to avoid state updates during render
+    setTimeout(() => {
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
+    }, 0);
   }
 
   const handleLikeClick = () => {

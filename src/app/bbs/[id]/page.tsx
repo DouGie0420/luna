@@ -268,10 +268,13 @@ export default function BbsPostPage() {
     };
 
     const handleInteractionNotAllowed = () => {
-        toast({
-            variant: 'destructive',
-            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-        });
+        // Defer toast to avoid state updates during render
+        setTimeout(() => {
+            toast({
+                variant: 'destructive',
+                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+        }, 0);
     }
 
     const nestedComments = useMemo(() => {
@@ -419,7 +422,7 @@ export default function BbsPostPage() {
                                     <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                             </Link>
-                            <div>
+                             <div>
                                 <h2 className="font-bold">{post.author.name}</h2>
                                 <p className="text-sm text-muted-foreground">{post.author.creditLevel || t('userProfile.noVerifications')}</p>
                             </div>
@@ -458,7 +461,7 @@ export default function BbsPostPage() {
                     <div className="p-6">
                         <h1 className="font-headline text-3xl font-bold mb-4">{t(post.titleKey)}</h1>
 
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                        <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
                             <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
                                 <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
                             </Link>
@@ -466,12 +469,12 @@ export default function BbsPostPage() {
                             <Link href={`/user/${post.author.id}/following`} className="hover:underline">
                                 <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
                             </Link>
-                            <span>&middot;</span>
-                            <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
-                                <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
+                             <span>&middot;</span>
+                             <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
+                                 <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
                             </Link>
                         </div>
-                        <Separator className="mb-6"/>
+                        <Separator className="my-2"/>
 
 
                         <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
