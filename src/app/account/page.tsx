@@ -272,13 +272,13 @@ export default function AccountProfilePage() {
 
                  <Card>
                     <CardHeader>
-                        <CardTitle>Web3 档案</CardTitle>
-                        <CardDescription>将您的数字资产与 LUNA 档案同步。</CardDescription>
+                        <CardTitle>Crypto Wallet</CardTitle>
+                        <CardDescription>将您的数字资产展示在月之女神的静谧中</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.isWeb3Verified}>
                             {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            同步 NFT 资产
+                            验证 NFT 资产
                         </Button>
                         {!profile?.isWeb3Verified && (
                              <p className="text-xs text-muted-foreground mt-2">请先使用钱包登录以启用此功能。</p>
