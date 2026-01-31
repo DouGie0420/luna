@@ -282,7 +282,8 @@
     "searchPlaceholder": "Search posts...",
     "featuredBadge": "Featured",
     "linkCopied": "Post link copied to clipboard!",
-    "thankYouForLike": "Thanks for your like!"
+    "thankYouForLike": "Thanks for your like!",
+    "loadMoreComments": "Load More Comments"
   },
   "bbsPosts": {
     "post1": {

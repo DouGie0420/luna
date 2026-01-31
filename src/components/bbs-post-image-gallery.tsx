@@ -15,10 +15,11 @@ import {
   DialogContent,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Heart, Star } from 'lucide-react';
+import { Heart, Star, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
+import { useToast } from '@/hooks/use-toast';
 
 interface BbsPostImageGalleryProps {
   post: BbsPost;
@@ -26,6 +27,7 @@ interface BbsPostImageGalleryProps {
 
 export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbApi, setThumbApi] = useState<CarouselApi>();
   const [lightboxApi, setLightboxApi] = useState<CarouselApi>();
@@ -65,6 +67,14 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   
   const openLightbox = () => {
     setIsLightboxOpen(true);
+  };
+  
+  const handleShare = () => {
+    const postUrl = window.location.href;
+    navigator.clipboard.writeText(postUrl);
+    toast({
+        title: t('bbsPage.linkCopied'),
+    });
   };
 
   return (
@@ -114,6 +124,9 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
           </Button>
           <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
               <Star className="h-5 w-5" />
+          </Button>
+          <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">
+              <Share2 className="h-5 w-5" />
           </Button>
         </div>
       </div>

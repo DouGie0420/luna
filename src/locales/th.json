@@ -282,7 +282,8 @@
     "searchPlaceholder": "ค้นหาโพสต์...",
     "featuredBadge": "แนะนำ",
     "linkCopied": "คัดลอกลิงก์โพสต์ไปยังคลิปบอร์ดแล้ว!",
-    "thankYouForLike": "ขอบคุณที่กดไลค์!"
+    "thankYouForLike": "ขอบคุณที่กดไลค์!",
+    "loadMoreComments": "โหลดเพิ่มเติม"
   },
   "bbsPosts": {
     "post1": {

@@ -16,7 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { ThumbsUp, Star, Share2, Plus, MessageSquare, MapPin, Calendar } from 'lucide-react';
@@ -32,7 +32,18 @@ const initialComments = [
     { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
     { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
     { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
+    { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
+    { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
+    { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
+    { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
+    { user: 'user2', text: '这看起来太棒了！你的外壳是在哪里买的？', time: '2小时前' },
+    { user: 'user3', text: '很棒的教程！对新手来说超级有用。', time: '1小时前' },
+    { user: 'user6', text: '喜欢这种霓虹美学。我下一个作品可能会试试。', time: '45分钟前' },
+    { user: 'user7', text: '可以分享一下键帽的链接吗？', time: '30分钟前' },
 ];
+
+const COMMENTS_INITIAL_LOAD = 10;
+const COMMENTS_LOAD_MORE = 10;
 
 function PostPageSkeleton() {
     return (
@@ -78,6 +89,7 @@ export default function BbsPostPage() {
     const [comments, setComments] = useState(initialComments);
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -139,6 +151,10 @@ export default function BbsPostPage() {
             toast({ title: t('productComments.commentPosted') });
         }, 500);
     };
+    
+    const handleLoadMoreComments = () => {
+        setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
+    };
 
     if (loading) {
         return (
@@ -182,7 +198,15 @@ export default function BbsPostPage() {
                             </Avatar>
                             <div>
                                 <p className="font-bold group-hover:underline">{post.author.name}</p>
-                                <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    {post.author.location && (
+                                        <>
+                                            <span>{post.author.location.city}</span>
+                                            <span className="mx-1">&middot;</span>
+                                        </>
+                                    )}
+                                    <span>{timeAgo}</span>
+                                </div>
                             </div>
                         </Link>
                         <Button size="sm">
@@ -228,7 +252,7 @@ export default function BbsPostPage() {
                         <Separator className="my-6" />
                         <div className="space-y-6">
                             <p className="text-lg font-semibold">{comments.length} 条评论</p>
-                            {comments.map((comment, index) => {
+                            {comments.slice(0, visibleCommentsCount).map((comment, index) => {
                                 const user = getUserById(comment.user);
                                 return user ? (
                                     <div key={index} className="flex items-start gap-3">
@@ -250,28 +274,39 @@ export default function BbsPostPage() {
                                     </div>
                                 ) : null;
                             })}
+                            {comments.length > visibleCommentsCount && (
+                                <div className="text-center mt-6">
+                                    <Button variant="outline" onClick={handleLoadMoreComments}>
+                                        {t('bbsPage.loadMoreComments')}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                     
                     {/* Actions Footer */}
                     <div className="sticky bottom-0 p-4 border-t bg-card/80 backdrop-blur-sm z-20">
-                        <div className="flex items-center gap-2">
-                            <Input
+                        <div className="space-y-2">
+                            <Textarea
                                 placeholder={t('productComments.placeholder')}
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
+                                maxLength={2000}
+                                rows={3}
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
                                         handlePostComment();
                                     }
                                 }}
-                                className="flex-1"
                             />
-                            <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
-                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                {t('productComments.submit')}
-                            </Button>
+                            <div className="flex justify-between items-center">
+                                <p className="text-xs text-muted-foreground">{newComment.length} / 2000</p>
+                                <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
+                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {t('productComments.submit')}
+                                </Button>
+                            </div>
                         </div>
                     </div>
 
