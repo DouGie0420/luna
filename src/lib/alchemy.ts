@@ -10,8 +10,12 @@ const resolveIpfsUrl = (url: string | undefined): string => {
     return url;
 };
 
+if (!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY) {
+    console.warn("Alchemy API key not found. Please set NEXT_PUBLIC_ALCHEMY_API_KEY in your .env file.");
+}
+
 const config = {
-    apiKey: "i2W8Dk47iLGaEhcRcwkFI",
+    apiKey: process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || "", 
     network: Network.ETH_MAINNET, 
 };
 const alchemy = new Alchemy(config);
@@ -24,6 +28,9 @@ export interface SimplifiedNft {
 }
 
 export const getNftsForOwner = async (ownerAddress: string): Promise<SimplifiedNft[]> => {
+    if (!config.apiKey) {
+        throw new Error("Alchemy API key is missing. Please check your .env file.");
+    }
     try {
         const nfts = await alchemy.nft.getNftsForOwner(ownerAddress);
         return nfts.ownedNfts
@@ -36,6 +43,6 @@ export const getNftsForOwner = async (ownerAddress: string): Promise<SimplifiedN
             }));
     } catch (error) {
         console.error("Error fetching NFTs from Alchemy:", error);
-        return [];
+        throw new Error("Failed to fetch NFT data from Alchemy. Please check your API key and network connection.");
     }
 };
