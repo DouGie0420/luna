@@ -11,7 +11,7 @@ const resolveIpfsUrl = (url: string | undefined): string => {
 };
 
 // Check if Alchemy API key is provided
-if (!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || process.env.NEXT_PUBLIC_ALCHEMY_API_KEY === "YOUR_ALCHEMY_API_KEY") {
+if (!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY) {
     console.warn("Alchemy API Key is not configured. Please add NEXT_PUBLIC_ALCHEMY_API_KEY to your .env file.");
 }
 
@@ -29,7 +29,7 @@ export interface SimplifiedNft {
 }
 
 export const getNftsForOwner = async (ownerAddress: string): Promise<SimplifiedNft[]> => {
-    if (!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY || process.env.NEXT_PUBLIC_ALCHEMY_API_KEY === "YOUR_ALCHEMY_API_KEY") {
+    if (!process.env.NEXT_PUBLIC_ALCHEMY_API_KEY) {
         // Return mock data if API key is not set
         console.log("Using mock NFT data because Alchemy API key is not set.");
         return [
