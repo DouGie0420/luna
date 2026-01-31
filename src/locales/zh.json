@@ -138,7 +138,10 @@
     "consignmentDescription": "勾选此项表示您希望使用官方寄售服务。我们的团队将与您联系后续事宜。",
     "shippingMethod": "配送方式",
     "sellerPays": "卖家包邮",
-    "buyerPays": "买家承担运费"
+    "buyerPays": "买家承担运费",
+    "shippingTemplate": "快递模板",
+    "aiAnalysis": "AI智能分析",
+    "aiAnalysisDescription": "勾选此项，上传图片后将自动生成标题和描述。"
   },
   "product": {
     "consignmentBadge": "寄售",

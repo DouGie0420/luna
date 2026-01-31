@@ -138,7 +138,10 @@
     "consignmentDescription": "Check this to use our official consignment service. Our team will contact you for further steps.",
     "shippingMethod": "Shipping Method",
     "sellerPays": "Seller Pays Shipping",
-    "buyerPays": "Buyer Pays Shipping"
+    "buyerPays": "Buyer Pays Shipping",
+    "shippingTemplate": "Shipping Carrier",
+    "aiAnalysis": "AI-powered Analysis",
+    "aiAnalysisDescription": "Check this to automatically generate a title and description from your uploaded image."
   },
   "product": {
     "consignmentBadge": "Consignment",
