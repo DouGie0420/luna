@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck, Plus, Check } from "lucide-react";
 import { getUsers, getProducts } from "@/lib/data";
 import { notFound, useParams } from "next/navigation";
 import type { User, Product } from "@/lib/types";
@@ -21,6 +21,9 @@ import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-a
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProductCard } from "@/components/product-card";
 import Link from "next/link";
+import { useUser } from "@/firebase";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function UserProfilePage() {
     const params = useParams();
@@ -30,6 +33,11 @@ export default function UserProfilePage() {
     const [user, setUser] = useState<User | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const { user: currentUser, profile: currentUserProfile } = useUser();
+    const [isFollowing, setIsFollowing] = useState(false);
+    const { toast } = useToast();
+    const canInteract = currentUser && currentUserProfile?.kycStatus === 'Verified';
 
     useEffect(() => {
         if (!userId) return;
@@ -49,6 +57,30 @@ export default function UserProfilePage() {
         fetchData();
 
     }, [userId]);
+
+    // Mock initial follow state
+    useEffect(() => {
+        if (currentUser && user) {
+            // In a real app, check DB. Mocking it here.
+            setIsFollowing(Math.random() > 0.5);
+        }
+    }, [currentUser, user]);
+
+    const handleFollowToggle = () => {
+        if (!canInteract) {
+            toast({
+                variant: 'destructive',
+                title: !currentUser ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+            return;
+        }
+        setIsFollowing(prev => {
+            toast({
+                title: !prev ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
+            });
+            return !prev;
+        });
+    };
 
     if (loading) {
         return (
@@ -92,20 +124,31 @@ export default function UserProfilePage() {
             <div className="grid gap-8">
                 <Card>
                     <CardHeader>
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-20 w-20">
-                                <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <CardTitle>{user.name}</CardTitle>
-                                {user.location && (
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                        <MapPin className="h-4 w-4" />
-                                        <span>{user.location.city}, {user.location.countryCode}</span>
-                                    </div>
-                                )}
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <Avatar className="h-20 w-20">
+                                    <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <CardTitle>{user.name}</CardTitle>
+                                    {user.location && (
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                            <MapPin className="h-4 w-4" />
+                                            <span>{user.location.city}, {user.location.countryCode}</span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+                             {currentUser && currentUser.uid !== userId && (
+                                <Button onClick={handleFollowToggle} disabled={!canInteract} variant={isFollowing ? 'outline' : 'default'}>
+                                    {isFollowing ? (
+                                        <><Check className="mr-2 h-4 w-4" />{t('userProfile.alreadyFollowing')}</>
+                                    ) : (
+                                        <><Plus className="mr-2 h-4 w-4" />{t('userProfile.follow')}</>
+                                    )}
+                                </Button>
+                            )}
                         </div>
                     </CardHeader>
                     <CardContent className="grid gap-6">

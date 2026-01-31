@@ -46,6 +46,7 @@ export type User = {
   creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
   followersCount?: number;
   followingCount?: number;
+  postsCount?: number;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';

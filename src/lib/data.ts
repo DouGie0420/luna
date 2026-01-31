@@ -21,6 +21,7 @@ const users: User[] = [
     creditLevel: 'Gold',
     followersCount: 1200,
     followingCount: 150,
+    postsCount: 0,
   },
   {
     id: 'user2',
@@ -41,6 +42,7 @@ const users: User[] = [
     creditLevel: 'Platinum',
     followersCount: 2500,
     followingCount: 80,
+    postsCount: 1,
   },
   {
     id: 'user3',
@@ -61,6 +63,7 @@ const users: User[] = [
     creditLevel: 'Silver',
     followersCount: 500,
     followingCount: 300,
+    postsCount: 1,
   },
   {
     id: 'user4',
@@ -81,6 +84,7 @@ const users: User[] = [
     creditLevel: 'Diamond',
     followersCount: 10000,
     followingCount: 5,
+    postsCount: 0,
   },
   {
     id: 'user5',
@@ -100,6 +104,7 @@ const users: User[] = [
     creditLevel: 'Gold',
     followersCount: 800,
     followingCount: 20,
+    postsCount: 1,
   },
   {
     id: 'user6',
@@ -119,6 +124,7 @@ const users: User[] = [
     creditLevel: 'Gold',
     followersCount: 950,
     followingCount: 180,
+    postsCount: 0,
   },
   {
     id: 'user7',
@@ -137,6 +143,7 @@ const users: User[] = [
     creditLevel: 'Bronze',
     followersCount: 200,
     followingCount: 250,
+    postsCount: 1,
   },
   {
     id: 'user8',
@@ -157,6 +164,7 @@ const users: User[] = [
     creditLevel: 'Newcomer',
     followersCount: 150,
     followingCount: 90,
+    postsCount: 1,
   },
   {
     id: 'user9',
@@ -177,6 +185,7 @@ const users: User[] = [
     creditLevel: 'Silver',
     followersCount: 650,
     followingCount: 400,
+    postsCount: 1,
   },
   {
     id: 'user10',
@@ -197,6 +206,7 @@ const users: User[] = [
     creditLevel: 'Platinum',
     followersCount: 5000,
     followingCount: 120,
+    postsCount: 0,
   },
 ];
 

@@ -342,6 +342,9 @@
     "latestListings": "{userName} 的最新商品",
     "followers": "粉丝",
     "following": "关注",
+    "alreadyFollowing": "已关注",
+    "followedSuccess": "已关注用户",
+    "unfollowedSuccess": "已取消关注",
     "usersFollowers": "{userName} 的粉丝",
     "usersFollowing": "{userName} 关注的人",
     "noFollowers": "{userName} 还没有任何粉丝。",
@@ -351,7 +354,8 @@
     "pro": "专业卖家",
     "web3": "Web3认证",
     "kyc": "实名认证",
-    "noVerifications": "暂无认证"
+    "noVerifications": "暂无认证",
+    "posts": "帖子"
   },
   "checkoutPage": {
     "title": "确认订单",

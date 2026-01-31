@@ -342,6 +342,9 @@
     "latestListings": "Latest listings from {userName}",
     "followers": "Followers",
     "following": "Following",
+    "alreadyFollowing": "Following",
+    "followedSuccess": "Followed user",
+    "unfollowedSuccess": "Unfollowed user",
     "usersFollowers": "{userName}'s Followers",
     "usersFollowing": "{userName}'s Following",
     "noFollowers": "{userName} doesn't have any followers yet.",
@@ -351,7 +354,8 @@
     "pro": "PRO",
     "web3": "WEB3",
     "kyc": "KYC",
-    "noVerifications": "No verifications yet"
+    "noVerifications": "No verifications yet",
+    "posts": "Posts"
   },
   "checkoutPage": {
     "title": "Confirm Order",

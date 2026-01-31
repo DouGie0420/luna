@@ -342,6 +342,9 @@
     "latestListings": "รายการล่าสุดจาก {userName}",
     "followers": "ผู้ติดตาม",
     "following": "กำลังติดตาม",
+    "alreadyFollowing": "กำลังติดตาม",
+    "followedSuccess": "ติดตามผู้ใช้แล้ว",
+    "unfollowedSuccess": "เลิกติดตามผู้ใช้แล้ว",
     "usersFollowers": "ผู้ติดตามของ {userName}",
     "usersFollowing": "กำลังติดตามของ {userName}",
     "noFollowers": "{userName} ยังไม่มีผู้ติดตาม",
@@ -351,7 +354,8 @@
     "pro": "มือโปร",
     "web3": "WEB3",
     "kyc": "KYC",
-    "noVerifications": "ยังไม่มีการยืนยัน"
+    "noVerifications": "ยังไม่มีการยืนยัน",
+    "posts": "โพสต์"
   },
   "checkoutPage": {
     "title": "ยืนยันคำสั่งซื้อ",

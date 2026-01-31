@@ -87,7 +87,7 @@ const CommentForm = ({
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
-           <Button variant="outline" onClick={onCancelClick}>
+           <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={onCancelClick}>
             {t('productComments.cancelReply')}
           </Button>
         </div>
@@ -144,7 +144,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 authorId: user.uid,
                 text: newComment,
                 date: new Date(),
-                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
+                parentId: replyingTo?.id,
             };
             setComments(prev => [newCommentObject, ...prev]);
             setNewComment('');
@@ -258,15 +258,12 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
                 {replyingTo?.id === comment.id && (
                     <div className="mt-4 ml-12 pl-4 border-l-2">
-                        <p className="text-sm text-muted-foreground mb-2">
-                            {t('productComments.replyTo')} {replyingTo.authorName}...
-                        </p>
                         <CommentForm
                             isSubmitting={isSubmitting}
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
                             onSubmit={handlePostComment}
-                            onCancelClick={() => setIsCancelDialogOpen(true)}
+                            onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
                         />
                     </div>
                 )}
@@ -283,25 +280,25 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 <CardContent className="space-y-8">
                      {/* Comment Form Trigger / Area */}
                     {canInteract ? (
-                         replyingTo?.id === 'root' ? (
-                            <div className="mb-8">
-                                <CommentForm
-                                    isSubmitting={isSubmitting}
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                    onSubmit={handlePostComment}
-                                    onCancelClick={() => setIsCancelDialogOpen(true)}
-                                />
-                            </div>
-                        ) : !replyingTo && (
-                            <div className="mb-8">
-                                <Button variant="outline" className="w-full" onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}>
-                                    {t('productComments.placeholder')}
-                                </Button>
-                            </div>
-                        )
+                         !replyingTo ? (
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start rounded-lg border bg-background p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
+                                onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
+                            >
+                                {t('productComments.placeholder')}
+                            </Button>
+                        ) : replyingTo.id === 'root' ? (
+                            <CommentForm
+                                isSubmitting={isSubmitting}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onSubmit={handlePostComment}
+                                onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
+                            />
+                         ) : null
                     ) : (
-                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-8">
+                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
                             <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                         </div>
                     )}
@@ -332,7 +329,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     
                     {nestedComments.length > visibleCommentsCount && (
                         <div className="text-center mt-6">
-                            <Button variant="outline" onClick={handleLoadMore} disabled={isGuest}>
+                            <Button variant="outline" onClick={handleLoadMore} disabled={!canInteract}>
                                 {t('bbsPage.loadMoreComments')}
                                 <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
@@ -367,7 +364,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>{t('productComments.continueEditing')}</AlertDialogCancel>
+                        <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">{t('productComments.continueEditing')}</AlertDialogCancel>
                         <AlertDialogAction onClick={handleConfirmCancelReply} variant="destructive">
                             {t('productComments.cancelConfirmAction')}
                         </AlertDialogAction>
