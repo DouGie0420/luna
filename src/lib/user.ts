@@ -22,7 +22,7 @@ export async function upsertUserProfile(
                 lastLogin: serverTimestamp(),
                 photoURL: user.photoURL || userProfile.photoURL,
                 displayName: userProfile.displayName || user.displayName || 'User',
-                emailVerified: user.emailVerified,
+                emailVerified: user.emailVerified || userProfile.emailVerified,
             };
             updateDoc(userRef, updateData).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
@@ -156,5 +156,3 @@ export function updateUserProfile(db: Firestore, uid: string, data: Partial<User
         throw serverError;
     });
 }
-
-    
