@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,6 +33,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -436,9 +438,9 @@ export default function BbsPostPage() {
                          <div className="flex items-center justify-between">
                              <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
+                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
                             <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
-                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                                 <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
                                     <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
                                 </button>
@@ -520,8 +522,8 @@ export default function BbsPostPage() {
                                     </Avatar>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 border-0 max-w-lg bg-transparent shadow-none">
-                                    <DialogHeader className="sr-only">
-                                        <DialogTitle>Enlarged avatar for {post.author.name}</DialogTitle>
+                                    <DialogHeader>
+                                        <DialogTitle className="sr-only">Enlarged avatar for {post.author.name}</DialogTitle>
                                     </DialogHeader>
                                     <Image src={post.author.avatarUrl} alt={post.author.name} width={512} height={512} className="rounded-lg" />
                                 </DialogContent>
