@@ -109,10 +109,17 @@ export default function AccountProfilePage() {
     };
 
     const handleSyncNfts = async () => {
-        if (!user) return;
+        if (!user || !profile?.walletAddress) {
+            toast({
+                variant: 'destructive',
+                title: 'Wallet Not Linked',
+                description: 'Please link your wallet first to verify NFT assets.'
+            });
+            return;
+        }
         setIsSyncingNfts(true);
         try {
-            const ownerNfts = await getNftsForOwner(user.uid);
+            const ownerNfts = await getNftsForOwner(profile.walletAddress);
             setNfts(ownerNfts);
             setIsNftDialogOpen(true);
         } catch (error) {
