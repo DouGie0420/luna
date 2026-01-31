@@ -109,6 +109,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
 
 
     const canInteract = user && profile?.kycStatus === 'Verified';
@@ -117,15 +118,19 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     useEffect(() => {
         getUsers().then(setUsers);
     }, []);
-    
-    const handleInteractionNotAllowed = () => {
-        // Defer toast to avoid state updates during render
-        setTimeout(() => {
+
+    useEffect(() => {
+        if (permissionErrorToast) {
             toast({
                 variant: 'destructive',
                 title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
             });
-        }, 0);
+            setPermissionErrorToast(false);
+        }
+    }, [permissionErrorToast, isGuest, t, toast]);
+    
+    const handleInteractionNotAllowed = () => {
+        setPermissionErrorToast(true);
     }
     
     const handleConfirmCancelReply = () => {
@@ -225,7 +230,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-muted-foreground">&middot; {author.location.city}, {author.location.countryCode}</p>}
+                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>

@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -74,32 +74,36 @@ const COMMENTS_LOAD_MORE = 10;
 
 function PostPageSkeleton() {
     return (
-        <div className="container mx-auto px-4 py-12 max-w-4xl">
-            <Card>
-                <div className="p-4 border-b">
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
-                        <div className="space-y-2">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-3 w-20" />
+        <>
+            <PageHeaderWithBackAndClose />
+            <div className="container mx-auto px-4 py-12 max-w-4xl">
+                <Card>
+                    <div className="p-4 border-b">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-16 w-16 rounded-full" />
+                            <div className="space-y-2">
+                                <Skeleton className="h-5 w-32" />
+                                <Skeleton className="h-4 w-48" />
+                                <Skeleton className="h-4 w-64" />
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="p-6 space-y-6">
-                    <Skeleton className="h-8 w-4/5" />
-                    <Skeleton className="h-4 w-1/4" />
-                    <Skeleton className="aspect-video w-full rounded-xl" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-3/4" />
+                    <div className="p-6 space-y-6">
+                        <Skeleton className="h-8 w-4/5" />
+                        <Skeleton className="h-4 w-1/4" />
+                        <Skeleton className="aspect-video w-full rounded-xl" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-3/4" />
+                        </div>
                     </div>
-                </div>
-                <div className="p-4 border-t">
-                     <Skeleton className="h-10 w-full" />
-                </div>
-            </Card>
-        </div>
+                    <div className="p-4 border-t">
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </Card>
+            </div>
+        </>
     );
 }
 
@@ -161,6 +165,7 @@ export default function BbsPostPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -203,6 +208,17 @@ export default function BbsPostPage() {
             }
         }
     }, [user, post]);
+
+    useEffect(() => {
+        if (permissionErrorToast) {
+            toast({
+                variant: 'destructive',
+                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+            setPermissionErrorToast(false);
+        }
+    }, [permissionErrorToast, isGuest, t, toast]);
+
 
     const handleFollowToggle = () => {
         if (!canInteract) {
@@ -268,13 +284,7 @@ export default function BbsPostPage() {
     };
 
     const handleInteractionNotAllowed = () => {
-        // Defer toast to avoid state updates during render
-        setTimeout(() => {
-            toast({
-                variant: 'destructive',
-                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-            });
-        }, 0);
+        setPermissionErrorToast(true);
     }
 
     const nestedComments = useMemo(() => {
@@ -304,12 +314,7 @@ export default function BbsPostPage() {
 
 
     if (loading) {
-        return (
-            <>
-                <PageHeaderWithBackAndClose />
-                <PostPageSkeleton />
-            </>
-        );
+        return <PostPageSkeleton />;
     }
     
     if (!post) {
@@ -353,13 +358,15 @@ export default function BbsPostPage() {
                         <div className="flex items-center justify-between">
                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-muted-foreground">&middot; {author.location.city}, {author.location.countryCode}</p>}
                             </div>
                             <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>
                                 <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-4 w-4" /> {author?.badReviews ?? 0}</span>
                                 <span>{timeAgo}</span>
                             </div>
+                        </div>
+                         <div className="flex items-center gap-x-2 text-xs text-muted-foreground my-1">
+                            {author?.location && <p>{author.location.city}, {author.location.countryCode}</p>}
                         </div>
                         <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
                         <div className="flex items-center justify-start gap-2">

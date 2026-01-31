@@ -39,12 +39,23 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const [permissionErrorToast, setPermissionErrorToast] = useState(false);
 
   const images = post.images || [];
   const imageHints = post.imageHints || [];
 
   const canInteract = user && profile?.kycStatus === 'Verified';
   const isGuest = !user;
+
+  useEffect(() => {
+    if (permissionErrorToast) {
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
+        setPermissionErrorToast(false);
+    }
+  }, [permissionErrorToast, isGuest, t, toast]);
 
   if (images.length === 0) {
       return null;
@@ -86,13 +97,7 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   };
 
   const handleInteractionNotAllowed = () => {
-    // Defer toast to avoid state updates during render
-    setTimeout(() => {
-        toast({
-            variant: 'destructive',
-            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-        });
-    }, 0);
+    setPermissionErrorToast(true);
   }
 
   const handleLikeClick = () => {
