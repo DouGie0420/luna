@@ -14,13 +14,13 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
 import { useFirebaseAuth } from "@/firebase/auth/use-user";
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
 import { useToast } from "@/hooks/use-toast";
-import { X } from "lucide-react";
-import React from "react";
+import { X, Loader2 } from "lucide-react";
+import React, { useState } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -38,24 +38,60 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleTestLogin = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleEmailLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
-    localStorage.setItem('isTestUser', 'true');
-    toast({
-      title: t('loginPage.testLoginSuccessTitle'),
-      description: t('loginPage.testLoginSuccessDescription'),
-      x: e.clientX,
-      y: e.clientY,
-    });
-    // Use a full page reload to ensure the user hook re-initializes
-    window.location.href = '/account';
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Firebase not ready' });
+      return;
+    }
+    if (!email || !password) {
+      toast({ variant: 'destructive', title: 'Missing fields', description: 'Please enter both email and password.' });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      await upsertUserProfile(firestore, userCredential.user);
+      toast({
+        title: t('loginPage.loginSuccessTitle'),
+        description: t('loginPage.loginSuccessDescription').replace('{displayName}', userCredential.user.displayName || 'User'),
+      });
+      router.push('/account');
+    } catch (error: any) {
+      console.error("Email login error:", error);
+      let description = "An unknown error occurred.";
+       switch (error.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          description = 'Invalid email or password.';
+          break;
+        case 'auth/invalid-email':
+          description = 'The email address is not valid.';
+          break;
+        default:
+          description = error.message;
+      }
+      toast({
+        variant: 'destructive',
+        title: t('loginPage.loginFailedTitle'),
+        description,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
     if (!auth || !firestore) return;
 
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
-
+    setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
       await upsertUserProfile(firestore, result.user);
@@ -75,6 +111,8 @@ export default function LoginPage() {
         x: e.clientX,
         y: e.clientY,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,15 +134,18 @@ export default function LoginPage() {
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
-              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} defaultValue="test@example.com" required />
+              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
-              <Input id="password" type="password" defaultValue="password" required />
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" onClick={handleTestLogin}>{t('common.login')}</Button>
+            <Button className="w-full" onClick={handleEmailLogin} disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t('common.login')}
+            </Button>
             
             <div className="relative w-full">
               <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
@@ -112,11 +153,11 @@ export default function LoginPage() {
             </div>
 
             <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)} disabled={isLoading}>
                   <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                   Google
                 </Button>
-                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)}>
+                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)} disabled={isLoading}>
                   <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
                   Facebook
                 </Button>
