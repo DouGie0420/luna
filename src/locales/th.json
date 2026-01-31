@@ -4,7 +4,9 @@
     "register": "ลงทะเบียน",
     "close": "หน้าหลัก",
     "submit": "ส่ง",
-    "back": "หลัง"
+    "back": "หลัง",
+    "loginToInteract": "กรุณาเข้าสู่ระบบเพื่อโต้ตอบ",
+    "verifyToInteract": "กรุณายืนยัน KYC เพื่อโต้ตอบ"
   },
   "loginPage": {
     "title": "เข้าสู่ระบบ",
@@ -283,7 +285,15 @@
     "featuredBadge": "แนะนำ",
     "linkCopied": "คัดลอกลิงก์โพสต์ไปยังคลิปบอร์ดแล้ว!",
     "thankYouForLike": "ขอบคุณที่กดไลค์!",
-    "loadMoreComments": "โหลดเพิ่มเติม"
+    "loadMoreComments": "โหลดเพิ่มเติม",
+    "editPost": "แก้ไขโพสต์",
+    "deletePost": "ลบโพสต์",
+    "deleteConfirmTitle": "ยืนยันการลบ",
+    "deleteConfirmDescription": "คุณแน่ใจหรือไม่ว่าต้องการลบโพสต์นี้? การกระทำนี้ไม่สามารถย้อนกลับได้",
+    "deleteConfirmAction": "ยืนยันการลบ",
+    "deleteCancel": "ยกเลิก",
+    "postDeleted": "ลบโพสต์สำเร็จแล้ว",
+    "editComingSoon": "ฟีเจอร์แก้ไขกำลังจะมาเร็วๆนี้!"
   },
   "bbsPosts": {
     "post1": {

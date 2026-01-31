@@ -4,7 +4,9 @@
     "register": "注册",
     "close": "返回首页",
     "submit": "提交",
-    "back": "后退"
+    "back": "后退",
+    "loginToInteract": "请登录后进行互动",
+    "verifyToInteract": "请完成KYC认证后进行互动"
   },
   "loginPage": {
     "title": "登录",
@@ -283,7 +285,15 @@
     "featuredBadge": "精华",
     "linkCopied": "帖子链接已复制到剪贴板！",
     "thankYouForLike": "谢谢你的赞！",
-    "loadMoreComments": "加载更多"
+    "loadMoreComments": "加载更多",
+    "editPost": "编辑帖子",
+    "deletePost": "删除帖子",
+    "deleteConfirmTitle": "确认删除",
+    "deleteConfirmDescription": "您确定要删除这篇帖子吗？此操作无法撤销。",
+    "deleteConfirmAction": "确认删除",
+    "deleteCancel": "取消",
+    "postDeleted": "帖子已成功删除。",
+    "editComingSoon": "编辑功能即将推出！"
   },
   "bbsPosts": {
     "post1": {

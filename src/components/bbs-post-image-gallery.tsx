@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
 
 interface BbsPostImageGalleryProps {
   post: BbsPost;
@@ -28,6 +29,8 @@ interface BbsPostImageGalleryProps {
 export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { user, profile } = useUser();
+
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbApi, setThumbApi] = useState<CarouselApi>();
   const [lightboxApi, setLightboxApi] = useState<CarouselApi>();
@@ -37,6 +40,9 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
 
   const images = post.images || [];
   const imageHints = post.imageHints || [];
+
+  const canInteract = user && profile?.kycStatus === 'Verified';
+  const isGuest = !user;
 
   if (images.length === 0) {
       return null;
@@ -76,6 +82,21 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
         title: t('bbsPage.linkCopied'),
     });
   };
+
+  const handleInteractionNotAllowed = () => {
+    toast({
+        variant: 'destructive',
+        title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+    });
+  }
+
+  const handleLikeClick = () => {
+    if (!canInteract) {
+        handleInteractionNotAllowed();
+        return;
+    }
+    toast({ title: t('bbsPage.thankYouForLike') });
+  }
 
   return (
     <>
@@ -119,10 +140,10 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
         </Carousel>
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-rose-500 backdrop-blur-sm animate-glow">
+          <Button onClick={handleLikeClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-rose-500 backdrop-blur-sm animate-glow">
               <Heart className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
+          <Button onClick={handleLikeClick} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
               <Star className="h-5 w-5" />
           </Button>
           <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">

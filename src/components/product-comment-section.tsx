@@ -52,9 +52,43 @@ const allMockComments: Comment[] = [
 ];
 
 
-const COMMENTS_PER_PAGE = 5;
+const COMMENTS_INITIAL_LOAD = 5;
+const COMMENTS_LOAD_MORE = 10;
 const locales = { en: enUS, zh: zhCN, th: th };
 
+const CommentForm = ({ 
+    isSubmitting, 
+    value, 
+    onChange, 
+    onSubmit,
+    placeholder 
+} : {
+    isSubmitting: boolean;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    onSubmit: () => void;
+    placeholder: string;
+}) => {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-2">
+            <Textarea
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                maxLength={500}
+                rows={3}
+            />
+            <div className="flex justify-between items-center">
+                <p className="text-xs text-muted-foreground">{value.length} / 500</p>
+                <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t('productComments.submit')}
+                </Button>
+            </div>
+        </div>
+    )
+}
 
 export function ProductCommentSection({ productId }: { productId: string }) {
     const { t, language } = useTranslation();
@@ -64,26 +98,28 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [users, setUsers] = useState<User[]>([]);
     const [comments, setComments] = useState<Comment[]>(allMockComments);
     const [newComment, setNewComment] = useState('');
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
+    const canInteract = user && profile?.kycStatus === 'Verified';
+    const isGuest = !user;
+
     useEffect(() => {
         getUsers().then(setUsers);
     }, []);
-
-    const canComment = user && profile?.kycStatus === 'Verified';
+    
+    const handleInteractionNotAllowed = () => {
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
+    }
 
     const handlePostComment = () => {
-        if (!newComment.trim()) return;
-        if (!canComment || !user) {
-            toast({
-                variant: 'destructive',
-                title: t('productComments.cannotCommentTitle'),
-                description: t('productComments.cannotCommentDescription'),
-            });
+        if (!newComment.trim() || !canInteract) {
+            handleInteractionNotAllowed();
             return;
         }
 
@@ -101,9 +137,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             setReplyingTo(null);
             setIsSubmitting(false);
             toast({ title: t('productComments.commentPosted') });
-            
-            if (!isExpanded) setIsExpanded(true);
-            setCurrentPage(1);
+            if(visibleCommentsCount < COMMENTS_INITIAL_LOAD) setVisibleCommentsCount(COMMENTS_INITIAL_LOAD);
 
         }, 500);
     };
@@ -113,6 +147,10 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         setComments(prev => prev.filter(c => c.id !== commentToDelete && c.parentId !== commentToDelete));
         setCommentToDelete(null);
         toast({ title: t('productComments.commentDeleted') });
+    };
+
+    const handleLoadMore = () => {
+        setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
 
     const nestedComments = useMemo(() => {
@@ -137,21 +175,9 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     
         return topLevelComments;
     }, [comments]);
-
-
-    const totalPages = Math.ceil(nestedComments.length / COMMENTS_PER_PAGE);
-
-    const displayedComments = useMemo(() => {
-        const paginated = nestedComments.slice((currentPage - 1) * COMMENTS_PER_PAGE, currentPage * COMMENTS_PER_PAGE);
-        if (isExpanded) {
-            return paginated;
-        }
-        return nestedComments.slice(0, 5);
-    }, [nestedComments, isExpanded, currentPage]);
     
     const getUserById = (userId: string) => {
         if (userId === user?.uid) {
-            // A bit of a hack to get the current user's full profile data from `useUser`
             const fullProfile = users.find(u => u.id === 'user1'); // mock a full profile
             return {
                 id: user.uid,
@@ -199,7 +225,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                             variant="ghost" 
                             size="sm" 
                             className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                            onClick={() => setReplyingTo({ id: comment.id, authorName: author?.name || 'User' })}
+                            onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
                         >
                             <Reply className="mr-1 h-3 w-3" />
                             {t('productComments.reply')}
@@ -216,6 +242,17 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                             </Button>
                         )}
                     </div>
+                    {replyingTo?.id === comment.id && (
+                         <div className="mt-4">
+                            <CommentForm 
+                                isSubmitting={isSubmitting}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onSubmit={handlePostComment}
+                                placeholder={placeholderText}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -229,91 +266,73 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 </CardHeader>
                 <CardContent className="space-y-8">
                     {/* Comment Form */}
-                    <div>
-                    {canComment ? (
-                        <div className="space-y-2">
-                            {replyingTo && (
-                                <div className="flex items-center justify-between text-sm mb-2">
-                                    <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
-                                    <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
-                                        <X className="mr-1 h-3 w-3" />
-                                        {t('productComments.cancelReply')}
-                                    </Button>
-                                </div>
-                            )}
-                            <Textarea 
-                                placeholder={placeholderText}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                rows={3}
-                                maxLength={500}
-                            />
-                            <div className="flex justify-between items-center">
-                                <p className="text-xs text-muted-foreground">{newComment.length} / 500</p>
-                                <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {t('productComments.submit')}
-                                </Button>
+                    <div className="space-y-2">
+                        {canInteract ? (
+                            <>
+                                {!replyingTo && (
+                                        <CommentForm 
+                                        isSubmitting={isSubmitting}
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onSubmit={handlePostComment}
+                                        placeholder={placeholderText}
+                                    />
+                                )}
+                                {replyingTo && (
+                                    <div className="flex items-center justify-between text-sm mb-2">
+                                        <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
+                                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
+                                            <X className="mr-1 h-3 w-3" />
+                                            {t('productComments.cancelReply')}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
+                                <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
-                            <Link href="/login" className="text-primary underline">{t('productComments.loginToComment_link')}</Link>
-                            {' '}{t('productComments.loginToComment_text')}
-                        </div>
-                    )}
+                        )}
                     </div>
-
-                    <Separator />
+                    
+                    {nestedComments.length > 0 && <Separator />}
 
                     {/* Comments List */}
                     {nestedComments.length > 0 ? (
                         <div className="space-y-6">
-                            {(isExpanded ? displayedComments : nestedComments.slice(0,5)).map(comment => (
-                            <div key={comment.id}>
+                            {nestedComments.slice(0, visibleCommentsCount).map(comment => (
+                                <div key={comment.id}>
                                     {renderComment(comment)}
                                     {comment.replies.length > 0 && (
                                         <div className="ml-10 mt-4 space-y-4 border-l-2 pl-4">
                                             {comment.replies.map(reply => renderComment(reply, true))}
                                         </div>
                                     )}
-                            </div>
+                                </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8 text-muted-foreground">
-                            <MessageSquare className="mx-auto h-8 w-8 mb-2" />
-                            <p>{t('productComments.noComments')}</p>
-                            <p className="text-xs">{t('productComments.beTheFirst')}</p>
-                        </div>
+                        !canInteract && (
+                             <div className="text-center py-8 text-muted-foreground">
+                                <MessageSquare className="mx-auto h-8 w-8 mb-2" />
+                                <p>{t('productComments.noComments')}</p>
+                                <p className="text-xs">{t('productComments.beTheFirst')}</p>
+                            </div>
+                        )
                     )}
                     
-                    {nestedComments.length > 5 && (
+                    {nestedComments.length > visibleCommentsCount && (
                         <div className="text-center mt-6">
-                            <Button variant="outline" onClick={() => setIsExpanded(!isExpanded)}>
-                                {isExpanded ? t('productComments.collapse') : t('productComments.showMore')}
-                                <ChevronDown className={cn("ml-2 h-4 w-4 transition-transform", isExpanded && "rotate-180")} />
-                            </Button>
-                        </div>
-                    )}
-
-                    {isExpanded && totalPages > 1 && (
-                        <div className="flex justify-center gap-2 mt-6">
-                            <Button variant="outline" onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
-                            {t('productComments.previous')}
-                            </Button>
-                            <span className="flex items-center px-4 text-sm font-medium">
-                                {currentPage} / {totalPages}
-                            </span>
-                            <Button variant="outline" onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
-                                {t('productComments.next')}
+                            <Button variant="outline" onClick={handleLoadMore} disabled={isGuest}>
+                                {t('bbsPage.loadMoreComments')}
+                                <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
-            <AlertDialog open={!!commentToDelete} onOpenChange={setCommentToDelete}>
+            <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                     <AlertDialogTitle>{t('productComments.deleteConfirmTitle')}</AlertDialogTitle>

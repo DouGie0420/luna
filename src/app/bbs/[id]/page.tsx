@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, notFound } from 'next/navigation';
+import { useParams, notFound, useRouter } from 'next/navigation';
 import { getBbsPostById, getUsers } from '@/lib/data';
 import type { BbsPost, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
@@ -11,6 +11,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -19,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { ThumbsUp, Star, Share2, Plus, MessageSquare, MapPin, Calendar, X, Reply } from 'lucide-react';
+import { Plus, MessageSquare, MapPin, Calendar, X, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -86,9 +102,49 @@ function PostPageSkeleton() {
     );
 }
 
+const CommentForm = ({ 
+    isSubmitting, 
+    value, 
+    onChange, 
+    onSubmit,
+    placeholder 
+} : {
+    isSubmitting: boolean;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+    onSubmit: () => void;
+    placeholder: string;
+}) => {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-2">
+            <Textarea
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                maxLength={2000}
+                rows={3}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        onSubmit();
+                    }
+                }}
+            />
+            <div className="flex justify-between items-center">
+                <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
+                <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {t('productComments.submit')}
+                </Button>
+            </div>
+        </div>
+    )
+}
 
 export default function BbsPostPage() {
     const params = useParams();
+    const router = useRouter();
     const { t, language } = useTranslation();
     const { toast } = useToast();
     const [post, setPost] = useState<BbsPost | null>(null);
@@ -101,8 +157,12 @@ export default function BbsPostPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
     const id = typeof params.id === 'string' ? params.id : '';
+
+    const canInteract = user && profile?.kycStatus === 'Verified';
+    const isGuest = !user;
 
     useEffect(() => {
         if (!id) return;
@@ -116,7 +176,6 @@ export default function BbsPostPage() {
                 ]);
 
                 if (!postData) {
-                    // This will trigger the not-found UI
                     return;
                 }
                 setPost(postData);
@@ -130,24 +189,8 @@ export default function BbsPostPage() {
         fetchData();
     }, [id]);
 
-    const handleShare = () => {
-        const postUrl = window.location.href;
-        navigator.clipboard.writeText(postUrl);
-        toast({
-            title: t('bbsPage.linkCopied'),
-        });
-    };
-
     const handlePostComment = () => {
-        if (!newComment.trim()) return;
-        if (!user) {
-            toast({
-                variant: 'destructive',
-                title: t('productComments.cannotCommentTitle'),
-                description: t('productComments.loginToComment_link') + ' ' + t('productComments.loginToComment_text'),
-            });
-            return;
-        }
+        if (!newComment.trim() || !canInteract) return;
 
         setIsSubmitting(true);
         setTimeout(() => {
@@ -169,6 +212,24 @@ export default function BbsPostPage() {
     const handleLoadMoreComments = () => {
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
+
+    const handleEditPost = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast({ title: t('bbsPage.editComingSoon') });
+    };
+
+    const handleDeletePost = (e: React.MouseEvent) => {
+        e.preventDefault();
+        toast({ title: t('bbsPage.postDeleted') });
+        router.push('/bbs');
+    };
+
+    const handleInteractionNotAllowed = () => {
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
+    }
 
     const nestedComments = useMemo(() => {
         const commentMap: { [key: string]: NestedComment } = {};
@@ -257,13 +318,25 @@ export default function BbsPostPage() {
                             variant="ghost" 
                             size="sm" 
                             className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                            onClick={() => setReplyingTo({ id: comment.id, authorName: author?.name || 'User' })}
+                            onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
                         >
                             <MessageSquare className="mr-1 h-3 w-3" />
                             {t('productComments.reply')}
                         </Button>
                         <p className="text-xs text-muted-foreground">{timeAgo}</p>
                     </div>
+
+                    {replyingTo?.id === comment.id && (
+                         <div className="mt-4">
+                            <CommentForm 
+                                isSubmitting={isSubmitting}
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                onSubmit={handlePostComment}
+                                placeholder={placeholderText}
+                            />
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -291,15 +364,41 @@ export default function BbsPostPage() {
                                 </div>
                             </div>
                         </Link>
-                        <Button size="sm">
-                            <Plus className="mr-2 h-4 w-4" />
-                            {t('userProfile.follow')}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button size="sm" onClick={() => canInteract ? {} : handleInteractionNotAllowed()} disabled={!canInteract}>
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t('userProfile.follow')}
+                            </Button>
+                             {user?.uid === post.author.id && (
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                        <DropdownMenuItem onSelect={handleEditPost}><Edit className="mr-2 h-4 w-4" />{t('bbsPage.editPost')}</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground"><Trash2 className="mr-2 h-4 w-4" />{t('bbsPage.deletePost')}</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            )}
+                        </div>
                     </div>
 
                      {/* Content */}
                     <div className="p-6">
                         <h1 className="font-headline text-3xl font-bold mb-4">{t(post.titleKey)}</h1>
+
+                        <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                <span>{format(postDate, 'PPP')}</span>
+                            </div>
+                            {post.author.location && (
+                                <div className="flex items-center gap-2">
+                                    <MapPin className="h-4 w-4" />
+                                    <span>{post.author.location.city}, {post.author.location.countryCode}</span>
+                                </div>
+                            )}
+                        </div>
 
                         {post.images && post.images.length > 0 && (
                             <div className="my-6">
@@ -314,19 +413,6 @@ export default function BbsPostPage() {
                             <Badge key={tag} variant="secondary">#{tag}</Badge>
                         ))}
                         </div>
-
-                        <div className="flex items-center gap-6 text-sm text-muted-foreground mt-4 pt-4 border-t border-border/20">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4" />
-                                <span>{format(postDate, 'PPP')}</span>
-                            </div>
-                            {post.author.location && (
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{post.author.location.city}, {post.author.location.countryCode}</span>
-                                </div>
-                            )}
-                        </div>
                     </div>
                     
                     {/* Comments */}
@@ -334,36 +420,33 @@ export default function BbsPostPage() {
                         <Separator className="my-6" />
 
                         {/* Comment Form */}
-                        <div className="space-y-2 mb-8">
-                            {replyingTo && (
-                                <div className="flex items-center justify-between text-sm mb-2">
-                                    <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
-                                    <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
-                                        <X className="mr-1 h-3 w-3" />
-                                        {t('productComments.cancelReply')}
-                                    </Button>
+                         <div className="space-y-2 mb-8">
+                            {canInteract ? (
+                                <>
+                                    {!replyingTo && (
+                                         <CommentForm 
+                                            isSubmitting={isSubmitting}
+                                            value={newComment}
+                                            onChange={(e) => setNewComment(e.target.value)}
+                                            onSubmit={handlePostComment}
+                                            placeholder={placeholderText}
+                                        />
+                                    )}
+                                    {replyingTo && (
+                                        <div className="flex items-center justify-between text-sm mb-2">
+                                            <p className="text-muted-foreground">{`${t('productComments.replyTo')} ${replyingTo.authorName}`}</p>
+                                            <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => setReplyingTo(null)}>
+                                                <X className="mr-1 h-3 w-3" />
+                                                {t('productComments.cancelReply')}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
+                                    <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                                 </div>
                             )}
-                            <Textarea
-                                placeholder={placeholderText}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                maxLength={2000}
-                                rows={3}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handlePostComment();
-                                    }
-                                }}
-                            />
-                            <div className="flex justify-between items-center">
-                                <p className="text-xs text-muted-foreground">{newComment.length} / 2000</p>
-                                <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {t('productComments.submit')}
-                                </Button>
-                            </div>
                         </div>
 
                         <div className="space-y-6">
@@ -380,7 +463,7 @@ export default function BbsPostPage() {
                             ))}
                             {nestedComments.length > visibleCommentsCount && (
                                 <div className="text-center mt-6">
-                                    <Button variant="outline" onClick={handleLoadMoreComments}>
+                                    <Button variant="outline" onClick={handleLoadMoreComments} disabled={isGuest}>
                                         {t('bbsPage.loadMoreComments')}
                                     </Button>
                                 </div>
@@ -390,6 +473,18 @@ export default function BbsPostPage() {
 
                 </Card>
             </div>
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>{t('bbsPage.deleteConfirmTitle')}</AlertDialogTitle>
+                        <AlertDialogDescription>{t('bbsPage.deleteConfirmDescription')}</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>{t('bbsPage.deleteCancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">{t('bbsPage.deleteConfirmAction')}</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
