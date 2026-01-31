@@ -13,7 +13,7 @@
     "title": "登录",
     "description": "输入您的电子邮件以登录您的帐户。",
     "emailLabel": "电子邮件",
-    "emailPlaceholder": "m@example.com",
+    "emailPlaceholder": "输入您的电子邮件",
     "passwordLabel": "密码",
     "orContinueWith": "或继续",
     "noAccount": "还没有帐户？",
@@ -27,12 +27,8 @@
   "registerPage": {
     "title": "创建您的 LUNA 账户",
     "description": "加入我们，开始您的赛博朋克交易之旅。",
-    "loginIdLabel": "登录ID",
-    "loginIdPlaceholder": "唯一的登录ID",
-    "loginIdDescription": "这将是您唯一的、不可更改的登录名。",
     "usernameLabel": "用户名",
     "usernamePlaceholder": "人们将如何称呼您？",
-    "usernameDescription": "这是您在平台内显示的昵称，可以修改。",
     "emailLabel": "电子邮箱",
     "emailPlaceholder": "m@example.com",
     "sendVerificationCode": "发送验证码",
@@ -473,5 +469,3 @@
     "searchHint": "在上面的搜索栏中输入关键字以开始。"
   }
 }
-
-    

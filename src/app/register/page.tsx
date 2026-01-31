@@ -42,7 +42,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [loginId, setLoginId] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -72,7 +71,6 @@ export default function RegisterPage() {
       const user = userCredential.user;
 
       const additionalData: Partial<UserProfile> = {
-        loginId,
         displayName: username,
         phone,
         email,
@@ -158,28 +156,19 @@ export default function RegisterPage() {
           <CardContent className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="login-id">{t('registerPage.loginIdLabel')}</Label>
-                <Input id="login-id" placeholder={t('registerPage.loginIdPlaceholder')} required value={loginId} onChange={(e) => setLoginId(e.target.value)} />
-                <p className="text-xs text-muted-foreground">{t('registerPage.loginIdDescription')}</p>
+                <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
+                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="username">{t('registerPage.usernameLabel')}</Label>
                 <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required value={username} onChange={(e) => setUsername(e.target.value)} />
-                <p className="text-xs text-muted-foreground">{t('registerPage.usernameDescription')}</p>
               </div>
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
-              <div className="flex gap-2">
-                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required className="flex-1" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <Button variant="secondary" disabled>{t('registerPage.sendVerificationCode')}</Button>
-              </div>
-            </div>
-            <div className="grid gap-2">
                 <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
                 <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value)} />
-              </div>
+            </div>
 
             <Separator />
             
@@ -214,7 +203,7 @@ export default function RegisterPage() {
 
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading}>
+            <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading || !termsAccepted}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t('registerPage.createAccount')}
             </Button>
@@ -246,5 +235,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
-    
