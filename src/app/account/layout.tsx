@@ -75,17 +75,24 @@ export default function AccountLayout({
         >
           <SidebarHeader>
             <div className="flex flex-col items-center gap-2 p-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage
-                  src={profile?.photoURL || user?.photoURL || ''}
-                  alt={profile?.displayName || user?.displayName || 'User'}
-                />
-                <AvatarFallback>
-                  {profile?.displayName?.charAt(0) ||
-                    user?.displayName?.charAt(0) ||
-                    'U'}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage
+                    src={profile?.photoURL || user?.photoURL || ''}
+                    alt={profile?.displayName || user?.displayName || 'User'}
+                  />
+                  <AvatarFallback>
+                    {profile?.displayName?.charAt(0) ||
+                      user?.displayName?.charAt(0) ||
+                      'U'}
+                  </AvatarFallback>
+                </Avatar>
+                {profile?.isNftVerified && (
+                  <div className="absolute -bottom-2 -right-2 z-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 p-1.5 animate-glow-border-primary">
+                    <ShieldCheck className="h-5 w-5 text-white" />
+                  </div>
+                )}
+              </div>
               <div className="text-center group-data-[collapsible=icon]:hidden">
                 <p className="font-semibold">
                   {profile?.displayName || user?.displayName || 'User'}

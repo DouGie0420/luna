@@ -29,6 +29,7 @@ export type User = {
   reviews: number;
   isPro?: boolean;
   isWeb3Verified?: boolean;
+  isNftVerified?: boolean;
   kycStatus?: KycStatus;
   location?: {
     city: string;
@@ -64,6 +65,7 @@ export type UserProfile = {
     kycStatus: KycStatus;
     isPro?: boolean;
     isWeb3Verified?: boolean;
+    isNftVerified?: boolean;
     createdAt?: any;
     lastLogin?: any;
     rating?: number;
@@ -157,5 +159,3 @@ export type BbsPost = {
   isFeatured?: boolean;
   favorites?: number;
 };
-
-    

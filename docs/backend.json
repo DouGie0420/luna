@@ -105,6 +105,10 @@
             "Verified"
           ]
         },
+        "isNftVerified": {
+          "type": "boolean",
+          "description": "Whether the user's avatar is a verified NFT."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -514,5 +518,3 @@
     }
   }
 }
-
-    

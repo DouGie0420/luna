@@ -44,6 +44,7 @@ export async function upsertUserProfile(
                 kycStatus: 'Not Verified',
                 isPro: false,
                 isWeb3Verified: false,
+                isNftVerified: false,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
                 rating: 0,
@@ -103,6 +104,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
                 photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${address}`,
                 kycStatus: 'Not Verified',
                 isWeb3Verified: true,
+                isNftVerified: false,
                 createdAt: serverTimestamp(),
                 lastLogin: serverTimestamp(),
                 rating: 0,
@@ -149,5 +151,3 @@ export function updateUserProfile(db: Firestore, uid: string, data: Partial<User
         throw serverError;
     });
 }
-
-    

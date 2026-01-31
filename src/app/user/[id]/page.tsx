@@ -149,10 +149,17 @@ export default function UserProfilePage() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <Avatar className="h-20 w-20">
-                                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
+                                <div className="relative">
+                                    <Avatar className="h-20 w-20">
+                                        <AvatarImage src={user.avatarUrl} alt={user.name} />
+                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                     {user.isNftVerified && (
+                                        <div className="absolute -bottom-2 -right-2 z-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 p-1.5 animate-glow-border-primary">
+                                            <ShieldCheck className="h-5 w-5 text-white" />
+                                        </div>
+                                    )}
+                                </div>
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
                                         <CardTitle>{user.name}</CardTitle>
@@ -245,13 +252,19 @@ export default function UserProfilePage() {
                                             <span>{t('userProfile.web3')}</span>
                                         </div>
                                     )}
+                                     {user.isNftVerified && (
+                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>NFT</span>
+                                        </div>
+                                    )}
                                     {user.kycStatus === 'Verified' && (
                                         <div className="flex items-center gap-1.5 text-cyan-400">
                                             <ShieldCheck className="h-4 w-4" />
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}
-                                    {!user.isPro && !user.isWeb3Verified && user.kycStatus !== 'Verified' && (
+                                    {!user.isPro && !user.isWeb3Verified && !user.isNftVerified && user.kycStatus !== 'Verified' && (
                                         <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                                     )}
                                 </div>

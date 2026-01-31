@@ -25,11 +25,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Copy, Users, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
 import Link from "next/link";
+import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
+import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
@@ -41,6 +43,11 @@ export default function AccountProfilePage() {
     const [gender, setGender] = useState('保密');
     const [location, setLocation] = useState('');
     const [bio, setBio] = useState('');
+
+    const [isSyncingNfts, setIsSyncingNfts] = useState(false);
+    const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
+    const [nfts, setNfts] = useState<SimplifiedNft[]>([]);
+    const [isNftDialogOpen, setIsNftDialogOpen] = useState(false);
 
     useEffect(() => {
         if (profile) {
@@ -79,6 +86,51 @@ export default function AccountProfilePage() {
                 title: 'Error',
                 description: 'Failed to update profile.'
             })
+        }
+    };
+
+    const handleSyncNfts = async () => {
+        if (!user) return;
+        setIsSyncingNfts(true);
+        try {
+            const ownerNfts = await getNftsForOwner(user.uid);
+            setNfts(ownerNfts);
+            setIsNftDialogOpen(true);
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: 'Failed to sync NFTs',
+                description: 'Could not fetch NFT data. Please check your wallet connection or Alchemy setup.'
+            })
+        } finally {
+            setIsSyncingNfts(false);
+        }
+    };
+    
+    const handleSetNftAvatar = async (nft: SimplifiedNft) => {
+        if (!firestore || !user) return;
+        setIsUpdatingAvatar(true);
+        const dataToUpdate = {
+            photoURL: nft.imageUrl,
+            isNftVerified: true,
+        };
+        try {
+            await updateUserProfile(firestore, user.uid, dataToUpdate);
+            toast({
+                title: 'Avatar Updated!',
+                description: 'Your profile picture is now your NFT.'
+            });
+            setIsNftDialogOpen(false);
+        } catch (error) {
+            console.error(error);
+             toast({
+                variant: 'destructive',
+                title: 'Update Failed',
+                description: 'Could not set NFT as avatar.'
+            })
+        } finally {
+            setIsUpdatingAvatar(false);
         }
     };
 
@@ -121,6 +173,14 @@ export default function AccountProfilePage() {
     }
 
     return (
+        <>
+        <NftSelectorDialog 
+            open={isNftDialogOpen}
+            onOpenChange={setIsNftDialogOpen}
+            nfts={nfts}
+            onSelect={handleSetNftAvatar}
+            isUpdating={isUpdatingAvatar}
+        />
         <div className="p-6 md:p-8 lg:p-12">
             <h1 className="text-3xl font-headline mb-6">{t('accountPage.title')}</h1>
             <div className="grid gap-8">
@@ -210,6 +270,22 @@ export default function AccountProfilePage() {
                     </CardFooter>
                 </Card>
 
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Web3 档案</CardTitle>
+                        <CardDescription>将您的数字资产与 LUNA 档案同步。</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.isWeb3Verified}>
+                            {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            同步 NFT 资产
+                        </Button>
+                        {!profile?.isWeb3Verified && (
+                             <p className="text-xs text-muted-foreground mt-2">请先使用钱包登录以启用此功能。</p>
+                        )}
+                    </CardContent>
+                </Card>
+
                 <Card>
                     <CardHeader>
                         <CardTitle>{t('accountPage.creditTitle')}</CardTitle>
@@ -285,13 +361,19 @@ export default function AccountProfilePage() {
                                             <span>{t('userProfile.web3')}</span>
                                         </div>
                                     )}
+                                     {profile?.isNftVerified && (
+                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>NFT</span>
+                                        </div>
+                                    )}
                                     {profile?.kycStatus === 'Verified' && (
                                         <div className="flex items-center gap-1.5 text-cyan-400">
                                             <ShieldCheck className="h-4 w-4" />
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}
-                                    {!profile?.isPro && !profile?.isWeb3Verified && profile?.kycStatus !== 'Verified' && (
+                                    {!profile?.isPro && !profile?.isWeb3Verified && !profile.isNftVerified && profile?.kycStatus !== 'Verified' && (
                                         <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                                     )}
                                 </div>
@@ -301,5 +383,6 @@ export default function AccountProfilePage() {
                 </Card>
             </div>
         </div>
+        </>
     )
 }
