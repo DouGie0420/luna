@@ -464,7 +464,102 @@
     "noResultsDescription": "เราไม่พบรายการใดที่ตรงกับการค้นหาของคุณ",
     "searchForAnything": "ค้นหาอะไรก็ได้",
     "searchHint": "ป้อนคำหลักในแถบค้นหาด้านบนเพื่อเริ่มต้น"
+  },
+  "admin": {
+    "dashboardTitle": "แผงควบคุมผู้ดูแลระบบ",
+    "layout": {
+      "dashboard": "แดชบอร์ด",
+      "users": "ผู้ใช้",
+      "products": "สินค้า",
+      "promotions": "โปรโมชั่น",
+      "community": "ชุมชน",
+      "orders": "คำสั่งซื้อ",
+      "kycApplications": "แอปพลิเคชัน KYC",
+      "supportTickets": "ตั๋วสนับสนุน",
+      "settings": "การตั้งค่า",
+      "logout": "ออกจากระบบ",
+      "accessDenied": "การเข้าถึงถูกปฏิเสธ",
+      "accessDeniedDescription": "คุณไม่มีสิทธิ์ดูหน้านี้ บริเวณนี้สำหรับผู้ดูแลระบบเท่านั้น",
+      "goHome": "กลับไปที่หน้าแรก"
+    },
+    "dashboardPage": {
+      "totalUsers": "ผู้ใช้ทั้งหมด",
+      "pendingKyc": "KYC ที่รอดำเนินการ",
+      "recentActivity": "กิจกรรมล่าสุด",
+      "activityFeedPlaceholder": "ฟีดกิจกรรมจะแสดงที่นี่"
+    },
+    "kycListPage": {
+      "title": "แอปพลิเคชัน KYC",
+      "user": "ผู้ใช้",
+      "uid": "UID",
+      "submitted": "ส่งเมื่อ",
+      "documents": "เอกสาร",
+      "actions": "การดำเนินการ",
+      "view": "ดู",
+      "dialogTitle": "เอกสาร KYC สำหรับ {displayName}",
+      "idDocument": "เอกสารประจำตัว",
+      "selfie": "เซลฟี่",
+      "noIdPhoto": "ไม่ได้ส่งรูปถ่ายบัตรประชาชน",
+      "noSelfie": "ไม่ได้ส่งเซลฟี่",
+      "approve": "อนุมัติ",
+      "reject": "ปฏิเสธ",
+      "userStatusUpdated": "ผู้ใช้ {status}",
+      "userStatusUpdatedDesc": "สถานะผู้ใช้ {uid}... ได้รับการอัปเดตและพวกเขาได้รับแจ้งแล้ว",
+      "actionFailed": "การดำเนินการล้มเหลว",
+      "actionFailedDesc": "ไม่สามารถอัปเดตสถานะผู้ใช้ได้ ตรวจสอบกฎ Firestore และสิทธิ์",
+      "fetchError": "ไม่สามารถดึงข้อมูลแอปพลิเคชัน KYC ได้",
+      "noPending": "ไม่มีแอปพลิเคชัน KYC ที่รอดำเนินการ"
+    },
+    "ordersPage": {
+      "title": "จัดการคำสั่งซื้อ",
+      "orderId": "รหัสคำสั่งซื้อ",
+      "productId": "รหัสสินค้า",
+      "buyerId": "รหัสผู้ซื้อ",
+      "sellerId": "รหัสผู้ขาย",
+      "amount": "จำนวนเงิน",
+      "status": "สถานะ",
+      "actions": "การดำเนินการ"
+    },
+    "productsPage": {
+      "title": "จัดการสินค้า",
+      "product": "สินค้า",
+      "seller": "ผู้ขาย",
+      "price": "ราคา",
+      "status": "สถานะ",
+      "active": "ใช้งานอยู่",
+      "actions": "การดำเนินการ"
+    },
+    "supportPage": {
+      "title": "ตั๋วสนับสนุน",
+      "ticketId": "รหัสตั๋ว",
+      "subject": "หัวเรื่อง",
+      "user": "ผู้ใช้",
+      "status": "สถานะ",
+      "lastUpdate": "อัปเดตล่าสุด",
+      "actions": "การดำเนินการ",
+      "statusUpdated": "อัปเดตสถานะแล้ว",
+      "statusUpdatedDesc": "ตั๋ว {ticketId} ย้ายไปที่ {status}",
+      "updateFailed": "การอัปเดตล้มเหลว",
+      "updateFailedDesc": "ไม่สามารถอัปเดตสถานะตั๋วได้",
+      "setOpen": "ตั้งเป็นเปิด",
+      "setPending": "ตั้งเป็นรอดำเนินการ",
+      "setResolved": "ตั้งเป็นแก้ไขแล้ว",
+      "setClosed": "ตั้งเป็นปิดแล้ว"
+    },
+    "usersPage": {
+      "title": "จัดการผู้ใช้",
+      "user": "ผู้ใช้",
+      "email": "อีเมล",
+      "kycStatus": "สถานะ KYC",
+      "joined": "เข้าร่วมเมื่อ",
+      "role": "บทบาท",
+      "actions": "การดำเนินการ",
+      "roleUpdated": "อัปเดตบทบาทแล้ว",
+      "roleUpdatedDesc": "ผู้ใช้ {uid}... ขณะนี้เป็น {role}",
+      "updateFailed": "การอัปเดตล้มเหลว",
+      "updateFailedDesc": "คุณไม่มีสิทธิ์เปลี่ยนบทบาทของผู้ใช้นี้",
+      "setRole": "ตั้งค่าบทบาท",
+      "resetPassword": "รีเซ็ตรหัสผ่าน (เร็วๆ นี้)"
+    }
   }
 }
-
-    

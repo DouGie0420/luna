@@ -33,6 +33,7 @@ import { usePathname } from 'next/navigation'
 import { useUser } from '@/firebase'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserProfile } from '@/lib/types'
+import { useTranslation } from '@/hooks/use-translation'
 
 const hasAdminAccess = (role?: UserProfile['role']) => {
     return role === 'admin' || role === 'staff' || role === 'support';
@@ -51,6 +52,7 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname()
   const { user, profile, loading } = useUser()
+  const { t } = useTranslation()
   
   const isActive = (path: string) => pathname.startsWith(path);
 
@@ -63,12 +65,12 @@ export default function AdminLayout({
         <div className="flex h-screen w-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
                 <ShieldAlert className="h-4 w-4" />
-                <AlertTitle>Access Denied</AlertTitle>
+                <AlertTitle>{t('admin.layout.accessDenied')}</AlertTitle>
                 <AlertDescription>
-                You do not have permission to view this page. This area is for administrators only.
+                {t('admin.layout.accessDeniedDescription')}
                 </AlertDescription>
                 <div className="mt-4">
-                    <Link href="/" className="text-sm font-semibold underline">Go back to Home</Link>
+                    <Link href="/" className="text-sm font-semibold underline">{t('admin.layout.goHome')}</Link>
                 </div>
             </Alert>
         </div>
@@ -89,7 +91,7 @@ export default function AdminLayout({
               <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                 <Link href="/admin">
                   <LayoutDashboard />
-                  Dashboard
+                  {t('admin.layout.dashboard')}
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -99,7 +101,7 @@ export default function AdminLayout({
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
                     <Users />
-                    Users
+                    {t('admin.layout.users')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -111,7 +113,7 @@ export default function AdminLayout({
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
                     <Link href="/admin/products">
                       <ShoppingBag />
-                      Products
+                      {t('admin.layout.products')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -119,7 +121,7 @@ export default function AdminLayout({
                   <SidebarMenuButton asChild isActive={isActive('/admin/promotions')}>
                     <Link href="/admin/promotions">
                       <Megaphone />
-                      Promotions
+                      {t('admin.layout.promotions')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -127,7 +129,7 @@ export default function AdminLayout({
                   <SidebarMenuButton asChild isActive={isActive('/admin/community')}>
                     <Link href="/admin/community">
                       <MessageSquare />
-                      Community
+                      {t('admin.layout.community')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -139,7 +141,7 @@ export default function AdminLayout({
                 <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
                   <Link href="/admin/orders">
                     <ClipboardList />
-                    Orders
+                    {t('admin.layout.orders')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -150,7 +152,7 @@ export default function AdminLayout({
                 <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                   <Link href="/admin/kyc-list">
                     <ShieldAlert />
-                    KYC Applications
+                    {t('admin.layout.kycApplications')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -161,7 +163,7 @@ export default function AdminLayout({
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">
                     <LifeBuoy />
-                    Support Tickets
+                    {t('admin.layout.supportTickets')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -174,13 +176,13 @@ export default function AdminLayout({
             <SidebarMenuItem>
               <SidebarMenuButton>
                 <Settings />
-                Settings
+                {t('admin.layout.settings')}
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton>
                 <LogOut />
-                Logout
+                {t('admin.layout.logout')}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -189,7 +191,7 @@ export default function AdminLayout({
       <SidebarInset>
         <header className="flex items-center justify-between p-4 border-b">
             <SidebarTrigger />
-            <h1 className="font-headline text-2xl font-bold">Admin Dashboard</h1>
+            <h1 className="font-headline text-2xl font-bold">{t('admin.dashboardTitle')}</h1>
         </header>
         <div className="p-6">
             {children}

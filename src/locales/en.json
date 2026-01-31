@@ -464,7 +464,102 @@
     "noResultsDescription": "We couldn't find any items matching your search.",
     "searchForAnything": "Search for anything",
     "searchHint": "Enter a keyword in the search bar above to get started."
+  },
+  "admin": {
+    "dashboardTitle": "Admin Dashboard",
+    "layout": {
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "products": "Products",
+      "promotions": "Promotions",
+      "community": "Community",
+      "orders": "Orders",
+      "kycApplications": "KYC Applications",
+      "supportTickets": "Support Tickets",
+      "settings": "Settings",
+      "logout": "Logout",
+      "accessDenied": "Access Denied",
+      "accessDeniedDescription": "You do not have permission to view this page. This area is for administrators only.",
+      "goHome": "Go back to Home"
+    },
+    "dashboardPage": {
+      "totalUsers": "Total Users",
+      "pendingKyc": "Pending KYC",
+      "recentActivity": "Recent Activity",
+      "activityFeedPlaceholder": "Activity feed will be displayed here."
+    },
+    "kycListPage": {
+      "title": "KYC Applications",
+      "user": "User",
+      "uid": "UID",
+      "submitted": "Submitted",
+      "documents": "Documents",
+      "actions": "Actions",
+      "view": "View",
+      "dialogTitle": "KYC Documents for {displayName}",
+      "idDocument": "ID Document",
+      "selfie": "Selfie",
+      "noIdPhoto": "No ID photo submitted.",
+      "noSelfie": "No selfie submitted.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "userStatusUpdated": "User {status}",
+      "userStatusUpdatedDesc": "User {uid}... status has been updated and they have been notified.",
+      "actionFailed": "Action Failed",
+      "actionFailedDesc": "Could not update user status. Check Firestore rules and permissions.",
+      "fetchError": "Could not fetch KYC applications.",
+      "noPending": "No pending KYC applications."
+    },
+    "ordersPage": {
+      "title": "Manage Orders",
+      "orderId": "Order ID",
+      "productId": "Product ID",
+      "buyerId": "Buyer ID",
+      "sellerId": "Seller ID",
+      "amount": "Amount",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "productsPage": {
+      "title": "Manage Products",
+      "product": "Product",
+      "seller": "Seller",
+      "price": "Price",
+      "status": "Status",
+      "active": "Active",
+      "actions": "Actions"
+    },
+    "supportPage": {
+      "title": "Support Tickets",
+      "ticketId": "Ticket ID",
+      "subject": "Subject",
+      "user": "User",
+      "status": "Status",
+      "lastUpdate": "Last Update",
+      "actions": "Actions",
+      "statusUpdated": "Status Updated",
+      "statusUpdatedDesc": "Ticket {ticketId} moved to {status}.",
+      "updateFailed": "Update Failed",
+      "updateFailedDesc": "Could not update ticket status.",
+      "setOpen": "Set as Open",
+      "setPending": "Set as Pending",
+      "setResolved": "Set as Resolved",
+      "setClosed": "Set as Closed"
+    },
+    "usersPage": {
+      "title": "Manage Users",
+      "user": "User",
+      "email": "Email",
+      "kycStatus": "KYC Status",
+      "joined": "Joined",
+      "role": "Role",
+      "actions": "Actions",
+      "roleUpdated": "Role Updated",
+      "roleUpdatedDesc": "User {uid}... is now a {role}.",
+      "updateFailed": "Update Failed",
+      "updateFailedDesc": "You do not have permission to change this user's role.",
+      "setRole": "Set role",
+      "resetPassword": "Reset Password (soon)"
+    }
   }
 }
-
-    

@@ -14,9 +14,11 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Loader2 } from "lucide-react"
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function AdminOrdersPage() {
     const firestore = useFirestore();
+    const { t } = useTranslation();
     const ordersQuery = firestore ? query(collection(firestore, 'orders')) : null;
     const { data: orders, loading } = useCollection<Order>(ordersQuery);
 
@@ -26,17 +28,17 @@ export default function AdminOrdersPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">Manage Orders</h2>
+            <h2 className="text-3xl font-headline mb-6">{t('admin.ordersPage.title')}</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Order ID</TableHead>
-                        <TableHead>Product ID</TableHead>
-                        <TableHead>Buyer ID</TableHead>
-                        <TableHead>Seller ID</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('admin.ordersPage.orderId')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.productId')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.buyerId')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.sellerId')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.amount')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.status')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.actions')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>

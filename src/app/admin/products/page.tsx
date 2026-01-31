@@ -15,9 +15,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Loader2 } from "lucide-react"
 import Image from "next/image"
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function AdminProductsPage() {
     const firestore = useFirestore();
+    const { t } = useTranslation();
     const productsQuery = firestore ? query(collection(firestore, 'products')) : null;
     const { data: products, loading } = useCollection<Product>(productsQuery);
 
@@ -27,15 +29,15 @@ export default function AdminProductsPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">Manage Products</h2>
+            <h2 className="text-3xl font-headline mb-6">{t('admin.productsPage.title')}</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Seller</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('admin.productsPage.product')}</TableHead>
+                        <TableHead>{t('admin.productsPage.seller')}</TableHead>
+                        <TableHead>{t('admin.productsPage.price')}</TableHead>
+                        <TableHead>{t('admin.productsPage.status')}</TableHead>
+                        <TableHead>{t('admin.productsPage.actions')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -50,7 +52,7 @@ export default function AdminProductsPage() {
                             <TableCell>{product.seller.name}</TableCell>
                             <TableCell>{product.price.toLocaleString()} {product.currency}</TableCell>
                             <TableCell>
-                                <Badge>Active</Badge>
+                                <Badge>{t('admin.productsPage.active')}</Badge>
                             </TableCell>
                             <TableCell>
                                 <Button variant="ghost" size="icon">

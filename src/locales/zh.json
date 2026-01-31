@@ -464,5 +464,102 @@
     "noResultsDescription": "我们找不到与您的搜索匹配的任何商品。",
     "searchForAnything": "搜索任何东西",
     "searchHint": "在上面的搜索栏中输入关键字以开始。"
+  },
+  "admin": {
+    "dashboardTitle": "管理后台",
+    "layout": {
+      "dashboard": "仪表盘",
+      "users": "用户管理",
+      "products": "商品管理",
+      "promotions": "促销活动",
+      "community": "社区管理",
+      "orders": "订单管理",
+      "kycApplications": "KYC申请",
+      "supportTickets": "支持工单",
+      "settings": "设置",
+      "logout": "退出登录",
+      "accessDenied": "访问被拒绝",
+      "accessDeniedDescription": "您没有权限查看此页面。此区域仅供管理员使用。",
+      "goHome": "返回首页"
+    },
+    "dashboardPage": {
+      "totalUsers": "总用户数",
+      "pendingKyc": "待处理KYC",
+      "recentActivity": "近期活动",
+      "activityFeedPlaceholder": "活动源将在此处显示。"
+    },
+    "kycListPage": {
+      "title": "KYC申请",
+      "user": "用户",
+      "uid": "用户ID",
+      "submitted": "提交时间",
+      "documents": "文件",
+      "actions": "操作",
+      "view": "查看",
+      "dialogTitle": "{displayName} 的KYC文件",
+      "idDocument": "身份证件",
+      "selfie": "自拍照",
+      "noIdPhoto": "未提交身份证件照片。",
+      "noSelfie": "未提交自拍照。",
+      "approve": "批准",
+      "reject": "拒绝",
+      "userStatusUpdated": "用户 {status}",
+      "userStatusUpdatedDesc": "用户 {uid}... 的状态已更新，并已通知。",
+      "actionFailed": "操作失败",
+      "actionFailedDesc": "无法更新用户状态。请检查Firestore规则和权限。",
+      "fetchError": "无法获取KYC申请。",
+      "noPending": "没有待处理的KYC申请。"
+    },
+    "ordersPage": {
+      "title": "管理订单",
+      "orderId": "订单ID",
+      "productId": "商品ID",
+      "buyerId": "买家ID",
+      "sellerId": "卖家ID",
+      "amount": "金额",
+      "status": "状态",
+      "actions": "操作"
+    },
+    "productsPage": {
+      "title": "管理商品",
+      "product": "商品",
+      "seller": "卖家",
+      "price": "价格",
+      "status": "状态",
+      "active": "在售",
+      "actions": "操作"
+    },
+    "supportPage": {
+      "title": "支持工单",
+      "ticketId": "工单ID",
+      "subject": "主题",
+      "user": "用户",
+      "status": "状态",
+      "lastUpdate": "最后更新",
+      "actions": "操作",
+      "statusUpdated": "状态已更新",
+      "statusUpdatedDesc": "工单 {ticketId} 已移至 {status}。",
+      "updateFailed": "更新失败",
+      "updateFailedDesc": "无法更新工单状态。",
+      "setOpen": "设为开启",
+      "setPending": "设为待定",
+      "setResolved": "设为已解决",
+      "setClosed": "设为已关闭"
+    },
+    "usersPage": {
+      "title": "管理用户",
+      "user": "用户",
+      "email": "电子邮件",
+      "kycStatus": "KYC状态",
+      "joined": "加入时间",
+      "role": "角色",
+      "actions": "操作",
+      "roleUpdated": "角色已更新",
+      "roleUpdatedDesc": "用户 {uid}... 现在是 {role}。",
+      "updateFailed": "更新失败",
+      "updateFailedDesc": "您无权更改此用户的角色。",
+      "setRole": "设置角色",
+      "resetPassword": "重置密码 (即将推出)"
+    }
   }
 }

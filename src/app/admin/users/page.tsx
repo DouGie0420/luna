@@ -31,6 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/use-translation";
 
 type UserRole = NonNullable<UserProfile['role']>;
 
@@ -45,6 +46,7 @@ export default function AdminUsersPage() {
     const { profile: currentUserProfile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t } = useTranslation();
     const usersQuery = firestore ? query(collection(firestore, 'users')) : null;
     const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
@@ -54,10 +56,17 @@ export default function AdminUsersPage() {
       const userRef = doc(firestore, "users", uid);
       try {
         await updateDoc(userRef, { role });
-        toast({ title: "Role Updated", description: `User ${uid.slice(0, 6)}... is now a ${role}.` });
+        toast({ 
+            title: t('admin.usersPage.roleUpdated'), 
+            description: t('admin.usersPage.roleUpdatedDesc', { uid: uid.slice(0, 6), role }) 
+        });
       } catch (error) {
         console.error("Failed to update role:", error);
-        toast({ variant: "destructive", title: "Update Failed", description: "You do not have permission to change this user's role." });
+        toast({ 
+            variant: "destructive", 
+            title: t('admin.usersPage.updateFailed'), 
+            description: t('admin.usersPage.updateFailedDesc')
+        });
       }
     };
     
@@ -89,7 +98,7 @@ export default function AdminUsersPage() {
         return (
           <Select defaultValue={userRole} onValueChange={(value: UserRole) => handleRoleChange(user.uid, value)}>
               <SelectTrigger className="w-[120px]" disabled={currentUserProfile.uid === user.uid}>
-                  <SelectValue placeholder="Set role" />
+                  <SelectValue placeholder={t('admin.usersPage.setRole')} />
               </SelectTrigger>
               <SelectContent>
                   <SelectItem value="user">user</SelectItem>
@@ -121,7 +130,7 @@ export default function AdminUsersPage() {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuItem disabled>Reset Password (soon)</DropdownMenuItem>
+                <DropdownMenuItem disabled>{t('admin.usersPage.resetPassword')}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -132,16 +141,16 @@ export default function AdminUsersPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">Manage Users</h2>
+            <h2 className="text-3xl font-headline mb-6">{t('admin.usersPage.title')}</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>KYC Status</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Role</TableHead>
-                        {currentUserProfile?.role !== 'support' && <TableHead className="text-right">Actions</TableHead>}
+                        <TableHead>{t('admin.usersPage.user')}</TableHead>
+                        <TableHead>{t('admin.usersPage.email')}</TableHead>
+                        <TableHead>{t('admin.usersPage.kycStatus')}</TableHead>
+                        <TableHead>{t('admin.usersPage.joined')}</TableHead>
+                        <TableHead>{t('admin.usersPage.role')}</TableHead>
+                        {currentUserProfile?.role !== 'support' && <TableHead className="text-right">{t('admin.usersPage.actions')}</TableHead>}
                     </TableRow>
                 </TableHeader>
                 <TableBody>

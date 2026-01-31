@@ -5,9 +5,11 @@ import { Users, ShieldCheck, Loader2 } from "lucide-react";
 import { useFirestore } from "@/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
+import { useTranslation } from "@/hooks/use-translation";
 
 export default function AdminDashboardPage() {
     const firestore = useFirestore();
+    const { t } = useTranslation();
     const [stats, setStats] = useState({ totalUsers: 0, pendingKyc: 0 });
     const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export default function AdminDashboardPage() {
             <div className="grid gap-6 md:grid-cols-2">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('admin.dashboardPage.totalUsers')}</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -48,7 +50,7 @@ export default function AdminDashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending KYC</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('admin.dashboardPage.pendingKyc')}</CardTitle>
                         <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -64,7 +66,7 @@ export default function AdminDashboardPage() {
             <div className="grid gap-6 md:grid-cols-2">
                  <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('admin.dashboardPage.totalUsers')}</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -73,7 +75,7 @@ export default function AdminDashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending KYC</CardTitle>
+                        <CardTitle className="text-sm font-medium">{t('admin.dashboardPage.pendingKyc')}</CardTitle>
                         <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
@@ -84,10 +86,10 @@ export default function AdminDashboardPage() {
              <div className="mt-8">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
+                        <CardTitle>{t('admin.dashboardPage.recentActivity')}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-muted-foreground">Activity feed will be displayed here.</p>
+                        <p className="text-muted-foreground">{t('admin.dashboardPage.activityFeedPlaceholder')}</p>
                     </CardContent>
                 </Card>
             </div>

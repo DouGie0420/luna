@@ -22,12 +22,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/use-translation";
 
 type TicketStatus = SupportTicket['status'];
 
 export default function AdminSupportPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t } = useTranslation();
     const ticketsQuery = firestore ? query(collection(firestore, 'supportTickets')) : null;
     const { data: tickets, loading } = useCollection<SupportTicket>(ticketsQuery);
 
@@ -36,10 +38,17 @@ export default function AdminSupportPage() {
       const ticketRef = doc(firestore, 'supportTickets', ticketId);
       try {
         await updateDoc(ticketRef, { status, updatedAt: serverTimestamp() });
-        toast({ title: "Status Updated", description: `Ticket ${ticketId} moved to ${status}.` });
+        toast({ 
+            title: t('admin.supportPage.statusUpdated'), 
+            description: t('admin.supportPage.statusUpdatedDesc', { ticketId, status }) 
+        });
       } catch (error) {
         console.error("Failed to update status:", error);
-        toast({ variant: "destructive", title: "Update Failed", description: "Could not update ticket status." });
+        toast({ 
+            variant: "destructive", 
+            title: t('admin.supportPage.updateFailed'), 
+            description: t('admin.supportPage.updateFailedDesc') 
+        });
       }
     };
 
@@ -49,16 +58,16 @@ export default function AdminSupportPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">Support Tickets</h2>
+            <h2 className="text-3xl font-headline mb-6">{t('admin.supportPage.title')}</h2>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Ticket ID</TableHead>
-                        <TableHead>Subject</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Last Update</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>{t('admin.supportPage.ticketId')}</TableHead>
+                        <TableHead>{t('admin.supportPage.subject')}</TableHead>
+                        <TableHead>{t('admin.supportPage.user')}</TableHead>
+                        <TableHead>{t('admin.supportPage.status')}</TableHead>
+                        <TableHead>{t('admin.supportPage.lastUpdate')}</TableHead>
+                        <TableHead>{t('admin.supportPage.actions')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -81,10 +90,10 @@ export default function AdminSupportPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Open')}>Set as Open</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Pending')}>Set as Pending</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Resolved')}>Set as Resolved</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Closed')}>Set as Closed</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Open')}>{t('admin.supportPage.setOpen')}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Pending')}>{t('admin.supportPage.setPending')}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Resolved')}>{t('admin.supportPage.setResolved')}</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Closed')}>{t('admin.supportPage.setClosed')}</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </TableCell>
