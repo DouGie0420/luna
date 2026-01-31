@@ -44,9 +44,9 @@ service cloud.firestore {
       allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role)
                    || isAdmin();
 
-      // Users cannot be created directly, only through auth trigger logic.
-      // Admins can't create users either.
-      allow create: if false;
+      // A user can create their own profile, but must have the 'user' role.
+      allow create: if isOwner(userId) && request.resource.data.role == 'user';
+      
       allow delete: if isAdmin(); // Only admins can delete user documents.
 
       // User Subcollections
@@ -89,6 +89,7 @@ service cloud.firestore {
        // Only a signed-in user can create an order, and they must be the buyer.
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
+    allow list: if isAdmin();
     
     // REVIEWS
     match /reviews/{reviewId} {
@@ -111,5 +112,6 @@ service cloud.firestore {
         // Only support staff and admins can delete tickets.
         allow delete: if isSupport();
     }
+    allow list: if isSupport();
   }
 }
