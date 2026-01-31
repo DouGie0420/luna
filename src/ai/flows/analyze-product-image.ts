@@ -33,7 +33,7 @@ export async function analyzeProductImage(
 
 const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-1.5-flash-latest',
   input: {schema: AnalyzeProductImageInputSchema},
   output: {schema: AnalyzeProductImageOutputSchema},
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
