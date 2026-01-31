@@ -395,16 +395,15 @@ export default function AccountProfilePage() {
                                             <span>{t('userProfile.pro')}</span>
                                         </div>
                                     )}
-                                    {profile?.isWeb3Verified && (
-                                        <div className="flex items-center gap-1.5 text-blue-400">
-                                            <ShieldCheck className="h-4 w-4" />
-                                            <span>{t('userProfile.web3')}</span>
-                                        </div>
-                                    )}
-                                     {profile?.isNftVerified && (
+                                    {profile?.isNftVerified ? (
                                         <div className="flex items-center gap-1.5 text-purple-400">
                                             <ShieldCheck className="h-4 w-4" />
                                             <span>NFT</span>
+                                        </div>
+                                    ) : profile?.isWeb3Verified && (
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>{t('userProfile.web3')}</span>
                                         </div>
                                     )}
                                     {profile?.kycStatus === 'Verified' && (

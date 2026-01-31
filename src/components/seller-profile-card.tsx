@@ -46,7 +46,12 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                         <span>{t('userProfile.pro')}</span>
                                     </div>
                                 )}
-                                {seller.isWeb3Verified && (
+                                {seller.isNftVerified ? (
+                                    <div className="flex items-center gap-1.5 text-purple-400">
+                                        <ShieldCheck className="h-4 w-4" />
+                                        <span>NFT</span>
+                                    </div>
+                                ) : seller.isWeb3Verified && (
                                     <div className="flex items-center gap-1.5 text-blue-400">
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>{t('userProfile.web3')}</span>
@@ -135,7 +140,12 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     <span>{t('userProfile.pro')}</span>
                                 </div>
                             )}
-                            {seller.isWeb3Verified && (
+                            {seller.isNftVerified ? (
+                                <div className="flex items-center gap-1.5 text-purple-400">
+                                    <ShieldCheck className="h-4 w-4" />
+                                    <span>NFT</span>
+                                </div>
+                            ) : seller.isWeb3Verified && (
                                 <div className="flex items-center gap-1.5 text-blue-400">
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>{t('userProfile.web3')}</span>
