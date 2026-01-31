@@ -20,6 +20,12 @@ export function FirebaseClientProvider({
   const [firebase, setFirebase] = useState<FirebaseInstances | null>(null);
 
   useEffect(() => {
+    // Log the hostname for Firebase Auth domain authorization
+    console.log(
+      'Firebase Auth Domain Hint: Your preview window is running on the following domain ->',
+      window.location.hostname
+    );
+      
     const instances = initializeFirebase();
     setFirebase(instances);
   }, []);
