@@ -78,7 +78,8 @@ export default function AdminLayout({
   }
 
   // Check for email verification if user signed up with email/password
-  if (user.providerData[0]?.providerId === 'password' && !user.emailVerified) {
+  // Allow access if either Auth state OR Firestore profile shows email is verified.
+  if (user.providerData[0]?.providerId === 'password' && !user.emailVerified && !profile?.emailVerified) {
     return (
        <div className="flex h-screen w-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
