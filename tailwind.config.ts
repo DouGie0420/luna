@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -159,6 +160,10 @@ export default {
             boxShadow: 'inset 0 0 8px hsl(var(--foreground) / 0.3)',
           },
         },
+        'glow-yellow-text': {
+          '0%, 100%': { textShadow: '0 0 6px #facc15' },
+          '50%': { textShadow: '0 0 12px #facc15' }
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -172,8 +177,11 @@ export default {
         'hue-rotate': 'hue-rotate 5s linear infinite',
         'suggestion-fade-in': 'suggestion-fade-in 0.3s ease-out forwards',
         'breathing-glow': 'breathing-glow 2.5s ease-in-out infinite',
+        'glow-yellow-text': 'glow-yellow-text 3s ease-in-out infinite',
       },
     },
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
+
+    

@@ -1,3 +1,4 @@
+
 {
   "common": {
     "login": "登录",
@@ -344,7 +345,7 @@
     "usersSoldItems": "{userName} 的已售商品",
     "noSoldItems": "没有已售商品可显示。",
     "noSoldItemsDescription": "该用户的销售历史将显示在此处。",
-    "latestListings": "{userName} 的最新商品",
+    "latestListings": "来自 {userName} 的最新商品",
     "followers": "粉丝",
     "following": "关注",
     "alreadyFollowing": "已关注",
@@ -438,7 +439,8 @@
     "collapse": "收起",
     "previous": "上一页",
     "next": "下一页",
-    "placeholder": "留下你的留言...",
+    "placeholder": "在皎洁的月光下留下你的痕迹。",
+    "tooltip": "点击留言",
     "submit": "发布",
     "cannotCommentTitle": "无法评论",
     "cannotCommentDescription": "您需要登录并完成认证才能发表评论。",
@@ -471,3 +473,5 @@
     "searchHint": "在上面的搜索栏中输入关键字以开始。"
   }
 }
+
+    

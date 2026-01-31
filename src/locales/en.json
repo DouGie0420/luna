@@ -1,3 +1,4 @@
+
 {
   "common": {
     "login": "Login",
@@ -438,7 +439,8 @@
     "collapse": "Collapse",
     "previous": "Previous",
     "next": "Next",
-    "placeholder": "Leave your comment...",
+    "placeholder": "Leave your mark under the pale moonlight.",
+    "tooltip": "Click to comment",
     "submit": "Submit",
     "cannotCommentTitle": "Cannot Comment",
     "cannotCommentDescription": "You need to be logged in and verified to comment.",
@@ -471,3 +473,5 @@
     "searchHint": "Enter a keyword in the search bar above to get started."
   }
 }
+
+    

@@ -42,6 +42,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -613,13 +614,22 @@ export default function BbsPostPage() {
                         <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
                         {canInteract && !replyingTo && (
-                            <Button
-                                variant="outline"
-                                className="w-full justify-center rounded-lg border bg-card p-4 text-lg font-semibold text-foreground/80 hover:border-primary/50 hover:text-foreground h-auto mb-6"
-                                onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}
-                            >
-                                {t('productComments.placeholder')}
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-center rounded-lg border border-white bg-card p-4 text-lg font-semibold text-yellow-400 h-auto mb-6 animate-glow-yellow-text transition-all hover:brightness-125"
+                                            onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}
+                                        >
+                                            {t('productComments.placeholder')}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{t('productComments.tooltip')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                         {!user && (
                             <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
@@ -691,3 +701,5 @@ export default function BbsPostPage() {
         </>
     );
 }
+
+    

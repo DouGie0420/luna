@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -26,6 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 type Comment = {
   id: string;
@@ -336,13 +338,22 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                      {/* Comment Form Trigger / Area */}
                     {canInteract ? (
                         (!replyingTo || replyingTo.id !== 'root') && (
-                            <Button
-                                variant="outline"
-                                className="w-full justify-center rounded-lg border bg-card p-4 text-lg font-semibold text-foreground/80 hover:border-primary/50 hover:text-foreground h-auto mb-6"
-                                onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
-                            >
-                                {t('productComments.placeholder')}
-                            </Button>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full justify-center rounded-lg border border-white bg-card p-4 text-lg font-semibold text-yellow-400 h-auto mb-6 animate-glow-yellow-text transition-all hover:brightness-125"
+                                            onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
+                                        >
+                                            {t('productComments.placeholder')}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>{t('productComments.tooltip')}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )
                     ) : (
                         <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
@@ -433,3 +444,5 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         </>
     );
 }
+
+    
