@@ -1,17 +1,27 @@
 'use client';
 
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ShieldCheck } from "lucide-react";
-import { useUser } from "@/firebase";
+import { ShieldCheck, Loader2 } from "lucide-react";
+import { useUser, useFirestore } from "@/firebase";
 import { useTranslation } from "@/hooks/use-translation";
+import { useToast } from "@/hooks/use-toast";
+import { updateUserProfile } from '@/lib/user';
 
 export default function KYCPage() {
     const { t } = useTranslation();
-    const { profile } = useUser();
-    const kycStatus = profile?.kycStatus || "Not Verified"; // Can be 'Not Verified', 'Pending', 'Verified'
+    const { user, profile } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const [idFile, setIdFile] = useState<File | null>(null);
+    const [selfieFile, setSelfieFile] = useState<File | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const kycStatus = profile?.kycStatus || "Not Verified";
 
     const getKycStatusTranslation = (status: 'Not Verified' | 'Pending' | 'Verified') => {
         switch (status) {
@@ -21,6 +31,48 @@ export default function KYCPage() {
             default: return status;
         }
     }
+    
+    const handleSubmit = async () => {
+        if (!idFile || !selfieFile) {
+            toast({
+                variant: "destructive",
+                title: "Missing Documents",
+                description: "Please upload both ID and selfie images.",
+            });
+            return;
+        }
+
+        if (!user || !firestore) {
+            toast({
+                variant: "destructive",
+                title: "Authentication Error",
+                description: "Could not identify user. Please try again.",
+            });
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            // In a real app, you would upload files to a storage service here.
+            // For this prototype, we'll just update the status.
+            await updateUserProfile(firestore, user.uid, { kycStatus: 'Pending' });
+            toast({
+                title: "Documents Submitted",
+                description: "Your documents are now under review.",
+            });
+            // The UI will update automatically thanks to the useUser hook.
+        } catch (error) {
+            console.error("KYC submission error:", error);
+            toast({
+                variant: "destructive",
+                title: "Submission Failed",
+                description: "An error occurred. Please try again.",
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     return (
         <div className="p-6 md:p-8 lg:p-12">
@@ -63,16 +115,27 @@ export default function KYCPage() {
                     <CardContent className="grid gap-6">
                         <div className="grid gap-2">
                             <Label htmlFor="id-upload">{t('accountKYC.idUploadLabel')}</Label>
-                            <input id="id-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
+                            <input 
+                                id="id-upload" 
+                                type="file"
+                                onChange={(e) => setIdFile(e.target.files ? e.target.files[0] : null)}
+                                className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
                             <p className="text-xs text-muted-foreground">{t('accountKYC.idUploadDescription')}</p>
                         </div>
                          <div className="grid gap-2">
                             <Label htmlFor="selfie-upload">{t('accountKYC.selfieUploadLabel')}</Label>
-                            <input id="selfie-upload" type="file" className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
+                            <input 
+                                id="selfie-upload" 
+                                type="file" 
+                                onChange={(e) => setSelfieFile(e.target.files ? e.target.files[0] : null)}
+                                className="text-sm file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-semibold file:bg-secondary file:text-secondary-foreground hover:file:bg-secondary/80"/>
                              <p className="text-xs text-muted-foreground">{t('accountKYC.selfieUploadDescription')}</p>
                         </div>
                          <div className="flex justify-end">
-                            <Button>{t('accountKYC.submitButton')}</Button>
+                            <Button onClick={handleSubmit} disabled={isSubmitting}>
+                                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                {t('accountKYC.submitButton')}
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
