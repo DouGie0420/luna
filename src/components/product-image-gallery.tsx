@@ -13,6 +13,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Heart, Star } from 'lucide-react';
@@ -73,6 +75,9 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
     <>
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
         <DialogContent className="max-w-none w-screen h-screen p-0 border-0 bg-black/90">
+            <DialogHeader className="sr-only">
+              <DialogTitle>Enlarged image for {product.name}</DialogTitle>
+            </DialogHeader>
             <Carousel setApi={setLightboxApi} className="w-full h-full" opts={{ loop: true, startIndex: selectedIndex }}>
                 <CarouselContent>
                     {images.map((img, index) => (

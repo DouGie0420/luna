@@ -30,6 +30,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
@@ -249,6 +251,7 @@ export default function BbsPostPage() {
             setTimeout(() => {
                 toast({
                     title: t('productComments.likeSuccess'),
+                    description: t('productComments.replyNotification'),
                 });
                 setLikeToast(false);
             }, 0);
@@ -518,6 +521,9 @@ export default function BbsPostPage() {
                                     </Avatar>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 border-0 max-w-lg bg-transparent shadow-none">
+                                    <DialogHeader className="sr-only">
+                                        <DialogTitle>Enlarged avatar for {post.author.name}</DialogTitle>
+                                    </DialogHeader>
                                     <Image src={post.author.avatarUrl} alt={post.author.name} width={512} height={512} className="rounded-lg" />
                                 </DialogContent>
                             </Dialog>
