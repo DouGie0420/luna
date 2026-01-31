@@ -62,7 +62,7 @@ export function UserNav() {
   };
   
   const handleLinkWallet = async () => {
-    if (!firestore || !user) return;
+    if (!firestore || !user || !auth) return;
     if (typeof window.ethereum === 'undefined') {
         toast({
             variant: "destructive",
@@ -73,9 +73,19 @@ export function UserNav() {
     }
     setIsLinkingWallet(true);
     try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        if (!accounts || accounts.length === 0) {
+          throw new Error('No accounts found. Please connect your wallet.');
+        }
+
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
+
+        // Force refresh the token before making a Firestore write
+        if (auth.currentUser) {
+            await auth.currentUser.getIdToken(true);
+        }
 
         await updateUserProfile(firestore, user.uid, {
             walletAddress: address.toLowerCase(),
@@ -87,10 +97,17 @@ export function UserNav() {
             description: `Your wallet ${address.slice(0, 6)}...${address.slice(-4)} is now linked.`,
         });
     } catch (error: any) {
+        let message = "An unknown error occurred.";
+        if (error.code === 4001) { // MetaMask user rejection
+          message = "You rejected the connection request. Please try again.";
+        } else if (error.message) {
+          message = error.message;
+        }
+        
         toast({
             variant: "destructive",
             title: "Wallet Link Failed",
-            description: error.message || "An unknown error occurred.",
+            description: message,
         });
     } finally {
         setIsLinkingWallet(false);
@@ -192,7 +209,7 @@ export function UserNav() {
   }
 
   const WalletButton = () => {
-    const isLoading = isLinkingWallet || isSyncingNfts;
+    const isLoading = isLinkingWallet || isSyncingNfts || loading;
     const shortAddress = (profile?.walletAddress)
       ? `${profile.walletAddress.slice(0, 6)}...${profile.walletAddress.slice(-4)}`
       : '';
