@@ -147,38 +147,67 @@ export const useUser = (): UserState => {
 
     const unsubscribeAuth = onAuthStateChanged(
       auth,
-      (user) => {
+      async (user) => {
         if (user) {
-          // User is signed in, now listen for profile changes
-          const profileRef = doc(firestore, 'users', user.uid);
+          // User is signed in, now we force a reload to get the latest state (e.g. emailVerified)
+          await user.reload();
+          const freshUser = auth.currentUser; // The user object from onAuthStateChanged can be stale. Get the freshest one.
+          
+          if (!freshUser) {
+             setUserState({ user: null, profile: null, loading: false, error: null });
+             return;
+          }
+
+          // Listen for profile changes in Firestore
+          const profileRef = doc(firestore, 'users', freshUser.uid);
           const unsubscribeProfile = onSnapshot(
             profileRef,
             (profileDoc) => {
               if (profileDoc.exists()) {
                 const profileData = profileDoc.data() as UserProfile;
+                
+                const updates: Partial<UserProfile> = {};
 
-                // Auto-promotion logic
-                if (user.emailVerified && profileData.role === 'guest' && firestore) {
-                    updateUserProfile(firestore, user.uid, { role: 'user' }).then(() => {
-                        console.log(`User ${user.uid} promoted to 'user' role.`);
-                    });
+                // Sync email verification status from Auth to Firestore if it's newly verified
+                if (freshUser.emailVerified && !profileData.emailVerified) {
+                    updates.emailVerified = true;
                 }
 
-                setUserState({
-                  user,
-                  profile: profileData,
-                  loading: false,
-                  error: null,
-                });
+                // Auto-promote role from 'guest' to 'user' upon email verification
+                if (freshUser.emailVerified && profileData.role === 'guest') {
+                    updates.role = 'user';
+                }
+                
+                // If there are updates to be made, make them
+                if (Object.keys(updates).length > 0 && firestore) {
+                    updateUserProfile(firestore, freshUser.uid, updates).then(() => {
+                        console.log(`User ${freshUser.uid} profile updated:`, updates);
+                    });
+                     // Optimistically update the local profile state so the UI reacts instantly
+                     const updatedProfile = { ...profileData, ...updates };
+                     setUserState({
+                        user: freshUser,
+                        profile: updatedProfile,
+                        loading: false,
+                        error: null,
+                      });
+                } else {
+                     setUserState({
+                        user: freshUser,
+                        profile: profileData,
+                        loading: false,
+                        error: null,
+                      });
+                }
 
               } else {
                 // Profile doesn't exist yet. This might happen briefly after signup.
-                 setUserState({ user, profile: null, loading: false, error: null });
+                 setUserState({ user: freshUser, profile: null, loading: false, error: null });
               }
             },
             (error) => {
               console.error('Error fetching user profile:', error);
-              setUserState({ user, profile: null, loading: false, error });
+              setUserState({ user: freshUser, profile: null, loading: false, error });
             }
           );
           
@@ -199,5 +228,3 @@ export const useUser = (): UserState => {
 
   return userState;
 };
-
-    
