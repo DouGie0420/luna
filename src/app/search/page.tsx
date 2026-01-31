@@ -110,7 +110,7 @@ function SearchPageContent() {
                                 ) : (
                                     <div className="text-center py-20 border-2 border-dashed rounded-lg border-primary/30 bg-card/50">
                                         <SearchIcon className="mx-auto h-12 w-12 text-primary/50 animate-pulse" />
-                                        <h1 className="text-3xl font-headline mt-6 mb-2 text-primary" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
+                                        <h1 className="text-3xl font-headline mt-6 mb-2 text-yellow-400" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
                                             {t('searchPage.noResultsFor').replace('{query}', query)}
                                         </h1>
                                         <h2 className="text-xl font-headline text-muted-foreground mb-2" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.3s forwards' }}>
