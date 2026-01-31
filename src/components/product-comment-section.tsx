@@ -364,10 +364,10 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-primary text-primary-foreground hover:bg-primary/90">{t('productComments.continueEditing')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmCancelReply} variant="destructive">
+                        <Button onClick={() => setIsCancelDialogOpen(false)}>{t('productComments.continueEditing')}</Button>
+                        <Button onClick={handleConfirmCancelReply} variant="destructive">
                             {t('productComments.cancelConfirmAction')}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

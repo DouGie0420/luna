@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check } from 'lucide-react';
+import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -193,10 +193,8 @@ export default function BbsPostPage() {
         fetchData();
     }, [id]);
 
-    // Mock initial follow state
     useEffect(() => {
         if(user && post) {
-            // In a real app, you would check the DB. Here, we mock it.
             const postAuthorIdNum = parseInt(post.author.id.replace('user', ''));
             if (user.uid === 'test-user-uid' && postAuthorIdNum % 2 === 0) {
                 setIsFollowing(true);
@@ -328,6 +326,7 @@ export default function BbsPostPage() {
                 followersCount: profile?.followersCount || 0,
                 followingCount: profile?.followingCount || 0,
                 location: profile?.location ? { city: profile.location, country: '?', countryCode: '?', lat: 0, lng: 0 } : undefined,
+                postsCount: 0, // This would need to be fetched for the current user
             };
             return currentUserAsLibUser;
         }
@@ -362,7 +361,7 @@ export default function BbsPostPage() {
                                 className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
                                 onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
                             >
-                                <MessageSquare className="mr-1 h-3 w-3" />
+                                <Reply className="mr-1 h-3 w-3" />
                                 {t('productComments.reply')}
                             </Button>
                             <p className="text-xs text-muted-foreground">{timeAgo}</p>
@@ -414,7 +413,8 @@ export default function BbsPostPage() {
                             </Avatar>
                             <div>
                                 <p className="font-bold group-hover:underline">{post.author.name}</p>
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                <Separator className="my-2 border-border/50" />
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                                     <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
                                         <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
                                     </Link>

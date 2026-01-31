@@ -133,12 +133,7 @@ export default function UserProfilePage() {
                                 </Avatar>
                                 <div>
                                     <CardTitle>{user.name}</CardTitle>
-                                    {user.location && (
-                                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                            <MapPin className="h-4 w-4" />
-                                            <span>{user.location.city}, {user.location.countryCode}</span>
-                                        </div>
-                                    )}
+                                    <Separator className="my-2 border-border/50" />
                                      <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
                                         <Link href={`/user/${user.id}/followers`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
