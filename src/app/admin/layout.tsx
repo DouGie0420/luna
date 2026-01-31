@@ -11,6 +11,7 @@ import {
   LifeBuoy,
   LogOut,
   Settings,
+  ShieldAlert,
 } from 'lucide-react'
 
 import {
@@ -76,6 +77,14 @@ export default function AdminLayout({
                 <Link href="/admin/orders">
                   <ClipboardList />
                   Orders
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
+                <Link href="/admin/kyc-list">
+                  <ShieldAlert />
+                  KYC Applications
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
