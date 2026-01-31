@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply } from 'lucide-react';
+import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -130,7 +130,7 @@ const CommentForm = ({
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
         <div className="flex items-center gap-2">
-           <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
+          <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
@@ -325,8 +325,8 @@ export default function BbsPostPage() {
                 reviews: profile?.reviewsCount || 0,
                 followersCount: profile?.followersCount || 0,
                 followingCount: profile?.followingCount || 0,
-                location: profile?.location ? { city: profile.location, country: '?', countryCode: '?', lat: 0, lng: 0 } : undefined,
-                postsCount: 0, // This would need to be fetched for the current user
+                location: { city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
+                postsCount: 0, 
             };
             return currentUserAsLibUser;
         }
@@ -347,14 +347,21 @@ export default function BbsPostPage() {
                         </Avatar>
                     </Link>
                     <div className="flex-1">
-                        <div className="flex items-baseline gap-2">
-                            <Link href={`/user/${author?.id || comment.authorId}`}>
-                                <span className="text-sm font-semibold text-muted-foreground hover:underline">{author?.name}</span>
-                            </Link>
-                             {author?.location && <p className="text-xs text-muted-foreground/80">&middot; {author.location.city}</p>}
+                         <div className="flex items-center justify-between">
+                            <div className="flex items-center flex-wrap gap-x-2">
+                                <Link href={`/user/${author?.id || comment.authorId}`}>
+                                    <span className="text-sm font-semibold text-muted-foreground hover:underline">{author?.name}</span>
+                                </Link>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3 w-3" /> {author?.goodReviews ?? 0}</span>
+                                    <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3 w-3" /> {author?.badReviews ?? 0}</span>
+                                </div>
+                                {author?.location && <p className="text-xs text-muted-foreground/80">&middot; {author.location.city}, {author.location.countryCode}</p>}
+                            </div>
+                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{timeAgo}</p>
                         </div>
                         <p className="text-sm my-1">{comment.text}</p>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-start">
                            <Button 
                                 variant="ghost" 
                                 size="sm" 
@@ -364,7 +371,6 @@ export default function BbsPostPage() {
                                 <Reply className="mr-1 h-3 w-3" />
                                 {t('productComments.reply')}
                             </Button>
-                            <p className="text-xs text-muted-foreground">{timeAgo}</p>
                         </div>
                     </div>
                 </div>
@@ -414,27 +420,8 @@ export default function BbsPostPage() {
                                 </Avatar>
                             </Link>
                             <div>
-                                <div className="flex items-baseline gap-x-4">
-                                    <Link href={`/user/${post.author.id}`}>
-                                        <p className="font-bold hover:underline">{post.author.name}</p>
-                                    </Link>
-                                    <div className="flex items-center gap-x-3 text-xs text-muted-foreground">
-                                        <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
-                                        </Link>
-                                        <span>&middot;</span>
-                                        <Link href={`/user/${post.author.id}/following`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
-                                        </Link>
-                                        <span>&middot;</span>
-                                        <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
-                                        </Link>
-                                    </div>
-                                </div>
-                                <div className="mt-1">
-                                    <p className="text-sm text-muted-foreground">{post.author.creditLevel || t('userProfile.noVerifications')}</p>
-                                </div>
+                                <h2 className="font-bold">{post.author.name}</h2>
+                                <p className="text-sm text-muted-foreground">{post.author.creditLevel || t('userProfile.noVerifications')}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -471,6 +458,22 @@ export default function BbsPostPage() {
                     <div className="p-6">
                         <h1 className="font-headline text-3xl font-bold mb-4">{t(post.titleKey)}</h1>
 
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                            <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
+                                <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
+                            </Link>
+                            <span>&middot;</span>
+                            <Link href={`/user/${post.author.id}/following`} className="hover:underline">
+                                <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
+                            </Link>
+                            <span>&middot;</span>
+                            <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
+                                <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
+                            </Link>
+                        </div>
+                        <Separator className="mb-6"/>
+
+
                         <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4" />
@@ -504,18 +507,16 @@ export default function BbsPostPage() {
                         <Separator className="my-6" />
                         <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
-                         {canInteract && !replyingTo && (
-                            <Button
-                                variant="outline"
-                                className="w-full justify-start rounded-lg border bg-background/50 p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
-                                onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
-                            >
-                                {t('productComments.placeholder')}
-                            </Button>
-                        )}
-                        
-                        {replyingTo?.id === 'root' && (
-                             <div className="mt-4">
+                         {canInteract ? (
+                             !replyingTo ? (
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
+                                    onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
+                                >
+                                    {t('productComments.placeholder')}
+                                </Button>
+                            ) : replyingTo.id === 'root' ? (
                                 <CommentForm
                                     isSubmitting={isSubmitting}
                                     value={newComment}
@@ -523,8 +524,13 @@ export default function BbsPostPage() {
                                     onSubmit={handlePostComment}
                                     onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
                                 />
+                             ) : null
+                        ) : (
+                             <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
+                                <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                             </div>
                         )}
+                        
                         
                         {!canInteract && (
                              <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
@@ -575,8 +581,8 @@ export default function BbsPostPage() {
                         <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                         <Button onClick={() => setIsCancelDialogOpen(false)}>{t('productComments.continueEditing')}</Button>
-                        <Button onClick={handleConfirmCancelReply} variant="destructive">
+                         <Button onClick={() => setIsCancelDialogOpen(false)} variant="default">{t('productComments.continueEditing')}</Button>
+                        <Button onClick={handleConfirmCancelReply} variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20">
                             {t('productComments.cancelConfirmAction')}
                         </Button>
                     </AlertDialogFooter>

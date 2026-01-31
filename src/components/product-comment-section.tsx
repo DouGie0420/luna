@@ -224,9 +224,13 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                 </Link>
                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                     <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3 w-3" /> {author?.goodReviews ?? 0}</span>
-                                    <span className="flex items-center gap-1 text-yellow-400"><Meh className="h-3 w-3" /> {author?.neutralReviews ?? 0}</span>
                                     <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3 w-3" /> {author?.badReviews ?? 0}</span>
                                 </div>
+                                {author?.location && (
+                                    <div className="text-xs text-muted-foreground">
+                                        &middot; {author.location.city}, {author.location.countryCode}
+                                    </div>
+                                )}
                             </div>
                             <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{timeAgo}</p>
                         </div>
@@ -283,7 +287,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                          !replyingTo ? (
                             <Button
                                 variant="outline"
-                                className="w-full justify-start rounded-lg border bg-background/50 p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
+                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
                                 onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                             >
                                 {t('productComments.placeholder')}
@@ -364,8 +368,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <Button onClick={() => setIsCancelDialogOpen(false)}>{t('productComments.continueEditing')}</Button>
-                        <Button onClick={handleConfirmCancelReply} variant="destructive">
+                        <Button onClick={() => setIsCancelDialogOpen(false)} variant="default">{t('productComments.continueEditing')}</Button>
+                        <Button onClick={handleConfirmCancelReply} variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20">
                             {t('productComments.cancelConfirmAction')}
                         </Button>
                     </AlertDialogFooter>
