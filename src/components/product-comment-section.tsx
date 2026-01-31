@@ -223,38 +223,32 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center flex-wrap gap-x-2">
-                                 <Link href={`/user/${author?.id || comment.authorId}`} className="font-semibold text-sm hover:underline">
-                                    {author?.name || 'User'}
-                                </Link>
-                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-3 w-3" /> {author?.goodReviews ?? 0}</span>
-                                    <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-3 w-3" /> {author?.badReviews ?? 0}</span>
-                                </div>
-                                {author?.location && (
-                                    <div className="text-xs text-muted-foreground">
-                                        &middot; {author.location.city}, {author.location.countryCode}
-                                    </div>
-                                )}
+                            <div className="flex items-center flex-wrap gap-x-2 text-sm">
+                                <span className="font-semibold text-foreground">{author?.name}</span>
+                                {author?.location && <p className="text-muted-foreground">&middot; {author.location.city}, {author.location.countryCode}</p>}
                             </div>
-                            <p className="text-xs text-muted-foreground flex-shrink-0 ml-2">{timeAgo}</p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>
+                                <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-4 w-4" /> {author?.badReviews ?? 0}</span>
+                                <span>{timeAgo}</span>
+                            </div>
                         </div>
-                        <p className="text-sm mt-1">{comment.text}</p>
+                        <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
                         <div className="flex items-center gap-2">
                             <Button 
                                 variant="ghost" 
                                 size="sm" 
-                                className="mt-1 h-auto p-1 text-xs text-muted-foreground hover:text-primary"
+                                className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
                                 onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
                             >
-                                <Reply className="mr-1 h-3 w-3" />
+                                <Reply className="mr-1 h-3 w-3 -scale-x-100" />
                                 {t('productComments.reply')}
                             </Button>
                             {user?.uid === comment.authorId && (
                                  <Button 
                                     variant="ghost" 
                                     size="sm" 
-                                    className="mt-1 h-auto p-1 text-xs text-destructive hover:text-destructive"
+                                    className="h-auto p-1 text-xs text-destructive hover:text-destructive"
                                     onClick={() => setCommentToDelete(comment.id)}
                                 >
                                     <Trash2 className="mr-1 h-3 w-3" />
@@ -289,27 +283,31 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 <CardContent className="space-y-8">
                      {/* Comment Form Trigger / Area */}
                     {canInteract ? (
-                         !replyingTo ? (
+                        (!replyingTo || replyingTo.id !== 'root') && (
                             <Button
                                 variant="outline"
-                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
+                                className="w-full justify-start rounded-lg border bg-card p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto mb-6"
                                 onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                             >
                                 {t('productComments.placeholder')}
                             </Button>
-                        ) : replyingTo.id === 'root' ? (
+                        )
+                    ) : (
+                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
+                            <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                        </div>
+                    )}
+                    
+                    {replyingTo?.id === 'root' && (
+                            <div className="mb-6">
                             <CommentForm
                                 isSubmitting={isSubmitting}
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 onSubmit={handlePostComment}
-                                onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
+                                onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
                             />
-                         ) : null
-                    ) : (
-                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md">
-                            <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
-                        </div>
+                            </div>
                     )}
                     
                     {nestedComments.length > 0 && <Separator />}
