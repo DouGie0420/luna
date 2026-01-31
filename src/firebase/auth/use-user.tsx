@@ -102,9 +102,6 @@ export const useUser = (): UserState => {
   const firestore = useContext(FirebaseContext)?.firestore;
 
   useEffect(() => {
-    // This effect should only run once, or when auth/firestore instances change.
-    // All subsequent logic is handled by the listeners.
-    
     if (!auth || !firestore) {
       setUserState(s => ({ ...s, loading: true }));
       return;
@@ -142,14 +139,14 @@ export const useUser = (): UserState => {
     // --- Standard Firebase Auth Logic ---
     let profileUnsubscribe: Unsubscribe | undefined;
 
-    const authUnsubscribe = onAuthStateChanged(auth, (user) => {
+    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
       // Clean up previous profile listener if it exists
       if (profileUnsubscribe) {
         profileUnsubscribe();
       }
 
-      if (user) {
-        const profileRef = doc(firestore, 'users', user.uid);
+      if (authUser) {
+        const profileRef = doc(firestore, 'users', authUser.uid);
         
         // Set up a new listener for the current user's profile
         profileUnsubscribe = onSnapshot(profileRef,
@@ -159,24 +156,24 @@ export const useUser = (): UserState => {
             // Side-effect to sync auth state (like email verification) to the Firestore profile
             if (profileData) {
                 const updates: Partial<UserProfile> = {};
-                if (user.emailVerified && !profileData.emailVerified) {
+                if (authUser.emailVerified && !profileData.emailVerified) {
                     updates.emailVerified = true;
                 }
-                if (user.emailVerified && profileData.role === 'guest') {
+                if (authUser.emailVerified && profileData.role === 'guest') {
                     updates.role = 'user';
                 }
                 if (Object.keys(updates).length > 0) {
-                    updateUserProfile(firestore, user.uid, updates);
+                    updateUserProfile(firestore, authUser.uid, updates);
                 }
             }
             
             // This is the single point of truth for updating the state for a logged-in user.
             // It runs whenever the profile data changes.
-            setUserState({ user, profile: profileData, loading: false, error: null });
+            setUserState({ user: authUser, profile: profileData, loading: false, error: null });
           },
           (error) => {
             console.error('Profile snapshot error:', error);
-            setUserState({ user, profile: null, loading: false, error });
+            setUserState({ user: authUser, profile: null, loading: false, error });
           }
         );
       } else {
