@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import type { SupportTicket, UserProfile } from "@/lib/types";
@@ -30,7 +31,7 @@ export default function AdminSupportPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { t } = useTranslation();
-    const ticketsQuery = firestore ? query(collection(firestore, 'supportTickets')) : null;
+    const ticketsQuery = useMemo(() => firestore ? query(collection(firestore, 'supportTickets')) : null, [firestore]);
     const { data: tickets, loading } = useCollection<SupportTicket>(ticketsQuery);
 
     const handleStatusChange = async (ticketId: string, status: TicketStatus) => {

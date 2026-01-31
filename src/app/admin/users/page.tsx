@@ -1,6 +1,7 @@
 'use client';
 
 import { useCollection, useFirestore, useUser } from "@/firebase";
+import { useMemo } from 'react';
 import { collection, query, doc, updateDoc } from "firebase/firestore";
 import type { UserProfile } from "@/lib/types";
 import {
@@ -31,7 +32,7 @@ export default function AdminUsersPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { t } = useTranslation();
-    const usersQuery = firestore ? query(collection(firestore, 'users')) : null;
+    const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
     const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
     const handleRoleChange = async (uid: string, role: UserRole) => {

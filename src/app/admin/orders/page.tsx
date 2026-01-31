@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useCollection, useFirestore } from "@/firebase";
 import { collection, query } from "firebase/firestore";
 import type { Order } from "@/lib/types";
@@ -19,7 +20,7 @@ import { useTranslation } from "@/hooks/use-translation";
 export default function AdminOrdersPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
-    const ordersQuery = firestore ? query(collection(firestore, 'orders')) : null;
+    const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders')) : null, [firestore]);
     const { data: orders, loading } = useCollection<Order>(ordersQuery);
 
     if (loading) {
