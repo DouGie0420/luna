@@ -63,6 +63,8 @@ export type UserProfile = {
     location?: string;
     bio?: string;
     kycStatus: KycStatus;
+    kycIdPhotoUrl?: string;
+    kycSelfieUrl?: string;
     isPro?: boolean;
     isWeb3Verified?: boolean;
     isNftVerified?: boolean;

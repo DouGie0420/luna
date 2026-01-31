@@ -109,6 +109,16 @@
             "Verified"
           ]
         },
+        "kycIdPhotoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's uploaded ID document for KYC."
+        },
+        "kycSelfieUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's uploaded selfie for KYC."
+        },
         "isNftVerified": {
           "type": "boolean",
           "description": "Whether the user's avatar is a verified NFT."

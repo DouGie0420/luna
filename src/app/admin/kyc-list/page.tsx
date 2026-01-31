@@ -20,6 +20,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { ShieldAlert, CheckCircle, XCircle, Loader2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
+import Image from 'next/image';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function KycListPage() {
   const { user, loading: userLoading } = useUser();
@@ -123,6 +131,7 @@ export default function KycListPage() {
             <TableHead>User</TableHead>
             <TableHead>UID</TableHead>
             <TableHead>Submitted</TableHead>
+            <TableHead>Documents</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -139,6 +148,32 @@ export default function KycListPage() {
                 </TableCell>
                 <TableCell className="font-mono text-xs">{app.uid}</TableCell>
                 <TableCell>{app.lastLogin?.toDate ? formatDistanceToNow(app.lastLogin.toDate(), { addSuffix: true }) : 'N/A'}</TableCell>
+                <TableCell>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm" disabled={!app.kycIdPhotoUrl}>View</Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl">
+                      <DialogHeader>
+                        <DialogTitle>KYC Documents for {app.displayName}</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                        <div>
+                          <h3 className="font-semibold mb-2">ID Document</h3>
+                          {app.kycIdPhotoUrl ? (
+                            <Image src={app.kycIdPhotoUrl} alt="ID Document" width={600} height={400} className="rounded-md" />
+                          ) : <p>No ID photo submitted.</p>}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold mb-2">Selfie</h3>
+                          {app.kycSelfieUrl ? (
+                            <Image src={app.kycSelfieUrl} alt="Selfie" width={600} height={400} className="rounded-md" />
+                          ) : <p>No selfie submitted.</p>}
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
@@ -165,7 +200,7 @@ export default function KycListPage() {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="h-24 text-center">
+              <TableCell colSpan={5} className="h-24 text-center">
                 No pending KYC applications.
               </TableCell>
             </TableRow>
