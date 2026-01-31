@@ -25,8 +25,7 @@ export function NotificationBell() {
   const notificationsQuery = useMemo(() => {
     if (!firestore || !user) return null;
     return query(
-        collection(firestore, 'notifications'), 
-        where('userId', '==', user.uid),
+        collection(firestore, 'users', user.uid, 'notifications'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
@@ -39,13 +38,13 @@ export function NotificationBell() {
   }, [notifications]);
 
   const handleOpenChange = async (open: boolean) => {
-    if (open || !firestore || !notifications || unreadCount === 0) return;
+    if (open || !firestore || !user || !notifications || unreadCount === 0) return;
 
     // Mark all unread as read
     const batch = writeBatch(firestore);
     notifications.forEach(notif => {
       if (!notif.read) {
-        const notifRef = doc(firestore, 'notifications', notif.id);
+        const notifRef = doc(firestore, 'users', user.uid, 'notifications', notif.id);
         batch.update(notifRef, { read: true });
       }
     });

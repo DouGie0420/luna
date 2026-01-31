@@ -79,10 +79,9 @@ export default function KycListPage() {
       await updateDoc(userRef, { kycStatus: newStatus });
       
       // Send notification based on template
-      const notificationsCollection = collection(firestore, 'notifications');
+      const notificationsCollection = collection(firestore, 'users', targetUid, 'notifications');
       const notification = newStatus === 'Verified'
         ? {
-            userId: targetUid,
             title: 'KYC 验证成功',
             message: '您的赛博身份已激活，快去点亮勋章吧！',
             read: false,
@@ -90,7 +89,6 @@ export default function KycListPage() {
             type: 'success' as const
           }
         : {
-            userId: targetUid,
             title: 'KYC 资料需修改',
             message: '您的照片不符合规范，请重新上传。',
             read: false,

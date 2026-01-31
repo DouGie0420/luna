@@ -494,9 +494,6 @@
       "description": "Represents a system notification for a user.",
       "type": "object",
       "properties": {
-        "userId": {
-          "type": "string"
-        },
         "title": {
           "type": "string"
         },
@@ -521,7 +518,6 @@
         }
       },
       "required": [
-        "userId",
         "title",
         "message",
         "createdAt"
@@ -577,11 +573,11 @@
       },
       "description": "Ledger for a user's Lunar Soil transactions to handle expiration."
     },
-    "/notifications/{notificationId}": {
+    "/users/{userId}/notifications/{notificationId}": {
       "schema": {
         "$ref": "#/entities/Notification"
       },
-      "description": "Stores user notifications."
+      "description": "Stores notifications for a specific user."
     }
   }
 }
