@@ -121,6 +121,14 @@ export default {
               backgroundColor: 'hsl(84 78% 55% / 0.2)',
             },
         },
+        'glow-border-muted': {
+          '0%, 100%': {
+            boxShadow: '0 0 10px 0px hsl(var(--foreground) / 0.2)',
+          },
+          '50%': {
+            boxShadow: '0 0 20px 3px hsl(var(--foreground) / 0.4)',
+          },
+        },
         'glow-line': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
@@ -148,6 +156,7 @@ export default {
         'glow': 'glow 4s ease-in-out infinite',
         'glow-muted': 'glow-muted 4s ease-in-out infinite',
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
+        'glow-border-muted': 'glow-border-muted 4s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
         'suggestion-fade-in': 'suggestion-fade-in 0.3s ease-out forwards',
