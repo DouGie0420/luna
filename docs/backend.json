@@ -523,6 +523,61 @@
         "message",
         "createdAt"
       ]
+    },
+    "SupportTicket": {
+      "title": "Support Ticket",
+      "description": "Represents a user's support request.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "userName": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Open",
+            "Pending",
+            "Resolved",
+            "Closed"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "assignedTo": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "userId",
+        "userName",
+        "userEmail",
+        "subject",
+        "category",
+        "description",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -579,6 +634,12 @@
         "$ref": "#/entities/Notification"
       },
       "description": "Stores notifications for a specific user."
+    },
+    "/supportTickets/{ticketId}": {
+      "schema": {
+        "$ref": "#/entities/SupportTicket"
+      },
+      "description": "Stores user-submitted support tickets."
     }
   }
 }

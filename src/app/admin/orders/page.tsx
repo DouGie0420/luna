@@ -1,3 +1,8 @@
+'use client';
+
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query } from "firebase/firestore";
+import type { Order } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -8,15 +13,17 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-
-const orders = [
-    { id: "ORD001", product: "Vintage Film Camera", buyer: "Charlie Brown", seller: "Alex Doe", amount: "6,500 THB", status: "In Escrow" },
-    { id: "ORD002", product: "Handmade Leather Wallet", buyer: "Alex Doe", seller: "Billie Jean", amount: "120 RMB", status: "Completed" },
-    { id: "ORD003", product: "Gen-5 Smart Watch", buyer: "Billie Jean", seller: "Charlie Brown", amount: "150 USDT", status: "Disputed" },
-]
+import { MoreHorizontal, Loader2 } from "lucide-react"
 
 export default function AdminOrdersPage() {
+    const firestore = useFirestore();
+    const ordersQuery = firestore ? query(collection(firestore, 'orders')) : null;
+    const { data: orders, loading } = useCollection<Order>(ordersQuery);
+
+    if (loading) {
+        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
     return (
         <div>
             <h2 className="text-3xl font-headline mb-6">Manage Orders</h2>
@@ -24,22 +31,22 @@ export default function AdminOrdersPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>Order ID</TableHead>
-                        <TableHead>Product</TableHead>
-                        <TableHead>Buyer</TableHead>
-                        <TableHead>Seller</TableHead>
+                        <TableHead>Product ID</TableHead>
+                        <TableHead>Buyer ID</TableHead>
+                        <TableHead>Seller ID</TableHead>
                         <TableHead>Amount</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {orders.map(order => (
+                    {orders && orders.map(order => (
                         <TableRow key={order.id}>
-                            <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.product}</TableCell>
-                            <TableCell>{order.buyer}</TableCell>
-                            <TableCell>{order.seller}</TableCell>
-                            <TableCell>{order.amount}</TableCell>
+                            <TableCell className="font-medium font-mono text-xs">{order.id}</TableCell>
+                            <TableCell className="font-mono text-xs">{order.productId}</TableCell>
+                            <TableCell className="font-mono text-xs">{order.buyerId}</TableCell>
+                            <TableCell className="font-mono text-xs">{order.sellerId}</TableCell>
+                            <TableCell>{order.totalAmount.toLocaleString()} {order.currency}</TableCell>
                             <TableCell>
                                 <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' ? 'destructive' : 'secondary')}>{order.status}</Badge>
                             </TableCell>

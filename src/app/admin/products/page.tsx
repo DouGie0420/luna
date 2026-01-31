@@ -1,3 +1,8 @@
+'use client';
+
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query } from "firebase/firestore";
+import type { Product } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -8,12 +13,17 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { getProducts } from "@/lib/data"
+import { MoreHorizontal, Loader2 } from "lucide-react"
 import Image from "next/image"
 
-export default async function AdminProductsPage() {
-    const products = await getProducts();
+export default function AdminProductsPage() {
+    const firestore = useFirestore();
+    const productsQuery = firestore ? query(collection(firestore, 'products')) : null;
+    const { data: products, loading } = useCollection<Product>(productsQuery);
+
+    if (loading) {
+        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
     return (
         <div>
@@ -25,15 +35,16 @@ export default async function AdminProductsPage() {
                         <TableHead>Seller</TableHead>
                         <TableHead>Price</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Listed Date</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {products.map(product => (
+                    {products && products.map(product => (
                         <TableRow key={product.id}>
                             <TableCell className="font-medium flex items-center gap-3">
-                                <Image src={product.images[0]} alt={product.name} width={40} height={30} className="rounded-md object-cover" data-ai-hint={product.imageHints[0]} />
+                                {product.images && product.images.length > 0 && (
+                                  <Image src={product.images[0]} alt={product.name} width={40} height={30} className="rounded-md object-cover" data-ai-hint={product.imageHints ? product.imageHints[0] : ''} />
+                                )}
                                 {product.name}
                             </TableCell>
                             <TableCell>{product.seller.name}</TableCell>
@@ -41,7 +52,6 @@ export default async function AdminProductsPage() {
                             <TableCell>
                                 <Badge>Active</Badge>
                             </TableCell>
-                            <TableCell>2023-10-26</TableCell>
                             <TableCell>
                                 <Button variant="ghost" size="icon">
                                     <MoreHorizontal className="h-4 w-4" />

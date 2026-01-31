@@ -172,3 +172,17 @@ export type Notification = {
   createdAt: any;
   type: 'info' | 'success' | 'warning' | 'error';
 };
+
+export type SupportTicket = {
+    id: string;
+    userId: string;
+    userName: string;
+    userEmail: string;
+    subject: string;
+    category: string;
+    description: string;
+    status: 'Open' | 'Pending' | 'Resolved' | 'Closed';
+    createdAt: any;
+    updatedAt?: any;
+    assignedTo?: string;
+};

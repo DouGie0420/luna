@@ -12,7 +12,9 @@ import {
   LogOut,
   Settings,
   ShieldAlert,
-  Loader2
+  Loader2,
+  Megaphone,
+  MessageSquare
 } from 'lucide-react'
 
 import {
@@ -37,10 +39,10 @@ const hasAdminAccess = (role?: UserProfile['role']) => {
     return role === 'admin' || role === 'staff' || role === 'support';
 }
 
-const hasRole = (role: UserProfile['role'] | undefined, targetRole: 'admin' | 'staff' | 'support') => {
+const hasRole = (role: UserProfile['role'] | undefined, targetRoles: Array<UserProfile['role']>) => {
     if (!role) return false;
     if (role === 'admin') return true; // Admins can see everything
-    return role === targetRole;
+    return targetRoles.includes(role);
 }
 
 export default function AdminLayout({
@@ -51,7 +53,7 @@ export default function AdminLayout({
   const pathname = usePathname()
   const { user, profile, loading } = useUser()
   
-  const isActive = (path: string) => pathname === path
+  const isActive = (path: string) => pathname === path || (path === '/admin' && pathname.startsWith('/admin/'))
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
@@ -93,7 +95,7 @@ export default function AdminLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {hasRole(profile?.role, 'admin') && (
+            {hasRole(profile?.role, ['admin']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -104,18 +106,36 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {(hasRole(profile?.role, 'admin') || hasRole(profile?.role, 'staff')) && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
-                  <Link href="/admin/products">
-                    <ShoppingBag />
-                    Products
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+            {(hasRole(profile?.role, ['admin', 'staff'])) && (
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
+                    <Link href="/admin/products">
+                      <ShoppingBag />
+                      Products
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/promotions')}>
+                    <Link href="/admin/promotions">
+                      <Megaphone />
+                      Promotions
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/community')}>
+                    <Link href="/admin/community">
+                      <MessageSquare />
+                      Community
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
             )}
 
-            {hasRole(profile?.role, 'admin') && (
+            {hasRole(profile?.role, ['admin']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
                   <Link href="/admin/orders">
@@ -126,7 +146,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {hasRole(profile?.role, 'admin') && (
+            {hasRole(profile?.role, ['admin']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                   <Link href="/admin/kyc-list">
@@ -137,7 +157,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {(hasRole(profile?.role, 'admin') || hasRole(profile?.role, 'support')) && (
+            {(hasRole(profile?.role, ['admin', 'support'])) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">

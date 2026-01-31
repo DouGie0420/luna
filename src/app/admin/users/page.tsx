@@ -1,3 +1,8 @@
+'use client';
+
+import { useCollection, useFirestore } from "@/firebase";
+import { collection, query, doc, updateDoc } from "firebase/firestore";
+import type { UserProfile } from "@/lib/types";
 import {
   Table,
   TableBody,
@@ -6,14 +11,43 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { getUsers } from "@/lib/data"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Loader2 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
-export default async function AdminUsersPage() {
-    const users = await getUsers();
+type UserRole = UserProfile['role'];
+
+export default function AdminUsersPage() {
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const usersQuery = firestore ? query(collection(firestore, 'users')) : null;
+    const { data: users, loading } = useCollection<UserProfile>(usersQuery);
+
+    const handleRoleChange = async (uid: string, role: UserRole) => {
+      if (!firestore || !role) return;
+      
+      const userRef = doc(firestore, "users", uid);
+      try {
+        await updateDoc(userRef, { role });
+        toast({ title: "Role Updated", description: `User ${uid.slice(0, 6)}... is now a ${role}.` });
+      } catch (error) {
+        console.error("Failed to update role:", error);
+        toast({ variant: "destructive", title: "Update Failed", description: "Could not update user role." });
+      }
+    };
+
+    if (loading) {
+        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
 
     return (
         <div>
@@ -22,36 +56,43 @@ export default async function AdminUsersPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>User</TableHead>
-                        <TableHead>Rating</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>KYC Status</TableHead>
-                        <TableHead>Joined Date</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead>Joined</TableHead>
+                        <TableHead>Role</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {users.map(user => (
-                        <TableRow key={user.id}>
+                    {users && users.map(user => (
+                        <TableRow key={user.uid}>
                             <TableCell className="font-medium flex items-center gap-3">
                                 <Avatar>
-                                    <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                    <AvatarImage src={user.photoURL} alt={user.displayName} />
+                                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                                 </Avatar>
-                                <div>
-                                    <p>{user.name}</p>
-                                    <p className="text-xs text-muted-foreground">user_{user.id}@example.com</p>
-                                </div>
+                                <p>{user.displayName}</p>
                             </TableCell>
-                            <TableCell>{user.rating} ({user.reviews} reviews)</TableCell>
+                            <TableCell className="text-muted-foreground">{user.email}</TableCell>
                             <TableCell>
-                                <Badge variant={user.id === 'user1' ? "default" : "secondary"}>
-                                    {user.id === 'user1' ? 'Verified' : 'Pending'}
+                                <Badge variant={user.kycStatus === 'Verified' ? "default" : (user.kycStatus === 'Pending' ? 'secondary' : 'destructive')}>
+                                    {user.kycStatus}
                                 </Badge>
                             </TableCell>
-                            <TableCell>2023-10-25</TableCell>
                             <TableCell>
-                                <Button variant="ghost" size="icon">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
+                                {user.createdAt?.toDate ? formatDistanceToNow(user.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
+                            </TableCell>
+                             <TableCell>
+                                <Select defaultValue={user.role} onValueChange={(value: UserRole) => handleRoleChange(user.uid, value)}>
+                                    <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Set role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="user">user</SelectItem>
+                                        <SelectItem value="support">support</SelectItem>
+                                        <SelectItem value="staff">staff</SelectItem>
+                                        <SelectItem value="admin">admin</SelectItem>
+                                    </SelectContent>
+                                </Select>
                             </TableCell>
                         </TableRow>
                     ))}
