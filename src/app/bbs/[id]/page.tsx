@@ -134,7 +134,7 @@ const CommentForm = ({
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
-          <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={onCancelClick}>
+          <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={onCancelClick}>
             {t('productComments.cancelReply')}
           </Button>
         </div>
@@ -386,7 +386,7 @@ export default function BbsPostPage() {
                                     {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {t('productComments.submit')}
                                 </Button>
-                                <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
+                                <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
                                     {t('productComments.cancelReply')}
                                 </Button>
                                 </div>
@@ -406,29 +406,37 @@ export default function BbsPostPage() {
                     
                     {/* Author Header */}
                     <div className="p-4 border-b flex items-center justify-between">
-                        <Link href={`/user/${post.author.id}`} className="flex items-center gap-3 group">
-                            <Avatar className="h-12 w-12">
-                                <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
+                        <div className="flex items-center gap-4">
+                            <Link href={`/user/${post.author.id}`}>
+                                <Avatar className="h-12 w-12">
+                                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </Link>
                             <div>
-                                <p className="font-bold group-hover:underline">{post.author.name}</p>
-                                <Separator className="my-2 border-border/50" />
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
-                                    <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
-                                        <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
+                                <div className="flex items-baseline gap-x-4">
+                                    <Link href={`/user/${post.author.id}`}>
+                                        <p className="font-bold hover:underline">{post.author.name}</p>
                                     </Link>
-                                    <span>&middot;</span>
-                                    <Link href={`/user/${post.author.id}/following`} className="hover:underline">
-                                        <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
-                                    </Link>
-                                    <span>&middot;</span>
-                                     <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
-                                        <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
-                                    </Link>
+                                    <div className="flex items-center gap-x-3 text-xs text-muted-foreground">
+                                        <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{post.author.followersCount || 0}</span> {t('userProfile.followers')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${post.author.id}/following`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{post.author.followingCount || 0}</span> {t('userProfile.following')}
+                                        </Link>
+                                        <span>&middot;</span>
+                                        <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
+                                            <span className="font-bold text-foreground">{post.author.postsCount || 0}</span> {t('userProfile.posts')}
+                                        </Link>
+                                    </div>
+                                </div>
+                                <div className="mt-1">
+                                    <p className="text-sm text-muted-foreground">{post.author.creditLevel || t('userProfile.noVerifications')}</p>
                                 </div>
                             </div>
-                        </Link>
+                        </div>
                         <div className="flex items-center gap-2">
                             {!isOwner && (
                                  <Button
@@ -436,7 +444,7 @@ export default function BbsPostPage() {
                                     onClick={handleFollowToggle}
                                     disabled={!canInteract}
                                     variant={'default'}
-                                    className={cn(isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
+                                    className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
                                 >
                                     {isFollowing ? (
                                         <><Check className="mr-2 h-4 w-4" /> {t('userProfile.alreadyFollowing')}</>
@@ -497,9 +505,9 @@ export default function BbsPostPage() {
                         <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
 
                          {canInteract && !replyingTo && (
-                            <Button 
-                                variant="outline" 
-                                className="w-full justify-start text-muted-foreground hover:text-foreground hover:border-primary/50 bg-background h-auto p-4 border-input"
+                            <Button
+                                variant="outline"
+                                className="w-full justify-start rounded-lg border bg-background/50 p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
                                 onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                             >
                                 {t('productComments.placeholder')}

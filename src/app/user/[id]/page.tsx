@@ -132,20 +132,24 @@ export default function UserProfilePage() {
                                     <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
-                                    <CardTitle>{user.name}</CardTitle>
-                                    <Separator className="my-2 border-border/50" />
-                                     <div className="flex items-center gap-3 text-sm text-muted-foreground mt-2">
-                                        <Link href={`/user/${user.id}/followers`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
-                                        </Link>
-                                        <span>&middot;</span>
-                                        <Link href={`/user/${user.id}/following`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
-                                        </Link>
-                                        <span>&middot;</span>
-                                        <Link href={`/user/${user.id}/listings`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
-                                        </Link>
+                                    <div className="flex items-baseline gap-x-4">
+                                        <CardTitle>{user.name}</CardTitle>
+                                        <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
+                                            <Link href={`/user/${user.id}/followers`} className="hover:underline">
+                                                <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
+                                            </Link>
+                                            <span>&middot;</span>
+                                            <Link href={`/user/${user.id}/following`} className="hover:underline">
+                                                <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
+                                            </Link>
+                                            <span>&middot;</span>
+                                            <Link href={`/user/${user.id}/listings`} className="hover:underline">
+                                                <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div className="mt-2">
+                                        <p className="text-sm text-muted-foreground">{user.creditLevel || t('userProfile.noVerifications')}</p>
                                     </div>
                                 </div>
                             </div>
@@ -154,7 +158,7 @@ export default function UserProfilePage() {
                                     onClick={handleFollowToggle} 
                                     disabled={!canInteract} 
                                     variant={'default'}
-                                    className={cn(isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
+                                    className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
                                 >
                                     {isFollowing ? (
                                         <><Check className="mr-2 h-4 w-4" />{t('userProfile.alreadyFollowing')}</>

@@ -87,7 +87,7 @@ const CommentForm = ({
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t('productComments.submit')}
           </Button>
-           <Button variant="outline" className="border-primary text-primary hover:bg-primary/10 hover:text-primary" onClick={onCancelClick}>
+           <Button variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20" onClick={onCancelClick}>
             {t('productComments.cancelReply')}
           </Button>
         </div>
@@ -283,7 +283,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                          !replyingTo ? (
                             <Button
                                 variant="outline"
-                                className="w-full justify-start rounded-lg border bg-background p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
+                                className="w-full justify-start rounded-lg border bg-background/50 p-4 text-muted-foreground hover:border-primary/50 hover:text-foreground h-auto"
                                 onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                             >
                                 {t('productComments.placeholder')}
