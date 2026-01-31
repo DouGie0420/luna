@@ -140,6 +140,16 @@ export default {
             boxShadow: '0 0 16px 2px hsl(var(--primary))',
           },
         },
+        'glow-pink-neon': {
+          '0%, 100%': {
+            borderColor: 'hsl(310 100% 60% / 0.7)',
+            boxShadow: '0 0 8px hsl(310 100% 60% / 0.5)',
+          },
+          '50%': {
+            borderColor: 'hsl(310 100% 60%)',
+            boxShadow: '0 0 16px 2px hsl(310 100% 60%)',
+          },
+        },
         'glow-line': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
@@ -173,6 +183,7 @@ export default {
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-border-muted': 'glow-border-muted 4s ease-in-out infinite',
         'glow-border-primary': 'glow-border-primary 2.5s ease-in-out infinite',
+        'glow-pink-neon': 'glow-pink-neon 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
         'suggestion-fade-in': 'suggestion-fade-in 0.3s ease-out forwards',
@@ -183,5 +194,3 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
-
-    

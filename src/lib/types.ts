@@ -66,6 +66,7 @@ export type UserProfile = {
     isPro?: boolean;
     isWeb3Verified?: boolean;
     isNftVerified?: boolean;
+    walletAddress?: string;
     createdAt?: any;
     lastLogin?: any;
     rating?: number;

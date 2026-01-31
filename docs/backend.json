@@ -78,6 +78,10 @@
           "format": "uri",
           "description": "URL of the user's profile picture."
         },
+        "walletAddress": {
+          "type": "string",
+          "description": "The user's associated Web3 wallet address."
+        },
         "gender": {
           "type": "string",
           "description": "The user's gender.",
