@@ -31,6 +31,17 @@ import { Logo } from '@/components/layout/logo'
 import { usePathname } from 'next/navigation'
 import { useUser } from '@/firebase'
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import type { UserProfile } from '@/lib/types'
+
+const hasAdminAccess = (role?: UserProfile['role']) => {
+    return role === 'admin' || role === 'staff' || role === 'support';
+}
+
+const hasRole = (role: UserProfile['role'] | undefined, targetRole: 'admin' | 'staff' | 'support') => {
+    if (!role) return false;
+    if (role === 'admin') return true; // Admins can see everything
+    return role === targetRole;
+}
 
 export default function AdminLayout({
   children,
@@ -46,7 +57,7 @@ export default function AdminLayout({
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
 
-  if (!user || profile?.role !== 'admin') {
+  if (!user || !hasAdminAccess(profile?.role)) {
       return (
         <div className="flex h-screen w-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
@@ -81,46 +92,62 @@ export default function AdminLayout({
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
-                <Link href="/admin/users">
-                  <Users />
-                  Users
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
-                <Link href="/admin/products">
-                  <ShoppingBag />
-                  Products
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
-                <Link href="/admin/orders">
-                  <ClipboardList />
-                  Orders
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
-                <Link href="/admin/kyc-list">
-                  <ShieldAlert />
-                  KYC Applications
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
-                <Link href="/admin/support">
-                  <LifeBuoy />
-                  Support Tickets
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            
+            {hasRole(profile?.role, 'admin') && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
+                  <Link href="/admin/users">
+                    <Users />
+                    Users
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {(hasRole(profile?.role, 'admin') || hasRole(profile?.role, 'staff')) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
+                  <Link href="/admin/products">
+                    <ShoppingBag />
+                    Products
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {hasRole(profile?.role, 'admin') && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
+                  <Link href="/admin/orders">
+                    <ClipboardList />
+                    Orders
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {hasRole(profile?.role, 'admin') && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
+                  <Link href="/admin/kyc-list">
+                    <ShieldAlert />
+                    KYC Applications
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
+            {(hasRole(profile?.role, 'admin') || hasRole(profile?.role, 'support')) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
+                  <Link href="/admin/support">
+                    <LifeBuoy />
+                    Support Tickets
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>

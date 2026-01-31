@@ -2,69 +2,98 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Global helper functions to check user roles.
+    function isSignedIn() {
+      return request.auth != null;
+    }
     
-    function isAdmin() {
-      // Allow access if the user has an 'admin' role in their user document.
-      // Use exists() for safety to prevent errors on non-existent documents.
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
 
-    // USERS
-    match /users/{userId} {
-      // User profiles are public, but only the owner or an admin can write.
-      allow read: if true;
-      allow write: if request.auth.uid == userId || isAdmin();
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
 
-      // Subcollections for users
+    function isAdmin() {
+      return isSignedIn() && getUserData().role == 'admin';
+    }
+
+    function isStaff() {
+      return isSignedIn() && (getUserData().role == 'staff' || isAdmin());
+    }
+
+    function isSupport() {
+        return isSignedIn() && (getUserData().role == 'support' || isAdmin());
+    }
+
+    // USER PROFILES & SUBCOLLECTIONS
+    match /users/{userId} {
+      // Anyone can read a user's profile.
+      allow read: if true;
+      // Only the user themselves or an admin can update their profile.
+      allow write: if isOwner(userId) || isAdmin();
+
+      // User subcollections are private to the user or admins.
       match /addresses/{addressId} {
-        // Only owner or admin can access addresses.
-        allow read, write: if request.auth.uid == userId || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin();
       }
       match /lunarSoilLedger/{ledgerEntryId} {
-         // Only owner or admin can access the ledger.
-         allow read, write: if request.auth.uid == userId || isAdmin();
+         allow read, write: if isOwner(userId) || isAdmin();
       }
       match /notifications/{notificationId} {
-        // Only owner or admin can access notifications.
-        allow read, write: if request.auth.uid == userId || isAdmin();
+        // Users can only access their own notifications.
+        allow read, write: if isOwner(userId) || isAdmin();
       }
     }
 
     // PRODUCTS
     match /products/{productId} {
-      // Anyone can read products.
+      // Anyone can view products.
       allow read: if true;
-      // Users can create products if the seller ID matches their UID.
-      allow create: if request.auth.uid == request.resource.data.seller.id;
-      // Users can only update/delete their own products, or an admin can.
-      allow update, delete: if resource.data.seller.id == request.auth.uid || isAdmin();
+      // Any signed-in user can create a product, but must set themselves as the seller.
+      allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid;
+      // Only the original seller or a staff/admin can update/delete a product.
+      allow update, delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
     }
     
-    // PROMOS
+    // PROMOS (Managed by Staff/Admins)
     match /promos/{promoId} {
-      // Anyone can read promotional content.
+      // Anyone can view promotional content.
       allow read: if true;
-      // Only admins can write to promos.
-      allow write: if isAdmin();
+      // Only staff and admins can create or modify promos.
+      allow write: if isStaff();
     }
 
-    // ORDERS & REVIEWS
+    // ORDERS
     match /orders/{orderId} {
-       // Involved parties (buyer, seller) or admin can read/write.
-       allow read, write: if request.auth.uid == resource.data.buyerId 
-                         || request.auth.uid == resource.data.sellerId 
+       // Only the buyer, seller, or an admin can access an order.
+       allow read, write: if isOwner(resource.data.buyerId) 
+                         || isOwner(resource.data.sellerId) 
                          || isAdmin();
-       // Only the buyer can create an order.
-       allow create: if request.auth.uid == request.resource.data.buyerId;
+       // Only a signed-in user can create an order, and they must be the buyer.
+       allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
+    
+    // REVIEWS
     match /reviews/{reviewId} {
-       // Involved parties or admin can access.
-       allow read, write: if request.auth.uid == resource.data.reviewerId
-                         || request.auth.uid == resource.data.revieweeId
+       // Only the reviewer, the reviewee, or an admin can access a review.
+       allow read, write: if isOwner(resource.data.reviewerId)
+                         || isOwner(resource.data.revieweeId)
                          || isAdmin();
        // Only the reviewer can create a review.
-       allow create: if request.auth.uid == request.resource.data.reviewerId;
+       allow create: if isOwner(request.resource.data.reviewerId);
+    }
+
+    // SUPPORT TICKETS (Managed by Support/Admins)
+    match /supportTickets/{ticketId} {
+        // Allow the user who created the ticket, support staff, and admins to access.
+        allow read, update: if isOwner(resource.data.userId) || isSupport();
+        // Allow any signed-in user to create a ticket.
+        allow create: if isSignedIn();
+        // Only support staff and admins can delete tickets.
+        allow delete: if isSupport();
     }
   }
 }

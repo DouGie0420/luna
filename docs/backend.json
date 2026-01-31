@@ -181,6 +181,7 @@
           "enum": [
             "user",
             "staff",
+            "support",
             "admin"
           ]
         }
