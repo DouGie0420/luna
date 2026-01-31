@@ -36,18 +36,34 @@ export const getNftsForOwner = async (ownerAddress: string): Promise<SimplifiedN
     }
     try {
         const nfts = await alchemy.nft.getNftsForOwner(ownerAddress);
-        return nfts.ownedNfts
-            // FIX: Check if nft.media exists and is an array with content before filtering
-            .filter(nft => nft.media && nft.media.length > 0 && nft.media[0].gateway)
-            .map(nft => ({
-                name: nft.name || `#${nft.tokenId}`,
-                // FIX: Added another check here for robustness
-                imageUrl: resolveIpfsUrl(nft.media?.[0]?.gateway),
-                tokenId: nft.tokenId,
-                contractAddress: nft.contract.address,
-            }));
+
+        const simplifiedNfts = nfts.ownedNfts
+            .map(nft => {
+                // Find the best available image URL from various possible sources.
+                const imageUrl = nft.image?.cachedUrl 
+                             || nft.image?.pngUrl
+                             || nft.image?.originalUrl 
+                             || (nft.media?.[0]?.gateway)
+                             || (nft.media?.[0]?.raw ? resolveIpfsUrl(nft.media[0].raw) : undefined);
+
+                if (!imageUrl) {
+                    return null; // No usable image found for this NFT, so we'll filter it out.
+                }
+
+                return {
+                    name: nft.name || `#${nft.tokenId}`,
+                    imageUrl: resolveIpfsUrl(imageUrl),
+                    tokenId: nft.tokenId,
+                    contractAddress: nft.contract.address,
+                };
+            })
+            .filter((nft): nft is SimplifiedNft => nft !== null); // Filter out the nulls.
+
+        return simplifiedNfts;
+
     } catch (error) {
         console.error("Error fetching NFTs from Alchemy:", error);
-        throw new Error("Failed to fetch NFT data from Alchemy. Please check your API key and network connection.");
+        // Provide a more user-friendly error message
+        throw new Error("Failed to fetch NFT data from Alchemy. The API key might be invalid or there could be a network issue.");
     }
 };
