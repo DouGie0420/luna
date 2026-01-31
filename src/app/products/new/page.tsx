@@ -303,7 +303,7 @@ export default function NewProductPage() {
                 {shippingMethod === 'Buyer Pays' && (
                     <div className="grid gap-2 pl-6">
                         <Label>{t('newProductPage.shippingTemplate')}</Label>
-                        <RadioGroup value={shippingCarrier || ''} onValueChange={(v: any) => setShippingCarrier(v)} className="flex gap-4">
+                        <RadioGroup value={shippingCarrier || ''} onValueChange={(v: any) => setShippingCarrier(v)} className="flex flex-col gap-2">
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="SF" id="sf" />
                                 <Label htmlFor="sf" className="font-normal">SF Express (30 THB)</Label>
