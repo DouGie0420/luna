@@ -109,8 +109,11 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-
+    const [likeToast, setLikeToast] = useState(false);
+    const [replyToast, setReplyToast] = useState(false);
+    const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
 
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
@@ -121,14 +124,39 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
     useEffect(() => {
         if (permissionErrorToast) {
-            toast({
-                variant: 'destructive',
-                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-            });
-            setPermissionErrorToast(false);
+            setTimeout(() => {
+                toast({
+                    variant: 'destructive',
+                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+                });
+                setPermissionErrorToast(false);
+            }, 0);
         }
     }, [permissionErrorToast, isGuest, t, toast]);
     
+    useEffect(() => {
+        if (likeToast) {
+            setTimeout(() => {
+                toast({
+                    title: t('productComments.likeSuccess'),
+                });
+                setLikeToast(false);
+            }, 0);
+        }
+    }, [likeToast, t, toast]);
+    
+    useEffect(() => {
+        if (replyToast) {
+            setTimeout(() => {
+                toast({
+                    title: t('productComments.commentPosted'),
+                    description: t('productComments.replyNotification'),
+                });
+                setReplyToast(false);
+            }, 0);
+        }
+    }, [replyToast, t, toast]);
+
     const handleInteractionNotAllowed = () => {
         setPermissionErrorToast(true);
     }
@@ -160,7 +188,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             setNewComment('');
             setReplyingTo(null);
             setIsSubmitting(false);
-            toast({ title: t('productComments.commentPosted') });
+            setReplyToast(true);
             if(visibleCommentsCount < COMMENTS_INITIAL_LOAD) setVisibleCommentsCount(COMMENTS_INITIAL_LOAD);
 
         }, 500);
@@ -175,6 +203,28 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
     const handleLoadMore = () => {
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
+    };
+
+    const handleLikeDislike = (commentId: string, type: 'like' | 'dislike') => {
+        if (!canInteract) {
+            handleInteractionNotAllowed();
+            return;
+        }
+        setCommentInteractions(prev => {
+            const currentStatus = prev[commentId];
+            let newStatus;
+    
+            if (type === 'like') {
+                newStatus = currentStatus === 'liked' ? null : 'liked';
+                if (newStatus === 'liked') {
+                    setLikeToast(true);
+                }
+            } else { // dislike
+                newStatus = currentStatus === 'disliked' ? null : 'disliked';
+            }
+    
+            return { ...prev, [commentId]: newStatus };
+        });
     };
 
     const nestedComments = useMemo(() => {
@@ -216,6 +266,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const renderComment = (comment: NestedComment, isReply: boolean = false) => {
         const author = getUserById(comment.authorId);
         const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
+        const isLiked = commentInteractions[comment.id] === 'liked';
+        const isDisliked = commentInteractions[comment.id] === 'disliked';
 
         return (
              <div key={comment.id}>
@@ -228,13 +280,17 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center flex-wrap gap-x-2 text-sm">
+                             <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
                                 {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>
-                                <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-4 w-4" /> {author?.badReviews ?? 0}</span>
+                            <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
+                                <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
+                                    <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
+                                </button>
+                                <button onClick={() => handleLikeDislike(comment.id, 'dislike')} className={cn("flex items-center gap-1.5 z-10 hover:text-destructive", isDisliked && "text-destructive fill-destructive")}>
+                                    <ThumbsDown className="h-4 w-4" /> <span>{author?.badReviews ?? 0}</span>
+                                </button>
                                 <span>{timeAgo}</span>
                             </div>
                         </div>

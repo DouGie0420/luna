@@ -27,6 +27,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -165,9 +170,14 @@ export default function BbsPostPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
+    
     const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-    const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
     const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
+    const [likeToast, setLikeToast] = useState(false);
+    const [replyToast, setReplyToast] = useState(false);
+    
+    const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+    const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
 
     const id = typeof params.id === 'string' ? params.id : '';
 
@@ -234,6 +244,32 @@ export default function BbsPostPage() {
         }
     }, [followToast, t, toast]);
 
+    useEffect(() => {
+        if (likeToast) {
+            setTimeout(() => {
+                toast({
+                    title: t('productComments.likeSuccess'),
+                });
+                setLikeToast(false);
+            }, 0);
+        }
+    }, [likeToast, t, toast]);
+    
+    useEffect(() => {
+        if (replyToast) {
+            setTimeout(() => {
+                toast({
+                    title: t('productComments.commentPosted'),
+                    description: t('productComments.replyNotification'),
+                });
+                setReplyToast(false);
+            }, 0);
+        }
+    }, [replyToast, t, toast]);
+
+    const handleInteractionNotAllowed = () => {
+        setPermissionErrorToast(true);
+    }
 
     const handleFollowToggle = () => {
         if (!canInteract) {
@@ -267,7 +303,7 @@ export default function BbsPostPage() {
             setNewComment('');
             setReplyingTo(null);
             setIsSubmitting(false);
-            toast({ title: t('productComments.commentPosted') });
+            setReplyToast(true);
         }, 500);
     };
     
@@ -303,9 +339,27 @@ export default function BbsPostPage() {
         router.push('/bbs');
     };
 
-    const handleInteractionNotAllowed = () => {
-        setPermissionErrorToast(true);
-    }
+    const handleLikeDislike = (commentId: string, type: 'like' | 'dislike') => {
+        if (!canInteract) {
+            handleInteractionNotAllowed();
+            return;
+        }
+        setCommentInteractions(prev => {
+            const currentStatus = prev[commentId];
+            let newStatus;
+    
+            if (type === 'like') {
+                newStatus = currentStatus === 'liked' ? null : 'liked';
+                if (newStatus === 'liked') {
+                    setLikeToast(true);
+                }
+            } else { // dislike
+                newStatus = currentStatus === 'disliked' ? null : 'disliked';
+            }
+    
+            return { ...prev, [commentId]: newStatus };
+        });
+    };
 
     const nestedComments = useMemo(() => {
         const commentMap: { [key: string]: NestedComment } = {};
@@ -364,6 +418,8 @@ export default function BbsPostPage() {
     const renderComment = (comment: NestedComment) => {
         const author = getUserById(comment.authorId);
         const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
+        const isLiked = commentInteractions[comment.id] === 'liked';
+        const isDisliked = commentInteractions[comment.id] === 'disliked';
 
         return (
             <div key={comment.id}>
@@ -378,11 +434,15 @@ export default function BbsPostPage() {
                         <div className="flex items-center justify-between">
                              <div className="flex items-center flex-wrap gap-x-2 text-sm">
                                 <span className="font-semibold text-foreground">{author?.name}</span>
+                                {author?.location && <p className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</p>}
                             </div>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1 text-green-400"><ThumbsUp className="h-4 w-4" /> {author?.goodReviews ?? 0}</span>
-                                <span className="flex items-center gap-1 text-red-400"><ThumbsDown className="h-4 w-4" /> {author?.badReviews ?? 0}</span>
-                                {author?.location && <span className="text-muted-foreground">{author.location.city}, {author.location.countryCode}</span>}
+                            <div className="flex items-center justify-end gap-4 text-xs text-muted-foreground">
+                                <button onClick={() => handleLikeDislike(comment.id, 'like')} className={cn("flex items-center gap-1.5 z-10 hover:text-primary", isLiked && "text-primary fill-primary")}>
+                                    <ThumbsUp className="h-4 w-4" /> <span>{author?.goodReviews ?? 0}</span>
+                                </button>
+                                <button onClick={() => handleLikeDislike(comment.id, 'dislike')} className={cn("flex items-center gap-1.5 z-10 hover:text-destructive", isDisliked && "text-destructive fill-destructive")}>
+                                    <ThumbsDown className="h-4 w-4" /> <span>{author?.badReviews ?? 0}</span>
+                                </button>
                                 <span>{timeAgo}</span>
                             </div>
                         </div>
@@ -450,15 +510,21 @@ export default function BbsPostPage() {
                     {/* Author Header */}
                     <div className="p-4 border-b flex items-start justify-between">
                         <div className="flex items-start gap-4">
-                            <Link href={`/user/${post.author.id}`}>
-                                <Avatar className="h-20 w-20">
-                                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            </Link>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Avatar className="h-20 w-20 cursor-pointer">
+                                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                </DialogTrigger>
+                                <DialogContent className="p-0 border-0 max-w-lg bg-transparent shadow-none">
+                                    <Image src={post.author.avatarUrl} alt={post.author.name} width={512} height={512} className="rounded-lg" />
+                                </DialogContent>
+                            </Dialog>
                             <div className="flex flex-col gap-1.5 pt-1">
-                                <h2 className="font-bold text-xl">{post.author.name}</h2>
-                                
+                                <Link href={`/user/${post.author.id}`} className="hover:underline">
+                                    <h2 className="font-bold text-xl">{post.author.name}</h2>
+                                </Link>
                                 <p className="text-sm font-semibold text-red-400">
                                     {post.author.creditLevel || t('userProfile.noVerifications')}
                                     {post.author.location && (

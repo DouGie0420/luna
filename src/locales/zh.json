@@ -452,6 +452,8 @@
     "cancelConfirmTitle": "取消回复",
     "cancelConfirmDescription": "您输入的任何文字都将丢失。确定要取消吗？",
     "cancelConfirmAction": "确认取消",
-    "continueEditing": "继续编辑"
+    "continueEditing": "继续编辑",
+    "likeSuccess": "点赞成功！作者将会收到通知。",
+    "replyNotification": "作者将会收到您的回复通知。"
   }
 }

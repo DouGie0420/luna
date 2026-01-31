@@ -452,6 +452,8 @@
     "cancelConfirmTitle": "ยกเลิกการตอบกลับ",
     "cancelConfirmDescription": "ข้อความใดๆ ที่คุณป้อนจะหายไป คุณแน่ใจหรือไม่ว่าต้องการยกเลิก?",
     "cancelConfirmAction": "ยืนยันการยกเลิก",
-    "continueEditing": "แก้ไขต่อ"
+    "continueEditing": "แก้ไขต่อ",
+    "likeSuccess": "ถูกใจแล้ว! ผู้เขียนจะได้รับการแจ้งเตือน",
+    "replyNotification": "ผู้เขียนจะได้รับการแจ้งเตือนการตอบกลับของคุณ"
   }
 }

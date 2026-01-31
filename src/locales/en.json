@@ -452,6 +452,8 @@
     "cancelConfirmTitle": "Cancel Reply",
     "cancelConfirmDescription": "Any text you have entered will be lost. Are you sure you want to cancel?",
     "cancelConfirmAction": "Confirm Cancel",
-    "continueEditing": "Continue Editing"
+    "continueEditing": "Continue Editing",
+    "likeSuccess": "Liked! The author will be notified.",
+    "replyNotification": "The author will be notified of your reply."
   }
 }
