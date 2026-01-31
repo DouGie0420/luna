@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
 import { useFirebaseAuth } from "@/firebase/auth/use-user";
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
@@ -55,6 +55,18 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
+      // Check if the user has signed up with a social provider
+      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
+      if (signInMethods.length > 0 && !signInMethods.includes('password')) {
+          toast({
+              variant: 'destructive',
+              title: 'Sign-in method mismatch',
+              description: `This email is linked to ${signInMethods.join(', ')}. Please use the social login option.`,
+          });
+          setIsLoading(false);
+          return;
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await upsertUserProfile(firestore, userCredential.user);
       toast({
@@ -63,12 +75,11 @@ export default function LoginPage() {
       });
       router.push('/account');
     } catch (error: any) {
-      console.error("Email login error:", error);
       let description = "An unknown error occurred.";
        switch (error.code) {
-        case 'auth/user-not-found':
-        case 'auth/wrong-password':
         case 'auth/invalid-credential':
+        case 'auth/user-not-found': // Legacy
+        case 'auth/wrong-password': // Legacy
           description = 'Invalid email or password.';
           break;
         case 'auth/invalid-email':
