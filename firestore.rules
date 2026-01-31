@@ -44,8 +44,8 @@ service cloud.firestore {
       allow update: if (isOwner(userId) && request.resource.data.role == resource.data.role)
                    || isAdmin();
 
-      // A user can create their own profile, but must have the 'user' role.
-      allow create: if isOwner(userId) && request.resource.data.role == 'user';
+      // A user can create their own profile, but must have the 'guest' role initially.
+      allow create: if isOwner(userId) && request.resource.data.role == 'guest';
       
       allow delete: if isAdmin(); // Only admins can delete user documents.
 
@@ -113,3 +113,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

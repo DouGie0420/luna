@@ -7,7 +7,7 @@
     "submit": "Submit",
     "back": "Back",
     "loginToInteract": "Login to interact",
-    "verifyToInteract": "Please complete KYC verification to interact."
+    "verifyToInteract": "Please verify your email and complete KYC to interact."
   },
   "loginPage": {
     "title": "Login",
@@ -43,7 +43,12 @@
     "registrationSuccessTitle": "Registration Successful",
     "registrationFailedTitle": "Registration Failed",
     "registrationFailedDescription": "Could not register with social account. Please try again later.",
-    "emailVerificationSent": "Verification email sent. Please check your inbox."
+    "emailVerificationSent": "Verification Email Sent!",
+    "emailVerificationResent": "Verification email has been resent.",
+    "checkYourInbox": "Please check your inbox at {email} and click the link to activate your account.",
+    "didNotReceiveEmail": "Didn't receive the email?",
+    "resendEmail": "Resend Email",
+    "resendIn": "Resend in"
   },
   "userNav": {
     "myAccount": "My Account",
@@ -553,6 +558,7 @@
       "title": "Manage Users",
       "user": "User",
       "email": "Email",
+      "emailVerified": "Verified",
       "kycStatus": "KYC Status",
       "joined": "Joined",
       "role": "Role",
@@ -566,3 +572,5 @@
     }
   }
 }
+
+    

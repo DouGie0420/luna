@@ -57,6 +57,7 @@ export type UserProfile = {
     loginId?: string;
     phone?: string;
     email?: string;
+    emailVerified?: boolean;
     displayName: string;
     photoURL: string;
     gender?: '男' | '女' | '其他' | '保密';
@@ -80,7 +81,7 @@ export type UserProfile = {
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;
-    role?: 'admin' | 'staff' | 'support' | 'user';
+    role?: 'guest' | 'admin' | 'staff' | 'support' | 'user';
 }
 
 export type Promo = {
@@ -186,3 +187,5 @@ export type SupportTicket = {
     updatedAt?: any;
     assignedTo?: string;
 };
+
+    

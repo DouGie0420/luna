@@ -177,7 +177,7 @@ export default function BbsPostPage() {
 
     const id = typeof params.id === 'string' ? params.id : '';
 
-    const canInteract = user && profile?.kycStatus === 'Verified';
+    const canInteract = user && user.emailVerified && profile?.kycStatus === 'Verified';
     const isGuest = !user;
     const isOwner = user?.uid === post?.author.id;
 
@@ -707,5 +707,7 @@ export default function BbsPostPage() {
         </>
     );
 }
+
+    
 
     

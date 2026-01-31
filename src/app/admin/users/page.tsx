@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, MoreHorizontal } from "lucide-react"
+import { Loader2, MoreHorizontal, CheckCircle } from "lucide-react"
 import { formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
@@ -39,7 +39,8 @@ const roleHierarchy = {
     admin: 3,
     staff: 2,
     support: 1,
-    user: 0
+    user: 0,
+    guest: -1,
 }
 
 export default function AdminUsersPage() {
@@ -80,7 +81,7 @@ export default function AdminUsersPage() {
         }
 
         return users.filter(user => {
-            const userLevel = roleHierarchy[user.role || 'user'] || 0;
+            const userLevel = roleHierarchy[user.role || 'guest'] || -1;
             return currentUserLevel > userLevel;
         });
 
@@ -91,7 +92,7 @@ export default function AdminUsersPage() {
     }
     
     const renderRoleCell = (user: UserProfile) => {
-      const userRole = user.role || 'user';
+      const userRole = user.role || 'guest';
 
       if (currentUserProfile?.role === 'admin') {
         // Admins can edit anyone's role, including other admins
@@ -101,6 +102,7 @@ export default function AdminUsersPage() {
                   <SelectValue placeholder={t('admin.usersPage.setRole')} />
               </SelectTrigger>
               <SelectContent>
+                  <SelectItem value="guest">guest</SelectItem>
                   <SelectItem value="user">user</SelectItem>
                   <SelectItem value="support">support</SelectItem>
                   <SelectItem value="staff">staff</SelectItem>
@@ -147,6 +149,7 @@ export default function AdminUsersPage() {
                     <TableRow>
                         <TableHead>{t('admin.usersPage.user')}</TableHead>
                         <TableHead>{t('admin.usersPage.email')}</TableHead>
+                        <TableHead>{t('admin.usersPage.emailVerified')}</TableHead>
                         <TableHead>{t('admin.usersPage.kycStatus')}</TableHead>
                         <TableHead>{t('admin.usersPage.joined')}</TableHead>
                         <TableHead>{t('admin.usersPage.role')}</TableHead>
@@ -164,6 +167,11 @@ export default function AdminUsersPage() {
                                 <p>{user.displayName}</p>
                             </TableCell>
                             <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                            <TableCell>
+                                {user.emailVerified && (
+                                    <CheckCircle className="h-5 w-5 text-green-400" />
+                                )}
+                            </TableCell>
                             <TableCell>
                                 <Badge variant={user.kycStatus === 'Verified' ? "default" : (user.kycStatus === 'Pending' ? 'secondary' : 'destructive')}>
                                     {user.kycStatus}
@@ -187,3 +195,5 @@ export default function AdminUsersPage() {
         </div>
     )
 }
+
+    

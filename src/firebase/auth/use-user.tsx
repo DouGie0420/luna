@@ -5,6 +5,7 @@ import { onAuthStateChanged, type Auth, type User as FirebaseUser, type UserInfo
 import { doc, onSnapshot, type Firestore } from 'firebase/firestore';
 import { FirebaseContext } from '@/firebase/provider';
 import type { UserProfile } from '@/lib/types';
+import { updateUserProfile } from '@/lib/user';
 
 interface UserState {
   user: FirebaseUser | null;
@@ -48,6 +49,7 @@ const testProfile: UserProfile = {
   displayName: '测试用户',
   photoURL: 'https://picsum.photos/seed/test-user/100/100',
   kycStatus: 'Verified',
+  emailVerified: true,
   isPro: true,
   isWeb3Verified: true,
   createdAt: new Date(),
@@ -151,14 +153,24 @@ export const useUser = (): UserState => {
           const profileRef = doc(firestore, 'users', user.uid);
           const unsubscribeProfile = onSnapshot(
             profileRef,
-            (doc) => {
-              if (doc.exists()) {
+            (profileDoc) => {
+              if (profileDoc.exists()) {
+                const profileData = profileDoc.data() as UserProfile;
+
+                // Auto-promotion logic
+                if (user.emailVerified && profileData.role === 'guest' && firestore) {
+                    updateUserProfile(firestore, user.uid, { role: 'user' }).then(() => {
+                        console.log(`User ${user.uid} promoted to 'user' role.`);
+                    });
+                }
+
                 setUserState({
                   user,
-                  profile: doc.data() as UserProfile,
+                  profile: profileData,
                   loading: false,
                   error: null,
                 });
+
               } else {
                 // Profile doesn't exist yet. This might happen briefly after signup.
                  setUserState({ user, profile: null, loading: false, error: null });
@@ -187,3 +199,5 @@ export const useUser = (): UserState => {
 
   return userState;
 };
+
+    

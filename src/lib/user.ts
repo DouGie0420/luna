@@ -22,6 +22,7 @@ export async function upsertUserProfile(
                 lastLogin: serverTimestamp(),
                 photoURL: user.photoURL || userProfile.photoURL,
                 displayName: userProfile.displayName || user.displayName || 'User',
+                emailVerified: user.emailVerified,
             };
             updateDoc(userRef, updateData).catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
@@ -38,6 +39,7 @@ export async function upsertUserProfile(
                 email: additionalData.email || user.email || '',
                 displayName: additionalData.displayName || user.displayName || 'New User',
                 photoURL: user.photoURL || `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
+                emailVerified: user.emailVerified,
                 gender: '保密',
                 location: '',
                 bio: '',
@@ -55,7 +57,7 @@ export async function upsertUserProfile(
                 followingCount: 0,
                 creditScore: 0,
                 creditLevel: 'Newcomer',
-                role: 'user',
+                role: 'guest',
                 ...additionalData
             };
             setDoc(userRef, newUserProfile).catch((serverError) => {
@@ -103,6 +105,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
                 uid: address,
                 displayName: shortAddress,
                 photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${address}`,
+                emailVerified: true, // Wallet users are considered verified by default
                 kycStatus: 'Not Verified',
                 isWeb3Verified: true,
                 isNftVerified: false,
@@ -153,3 +156,5 @@ export function updateUserProfile(db: Firestore, uid: string, data: Partial<User
         throw serverError;
     });
 }
+
+    

@@ -69,6 +69,10 @@
           "format": "email",
           "description": "The user's email address."
         },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the user's email address has been verified."
+        },
         "displayName": {
           "type": "string",
           "description": "The user's display name."
@@ -179,6 +183,7 @@
           "type": "string",
           "description": "User role",
           "enum": [
+            "guest",
             "user",
             "staff",
             "support",
@@ -643,3 +648,5 @@
     }
   }
 }
+
+    

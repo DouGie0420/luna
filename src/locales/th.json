@@ -7,7 +7,7 @@
     "submit": "ส่ง",
     "back": "หลัง",
     "loginToInteract": "กรุณาเข้าสู่ระบบเพื่อโต้ตอบ",
-    "verifyToInteract": "กรุณายืนยัน KYC เพื่อโต้ตอบ"
+    "verifyToInteract": "โปรดยืนยันอีเมลของคุณและทำ KYC ให้เสร็จสิ้นเพื่อโต้ตอบ"
   },
   "loginPage": {
     "title": "เข้าสู่ระบบ",
@@ -43,7 +43,12 @@
     "registrationSuccessTitle": "ลงทะเบียนสำเร็จ",
     "registrationFailedTitle": "การลงทะเบียนล้มเหลว",
     "registrationFailedDescription": "ไม่สามารถลงทะเบียนด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง",
-    "emailVerificationSent": "ส่งอีเมลยืนยันแล้ว โปรดตรวจสอบกล่องจดหมายของคุณ"
+    "emailVerificationSent": "ส่งอีเมลยืนยันแล้ว!",
+    "emailVerificationResent": "ส่งอีเมลยืนยันอีกครั้งแล้ว",
+    "checkYourInbox": "โปรดตรวจสอบกล่องจดหมายของคุณที่ {email} และคลิกลิงก์เพื่อเปิดใช้งานบัญชีของคุณ",
+    "didNotReceiveEmail": "ไม่ได้รับอีเมลใช่ไหม",
+    "resendEmail": "ส่งอีเมลอีกครั้ง",
+    "resendIn": "ส่งอีกครั้งใน"
   },
   "userNav": {
     "myAccount": "บัญชีของฉัน",
@@ -553,6 +558,7 @@
       "title": "จัดการผู้ใช้",
       "user": "ผู้ใช้",
       "email": "อีเมล",
+      "emailVerified": "ยืนยันแล้ว",
       "kycStatus": "สถานะ KYC",
       "joined": "เข้าร่วมเมื่อ",
       "role": "บทบาท",
@@ -566,3 +572,5 @@
     }
   }
 }
+
+    

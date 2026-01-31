@@ -22,6 +22,15 @@ export function BuyNowButton({ product, selectedPayment }: { product: Product, s
             return;
         }
 
+        if (!user.emailVerified) {
+             toast({
+                variant: 'destructive',
+                title: t('common.verifyToInteract'),
+                description: t('registerPage.checkYourInbox'),
+            });
+            return;
+        }
+
         if (profile?.kycStatus !== 'Verified') {
             toast({
                 variant: 'destructive',
@@ -61,3 +70,5 @@ export function BuyNowButton({ product, selectedPayment }: { product: Product, s
         </Button>
     );
 }
+
+    
