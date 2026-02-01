@@ -153,7 +153,7 @@ export function SeaOfTranquility() {
                                                     <div className="aspect-square w-20 md:w-24 relative shrink-0 overflow-hidden rounded-md">
                                                         <Image
                                                             src={post.images[0]}
-                                                            alt={t(post.titleKey)}
+                                                            alt={post.title || t(post.titleKey || '')}
                                                             fill
                                                             className="object-cover transition-transform duration-300 group-hover:scale-105"
                                                             data-ai-hint={post.imageHints?.[0] || ''}
@@ -161,7 +161,7 @@ export function SeaOfTranquility() {
                                                     </div>
                                                 )}
                                                 <div className="flex-1">
-                                                    <h3 className="font-headline text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">{t(post.titleKey)}</h3>
+                                                    <h3 className="font-headline text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors">{post.title || t(post.titleKey || '')}</h3>
                                                     <p className="text-xs text-muted-foreground mt-2">
                                                         <span>{post.author.name}</span>
                                                         <span className="mx-1.5">&middot;</span>
