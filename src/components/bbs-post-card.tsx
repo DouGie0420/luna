@@ -5,17 +5,23 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2 } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import React, { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useUser } from '@/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from '@/hooks/use-toast';
 
 
 const locales = { en: enUS, zh: zhCN, th: th };
@@ -27,86 +33,85 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
-    const router = useRouter();
     const { t, language } = useTranslation();
-    const { user } = useUser();
-    const firestore = useFirestore();
+    const { profile } = useUser();
+    const { toast } = useToast();
 
-    const isLiked = user ? post.likedBy?.includes(user.uid) : false;
-    
+    const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
+
     const formattedDate = useMemo(() => {
         if (!post.createdAt) return '';
         const date = new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt);
-        return format(date, 'yy/MM/dd HH:mm', { locale: locales[language] || enUS });
+        return formatDistanceToNow(date, { addSuffix: true, locale: locales[language] || enUS });
     }, [post.createdAt, language]);
 
 
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
-        // Remove markdown for images and videos for a cleaner summary
         return content
-            .replace(/!\[.*?\]\(.*?\)/g, '') // Remove image markdown
-            .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '') // Remove video markdown
+            .replace(/!\[.*?\]\(.*?\)/g, '')
+            .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '')
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0)
             .join(' ')
             .trim();
     }, [post.content, post.contentKey, t]);
-
-    const handleInteraction = (e: React.MouseEvent, action?: () => void) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (action) action();
-    };
-
-    const handleCommentClick = (e: React.MouseEvent) => {
-        handleInteraction(e, () => {
-            router.push(`/bbs/${post.id}#comments`);
-        });
-    };
-
-    const handleLikeClick = async (e: React.MouseEvent) => {
-        handleInteraction(e);
-        if (!user || !firestore) {
-            // Optionally, show a toast to prompt login
-            return;
-        }
-
-        const postRef = doc(firestore, 'bbs', post.id);
-        try {
-            await updateDoc(postRef, {
-                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                likes: increment(isLiked ? -1 : 1),
-            });
-        } catch (error) {
-            console.error("Failed to update like status", error);
-        }
-    };
     
-    const handleViewsClick = (e: React.MouseEvent) => {
-        handleInteraction(e);
+    const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
+      toast({
+        title: `Admin Action: ${action}`,
+        description: "This feature is in development.",
+      });
     };
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block h-full">
             <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
-                {post.images && post.images.length > 0 && (
-                    <CardHeader className="p-0">
-                        <div className="aspect-video relative overflow-hidden">
-                            <Image
-                                src={post.images[0]}
-                                alt={post.title || t(post.titleKey || '')}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={post.imageHints?.[0] || ''}
-                            />
-                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                <CardHeader className="p-0 relative">
+                    <div className="aspect-video relative overflow-hidden">
+                        <Image
+                            src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
+                            alt={post.title || t(post.titleKey || '')}
+                            fill
+                            className="object-cover"
+                            data-ai-hint={post.imageHints?.[0] || ''}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    </div>
+                    {hasAdminAccess && (
+                        <div className="absolute top-2 right-2 z-20">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" onClick={(e) => e.preventDefault()} className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+                                    <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
+                                        <Star className="mr-2 h-4 w-4" />
+                                        <span>加精华</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
+                                        <TrendingUp className="mr-2 h-4 w-4" />
+                                        <span>加曝光</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>编辑</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>删除</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
-                    </CardHeader>
-                )}
-                <div className={post.images && post.images.length > 0 ? "p-4 -mt-16 z-10 text-white" : "p-4"}>
-                     <CardTitle className="font-headline text-xl mb-2 leading-tight">
+                    )}
+                </CardHeader>
+                <div className="p-4 -mt-16 z-10 text-white">
+                     <CardTitle className="font-headline text-xl mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -117,7 +122,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                             </Badge>
                         )}
                         {post.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                            <Badge key={tag} variant="secondary" className="text-xs bg-white/10 text-white/80 border-white/20">{tag}</Badge>
                         ))}
                     </div>
                 </div>
@@ -126,8 +131,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     <p className="line-clamp-3">{summary}</p>
                 </CardContent>
 
-                <CardFooter className="p-4 flex flex-col items-start gap-4">
-                     <div className="flex items-center gap-3 w-full">
+                <CardFooter className="p-4 flex justify-between items-end">
+                    <div className="flex items-center gap-3">
                         <div className="relative">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
@@ -151,32 +156,23 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                             <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
                             <p className="text-xs text-muted-foreground">
                                 {formattedDate}
-                                {post.location?.city && ` · ${post.location.city}`}
+                                {post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
                             </p>
                         </div>
                     </div>
-                    <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full">
-                        <Button variant="ghost" size="sm" onClick={(e) => handleCommentClick(e)} className="flex items-center gap-1.5 z-10 hover:text-primary p-1 h-auto text-xs text-muted-foreground" title={`${post.replies} replies`}>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={handleLikeClick}
-                            className={cn(
-                                "p-1 h-auto text-xs text-muted-foreground rounded-md",
-                                isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:text-primary"
-                            )}
-                            title={`${post.likes} likes`}
-                        >
-                            <ThumbsUp className="h-4 w-4 mr-1" />
+                        </span>
+                        <span className="flex items-center gap-1.5" title={`${post.likes} likes`}>
+                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.likes}</span>
-                        </Button>
-                        <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
+                        </span>
+                        <span className="flex items-center gap-1.5" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />
                             <span>{post.views}</span>
-                        </button>
+                        </span>
                     </div>
                 </CardFooter>
             </Card>
