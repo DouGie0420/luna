@@ -6,7 +6,7 @@ import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import type { Product } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { Plus, Flame, Sparkles, Star } from 'lucide-react';
+import { Plus, Flame, Sparkles, Star, Search as SearchIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Input } from '@/components/ui/input';
@@ -126,6 +126,18 @@ export default function AllProductsPage() {
                     </p>
                 </div>
 
+                <div className="max-w-2xl mx-auto -mt-24 mb-12 relative z-20">
+                    <div className="relative">
+                        <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground pointer-events-none" />
+                        <Input 
+                            placeholder="Search all items..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="h-16 w-full rounded-full border-2 border-primary/30 bg-background/50 pl-16 pr-6 text-lg backdrop-blur-sm transition-all focus:bg-background/70 focus:border-primary/80"
+                        />
+                    </div>
+                </div>
+
                 <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
                     <div className="flex items-center gap-2">
                          <Button variant={activeFilter === 'newest' ? 'default' : 'outline'} onClick={() => setActiveFilter('newest')}>
@@ -140,13 +152,6 @@ export default function AllProductsPage() {
                             <Star />
                             Popular
                         </Button>
-                    </div>
-                     <div className="flex-1 max-w-sm">
-                        <Input 
-                            placeholder="Search all items..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
                     </div>
                     <Button asChild>
                        <Link href="/products/new">
