@@ -67,9 +67,12 @@ export default function NewProductPage() {
     const files = e.target.files;
     if (files) {
       const fileArray = Array.from(files);
-
-      // Handle image previews
+      if ((imagePreviews.length + fileArray.length) > 9) {
+          toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
+          return;
+      }
       setUploadedImages(prev => [...prev, ...fileArray]);
+
       const filePromises = fileArray.map(file => {
         return new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
@@ -78,34 +81,21 @@ export default function NewProductPage() {
           reader.readAsDataURL(file);
         });
       });
-      Promise.all(filePromises)
-        .then(newPreviews => {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-        })
-        .catch(error => {
-          console.error("Error reading files for preview: ", error);
-          toast({
-            variant: "destructive",
-            title: "Could not preview images",
-            description: "There was an error reading the selected files.",
-          });
-        });
 
-      // Handle AI analysis on the first image
-      if (isAiAnalysisEnabled && fileArray.length > 0) {
-        setIsAiLoading(true);
-        const firstFile = fileArray[0];
-        const reader = new FileReader();
-        reader.readAsDataURL(firstFile);
-        reader.onload = async () => {
-          const imageDataUri = reader.result as string;
+      try {
+        const newPreviews = await Promise.all(filePromises);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+        
+        if (isAiAnalysisEnabled && newPreviews.length > 0) {
+          setIsAiLoading(true);
+          const imageDataUri = newPreviews[0];
           try {
             const result = await analyzeProductImage({ imageDataUri });
             setName(result.title);
             setDescription(result.description);
             toast({
-              title: "AI Analysis Complete",
-              description: "Title and description have been generated.",
+                title: "AI Analysis Complete",
+                description: "Title and content have been generated.",
             });
           } catch (error) {
             console.error("AI analysis failed:", error);
@@ -117,15 +107,14 @@ export default function NewProductPage() {
           } finally {
             setIsAiLoading(false);
           }
-        };
-        reader.onerror = () => {
-          toast({
-            variant: "destructive",
-            title: "Image Read Error",
-            description: "Could not read the uploaded image file for AI analysis.",
-          });
-          setIsAiLoading(false);
-        };
+        }
+      } catch (error) {
+        console.error("Error reading files for preview: ", error);
+        toast({
+          variant: "destructive",
+          title: "Could not preview images",
+          description: "There was an error reading the selected files.",
+        });
       }
     }
   };
