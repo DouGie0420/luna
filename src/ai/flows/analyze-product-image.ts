@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Analyzes a product image and generates a title and description.
@@ -33,7 +34,7 @@ export async function analyzeProductImage(
 
 const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
-  model: 'googleai/gemini-pro',
+  model: 'googleai/gemini-pro-vision',
   input: {schema: AnalyzeProductImageInputSchema},
   output: {schema: AnalyzeProductImageOutputSchema},
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
