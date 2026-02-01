@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type UserRole = NonNullable<UserProfile['role']>;
 type CreditLevel = NonNullable<UserProfile['creditLevel']>;
@@ -79,7 +80,7 @@ export default function AdminUsersPage() {
             toast({ 
                 variant: "destructive", 
                 title: 'Update Failed', 
-                description: `Could not update ${field}.`
+                description: `Could not update ${field}. Check console for details.`
             });
         }
     };
@@ -108,7 +109,13 @@ export default function AdminUsersPage() {
                 </TableHeader>
                 <TableBody>
                     {users && users.length > 0 ? (
-                        users.map(user => (
+                        users.map(user => {
+                            const isSelf = currentUserProfile?.uid === user.uid;
+                            const isTargetAdminOrGhost = user.role === 'admin' || user.role === 'ghost';
+                            const isRequesterGhost = currentUserProfile?.role === 'ghost';
+                            const modificationDisabled = isSelf || (isRequesterGhost && isTargetAdminOrGhost);
+
+                            return (
                             <React.Fragment key={user.uid}>
                                 <TableRow>
                                     <TableCell className="font-medium">
@@ -125,7 +132,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             value={user.emailVerified ? 'true' : 'false'}
                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'emailVerified', value === 'true')}
-                                            disabled={currentUserProfile?.uid === user.uid}
+                                            disabled={modificationDisabled}
                                         >
                                             <SelectTrigger className="w-[120px] mt-1 h-8">
                                                 <SelectValue />
@@ -144,7 +151,7 @@ export default function AdminUsersPage() {
                                         <Select
                                             value={user.kycStatus}
                                             onValueChange={(value: KycStatus) => handleFieldUpdate(user.uid, 'kycStatus', value)}
-                                            disabled={currentUserProfile?.uid === user.uid}
+                                            disabled={modificationDisabled}
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue />
@@ -163,7 +170,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             defaultValue={user.role || 'guest'} 
                                             onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
-                                            disabled={currentUserProfile?.uid === user.uid}
+                                            disabled={modificationDisabled}
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue placeholder={t('admin.usersPage.setRole')} />
@@ -173,6 +180,7 @@ export default function AdminUsersPage() {
                                                 <SelectItem value="user">user</SelectItem>
                                                 <SelectItem value="support">support</SelectItem>
                                                 <SelectItem value="staff">staff</SelectItem>
+                                                <SelectItem value="ghost">ghost</SelectItem>
                                                 <SelectItem value="admin">admin</SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -195,6 +203,7 @@ export default function AdminUsersPage() {
                                                         <Select
                                                             value={user.creditLevel || 'Newcomer'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'creditLevel', value as CreditLevel)}
+                                                            disabled={modificationDisabled}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -209,11 +218,11 @@ export default function AdminUsersPage() {
                                                     </div>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor={`score-${user.uid}`}>{t('accountPage.creditScore')}</Label>
-                                                        <Input id={`score-${user.uid}`} type="number" defaultValue={user.creditScore || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'creditScore', e.target.value)} />
+                                                        <Input id={`score-${user.uid}`} type="number" defaultValue={user.creditScore || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'creditScore', e.target.value)} disabled={modificationDisabled} />
                                                     </div>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor={`soil-${user.uid}`}>月壤 (积分)</Label>
-                                                        <Input id={`soil-${user.uid}`} type="number" defaultValue={user.lunarSoil || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'lunarSoil', e.target.value)} />
+                                                        <Input id={`soil-${user.uid}`} type="number" defaultValue={user.lunarSoil || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'lunarSoil', e.target.value)} disabled={modificationDisabled} />
                                                     </div>
                                                 </div>
 
@@ -224,7 +233,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isPro ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isPro', value === 'true')}
-                                                            disabled={currentUserProfile?.uid === user.uid}
+                                                            disabled={modificationDisabled}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -238,7 +247,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isWeb3Verified ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isWeb3Verified', value === 'true')}
-                                                            disabled={currentUserProfile?.uid === user.uid}
+                                                            disabled={modificationDisabled}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -252,7 +261,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isNftVerified ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isNftVerified', value === 'true')}
-                                                            disabled={currentUserProfile?.uid === user.uid}
+                                                            disabled={modificationDisabled}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -276,7 +285,21 @@ export default function AdminUsersPage() {
                                                     </div>
                                                     <Separator />
                                                     <div>
-                                                        <Button variant="outline" disabled>{t('admin.usersPage.resetPassword')}</Button>
+                                                        <div className="flex gap-2">
+                                                            <Button variant="outline" disabled>{t('admin.usersPage.resetPassword')}</Button>
+                                                            <TooltipProvider>
+                                                                <Tooltip>
+                                                                    <TooltipTrigger asChild>
+                                                                        <span tabIndex={0}>
+                                                                            <Button variant="outline" disabled>{t('admin.usersPage.viewPassword')}</Button>
+                                                                        </span>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p>{t('admin.usersPage.viewPasswordNotImplemented')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            </TooltipProvider>
+                                                        </div>
                                                         <p className="text-xs text-muted-foreground mt-2">{t('admin.usersPage.resetPasswordNotImplemented')}</p>
                                                     </div>
                                                 </div>
@@ -286,7 +309,7 @@ export default function AdminUsersPage() {
                                     </TableRow>
                                 )}
                             </React.Fragment>
-                        ))
+                        )})
                     ) : (
                          <TableRow>
                             <TableCell colSpan={6} className="h-24 text-center">

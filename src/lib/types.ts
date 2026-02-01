@@ -81,7 +81,7 @@ export type UserProfile = {
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;
-    role?: 'guest' | 'admin' | 'staff' | 'support' | 'user';
+    role?: 'guest' | 'admin' | 'staff' | 'support' | 'user' | 'ghost';
 }
 
 export type Promo = {

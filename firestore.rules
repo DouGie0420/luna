@@ -24,12 +24,17 @@ service cloud.firestore {
       return getUserRole() == 'admin';
     }
 
+    function isGhost() {
+      return getUserRole() == 'ghost';
+    }
+
     function isStaff() {
-      return getUserRole() == 'staff' || isAdmin();
+      // A ghost is also staff
+      return getUserRole() == 'staff' || isGhost() || isAdmin();
     }
 
     function isSupport() {
-      return getUserRole() == 'support' || isStaff() || isAdmin();
+      return getUserRole() == 'support' || isStaff(); // isStaff already includes admin and ghost
     }
     
     // --- Collection Rules ---
@@ -38,8 +43,8 @@ service cloud.firestore {
     match /users/{userId} {
       // Anyone can read a user's public profile.
       allow get: if true;
-      // Only admins can list all users.
-      allow list: if isAdmin();
+      // Only admins or ghosts can list all users.
+      allow list: if isAdmin() || isGhost();
       
       // A user can create their own profile document.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
@@ -48,6 +53,8 @@ service cloud.firestore {
       allow update: if 
         // Admins can update any user document.
         isAdmin() || 
+        // Ghosts can update anyone except other admins and ghosts
+        (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost') ||
         // Or the user is updating their own profile within allowed boundaries.
         (isOwner(userId) &&
           // --- PROTECTED FIELDS: User cannot change these core data points ---
@@ -68,18 +75,18 @@ service cloud.firestore {
           (request.resource.data.isNftVerified == false || request.resource.data.isWeb3Verified == true)
         );
       
-      // Only admins can delete user documents.
-      allow delete: if isAdmin();
+      // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
+      allow delete: if isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost');
 
       // User Subcollections
       match /addresses/{addressId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin() || isGhost();
       }
       match /lunarSoilLedger/{ledgerEntryId} {
-         allow read, write: if isOwner(userId) || isAdmin();
+         allow read, write: if isOwner(userId) || isAdmin() || isGhost();
       }
       match /notifications/{notificationId} {
-        allow read, write: if isOwner(userId) || isAdmin();
+        allow read, write: if isOwner(userId) || isAdmin() || isGhost();
       }
     }
 
@@ -89,15 +96,15 @@ service cloud.firestore {
       allow read: if true;
       // Any signed-in user can create a product, but must set themselves as the seller.
       allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid;
-      // Only the original seller or staff/admin can update/delete a product.
+      // Only the original seller or staff/admin/ghost can update/delete a product.
       allow update, delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
     }
     
-    // PROMOS (Managed by Staff/Admins)
+    // PROMOS (Managed by Staff/Admins/Ghosts)
     match /promos/{promoId} {
       // Anyone can view promotional content.
       allow read: if true;
-      // Only staff and admins can create or modify promos.
+      // Only staff and admins/ghosts can create or modify promos.
       allow write: if isStaff();
     }
 
@@ -106,9 +113,9 @@ service cloud.firestore {
        // get, update, delete can check resource.data for individual documents
        allow get, update, delete: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
                          || request.auth.uid == resource.data.sellerId))
-                         || isAdmin();
-       // list CANNOT check resource.data, so only admins can list all orders.
-       allow list: if isAdmin();
+                         || isAdmin() || isGhost();
+       // list CANNOT check resource.data, so only admins or ghosts can list all orders.
+       allow list: if isAdmin() || isGhost();
        // create checks request.resource.data
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
@@ -119,11 +126,11 @@ service cloud.firestore {
        allow read: if true;
        // Only the reviewer can create a review.
        allow create: if isOwner(request.resource.data.reviewerId);
-       // Only the reviewer or an admin can modify/delete a review.
-       allow update, delete: if isOwner(resource.data.reviewerId) || isAdmin();
+       // Only the reviewer or an admin/ghost can modify/delete a review.
+       allow update, delete: if isOwner(resource.data.reviewerId) || isAdmin() || isGhost();
     }
 
-    // SUPPORT TICKETS (Managed by Support/Admins)
+    // SUPPORT TICKETS (Managed by Support/Admins/Ghosts)
     match /supportTickets/{ticketId} {
         // get, update, delete can check resource.data for individual tickets
         allow get, update, delete: if (isSignedIn() && request.auth.uid == resource.data.userId) || isSupport();

@@ -593,7 +593,9 @@
       "proStatusNo": "No",
       "nftVerified": "NFT Verified",
       "web3Verified": "Web3 Verified",
-      "resetPasswordNotImplemented": "For security, password resets must be initiated from the Firebase Console."
+      "resetPasswordNotImplemented": "For security, password resets must be initiated from the Firebase Console.",
+      "viewPassword": "View Password",
+      "viewPasswordNotImplemented": "This action is not available for security reasons."
     }
   }
 }

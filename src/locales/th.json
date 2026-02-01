@@ -593,7 +593,9 @@
       "proStatusNo": "ไม่",
       "nftVerified": "ยืนยัน NFT แล้ว",
       "web3Verified": "ยืนยัน Web3 แล้ว",
-      "resetPasswordNotImplemented": "เพื่อความปลอดภัย การรีเซ็ตรหัสผ่านต้องทำผ่าน Firebase Console"
+      "resetPasswordNotImplemented": "เพื่อความปลอดภัย การรีเซ็ตรหัสผ่านต้องทำผ่าน Firebase Console",
+      "viewPassword": "ดูรหัสผ่าน",
+      "viewPasswordNotImplemented": "การกระทำนี้ไม่สามารถทำได้เพื่อความปลอดภัย"
     }
   }
 }

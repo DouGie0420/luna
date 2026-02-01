@@ -187,7 +187,8 @@
             "user",
             "staff",
             "support",
-            "admin"
+            "admin",
+            "ghost"
           ]
         }
       },

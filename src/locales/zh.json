@@ -368,7 +368,7 @@
     "follow": "关注",
     "verifications": "认证状态",
     "pro": "专业卖家",
-    "web3": "Web3认证",
+    "web3": "WEB3",
     "kyc": "实名认证",
     "noVerifications": "暂无认证",
     "posts": "帖子"
@@ -593,7 +593,9 @@
       "proStatusNo": "否",
       "nftVerified": "NFT已认证",
       "web3Verified": "Web3已认证",
-      "resetPasswordNotImplemented": "为安全起见，重置密码必须通过Firebase控制台发起。"
+      "resetPasswordNotImplemented": "为安全起见，重置密码必须通过Firebase控制台发起。",
+      "viewPassword": "查看密码",
+      "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。"
     }
   }
 }
