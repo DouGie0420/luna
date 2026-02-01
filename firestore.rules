@@ -38,41 +38,42 @@ service cloud.firestore {
         return getUserRole(request.auth.uid) in ['support', 'staff', 'ghost', 'admin'];
     }
 
-    // This function checks if a user is allowed to perform a specific update on their own profile.
     function isAllowedSelfUpdate() {
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
         
-        // List of fields a user can NEVER update.
-        let protectedKeys = ['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount'];
-        
-        // A user cannot update any of the protected keys.
-        if (changedKeys.hasAny(protectedKeys)) {
+        // Define all keys a user is allowed to modify on their own profile.
+        let allowedKeys = [
+            // Freely writable by user
+            'displayName', 'photoURL', 'gender', 'location', 'bio', 'lastLogin', 
+            'emailVerified', 'isWeb3Verified', 'isNftVerified', 'walletAddress', 'phone',
+            // Specially handled keys
+            'role', 'kycStatus', 'postsCount'
+        ];
+
+        // 1. Ensure no unknown or protected keys are being changed.
+        // The set of changed keys must be a subset of the allowed keys.
+        if (changedKeys.removeAll(allowedKeys).size() > 0) {
             return false;
         }
 
-        // Rule for 'role': Only allowed to change from 'guest' to 'user'.
+        // 2. Validate special conditions if those keys are being changed.
         if (changedKeys.has('role')) {
             if (!(resource.data.role == 'guest' && request.resource.data.role == 'user')) {
                 return false;
             }
         }
-        
-        // Rule for 'kycStatus': Only allowed to change from 'Not Verified' to 'Pending'.
         if (changedKeys.has('kycStatus')) {
             if (!(resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) {
                 return false;
             }
         }
-        
-        // Rule for 'postsCount': Only allow incrementing by 1.
         if (changedKeys.has('postsCount')) {
             if (request.resource.data.postsCount != resource.data.postsCount + 1) {
                 return false;
             }
         }
-        
-        // If we've passed all the checks, the update is allowed.
-        // This implicitly allows updates to fields like 'displayName', 'bio', 'lastLogin', 'photoURL' etc.
+
+        // 3. If all checks pass, the update is valid.
         return true;
     }
     
