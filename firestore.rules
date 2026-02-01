@@ -40,40 +40,37 @@ service cloud.firestore {
 
     function isAllowedSelfUpdate() {
         let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-        
-        // Define all keys a user is allowed to modify on their own profile.
-        let allowedKeys = [
-            // Freely writable by user
-            'displayName', 'photoURL', 'gender', 'location', 'bio', 'lastLogin', 
-            'emailVerified', 'isWeb3Verified', 'isNftVerified', 'walletAddress', 'phone',
-            // Specially handled keys
-            'role', 'kycStatus', 'postsCount'
-        ];
 
-        // 1. Ensure no unknown or protected keys are being changed.
-        // The set of changed keys must be a subset of the allowed keys.
-        if (changedKeys.removeAll(allowedKeys).size() > 0) {
+        // List of fields a user can NEVER change on their own.
+        let protectedKeys = [
+          'uid', 'loginId', 'createdAt', 'rating', 'reviewsCount', 'salesCount',
+          'purchasesCount', 'followersCount', 'followingCount',
+          'creditScore', 'creditLevel', 'lunarSoil', 'role'
+        ];
+        
+        // 1. Block any attempt to change a protected key.
+        if (changedKeys.hasAny(protectedKeys)) {
             return false;
         }
 
-        // 2. Validate special conditions if those keys are being changed.
-        if (changedKeys.has('role')) {
-            if (!(resource.data.role == 'guest' && request.resource.data.role == 'user')) {
-                return false;
-            }
-        }
+        // 2. Handle special conditional updates.
+        // Rule for KYC submission
         if (changedKeys.has('kycStatus')) {
+            // If kycStatus is the *only* thing changing (or with photo URLs), allow it only if moving from Not Verified to Pending.
             if (!(resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) {
                 return false;
             }
         }
+        
+        // Rule for post count increment
         if (changedKeys.has('postsCount')) {
-            if (request.resource.data.postsCount != resource.data.postsCount + 1) {
+             if (request.resource.data.postsCount != resource.data.postsCount + 1) {
                 return false;
             }
         }
 
-        // 3. If all checks pass, the update is valid.
+        // 3. If no protected keys were changed and special conditions passed, allow the update.
+        // This implicitly allows updates to fields like displayName, bio, photoURL, lastLogin, etc.
         return true;
     }
     
