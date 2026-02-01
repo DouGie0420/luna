@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, CheckCircle } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -18,6 +18,7 @@ interface UserAvatarProps {
 }
 
 const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
+    email: (props) => <CheckCircle {...props} />,
     kyc: (props) => <ShieldCheck {...props} />,
     web3: (props) => <ShieldCheck {...props} />,
     pro: (props) => <ShieldCheck {...props} />,
@@ -25,6 +26,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: stri
 };
 
 const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
+    email: 'text-green-400',
     kyc: 'text-cyan-400',
     web3: 'text-blue-400',
     pro: 'text-green-400',

@@ -170,6 +170,7 @@ export default function AccountProfilePage() {
     };
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
+    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.emailVerification'), icon: CheckCircle });
     if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('userProfile.kyc'), icon: ShieldCheck });
     if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('userProfile.pro'), icon: ShieldCheck });
     if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: 'WEB3', icon: ShieldCheck });

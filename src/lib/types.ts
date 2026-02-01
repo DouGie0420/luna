@@ -1,5 +1,5 @@
 
-export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft';
+export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email';
 
 export type Product = {
   id: string;
