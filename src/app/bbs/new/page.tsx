@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Loader2, MapPin } from "lucide-react"
+import { Upload, ShieldAlert, X, Loader2, MapPin, Link as LinkIcon, Video } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -24,6 +24,15 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import type { BbsPost, User, UserProfile } from '@/lib/types';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 
 export default function NewBbsPostPage() {
@@ -42,6 +51,11 @@ export default function NewBbsPostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [location, setLocation] = useState<{lat: number; lng: number} | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
+
+  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
       if (!loading && !user) {
@@ -116,6 +130,41 @@ export default function NewBbsPostPage() {
   const removeImage = (indexToRemove: number) => {
     setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+  
+  const handleInsertImage = () => {
+    if (imageUrl) {
+        setContent(prev => `${prev}\n![Image from URL](${imageUrl})\n`);
+        setImageUrl('');
+        setIsImageDialogOpen(false);
+    }
+  };
+
+  const handleInsertVideo = () => {
+    if (videoUrl) {
+        let embedUrl = '';
+        const youtubeMatch = videoUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        const tiktokMatch = videoUrl.match(/tiktok\.com\/.*\/video\/(\d+)/);
+
+        if (youtubeMatch && youtubeMatch[1]) {
+            embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+            setContent(prev => `${prev}\n[youtube](${embedUrl})\n`);
+        } else if (tiktokMatch && tiktokMatch[1]) {
+            embedUrl = `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`;
+             setContent(prev => `${prev}\n[tiktok](${embedUrl})\n`);
+        }
+
+        if (embedUrl) {
+            setVideoUrl('');
+            setIsVideoDialogOpen(false);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Invalid URL',
+                description: 'Please enter a valid YouTube or TikTok share link.'
+            })
+        }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -269,8 +318,46 @@ export default function NewBbsPostPage() {
                   <Input id="title" placeholder="A catchy title for your post" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea id="content" placeholder="What's on your mind?" value={content} onChange={(e) => setContent(e.target.value)} required rows={8} />
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="content">Content</Label>
+                        <div className="flex items-center gap-2">
+                            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" size="sm">
+                                        <LinkIcon className="mr-2 h-4 w-4" /> Insert Image URL
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Insert Image from URL</DialogTitle>
+                                        <DialogDescription>Paste the URL of the image you want to embed.</DialogDescription>
+                                    </DialogHeader>
+                                    <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
+                                    <DialogFooter>
+                                        <Button onClick={handleInsertImage}>Add Image</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                            <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button type="button" variant="outline" size="sm">
+                                        <Video className="mr-2 h-4 w-4" /> Insert Video URL
+                                    </Button>
+                                </DialogTrigger>
+                                 <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Insert Video from URL</DialogTitle>
+                                        <DialogDescription>Paste a YouTube or TikTok share link.</DialogDescription>
+                                    </DialogHeader>
+                                    <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+                                    <DialogFooter>
+                                        <Button onClick={handleInsertVideo}>Add Video</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                  <Textarea id="content" placeholder="What's on your mind? You can use Markdown for formatting." value={content} onChange={(e) => setContent(e.target.value)} required rows={12} />
                 </div>
                  <div className="grid gap-2">
                   <Label htmlFor="tags">Tags</Label>
@@ -279,7 +366,7 @@ export default function NewBbsPostPage() {
                 </div>
 
                  <div className="grid gap-2">
-                    <Label>Images (up to 9)</Label>
+                    <Label>Upload Images (up to 9)</Label>
                     <div className="border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center">
                         <Input
                             id="image-upload"

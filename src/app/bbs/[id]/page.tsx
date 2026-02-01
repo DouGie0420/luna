@@ -60,6 +60,73 @@ type NestedComment = CommentType & {
 const COMMENTS_INITIAL_LOAD = 10;
 const COMMENTS_LOAD_MORE = 10;
 
+function PostContentRenderer({ content }: { content: string }) {
+  const renderableContent = useMemo(() => {
+    return content.split('\n').map((line, index) => {
+      const trimmedLine = line.trim();
+
+      if (trimmedLine === '') {
+        return <div key={index} className="h-4" />;
+      }
+
+      const imageMatch = trimmedLine.match(/^!\[(.*?)\]\((.+?)\)$/);
+      if (imageMatch) {
+        const [, alt, src] = imageMatch;
+        return (
+          <Dialog key={index}>
+            <DialogTrigger asChild>
+              <div className="relative aspect-video max-w-full w-[600px] mx-auto my-4 cursor-pointer overflow-hidden rounded-lg border hover:border-primary transition-all">
+                <Image src={src} alt={alt || 'Embedded Image'} layout="fill" className="object-contain" />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl h-[80vh] p-0 bg-transparent border-0">
+               <Image src={src} alt={alt || 'Embedded Image'} layout="fill" className="object-contain" />
+            </DialogContent>
+          </Dialog>
+        );
+      }
+
+      const youtubeMatch = trimmedLine.match(/^\[youtube\]\((.+?)\)$/);
+      if (youtubeMatch) {
+        const [, src] = youtubeMatch;
+        return (
+          <div key={index} className="aspect-video w-full max-w-3xl mx-auto my-4 overflow-hidden rounded-lg border">
+            <iframe width="100%" height="100%" src={src} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+          </div>
+        );
+      }
+      
+      const tiktokMatch = trimmedLine.match(/^\[tiktok\]\((.+?)\)$/);
+      if (tiktokMatch) {
+          const [, src] = tiktokMatch;
+          return (
+              <div key={index} className="mx-auto my-4" style={{ maxWidth: '340px' }}>
+                  <blockquote className="tiktok-embed" cite={src} data-video-id={src.split('/').pop()} style={{maxWidth: '605px', minWidth: '325px'}} > <section></section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script>
+              </div>
+          );
+      }
+
+      return <p key={index}>{line}</p>;
+    });
+  }, [content]);
+
+  useEffect(() => {
+    // TikTok embeds require a script to be run.
+    const script = document.createElement('script');
+    script.src = "https://www.tiktok.com/embed.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    }
+  }, [content]);
+
+
+  return <div className="space-y-2 text-foreground/90 whitespace-pre-wrap leading-relaxed">{renderableContent}</div>;
+}
+
+
 function PostPageSkeleton() {
     return (
         <>
@@ -638,8 +705,8 @@ export default function BbsPostPage() {
                                 />
                             </div>
                         )}
-
-                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                        
+                        <PostContentRenderer content={post.content} />
 
                         <div className="flex flex-wrap gap-2 mt-6">
                         {post.isFeatured && (
