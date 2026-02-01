@@ -12,11 +12,29 @@ import { Skeleton } from './ui/skeleton';
 import { BbsPostCard } from './bbs-post-card';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
-import { formatDistanceToNow } from 'date-fns';
+
+const SmallPostCardSkeleton = () => (
+    <Card className="p-4 bg-card/50">
+        <div className="flex items-center gap-4">
+            <Skeleton className="h-24 w-24 shrink-0 rounded-md" />
+            <div className="flex-1 flex flex-col h-24 justify-between">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-3 w-1/2 mt-1" />
+                </div>
+                <div className="flex justify-end items-center">
+                    <Skeleton className="h-4 w-1/3" />
+                </div>
+            </div>
+        </div>
+    </Card>
+);
+
 
 const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const { t } = useTranslation();
-    const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '';
+
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
         return content
@@ -31,8 +49,8 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block">
-            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50 p-5">
-                <div className="flex items-center gap-4">
+            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+                <div className="flex items-start gap-4 p-5">
                     <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
@@ -47,7 +65,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                              <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                                 {post.title || t(post.titleKey || '')}
                             </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-3">{summary}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-4">{summary}</p>
                         </div>
                         <div className="flex justify-end items-center gap-3 text-xs text-muted-foreground mt-2">
                             <span className="flex items-center gap-1">
@@ -70,25 +88,6 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     );
 });
 SmallPostCard.displayName = 'SmallPostCard';
-
-
-const SmallPostCardSkeleton = () => (
-    <Card className="p-4 bg-card/50">
-        <div className="flex items-center gap-4">
-            <Skeleton className="h-24 w-24 shrink-0 rounded-md" />
-            <div className="flex-1 flex flex-col h-24 justify-between">
-                <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-4/5" />
-                    <Skeleton className="h-3 w-1/2 mt-1" />
-                </div>
-                <div className="flex justify-end items-center">
-                    <Skeleton className="h-4 w-1/3" />
-                </div>
-            </div>
-        </div>
-    </Card>
-);
 
 export function SeaOfTranquility() {
     const { t } = useTranslation();
@@ -119,14 +118,14 @@ export function SeaOfTranquility() {
                     {/* Main Posts Skeleton */}
                     <div className="lg:col-span-2 grid grid-cols-1 gap-8">
                          <div className="flex flex-col space-y-3">
-                            <Skeleton className="aspect-video w-full" />
+                            <Skeleton className="aspect-[1.8/1] w-full" />
                             <div className="space-y-2 p-4">
                                 <Skeleton className="h-4 w-4/5" />
                                 <Skeleton className="h-4 w-1/2" />
                             </div>
                         </div>
                         <div className="flex flex-col space-y-3">
-                            <Skeleton className="aspect-video w-full" />
+                            <Skeleton className="aspect-[1.8/1] w-full" />
                             <div className="space-y-2 p-4">
                                 <Skeleton className="h-4 w-4/5" />
                                 <Skeleton className="h-4 w-1/2" />
