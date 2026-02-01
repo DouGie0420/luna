@@ -45,9 +45,12 @@ export function useCollection<T>(q: Query<DocumentData> | null) {
       return;
     }
 
+    // Best-effort to get a path for debugging. `_query` is internal.
+    const collectionPath = (q as any)._query?.path?.segments?.join('/') || (q as CollectionReference).path;
+
+
     // Test user data mocking
-    const path = (q as CollectionReference).path;
-    if (path === `users/${TEST_USER_ID}/addresses`) {
+    if (collectionPath === `users/${TEST_USER_ID}/addresses`) {
       setData(mockAddresses as T[]);
       setLoading(false);
       return;
@@ -68,7 +71,7 @@ export function useCollection<T>(q: Query<DocumentData> | null) {
       },
       (err: FirestoreError) => {
         const permissionError = new FirestorePermissionError({
-          path: (q as CollectionReference).path,
+          path: collectionPath || 'unknown path',
           operation: 'list',
         });
         errorEmitter.emit('permission-error', permissionError);

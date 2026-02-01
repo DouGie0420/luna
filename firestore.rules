@@ -44,6 +44,19 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if true;
       allow create, update: if request.auth != null && request.auth.uid == userId;
+
+      match /addresses/{addressId} {
+        allow read, write: if isOwner(userId) || isRequestingUserStaff();
+      }
+      
+      match /notifications/{notificationId} {
+          allow read, update: if isOwner(userId);
+          allow create: if isRequestingUserStaff(); 
+      }
+      
+      match /lunarSoilLedger/{ledgerId} {
+        allow write: if isRequestingUserStaff();
+      }
     }
 
     // PRODUCTS
