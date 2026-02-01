@@ -5,10 +5,10 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, ThumbsUp, Eye, Star } from 'lucide-react';
+import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,12 @@ import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/fir
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    </svg>
+);
+
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const router = useRouter();
     const { t, language } = useTranslation();
@@ -28,10 +34,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
     const isLiked = user ? post.likedBy?.includes(user.uid) : false;
     
-    const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt), {
-        addSuffix: true,
-        locale: locales[language] || enUS
-    }) : '';
+    const formattedDate = useMemo(() => {
+        if (!post.createdAt) return '';
+        const date = new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt);
+        return format(date, 'yy/MM/dd HH:mm', { locale: locales[language] || enUS });
+    }, [post.createdAt, language]);
+
 
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
@@ -120,17 +128,35 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
                 <CardFooter className="p-4 flex flex-col items-start gap-4">
                      <div className="flex items-center gap-3 w-full">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                            <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <div className="relative">
+                            <Avatar className="h-8 w-8">
+                                <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            {post.author.isNftVerified ? (
+                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                    <EthereumIcon className="h-3 w-3 text-cyan-400" />
+                                </div>
+                            ) : post.author.isWeb3Verified ? (
+                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                    <ShieldCheck className="h-3 w-3 text-blue-400" />
+                                </div>
+                            ) : post.author.kycStatus === 'Verified' && (
+                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                    <ShieldCheck className="h-3 w-3 text-cyan-400" />
+                                </div>
+                            )}
+                        </div>
                         <div>
                             <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
-                            <p className="text-xs text-muted-foreground">{timeAgo}</p>
+                            <p className="text-xs text-muted-foreground">
+                                {formattedDate}
+                                {post.location?.city && ` · ${post.location.city}`}
+                            </p>
                         </div>
                     </div>
                     <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full">
-                        <Button variant="ghost" size="sm" onClick={handleCommentClick} className="flex items-center gap-1.5 z-10 hover:text-primary p-1 h-auto text-xs text-muted-foreground" title={`${post.replies} replies`}>
+                        <Button variant="ghost" size="sm" onClick={(e) => handleCommentClick(e)} className="flex items-center gap-1.5 z-10 hover:text-primary p-1 h-auto text-xs text-muted-foreground" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
                         </Button>
