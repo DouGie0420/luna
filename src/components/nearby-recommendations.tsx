@@ -26,10 +26,21 @@ export function NearbyRecommendations() {
       setIsLoading(true);
       try {
         const allProducts = await getProducts();
-        // Now using all products for the carousel
-        setRecommendations(allProducts);
+        
+        // Read recommended product IDs from localStorage
+        const recommendedIds: string[] = JSON.parse(localStorage.getItem('recommended_products') || '[]');
+
+        if (recommendedIds.length > 0) {
+            const recommendedProducts = allProducts.filter(p => recommendedIds.includes(p.id));
+            // Sort the fetched products to match the order in localStorage (newest recommendations first)
+            recommendedProducts.sort((a, b) => recommendedIds.indexOf(a.id) - recommendedIds.indexOf(b.id));
+            setRecommendations(recommendedProducts);
+        } else {
+            // Fallback: If no products are manually recommended, show a default set of popular items.
+            setRecommendations(allProducts.slice(0, 10));
+        }
       } catch (err) {
-        console.error("Failed to fetch popular items.", err);
+        console.error("Failed to fetch recommendations.", err);
         setRecommendations([]);
       } finally {
         setIsLoading(false);
@@ -59,7 +70,7 @@ export function NearbyRecommendations() {
           <Carousel
             opts={{
               align: "start",
-              loop: true,
+              loop: recommendations.length > 4,
             }}
             plugins={[
               Autoplay({

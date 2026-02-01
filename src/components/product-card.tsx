@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { MapPin, Gem, Heart, Star } from 'lucide-react';
+import { MapPin, Gem, Heart, Star, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
@@ -12,6 +12,7 @@ import { Button } from './ui/button';
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UserAvatar } from './ui/user-avatar';
+import { useUser } from '@/firebase';
 
 interface ProductCardProps {
   product: Product;
@@ -21,10 +22,13 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  
+  const { profile } = useUser();
+
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
   
+  const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
+
   useEffect(() => {
     const checkState = () => {
       const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
@@ -66,6 +70,25 @@ export function ProductCard({ product, className }: ProductCardProps) {
       }
   };
 
+  const handleRecommend = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const recommendedProducts: string[] = JSON.parse(localStorage.getItem('recommended_products') || '[]');
+    const isRecommended = recommendedProducts.includes(product.id);
+
+    let newRecommended: string[];
+    if (isRecommended) {
+      newRecommended = recommendedProducts.filter(id => id !== product.id);
+      toast({ title: 'Removed from Recommendations' });
+    } else {
+      newRecommended = [product.id, ...recommendedProducts];
+      toast({ title: 'Added to Recommendations' });
+    }
+    localStorage.setItem('recommended_products', JSON.stringify(newRecommended));
+  };
+
+
   return (
     <Link href={`/products/${product.id}`} className="group h-full">
       <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-primary/20 hover:shadow-lg hover:border-primary/50", className)}>
@@ -78,6 +101,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               data-ai-hint={product.imageHints[0]}
             />
+            {hasAdminAccess && (
+                <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70"
+                    onClick={handleRecommend}
+                    title="Add to Recommendations"
+                >
+                    <Sparkles className="h-4 w-4" />
+                </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
