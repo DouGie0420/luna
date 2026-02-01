@@ -78,24 +78,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               data-ai-hint={product.imageHints[0]}
             />
-             <div className="absolute top-2 right-2 flex flex-col gap-2">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn("h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors", isLiked ? "text-yellow-400" : "hover:text-yellow-300")}
-                    onClick={(e) => handleInteraction(e, 'like')}
-                >
-                    <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn("h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors", isFavorited ? "text-yellow-400" : "hover:text-yellow-300")}
-                    onClick={(e) => handleInteraction(e, 'favorite')}
-                >
-                    <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
-                </Button>
-            </div>
           </div>
         </CardHeader>
         <CardContent className="p-4 flex-grow">
@@ -127,15 +109,25 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <span>{product.location.city}, {product.location.countryCode}</span>
             </div>
           </div>
-          <div className="text-right text-xs text-muted-foreground space-y-1">
-            <div className="flex items-center gap-1.5">
-                <Heart className="h-3 w-3" />
+          <div className="flex items-center gap-1">
+            <Button
+                variant="ghost"
+                size="sm"
+                className={cn("flex items-center gap-1.5 h-auto p-1 text-xs transition-colors", isLiked ? "text-yellow-400" : "text-muted-foreground hover:text-primary")}
+                onClick={(e) => handleInteraction(e, 'like')}
+            >
+                <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
                 <span>{(product.likes || 0) + (isLiked ? 1 : 0)}</span>
-            </div>
-             <div className="flex items-center gap-1.5">
-                <Star className="h-3 w-3" />
+            </Button>
+            <Button
+                variant="ghost"
+                size="sm"
+                className={cn("flex items-center gap-1.5 h-auto p-1 text-xs transition-colors", isFavorited ? "text-yellow-400" : "text-muted-foreground hover:text-primary")}
+                onClick={(e) => handleInteraction(e, 'favorite')}
+            >
+                <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
                 <span>{(product.favorites || 0) + (isFavorited ? 1 : 0)}</span>
-            </div>
+            </Button>
           </div>
         </CardFooter>
       </Card>
