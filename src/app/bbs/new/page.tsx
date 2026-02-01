@@ -48,15 +48,32 @@ export default function NewBbsPostPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-        const fileArray = Array.from(files).slice(0, 9 - uploadedImages.length); // Limit to 9 images total
-        setUploadedImages(prev => [...prev, ...fileArray]);
+      const fileArray = Array.from(files).slice(0, 9 - uploadedImages.length);
 
-        fileArray.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreviews(prev => [...prev, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
+      if (fileArray.length === 0) return;
+
+      setUploadedImages(prev => [...prev, ...fileArray]);
+
+      const filePromises = fileArray.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(filePromises)
+        .then(newPreviews => {
+          setImagePreviews(prev => [...prev, ...newPreviews]);
+        })
+        .catch(error => {
+          console.error("Error reading files for preview: ", error);
+          toast({
+            variant: "destructive",
+            title: "Could not preview images",
+            description: "There was an error reading the selected files.",
+          });
         });
     }
   };

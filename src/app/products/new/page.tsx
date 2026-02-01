@@ -66,48 +66,63 @@ export default function NewProductPage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
-        const fileArray = Array.from(files);
-        setUploadedImages(prev => [...prev, ...fileArray]);
+      const fileArray = Array.from(files);
 
-        fileArray.forEach(file => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreviews(prev => [...prev, reader.result as string]);
-            };
-            reader.readAsDataURL(file);
+      // Handle image previews
+      setUploadedImages(prev => [...prev, ...fileArray]);
+      const filePromises = fileArray.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+      Promise.all(filePromises)
+        .then(newPreviews => {
+          setImagePreviews(prev => [...prev, ...newPreviews]);
+        })
+        .catch(error => {
+          console.error("Error reading files for preview: ", error);
+          toast({
+            variant: "destructive",
+            title: "Could not preview images",
+            description: "There was an error reading the selected files.",
+          });
         });
 
-        if (isAiAnalysisEnabled && fileArray.length > 0) {
-            setIsAiLoading(true);
-            const firstFile = fileArray[0];
-            const reader = new FileReader();
-            reader.readAsDataURL(firstFile);
-            reader.onload = async () => {
-                const imageDataUri = reader.result as string;
-                try {
-                    const result = await analyzeProductImage({ imageDataUri });
-                    setName(result.title);
-                    setDescription(result.description);
-                } catch (error) {
-                    console.error("AI analysis failed:", error);
-                    toast({
-                        variant: "destructive",
-                        title: "AI Analysis Failed",
-                        description: "Could not analyze the image. Please fill in the details manually.",
-                    });
-                } finally {
-                    setIsAiLoading(false);
-                }
-            };
-            reader.onerror = () => {
-                 toast({
-                    variant: "destructive",
-                    title: "Image Read Error",
-                    description: "Could not read the uploaded image file.",
-                });
-                setIsAiLoading(false);
-            };
-        }
+      // Handle AI analysis on the first image
+      if (isAiAnalysisEnabled && fileArray.length > 0) {
+        setIsAiLoading(true);
+        const firstFile = fileArray[0];
+        const reader = new FileReader();
+        reader.readAsDataURL(firstFile);
+        reader.onload = async () => {
+          const imageDataUri = reader.result as string;
+          try {
+            const result = await analyzeProductImage({ imageDataUri });
+            setName(result.title);
+            setDescription(result.description);
+          } catch (error) {
+            console.error("AI analysis failed:", error);
+            toast({
+              variant: "destructive",
+              title: "AI Analysis Failed",
+              description: "Could not analyze the image. Please fill in the details manually.",
+            });
+          } finally {
+            setIsAiLoading(false);
+          }
+        };
+        reader.onerror = () => {
+          toast({
+            variant: "destructive",
+            title: "Image Read Error",
+            description: "Could not read the uploaded image file for AI analysis.",
+          });
+          setIsAiLoading(false);
+        };
+      }
     }
   };
 
