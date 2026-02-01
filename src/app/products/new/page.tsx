@@ -33,6 +33,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
 import type { Product, User } from '@/lib/types';
+import { compressImage } from '@/lib/image-compressor';
 
 
 export default function NewProductPage() {
@@ -51,7 +52,6 @@ export default function NewProductPage() {
   const [isConsignment, setIsConsignment] = useState(false);
   
   const [isAiAnalysisEnabled, setIsAiAnalysisEnabled] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,24 +71,18 @@ export default function NewProductPage() {
           toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
           return;
       }
-      setUploadedImages(prev => [...prev, ...fileArray]);
-
-      const filePromises = fileArray.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
+      
+      setIsAiLoading(true); // Show loader for both compression and AI analysis
 
       try {
-        const newPreviews = await Promise.all(filePromises);
-        setImagePreviews(prev => [...prev, ...newPreviews]);
+        const compressionPromises = fileArray.map(file => compressImage(file));
+        const compressedPreviews = await Promise.all(compressionPromises);
         
-        if (isAiAnalysisEnabled && newPreviews.length > 0) {
-          setIsAiLoading(true);
-          const imageDataUri = newPreviews[0];
+        setImagePreviews(prev => [...prev, ...compressedPreviews]);
+        
+        // AI analysis on the first new compressed image
+        if (isAiAnalysisEnabled && compressedPreviews.length > 0) {
+          const imageDataUri = compressedPreviews[0];
           try {
             const result = await analyzeProductImage({ imageDataUri });
             setName(result.title);
@@ -104,23 +98,22 @@ export default function NewProductPage() {
               title: "AI Analysis Failed",
               description: "Could not analyze the image. Please fill in the details manually.",
             });
-          } finally {
-            setIsAiLoading(false);
           }
         }
-      } catch (error) {
-        console.error("Error reading files for preview: ", error);
+      } catch (error: any) {
+        console.error("Error processing files: ", error);
         toast({
           variant: "destructive",
-          title: "Could not preview images",
-          description: "There was an error reading the selected files.",
+          title: "Image Processing Failed",
+          description: error.message || "There was an error compressing or reading the files.",
         });
+      } finally {
+        setIsAiLoading(false); // Hide loader
       }
     }
   };
 
   const removeImage = (indexToRemove: number) => {
-    setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 

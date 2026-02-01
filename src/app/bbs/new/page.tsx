@@ -38,6 +38,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
+import { compressImage } from '@/lib/image-compressor';
 
 
 export default function NewBbsPostPage() {
@@ -110,43 +111,44 @@ export default function NewBbsPostPage() {
           toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
           return;
       }
-      const fileArray = Array.from(files);
-
-      const filePromises = fileArray.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
-
-      const newPreviews = await Promise.all(filePromises);
-      setImagePreviews(prev => [...prev, ...newPreviews]);
       
-      if (isAiAnalysisEnabled && newPreviews.length > 0) {
-        setIsAiLoading(true);
-        const imageDataUri = newPreviews[0];
-        try {
-          // Note: Using analyzeProductImage which is optimized for products.
-          // For a BBS, a different flow might be better, but this will work as a demo.
-          const result = await analyzeProductImage({ imageDataUri });
-          setTitle(result.title);
-          setContent(result.description);
-          toast({
-              title: "AI Analysis Complete",
-              description: "Title and content have been generated.",
-          });
-        } catch (error) {
-          console.error("AI analysis failed:", error);
-          toast({
-            variant: "destructive",
-            title: "AI Analysis Failed",
-            description: "Could not analyze the image. Please fill in the details manually.",
-          });
-        } finally {
-          setIsAiLoading(false);
+      const fileArray = Array.from(files);
+      setIsAiLoading(true); // Show loader for both compression and AI analysis
+
+      try {
+        const compressionPromises = fileArray.map(file => compressImage(file));
+        const newPreviews = await Promise.all(compressionPromises);
+        
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+        
+        if (isAiAnalysisEnabled && newPreviews.length > 0) {
+          const imageDataUri = newPreviews[0];
+          try {
+            const result = await analyzeProductImage({ imageDataUri });
+            setTitle(result.title);
+            setContent(result.description);
+            toast({
+                title: "AI Analysis Complete",
+                description: "Title and content have been generated.",
+            });
+          } catch (error) {
+            console.error("AI analysis failed:", error);
+            toast({
+              variant: "destructive",
+              title: "AI Analysis Failed",
+              description: "Could not analyze the image. Please fill in the details manually.",
+            });
+          }
         }
+      } catch (error: any) {
+        console.error("Error processing files: ", error);
+        toast({
+          variant: "destructive",
+          title: "Image Processing Failed",
+          description: error.message || "There was an error compressing or reading the files.",
+        });
+      } finally {
+        setIsAiLoading(false);
       }
     }
   };

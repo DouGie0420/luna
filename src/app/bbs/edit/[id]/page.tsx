@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { compressImage } from '@/lib/image-compressor';
 
 
 export default function EditBbsPostPage() {
@@ -86,7 +87,7 @@ export default function EditBbsPostPage() {
       }
   }, [user, userLoading, post, postLoading, id, router, toast]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       if ((imagePreviews.length + files.length) > 9) {
@@ -95,28 +96,19 @@ export default function EditBbsPostPage() {
       }
 
       const fileArray = Array.from(files);
-
-      const filePromises = fileArray.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
+      
+      try {
+        const compressionPromises = fileArray.map(file => compressImage(file));
+        const newPreviews = await Promise.all(compressionPromises);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+      } catch (error: any) {
+        console.error("Error compressing files: ", error);
+        toast({
+          variant: "destructive",
+          title: "Image Processing Failed",
+          description: error.message || "There was an error compressing the files.",
         });
-      });
-
-      Promise.all(filePromises)
-        .then(newPreviews => {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-        })
-        .catch(error => {
-          console.error("Error reading files for preview: ", error);
-          toast({
-            variant: "destructive",
-            title: "Could not preview images",
-            description: "There was an error reading the selected files.",
-          });
-        });
+      }
     }
   };
 
