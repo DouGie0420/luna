@@ -134,10 +134,10 @@ export default function BbsPage() {
                  processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
                 break;
             case 'nearest':
-                if (userLocation && post.author.location) {
+                if (userLocation) {
                     processedPosts.sort((a, b) => {
-                        const distA = a.author.location ? haversineDistance(userLocation, a.author.location) : Infinity;
-                        const distB = b.author.location ? haversineDistance(userLocation, b.author.location) : Infinity;
+                        const distA = a.location ? haversineDistance(userLocation, a.location) : Infinity;
+                        const distB = b.location ? haversineDistance(userLocation, b.location) : Infinity;
                         return distA - distB;
                     });
                 }
@@ -150,7 +150,7 @@ export default function BbsPage() {
 
         return processedPosts;
 
-    }, [debouncedSearchTerm, activeFilter, posts, userLocation, t]);
+    }, [debouncedSearchTerm, activeFilter, posts, userLocation]);
 
     if (loading) {
         return <BbsPageSkeleton />;
