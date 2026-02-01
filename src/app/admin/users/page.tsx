@@ -19,14 +19,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2 } from "lucide-react"
+import { Loader2, MoreHorizontal } from "lucide-react"
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from "@/hooks/use-translation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 type UserRole = NonNullable<UserProfile['role']>;
+type CreditLevel = NonNullable<UserProfile['creditLevel']>;
 
 export default function AdminUsersPage() {
     const { profile: currentUserProfile } = useUser();
@@ -75,6 +91,7 @@ export default function AdminUsersPage() {
                         <TableHead>{t('admin.usersPage.kycStatus')}</TableHead>
                         <TableHead>{t('admin.usersPage.joined')}</TableHead>
                         <TableHead>{t('admin.usersPage.role')}</TableHead>
+                        <TableHead className="text-right">{t('admin.usersPage.actions')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -147,11 +164,51 @@ export default function AdminUsersPage() {
                                         </SelectContent>
                                     </Select>
                                 </TableCell>
+                                <TableCell className="text-right">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>More Actions</DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>
+                                                    <span>Set Credit Level</span>
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        <DropdownMenuRadioGroup 
+                                                            value={user.creditLevel || 'Newcomer'}
+                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'creditLevel', value as CreditLevel)}
+                                                        >
+                                                            <DropdownMenuRadioItem value="Newcomer">Newcomer</DropdownMenuRadioItem>
+                                                            <DropdownMenuRadioItem value="Bronze">Bronze</DropdownMenuRadioItem>
+                                                            <DropdownMenuRadioItem value="Silver">Silver</DropdownMenuRadioItem>
+                                                            <DropdownMenuRadioItem value="Gold">Gold</DropdownMenuRadioItem>
+                                                            <DropdownMenuRadioItem value="Platinum">Platinum</DropdownMenuRadioItem>
+                                                            <DropdownMenuRadioItem value="Diamond">Diamond</DropdownMenuRadioItem>
+                                                        </DropdownMenuRadioGroup>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                            <DropdownMenuItem disabled>
+                                                <span>Edit Credit Score (soon)</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem disabled>
+                                                <span>{t('admin.usersPage.resetPassword')}</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
                             </TableRow>
                         ))
                     ) : (
                          <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center">
+                            <TableCell colSpan={6} className="h-24 text-center">
                                 {t('admin.usersPage.noUsers')}
                             </TableCell>
                         </TableRow>
