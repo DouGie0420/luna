@@ -37,22 +37,27 @@ service cloud.firestore {
     function isSupport() {
       return getUserRole() == 'support' || isStaff(); // isStaff already includes admin and ghost
     }
+
+    function canUpdatePostsCount() {
+      let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      // If 'postsCount' is not one of the keys being changed, this rule passes.
+      if (!changedKeys.has('postsCount')) {
+        return true;
+      }
+      // If 'postsCount' IS being changed, it must be an increment of 1.
+      return request.resource.data.postsCount == resource.data.postsCount + 1;
+    }
     
     // --- Collection Rules ---
 
     // USER PROFILES
     match /users/{userId} {
       // Anyone can read a user's public profile.
-      allow get: if true;
-      // Admins/Ghosts can list all users. Others can list if needed for specific queries (e.g. search) but with restrictions.
-      allow list: if isAdmin() || isGhost() || true;
+      allow get, list: if true;
       
       // A user can create their own profile document.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
 
-      // Admins/Ghosts can perform updates on other users, with restrictions.
-      allow update: if (isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost')) && request.auth.uid != userId;
-      
       // A user can update their own profile, with specific rules for what can be changed.
       allow update: if isOwner(userId) &&
           // 1. Fields that a user can NEVER change directly.
@@ -64,9 +69,11 @@ service cloud.firestore {
           // 3. Special rule for 'kycStatus': user can only change from 'Not Verified' to 'Pending'.
           (request.resource.data.kycStatus == resource.data.kycStatus || (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) &&
           
-          // 4. Special rule for 'postsCount': can only be incremented by 1.
-          (request.resource.data.postsCount == resource.data.postsCount || request.resource.data.postsCount == resource.data.postsCount + 1);
+          // 4. Special rule for 'postsCount' which now uses a robust helper function.
+          canUpdatePostsCount();
 
+      // Admins/Ghosts can perform updates on other users, with restrictions.
+      allow update: if (isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost')) && request.auth.uid != userId;
 
       // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
       allow delete: if isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost');

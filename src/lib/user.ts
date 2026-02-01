@@ -12,8 +12,6 @@ export async function upsertUserProfile(
     additionalData: Partial<UserProfile> = {}
 ): Promise<UserProfile> {
     const userRef = doc(db, 'users', user.uid);
-    
-    // This initial read is allowed for all, so doesn't need special error handling.
     const userDoc = await getDoc(userRef);
 
     if (userDoc.exists()) {
@@ -32,18 +30,8 @@ export async function upsertUserProfile(
             updateData.role = 'user';
         }
 
-        try {
-            await updateDoc(userRef, updateData);
-        } catch (serverError) {
-            const permissionError = new FirestorePermissionError({
-                path: userRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            throw permissionError;
-        }
-
+        await updateUserProfile(db, user.uid, updateData);
+        
         const updatedDoc = await getDoc(userRef);
         return updatedDoc.data() as UserProfile;
 
@@ -95,22 +83,11 @@ export async function upsertUserProfile(
 
 export async function upsertWalletUser(db: Firestore, address: string): Promise<UserProfile> {
     const userRef = doc(db, 'users', address);
-    
     const userDoc = await getDoc(userRef);
 
     if (userDoc.exists()) {
         const updateData = { lastLogin: serverTimestamp() };
-        try {
-            await updateDoc(userRef, updateData);
-        } catch (serverError) {
-            const permissionError = new FirestorePermissionError({
-                path: userRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            throw permissionError;
-        }
+        await updateUserProfile(db, address, updateData);
         const updatedDoc = await getDoc(userRef);
         return updatedDoc.data() as UserProfile;
     } else {
@@ -152,15 +129,17 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
     }
 }
 
-export function updateUserProfile(db: Firestore, uid: string, data: Partial<UserProfile>) {
+export async function updateUserProfile(db: Firestore, uid: string, data: Partial<UserProfile>) {
     const userRef = doc(db, 'users', uid);
-    return updateDoc(userRef, data).catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
+    try {
+        await updateDoc(userRef, data);
+    } catch (serverError) {
+         const permissionError = new FirestorePermissionError({
             path: userRef.path,
             operation: 'update',
             requestResourceData: data,
         });
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
-    });
+    }
 }
