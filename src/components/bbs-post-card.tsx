@@ -10,7 +10,7 @@ import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
@@ -32,6 +32,19 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         addSuffix: true,
         locale: locales[language] || enUS
     }) : '';
+
+    const summary = useMemo(() => {
+        const content = post.content || t(post.contentKey || '');
+        // Remove markdown for images and videos for a cleaner summary
+        return content
+            .replace(/!\[.*?\]\(.*?\)/g, '') // Remove image markdown
+            .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '') // Remove video markdown
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join(' ')
+            .trim();
+    }, [post.content, post.contentKey, t]);
 
     const handleInteraction = (e: React.MouseEvent, action?: () => void) => {
         e.stopPropagation();
@@ -102,7 +115,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 </div>
 
                 <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow">
-                    <p className="line-clamp-3">{post.content || t(post.contentKey || '')}</p>
+                    <p className="line-clamp-3">{summary}</p>
                 </CardContent>
 
                 <CardFooter className="p-4 flex flex-col items-start gap-4">
