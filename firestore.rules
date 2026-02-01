@@ -43,26 +43,41 @@ service cloud.firestore {
     // USER PROFILES
     match /users/{userId} {
       allow read: if true;
-      
-      // Allow user to update their own non-critical profile info.
-      // Critical fields like 'role', 'creditScore', 'uid' are immutable by the user.
-      allow update: if request.auth.uid == userId &&
-                       !('uid' in request.resource.data) &&
-                       !('createdAt' in request.resource.data) &&
-                       !('creditScore' in request.resource.data) &&
-                       !('creditLevel' in request.resource.data) &&
-                       !('lunarSoil' in request.resource.data) &&
-                       !('rating' in request.resource.data) &&
-                       !('reviewsCount' in request.resource.data) &&
-                       !('salesCount' in request.resource.data) &&
-                       !('purchasesCount' in request.resource.data) &&
-                       !('followersCount' in request.resource.data) &&
-                       !('followingCount' in request.resource.data) &&
-                       // Allow role change only from guest to user
-                       (request.resource.data.role == resource.data.role || (resource.data.role == 'guest' && request.resource.data.role == 'user'));
-      
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if isOwner(userId);
 
+      // General-purpose profile update by the owner.
+      // Allows updating non-critical fields like bio, displayName, photoURL, etc.
+      // Protected fields like creditScore, role, and counters are blacklisted here
+      // because they are handled by more specific rules below.
+      allow update: if isOwner(userId) &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+                         'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
+                         'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
+                         'followersCount', 'followingCount', 'postsCount'
+                       ]);
+      
+      // Allow user to change their role from 'guest' to 'user' once.
+      allow update: if isOwner(userId) &&
+                       resource.data.role == 'guest' &&
+                       request.resource.data.role == 'user' &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']);
+
+      // Allow user to increment/decrement their own following count.
+      allow update: if isOwner(userId) &&
+                       (request.resource.data.followingCount == resource.data.followingCount + 1 ||
+                        request.resource.data.followingCount == resource.data.followingCount - 1) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']);
+      
+      // Allow any signed-in user to increment/decrement another user's followers count.
+      allow update: if isSignedIn() &&
+                       (request.resource.data.followersCount == resource.data.followersCount + 1 ||
+                        request.resource.data.followersCount == resource.data.followersCount - 1) &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
+      
+      // Allow user to increment their own post count (e.g., when creating a new post).
+      allow update: if isOwner(userId) &&
+                       request.resource.data.postsCount == resource.data.postsCount + 1 &&
+                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']);
 
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isRequestingUserStaff();
