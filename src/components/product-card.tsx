@@ -56,7 +56,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     className={cn("h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors", isLiked ? "text-yellow-400" : "hover:text-yellow-300")}
                     onClick={(e) => handleInteraction(e, 'like')}
                 >
-                    <Heart className={cn("h-4 w-4", isLiked && "fill-current")} />
+                    <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
                 </Button>
                 <Button
                     variant="ghost"
@@ -64,7 +64,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     className={cn("h-8 w-8 rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors", isFavorited ? "text-yellow-400" : "hover:text-yellow-300")}
                     onClick={(e) => handleInteraction(e, 'favorite')}
                 >
-                    <Star className={cn("h-4 w-4", isFavorited && "fill-current")} />
+                    <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
                 </Button>
             </div>
           </div>

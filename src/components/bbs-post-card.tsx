@@ -243,25 +243,23 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1" title={`${post.replies} replies`}>
-                            <MessageSquare className="h-4 w-4" />
-                            <span>{post.replies}</span>
-                        </span>
-                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={(e) => handlePostInteraction(e, 'like')} title={`${post.likes} likes`}>
+                        <Link href={`/bbs/${post.id}#comments`} passHref>
+                           <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
+                            <span className="flex items-center gap-1 cursor-pointer">
+                                <MessageSquare className="h-4 w-4" />
+                                <span>{post.replies}</span>
+                            </span>
+                           </Button>
+                        </Link>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
                             <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
-                            <span className="ml-1">{post.likes}</span>
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={(e) => handlePostInteraction(e, 'favorite')} title={`${post.favorites} favorites`}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
                             <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
-                            <span className="ml-1">{post.favorites}</span>
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare} title="Share">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare}>
                             <Share2 className="h-4 w-4" />
                         </Button>
-                        <span className="flex items-center gap-1" title={`${post.views} views`}>
-                            <Eye className="h-4 w-4" />
-                            <span>{post.views}</span>
-                        </span>
                     </div>
                 </CardFooter>
             </Card>
