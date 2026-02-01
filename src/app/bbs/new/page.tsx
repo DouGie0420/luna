@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Loader2 } from "lucide-react"
+import { Upload, ShieldAlert, X, Loader2, MapPin } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -40,6 +40,8 @@ export default function NewBbsPostPage() {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [location, setLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
       if (!loading && !user) {
@@ -47,6 +49,37 @@ export default function NewBbsPostPage() {
       }
   }, [user, loading, router]);
   
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setLocationError(null);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setLocationError("Could not get location. Please enable location permissions in your browser.");
+          toast({
+            variant: "destructive",
+            title: "Location Error",
+            description: "Could not get location. Please enable location permissions to post.",
+            duration: 10000,
+          });
+        }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by this browser.");
+      toast({
+        variant: "destructive",
+        title: "Location Error",
+        description: "Geolocation is not supported by this browser.",
+      });
+    }
+  }, [toast]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -91,6 +124,10 @@ export default function NewBbsPostPage() {
       toast({ variant: 'destructive', title: 'Please login to create a post.'});
       return;
     }
+     if (!location) {
+      toast({ variant: 'destructive', title: 'Location Required', description: 'Waiting for location data. Please ensure location permissions are enabled.'});
+      return;
+    }
     setIsSubmitting(true);
 
     const authorData: Partial<User> = {
@@ -98,7 +135,7 @@ export default function NewBbsPostPage() {
       name: profile.displayName || user.displayName || 'Anonymous',
       avatarUrl: profile.photoURL || user.photoURL || '',
       creditLevel: profile.creditLevel,
-      location: { city: profile.location || 'Unknown', country: '', countryCode: '', lat: 0, lng: 0 }
+      location: { city: profile.location || '', country: '', countryCode: '', lat: 0, lng: 0 }
     };
     
     try {
@@ -117,6 +154,7 @@ export default function NewBbsPostPage() {
         isFeatured: false,
         likedBy: [],
         favoritedBy: [],
+        location: location,
       });
 
       // Increment user's post count
@@ -137,7 +175,7 @@ export default function NewBbsPostPage() {
       toast({
         variant: "destructive",
         title: "Failed to create post",
-        description: "An error occurred while saving your post. Please try again.",
+        description: "An error occurred while saving your post. Please check permissions and try again.",
       });
       setIsSubmitting(false);
     }
@@ -280,8 +318,15 @@ export default function NewBbsPostPage() {
                     </div>
                 </div>
                
-                <div className="flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSubmitting || !title.trim() || !content.trim()}>
+                <div className="flex justify-end items-center gap-4">
+                     {locationError ? (
+                        <p className="text-sm text-destructive flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
+                     ) : !location ? (
+                        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Acquiring location...</p>
+                     ) : (
+                        <p className="text-sm text-green-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Location Acquired</p>
+                     )}
+                    <Button type="submit" size="lg" disabled={isSubmitting || !title.trim() || !content.trim() || !location}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Publish Post
                     </Button>
