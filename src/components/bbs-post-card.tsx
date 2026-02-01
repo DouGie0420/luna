@@ -1,8 +1,8 @@
-
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     const { t } = useTranslation();
     const { profile } = useUser();
     const { toast } = useToast();
+    const router = useRouter();
 
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
@@ -51,10 +52,14 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     }, [post.content, post.contentKey, t]);
     
     const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-      toast({
-        title: `Admin Action: ${action}`,
-        description: "This feature is in development.",
-      });
+      if (action === 'edit') {
+        router.push(`/bbs/edit/${post.id}`);
+      } else {
+        toast({
+          title: `Admin Action: ${action}`,
+          description: "This feature is in development.",
+        });
+      }
     };
 
     return (

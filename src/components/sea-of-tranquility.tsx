@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal } from 'lucide-react';
@@ -67,6 +68,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const { user, profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const router = useRouter();
 
     const canInteract = !!user;
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
@@ -118,10 +120,14 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     };
 
     const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-      toast({
-        title: `Admin Action: ${action}`,
-        description: "This feature is in development.",
-      });
+      if (action === 'edit') {
+        router.push(`/bbs/edit/${post.id}`);
+      } else {
+        toast({
+          title: `Admin Action: ${action}`,
+          description: "This feature is in development.",
+        });
+      }
     };
 
     const summary = useMemo(() => {
