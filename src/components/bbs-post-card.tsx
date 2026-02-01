@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2 } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { formatDistanceToNow } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import React, { useMemo } from 'react';
 import { Button } from './ui/button';
@@ -42,8 +42,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     const formattedDate = useMemo(() => {
         if (!post.createdAt) return '';
         const date = new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt);
-        return formatDistanceToNow(date, { addSuffix: true, locale: locales[language] || enUS });
-    }, [post.createdAt, language]);
+        return format(date, 'yy/MM/dd HH:mm');
+    }, [post.createdAt]);
 
 
     const summary = useMemo(() => {
@@ -111,7 +111,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     )}
                 </CardHeader>
                 <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-xl mb-2 leading-tight drop-shadow-md">
+                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
