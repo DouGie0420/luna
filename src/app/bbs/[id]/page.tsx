@@ -820,6 +820,25 @@ export default function BbsPostPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+            <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>{t('productComments.deleteConfirmTitle')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {t('productComments.deleteConfirmDescription')}
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setCommentToDelete(null)}>{t('productComments.deleteCancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={handleDeleteComment}
+                        className="bg-destructive hover:bg-destructive/90"
+                    >
+                        {t('productComments.deleteConfirmAction')}
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
