@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -86,7 +85,7 @@ export function SeaOfTranquility() {
                 </div>
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     {/* Main Posts Skeleton */}
-                    <div className="lg:col-span-2 grid grid-cols-1 gap-6">
+                    <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:gap-8">
                          <div className="flex flex-col space-y-3">
                             <Skeleton className="aspect-video w-full" />
                             <div className="space-y-2 p-4">
@@ -135,7 +134,7 @@ export function SeaOfTranquility() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     
                     {featuredPosts.length > 0 && (
-                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                        <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:gap-8">
                             {featuredPosts.map((post) => (
                                 <BbsPostCard key={post.id} post={post} />
                             ))}
@@ -143,7 +142,7 @@ export function SeaOfTranquility() {
                     )}
                     
                     {otherPosts.length > 0 && (
-                        <div className="lg:col-span-1 flex flex-col gap-4 justify-between">
+                        <div className="lg:col-span-1 flex flex-col gap-4">
                             {otherPosts.map(post => {
                                 const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
                                     addSuffix: true,
@@ -152,8 +151,8 @@ export function SeaOfTranquility() {
                                 const isLiked = likedPosts[post.id];
 
                                 return (
-                                    <Link key={post.id} href={`/bbs/${post.id}`} className="group block h-full">
-                                        <Card className="flex flex-col p-4 h-full bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+                                    <Link key={post.id} href={`/bbs/${post.id}`} className="group block">
+                                        <Card className="flex flex-col p-4 bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
                                             {post.images && post.images.length > 0 && (
                                                 <div className="flex gap-2 mb-3">
                                                     {post.images.slice(0, 3).map((img, index) => (
