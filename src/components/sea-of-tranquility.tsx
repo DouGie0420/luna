@@ -142,49 +142,67 @@ export function SeaOfTranquility() {
                     )}
                     
                     {otherPosts.length > 0 && (
-                        <div className="lg:col-span-1 flex flex-col justify-between">
+                        <div className="lg:col-span-1 flex flex-col gap-4">
                             {otherPosts.map(post => {
                                 const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
                                     addSuffix: true,
                                     locale: locales[language] || enUS
                                 });
+                                
+                                const summary = (post.content || t(post.contentKey || ''))
+                                    .replace(/!\[.*?\]\(.*?\)/g, '')
+                                    .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '')
+                                    .split('\n')
+                                    .map(line => line.trim())
+                                    .filter(line => line.length > 0)
+                                    .join(' ')
+                                    .trim();
 
                                 return (
                                     <Link key={post.id} href={`/bbs/${post.id}`} className="group block">
-                                        <Card className="flex items-center p-3 bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
-                                            <div className="aspect-square w-24 relative overflow-hidden rounded-md shrink-0">
-                                                <Image
-                                                    src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
-                                                    alt={post.title || t(post.titleKey || '')}
-                                                    fill
-                                                    className="object-cover"
-                                                    data-ai-hint={post.imageHints?.[0] || ''}
-                                                />
+                                        <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+                                            <div className="p-3">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-20 h-20 relative overflow-hidden rounded-md shrink-0">
+                                                        <Image
+                                                            src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
+                                                            alt={post.title || t(post.titleKey || '')}
+                                                            fill
+                                                            className="object-cover"
+                                                            data-ai-hint={post.imageHints?.[0] || ''}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h3 className="font-headline text-base leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                                                            {post.title || t(post.titleKey || '')}
+                                                        </h3>
+                                                        <p className="text-sm text-muted-foreground line-clamp-2">
+                                                            {summary}
+                                                        </p>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex-1 flex flex-col justify-between self-stretch pl-4">
-                                                <div>
-                                                    <h3 className="font-headline text-base leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                                                        {post.title || t(post.titleKey || '')}
-                                                    </h3>
-                                                    <p className="text-xs text-muted-foreground">
+                                            <div className="border-t border-border/50 px-3 py-2 text-xs text-muted-foreground">
+                                                <div className="flex justify-between items-center">
+                                                    <div>
                                                         <span>{post.author.name}</span>
                                                         <span className="mx-1.5">&middot;</span>
                                                         <span>{timeAgo}</span>
-                                                    </p>
-                                                </div>
-                                                <div className="flex justify-end items-center gap-4 text-xs text-muted-foreground w-full mt-2">
-                                                    <span className="flex items-center gap-1" title={`${post.replies} replies`}>
-                                                        <MessageSquare className="h-4 w-4" />
-                                                        <span>{post.replies}</span>
-                                                    </span>
-                                                    <span className="flex items-center gap-1" title={`${post.likes} likes`}>
-                                                        <ThumbsUp className="h-4 w-4" />
-                                                        <span>{post.likes}</span>
-                                                    </span>
-                                                    <span className="flex items-center gap-1" title={`${post.views} views`}>
-                                                        <Eye className="h-4 w-4" />
-                                                        <span>{post.views}</span>
-                                                    </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="flex items-center gap-1">
+                                                            <MessageSquare className="h-3 w-3" />
+                                                            <span>{post.replies}</span>
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <ThumbsUp className="h-3 w-3" />
+                                                            <span>{post.likes}</span>
+                                                        </span>
+                                                        <span className="flex items-center gap-1">
+                                                            <Eye className="h-3 w-3" />
+                                                            <span>{post.views}</span>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Card>
