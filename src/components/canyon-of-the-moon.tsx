@@ -6,6 +6,9 @@ import { ProductCard } from './product-card';
 import { Skeleton } from './ui/skeleton';
 import type { Product } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
+import { Button } from './ui/button';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 export function CanyonOfTheMoon() {
   const { t } = useTranslation();
@@ -32,7 +35,14 @@ export function CanyonOfTheMoon() {
 
   return (
     <section className="container mx-auto px-4 py-12 md:py-16">
-      <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.canyonOfTheMoon')}</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-headline text-3xl font-semibold">{t('homePage.canyonOfTheMoon')}</h2>
+        <Button asChild variant="ghost" className="text-primary hover:text-primary/90">
+            <Link href="/products">
+                进入峡谷 <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+        </Button>
+      </div>
       
       {isLoading || products.length === 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
