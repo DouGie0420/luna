@@ -15,6 +15,11 @@ import { SellerProfileCard } from '@/components/seller-profile-card';
 import { ProductPurchaseActions } from '@/components/product-purchase-actions';
 import { ProductCommentSection } from '@/components/product-comment-section';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUser } from '@/firebase';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
+import { ProductEditForm } from '@/components/product-edit-form';
 
 function ProductPageSkeleton() {
     return (
@@ -52,10 +57,12 @@ function ProductPageSkeleton() {
 export default function ProductPage() {
     const params = useParams();
     const id = params.id as string;
+    const { user } = useUser();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -96,6 +103,13 @@ export default function ProductPage() {
 
     }, [id]);
 
+    const isOwner = user && product && user.uid === product.seller.id;
+
+    const handleProductUpdate = (updatedProduct: Product) => {
+        setProduct(updatedProduct);
+        setIsEditDialogOpen(false);
+    };
+
     if (loading) {
         return <ProductPageSkeleton />;
     }
@@ -107,58 +121,81 @@ export default function ProductPage() {
     return (
         <>
             <PageHeaderWithBackAndClose />
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
-                    {/* Left Column: Image Carousel & Actions */}
-                    <div className="lg:col-span-3">
-                        <ProductImageGallery product={product} />
-                    </div>
+             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <div className="container mx-auto px-4 py-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
+                        {/* Left Column: Image Carousel & Actions */}
+                        <div className="lg:col-span-3">
+                            <ProductImageGallery product={product} />
+                        </div>
 
-                    {/* Right Column: Product Details & Actions */}
-                    <div className="lg:col-span-2 flex flex-col gap-6">
-                        <ProductTitleWithBadge product={product} />
-                        
-                        <ProductPurchaseActions product={product} />
+                        {/* Right Column: Product Details & Actions */}
+                        <div className="lg:col-span-2 flex flex-col gap-6">
+                            <div className="relative pt-10">
+                                {isOwner && (
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" className="absolute top-0 left-0 z-10 animate-glow-border-primary">
+                                            <Edit className="mr-2 h-4 w-4" /> Edit Product
+                                        </Button>
+                                    </DialogTrigger>
+                                )}
+                                <ProductTitleWithBadge product={product} />
+                            </div>
+                            
+                            <ProductPurchaseActions product={product} />
 
-                        <SellerProfileCard product={product} />
+                            <SellerProfileCard product={product} />
+                        </div>
                     </div>
-                </div>
-                
-                {/* Description and other sections below */}
-                <div className="mt-12 flex flex-col gap-8">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>商品描述</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
-                        </CardContent>
-                    </Card>
                     
-                    <ProductCommentSection productId={product.id} />
-                </div>
-
-                <div className="mt-20">
-                    <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                        {recommendedProducts.map((p) => (
-                            <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
-                                <Image
-                                src={p.images[0]}
-                                alt={p.name}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint={p.imageHints[0]}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
-                                {p.name}
-                                </h3>
-                            </Link>
-                        ))}
+                    {/* Description and other sections below */}
+                    <div className="mt-12 flex flex-col gap-8">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>商品描述</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                            </CardContent>
+                        </Card>
+                        
+                        <ProductCommentSection productId={product.id} />
                     </div>
+
+                    <div className="mt-20">
+                        <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                            {recommendedProducts.map((p) => (
+                                <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
+                                    <Image
+                                    src={p.images[0]}
+                                    alt={p.name}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    data-ai-hint={p.imageHints[0]}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                    <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
+                                    {p.name}
+                                    </h3>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                    
+                    {isOwner && (
+                        <DialogContent className="sm:max-w-[625px]">
+                            <DialogHeader>
+                                <DialogTitle>Edit Product</DialogTitle>
+                                <DialogDescription>
+                                    Make changes to your product here. Click save when you're done.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <ProductEditForm product={product} onSave={handleProductUpdate} />
+                        </DialogContent>
+                    )}
                 </div>
-            </div>
+            </Dialog>
         </>
     );
 }
