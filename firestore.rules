@@ -53,7 +53,8 @@ service cloud.firestore {
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                          'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
                          'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
-                         'followersCount', 'followingCount', 'postsCount'
+                         'followersCount', 'followingCount', 'postsCount',
+                         'isPro', 'isWeb3Verified', 'isNftVerified'
                        ]);
       
       // Allow user to change their role from 'guest' to 'user' once.
@@ -78,6 +79,13 @@ service cloud.firestore {
       allow update: if isOwner(userId) &&
                        request.resource.data.postsCount == resource.data.postsCount + 1 &&
                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']);
+
+      // Allow staff/admins to manage user profiles, with safeguards.
+      allow update: if isRequestingUserStaff() &&
+                      // Prevent editing immutable fields
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']) &&
+                      // Prevent staff/ghosts from editing admins/ghosts. Admins can edit anyone.
+                      (isRequestingUserAdmin() || !(getUserRole(userId) in ['admin', 'ghost']));
 
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isRequestingUserStaff();
