@@ -155,7 +155,7 @@ export default function LoginPage() {
           <CardFooter className="flex flex-col gap-4">
             <Button className="w-full" onClick={handleEmailLogin} disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t('common.login')}
+                <span>{t('common.login')}</span>
             </Button>
             
             <div className="relative w-full">
@@ -166,11 +166,11 @@ export default function LoginPage() {
             <div className="w-full grid grid-cols-2 gap-2">
                 <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)} disabled={isLoading}>
                   <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
-                  Google
+                  <span>Google</span>
                 </Button>
                 <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)} disabled={isLoading}>
                   <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                  Facebook
+                  <span>Facebook</span>
                 </Button>
             </div>
 
