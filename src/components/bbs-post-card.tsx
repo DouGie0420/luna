@@ -119,8 +119,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     </div>
                 </div>
 
-                <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow">
-                    <p className="line-clamp-2">{summary}</p>
+                <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow line-clamp-2">
+                    <p>{summary}</p>
                 </CardContent>
 
                 <CardFooter className="p-4 flex justify-between items-end">
@@ -147,8 +147,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         <div>
                             <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
                             <p className="text-xs text-muted-foreground">
-                                {timeAgo}
-                                {post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
+                                {timeAgo}{post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
                             </p>
                         </div>
                     </div>

@@ -1,9 +1,10 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Eye, Heart, MessageSquare, Star } from 'lucide-react';
+import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -19,12 +20,20 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
 const SmallPostCardSkeleton = () => (
-    <Card className="flex h-full flex-col bg-card/50">
-        <div className="p-4">
+    <Card className="flex h-full flex-col justify-between bg-card/50">
+        <CardContent className="p-5">
             <div className="flex items-start gap-4">
                 <Skeleton className="h-28 w-28 shrink-0 rounded-md" />
                 <div className="flex-1 space-y-2">
@@ -35,8 +44,8 @@ const SmallPostCardSkeleton = () => (
                     <Skeleton className="h-3 w-1/2" />
                 </div>
             </div>
-        </div>
-        <div className="p-4 pt-0 mt-auto flex justify-between items-center">
+        </CardContent>
+        <CardFooter className="p-5 pt-0 flex justify-between items-center">
             <div className="flex items-center gap-2">
                 <Skeleton className="h-6 w-6 rounded-full" />
                 <div className="space-y-1">
@@ -48,7 +57,7 @@ const SmallPostCardSkeleton = () => (
                 <Skeleton className="h-7 w-7" />
                 <Skeleton className="h-7 w-7" />
             </div>
-        </div>
+        </CardFooter>
     </Card>
 );
 
@@ -60,6 +69,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const { toast } = useToast();
 
     const canInteract = !!user;
+    const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
     const handleInteractionNotAllowed = () => {
         toast({
@@ -107,6 +117,13 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
         });
     };
 
+    const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
+      toast({
+        title: `Admin Action: ${action}`,
+        description: "This feature is in development.",
+      });
+    };
+
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
         return content
@@ -125,27 +142,59 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
     return (
-        <Card className="flex h-full flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
-            <Link href={`/bbs/${post.id}`} className="group block p-5 flex-grow">
-                <div className="flex items-start gap-4">
-                    <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
-                        <Image
-                            src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
-                            alt={post.title || t(post.titleKey || '')}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={post.imageHints?.[0] || ''}
-                        />
-                    </div>
-                    <div className="flex-1 flex flex-col self-stretch">
-                        <div className="flex-grow">
-                             <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                                {post.title || t(post.titleKey || '')}
-                            </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-3">{summary}</p>
+        <Card className="relative flex h-full flex-col justify-between bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+            {hasAdminAccess && (
+                <div className="absolute top-2 right-2 z-20">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={(e) => e.preventDefault()} className="h-7 w-7 rounded-full bg-black/50 text-white hover:bg-black/70">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+                            <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
+                                <Star className="mr-2 h-4 w-4" />
+                                <span>加精华</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
+                                <TrendingUp className="mr-2 h-4 w-4" />
+                                <span>加曝光</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                <span>编辑</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                <span>删除</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )}
+            <Link href={`/bbs/${post.id}`} className="group block flex-grow">
+                <CardContent className="p-5 flex flex-col h-full">
+                    <div className="flex items-start gap-4">
+                        <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
+                            <Image
+                                src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
+                                alt={post.title || t(post.titleKey || '')}
+                                fill
+                                className="object-cover"
+                                data-ai-hint={post.imageHints?.[0] || ''}
+                            />
+                        </div>
+                        <div className="flex-1 flex flex-col self-stretch">
+                            <div className="flex-grow">
+                                <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                                    {post.title || t(post.titleKey || '')}
+                                </h3>
+                                <p className="text-xs text-muted-foreground line-clamp-4">{summary}</p>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </CardContent>
             </Link>
             <CardFooter className="p-5 pt-0 flex justify-between items-center">
                  <div className="flex items-center gap-2 overflow-hidden">
@@ -155,7 +204,9 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                     </Avatar>
                     <div className="text-xs">
                         <p className="font-semibold text-foreground truncate">{post.author.name}</p>
-                        <p className="text-muted-foreground truncate">{timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}</p>
+                        <p className="text-muted-foreground truncate">
+                            {timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -183,8 +234,8 @@ export function SeaOfTranquility() {
 
     const { data: posts, loading: isLoading } = useCollection<BbsPost>(postsQuery);
 
-    const featuredPosts = useMemo(() => posts?.slice(0, 2) || [], [posts]);
-    const otherPosts = useMemo(() => posts?.slice(2, 7) || [], [posts]);
+    const featuredPosts = posts?.slice(0, 2) || [];
+    const otherPosts = posts?.slice(2, 7) || [];
     
     if (isLoading) {
         return (
@@ -247,7 +298,7 @@ export function SeaOfTranquility() {
                     )}
                     
                     {otherPosts.length > 0 && (
-                         <div className="lg:col-span-1 flex flex-col gap-4">
+                         <div className="lg:col-span-1 flex flex-col gap-4 justify-between">
                             {otherPosts.map(post => (
                                 <SmallPostCard key={post.id} post={post} />
                             ))}
