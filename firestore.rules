@@ -163,19 +163,22 @@ service cloud.firestore {
                     && request.resource.data.location != null;
       
       allow update: if 
-        // Case 1: Post owner can edit their post, but cannot change location or interaction counts.
+        // Case 1: Post owner can edit their post, but not protected fields.
         (isOwner(resource.data.authorId) &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits'])
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured'])
         ) ||
-        // Case 2: Any signed-in user can update interaction counts (likes, favorites, views, and their corresponding user lists).
+        // Case 2: Any signed-in user can update interaction counts.
         (isSignedIn() &&
          request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits'])
         ) ||
-        // Case 3: Any signed-in user can increment/decrement the reply count (and only that count) when posting/deleting a comment.
+        // Case 3: Any signed-in user can update reply count.
         (isSignedIn() &&
          (request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies'])
-        );
+        ) ||
+        // Case 4: Staff/Admins can feature/unfeature a post.
+        (isRequestingUserStaff() &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured']));
       
       allow delete: if resource.data.authorId == request.auth.uid || isRequestingUserAdmin();
 
