@@ -25,6 +25,7 @@ import { getNftsForOwner, type SimplifiedNft } from "@/lib/alchemy";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 
 export function UserNav() {
@@ -83,6 +84,31 @@ export function UserNav() {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
+        const lowerCaseAddress = address.toLowerCase();
+
+        // Check for wallet address uniqueness
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where("walletAddress", "==", lowerCaseAddress));
+        const querySnapshot = await getDocs(q);
+        
+        let isWalletInUseByAnother = false;
+        if (!querySnapshot.empty) {
+            querySnapshot.forEach(doc => {
+                if (doc.id !== user.uid) {
+                    isWalletInUseByAnother = true;
+                }
+            });
+        }
+
+        if (isWalletInUseByAnother) {
+             toast({
+                variant: "destructive",
+                title: t('userNav.walletAlreadyLinkedTitle'),
+                description: t('userNav.walletAlreadyLinkedDesc'),
+            });
+            setIsLinkingWallet(false);
+            return;
+        }
 
         // Force refresh the token before making a Firestore write
         if (auth.currentUser) {
@@ -90,7 +116,7 @@ export function UserNav() {
         }
 
         await updateUserProfile(firestore, user.uid, {
-            walletAddress: address.toLowerCase(),
+            walletAddress: lowerCaseAddress,
             isWeb3Verified: true,
         });
 

@@ -45,6 +45,13 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isOwner(userId);
 
+      // Allow user to link their Web3 wallet for the first time.
+      // This is a specific, narrow rule to only allow setting these two fields.
+      allow update: if isOwner(userId) &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) &&
+                      resource.data.walletAddress == null &&
+                      request.resource.data.isWeb3Verified == true;
+
       // General-purpose profile update by the owner.
       // Allows updating non-critical fields like bio, displayName, photoURL, etc.
       // Protected fields like creditScore, role, and counters are blacklisted here
@@ -54,7 +61,7 @@ service cloud.firestore {
                          'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
                          'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
                          'followersCount', 'followingCount', 'postsCount',
-                         'isPro', 'isWeb3Verified', 'isNftVerified'
+                         'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress'
                        ]);
       
       // Allow user to change their role from 'guest' to 'user' once.

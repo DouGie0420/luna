@@ -65,7 +65,9 @@
     "logoutSuccess": "您已成功退出。",
     "web3Wallet": "Web3 钱包",
     "web3LoginComingSoonTitle": "功能即将推出",
-    "web3LoginComingSoonDescription": "Web3钱包登录功能正在开发中。"
+    "web3LoginComingSoonDescription": "Web3钱包登录功能正在开发中。",
+    "walletAlreadyLinkedTitle": "钱包绑定失败",
+    "walletAlreadyLinkedDesc": "此钱包地址已被另一个LUNA账户绑定。"
   },
   "support": {
     "title": "联系客服"
