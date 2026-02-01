@@ -36,6 +36,7 @@ export default function NewBbsPostPage() {
   const [tags, setTags] = useState('');
   
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,11 +50,20 @@ export default function NewBbsPostPage() {
     if (files) {
         const fileArray = Array.from(files).slice(0, 9 - uploadedImages.length); // Limit to 9 images total
         setUploadedImages(prev => [...prev, ...fileArray]);
+
+        fileArray.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreviews(prev => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+        });
     }
   };
 
   const removeImage = (indexToRemove: number) => {
     setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
+    setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,16 +74,7 @@ export default function NewBbsPostPage() {
     }
     setIsSubmitting(true);
 
-    const imageUrls = await Promise.all(
-        uploadedImages.map(file => 
-            new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = error => reject(error);
-            })
-        )
-    );
+    const imageUrls = imagePreviews;
 
     const authorData: User = {
       id: user.uid,
@@ -238,11 +239,11 @@ export default function NewBbsPostPage() {
                                 <span>{t('newProductPage.selectFiles')}</span>
                             </Button>
                         </label>
-                        {uploadedImages.length > 0 && (
+                        {imagePreviews.length > 0 && (
                             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                {uploadedImages.map((file, index) => (
+                                {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative aspect-square">
-                                        <Image src={URL.createObjectURL(file)} alt={`preview ${index}`} fill className="rounded-md object-cover" />
+                                        <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
                                         <Button
                                             type="button"
                                             size="icon"

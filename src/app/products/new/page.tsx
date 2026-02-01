@@ -52,6 +52,7 @@ export default function NewProductPage() {
   
   const [isAiAnalysisEnabled, setIsAiAnalysisEnabled] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,6 +68,14 @@ export default function NewProductPage() {
     if (files) {
         const fileArray = Array.from(files);
         setUploadedImages(prev => [...prev, ...fileArray]);
+
+        fileArray.forEach(file => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImagePreviews(prev => [...prev, reader.result as string]);
+            };
+            reader.readAsDataURL(file);
+        });
 
         if (isAiAnalysisEnabled && fileArray.length > 0) {
             setIsAiLoading(true);
@@ -104,6 +113,7 @@ export default function NewProductPage() {
 
   const removeImage = (indexToRemove: number) => {
     setUploadedImages(prev => prev.filter((_, index) => index !== indexToRemove));
+    setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,16 +124,7 @@ export default function NewProductPage() {
     }
     setIsSubmitting(true);
 
-    const imageUrls = await Promise.all(
-        uploadedImages.map(file => 
-            new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = error => reject(error);
-            })
-        )
-    );
+    const imageUrls = imagePreviews;
 
     const sellerData: User = {
       id: user.uid,
@@ -302,11 +303,11 @@ export default function NewProductPage() {
                                 <span>{t('newProductPage.selectFiles')}</span>
                             </Button>
                         </label>
-                        {uploadedImages.length > 0 && (
+                        {imagePreviews.length > 0 && (
                             <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                {uploadedImages.map((file, index) => (
+                                {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative aspect-square">
-                                        <Image src={URL.createObjectURL(file)} alt={`preview ${index}`} fill className="rounded-md object-cover" />
+                                        <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
                                         <Button
                                             type="button"
                                             size="icon"
