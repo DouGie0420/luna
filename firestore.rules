@@ -58,7 +58,6 @@ service cloud.firestore {
                        !('purchasesCount' in request.resource.data) &&
                        !('followersCount' in request.resource.data) &&
                        !('followingCount' in request.resource.data) &&
-                       !('postsCount' in request.resource.data) &&
                        // Allow role change only from guest to user
                        (request.resource.data.role == resource.data.role || (resource.data.role == 'guest' && request.resource.data.role == 'user'));
       
