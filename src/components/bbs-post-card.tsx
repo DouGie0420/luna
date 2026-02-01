@@ -9,11 +9,11 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import React, { useMemo } from 'react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -32,6 +33,7 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const { t } = useTranslation();
     const { profile } = useUser();
+    const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
 
@@ -51,9 +53,27 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             .trim();
     }, [post.content, post.contentKey, t]);
     
-    const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
+    const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
+      if (!firestore) return;
+
       if (action === 'edit') {
         router.push(`/bbs/edit/${post.id}`);
+      } else if (action === 'feature') {
+          const postRef = doc(firestore, 'bbs', post.id);
+          const newFeaturedState = !post.isFeatured;
+          try {
+            await updateDoc(postRef, { isFeatured: newFeaturedState });
+            toast({
+              title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
+            });
+          } catch (error) {
+            console.error("Error updating feature status:", error);
+            toast({
+              title: "操作失败",
+              description: "更新精华状态时出错。",
+              variant: "destructive",
+            });
+          }
       } else {
         toast({
           title: `Admin Action: ${action}`,
@@ -80,14 +100,14 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         <div className="absolute top-2 right-2 z-20">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={(e) => e.preventDefault()} className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70">
+                                    <Button variant="ghost" size="icon" onClick={(e) => {e.preventDefault(); e.stopPropagation();}} className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70">
                                         <MoreHorizontal className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+                                <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
                                     <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
                                         <Star className="mr-2 h-4 w-4" />
-                                        <span>加精华</span>
+                                        <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
                                         <TrendingUp className="mr-2 h-4 w-4" />

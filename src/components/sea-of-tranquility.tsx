@@ -5,7 +5,7 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -119,15 +119,33 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
         });
     };
 
-    const handleAdminAction = (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-      if (action === 'edit') {
-        router.push(`/bbs/edit/${post.id}`);
-      } else {
-        toast({
-          title: `Admin Action: ${action}`,
-          description: "This feature is in development.",
-        });
-      }
+    const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
+        if (!firestore) return;
+
+        if (action === 'edit') {
+            router.push(`/bbs/edit/${post.id}`);
+        } else if (action === 'feature') {
+            const postRef = doc(firestore, 'bbs', post.id);
+            const newFeaturedState = !post.isFeatured;
+            try {
+                await updateDoc(postRef, { isFeatured: newFeaturedState });
+                toast({
+                    title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
+                });
+            } catch (error) {
+                console.error("Error updating feature status:", error);
+                toast({
+                    title: "操作失败",
+                    description: "更新精华状态时出错。",
+                    variant: "destructive",
+                });
+            }
+        } else {
+            toast({
+                title: `Admin Action: ${action}`,
+                description: "This feature is in development.",
+            });
+        }
     };
 
     const summary = useMemo(() => {
@@ -153,14 +171,14 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                 <div className="absolute top-2 right-2 z-20">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={(e) => e.preventDefault()} className="h-7 w-7 rounded-full bg-black/50 text-white hover:bg-black/70">
+                            <Button variant="ghost" size="icon" onClick={(e) => {e.preventDefault(); e.stopPropagation();}} className="h-7 w-7 rounded-full bg-black/50 text-white hover:bg-black/70">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
+                        <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
                             <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
                                 <Star className="mr-2 h-4 w-4" />
-                                <span>加精华</span>
+                                <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
                                 <TrendingUp className="mr-2 h-4 w-4" />
