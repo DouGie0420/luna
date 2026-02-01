@@ -60,6 +60,7 @@ service cloud.firestore {
           // --- PROTECTED FIELDS: User cannot change these core data points ---
           request.resource.data.creditScore == resource.data.creditScore &&
           request.resource.data.creditLevel == resource.data.creditLevel &&
+          request.resource.data.postsCount == resource.data.postsCount + 1 &&
           // --- LOGIC: User can submit for KYC by changing status from Not Verified to Pending ---
           (request.resource.data.kycStatus == resource.data.kycStatus || (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) &&
           request.resource.data.isPro == resource.data.isPro &&
@@ -138,6 +139,22 @@ service cloud.firestore {
         allow list: if isSupport();
         // any signed-in user can create a ticket
         allow create: if isSignedIn();
+    }
+
+    // BBS Posts
+    match /bbs/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+      allow update: if isSignedIn(); // Relies on frontend for granular control (e.g., only update own likes)
+      allow delete: if resource.data.authorId == request.auth.uid || isAdmin();
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+        allow update: if isSignedIn(); // Relies on frontend for granular control
+        allow delete: if resource.data.authorId == request.auth.uid || isAdmin();
+      }
     }
   }
 }

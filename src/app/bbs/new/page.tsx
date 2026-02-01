@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -22,7 +22,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
-import type { BbsPost, User } from '@/lib/types';
+import type { BbsPost, User, UserProfile } from '@/lib/types';
+import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 
 
 export default function NewBbsPostPage() {
@@ -30,6 +31,7 @@ export default function NewBbsPostPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -85,59 +87,60 @@ export default function NewBbsPostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) {
+    if (!user || !profile || !firestore) {
       toast({ variant: 'destructive', title: 'Please login to create a post.'});
       return;
     }
     setIsSubmitting(true);
 
-    const imageUrls = imagePreviews;
-
-    const authorData: User = {
+    const authorData: Partial<User> = {
       id: user.uid,
       name: profile.displayName || user.displayName || 'Anonymous',
       avatarUrl: profile.photoURL || user.photoURL || '',
-      rating: profile.rating || 0,
-      reviews: profile.reviewsCount || 0,
-      isPro: profile.isPro,
-      isWeb3Verified: profile.isWeb3Verified,
-      kycStatus: profile.kycStatus,
-      location: { city: profile.location || 'Unknown', country: '', countryCode: '', lat: 0, lng: 0 },
-      itemsOnSale: profile.salesCount,
-      itemsSold: 0,
-      creditScore: profile.creditScore,
       creditLevel: profile.creditLevel,
-      followersCount: profile.followersCount,
-      followingCount: profile.followingCount,
-      postsCount: 0, // This should probably be incremented
+      location: { city: profile.location || 'Unknown', country: '', countryCode: '', lat: 0, lng: 0 }
     };
+    
+    try {
+      const docRef = await addDoc(collection(firestore, "bbs"), {
+        title,
+        content,
+        authorId: user.uid,
+        author: authorData,
+        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        images: imagePreviews,
+        createdAt: serverTimestamp(),
+        likes: 0,
+        favorites: 0,
+        views: 0,
+        replies: 0,
+        isFeatured: false,
+        likedBy: [],
+        favoritedBy: [],
+      });
 
-    const newPost: BbsPost = {
-      id: `post_${Date.now()}`,
-      title: title,
-      content: content,
-      author: authorData,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      replies: 0,
-      likes: 0,
-      views: 0,
-      createdAt: new Date().toISOString(),
-      images: imageUrls,
-      imageHints: [],
-      isFeatured: false,
-      favorites: 0,
-    };
+      // Increment user's post count
+      const userRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userRef, {
+        postsCount: increment(1)
+      });
+      
+      setIsSubmitting(false);
+      toast({
+          title: "Post created!",
+          description: "Your post is now live in the Lacus Somniorum.",
+      });
+      router.push(`/bbs/${docRef.id}`);
 
-    const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
-    const localPosts = localPostsJSON ? JSON.parse(localPostsJSON) : [];
-    localStorage.setItem('luna_new_bbs_posts', JSON.stringify([newPost, ...localPosts]));
-
-    setIsSubmitting(false);
-    toast({
-        title: "Post created!",
-        description: "Your post is now live in the Lacus Somniorum.",
-    });
-    router.push(`/bbs/${newPost.id}`);
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast({
+        variant: "destructive",
+        title: "Failed to create post",
+        description: "An error occurred while saving your post. Please try again.",
+      });
+      setIsSubmitting(false);
+    }
   };
 
   if (loading || !user) {

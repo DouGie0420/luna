@@ -190,6 +190,9 @@
             "admin",
             "ghost"
           ]
+        },
+        "postsCount": {
+          "type": "number"
         }
       },
       "required": [
@@ -584,6 +587,51 @@
         "status",
         "createdAt"
       ]
+    },
+    "BbsPost": {
+      "title": "BBS Post",
+      "description": "Represents a post in the community forum.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "author": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "avatarUrl": { "type": "string", "format": "uri" }
+          }
+        },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "number", "description": "Total number of likes." },
+        "favorites": { "type": "number", "description": "Total number of favorites." },
+        "views": { "type": "number" },
+        "replies": { "type": "number" },
+        "isFeatured": { "type": "boolean" },
+        "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who liked the post." },
+        "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." }
+      },
+      "required": ["title", "content", "authorId", "createdAt"]
+    },
+    "Comment": {
+      "title": "BBS Comment",
+      "description": "Represents a comment on a BBS post.",
+      "type": "object",
+      "properties": {
+        "authorId": { "type": "string" },
+        "text": { "type": "string" },
+        "parentId": { "type": "string", "description": "The ID of the parent comment, if it's a reply." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "number" },
+        "dislikes": { "type": "number" },
+        "likedBy": { "type": "array", "items": { "type": "string" } },
+        "dislikedBy": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["authorId", "text", "createdAt"]
     }
   },
   "auth": {
@@ -646,6 +694,14 @@
         "$ref": "#/entities/SupportTicket"
       },
       "description": "Stores user-submitted support tickets."
+    },
+    "/bbs/{postId}": {
+      "schema": { "$ref": "#/entities/BbsPost" },
+      "description": "Stores community forum posts."
+    },
+    "/bbs/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Stores comments for a specific BBS post."
     }
   }
 }
