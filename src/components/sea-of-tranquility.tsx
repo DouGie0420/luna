@@ -12,27 +12,18 @@ import { Skeleton } from './ui/skeleton';
 import { BbsPostCard } from './bbs-post-card';
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
+import { formatDistanceToNow } from 'date-fns';
 
 const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const { t } = useTranslation();
 
-    const summary = useMemo(() => {
-        const content = post.content || t(post.contentKey || '');
-        return content
-            .replace(/!\[.*?\]\(.*?\)/g, '')
-            .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '')
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join(' ')
-            .trim();
-    }, [post.content, post.contentKey, t]);
+    const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '';
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block">
-            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50 p-5">
-                <div className="flex items-start gap-4">
-                    <div className="w-24 h-24 relative overflow-hidden rounded-md shrink-0">
+            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50 p-4">
+                <div className="flex items-center gap-4">
+                     <div className="w-24 h-24 relative overflow-hidden rounded-md shrink-0">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
                             alt={post.title || t(post.titleKey || '')}
@@ -41,33 +32,30 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                             data-ai-hint={post.imageHints?.[0] || ''}
                         />
                     </div>
-                    <div className="flex-1 flex flex-col justify-between">
-                         <div className="flex-grow">
-                            <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                    <div className="flex-1 flex flex-col self-stretch">
+                        <div className="flex-grow">
+                             <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                                 {post.title || t(post.titleKey || '')}
                             </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-3">
-                                {summary}
+                            <p className="text-xs text-muted-foreground">
+                                <span className='font-semibold text-foreground/80'>{post.author.name}</span>
+                                <span className='mx-1'>·</span>
+                                <span>{timeAgo}</span>
                             </p>
                         </div>
-                         <div className="flex justify-between items-center text-xs text-muted-foreground pt-2">
-                             <div>
-                                <span className="font-semibold text-foreground/80">{post.author.name}</span>
-                            </div>
-                             <div className="flex items-center gap-2">
-                                <span className="flex items-center gap-1">
-                                    <MessageSquare className="h-3 w-3" />
-                                    <span>{post.replies}</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <ThumbsUp className="h-3 w-3" />
-                                    <span>{post.likes}</span>
-                                </span>
-                                <span className="flex items-center gap-1">
-                                    <Eye className="h-3 w-3" />
-                                    <span>{post.views}</span>
-                                </span>
-                            </div>
+                        <div className="flex justify-end items-center gap-3 text-xs text-muted-foreground pt-2">
+                            <span className="flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                <span>{post.replies}</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <ThumbsUp className="h-3 w-3" />
+                                <span>{post.likes}</span>
+                            </span>
+                            <span className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                <span>{post.views}</span>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -76,6 +64,24 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     );
 });
 SmallPostCard.displayName = 'SmallPostCard';
+
+const SmallPostCardSkeleton = () => (
+    <Card className="p-4 bg-card/50">
+        <div className="flex items-center gap-4">
+            <Skeleton className="h-24 w-24 shrink-0 rounded-md" />
+            <div className="flex-1 flex flex-col h-24 justify-between">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-4/5" />
+                    <Skeleton className="h-3 w-1/2 mt-1" />
+                </div>
+                <div className="flex justify-end items-center">
+                    <Skeleton className="h-4 w-1/3" />
+                </div>
+            </div>
+        </div>
+    </Card>
+);
 
 export function SeaOfTranquility() {
     const { t } = useTranslation();
@@ -122,24 +128,7 @@ export function SeaOfTranquility() {
                     </div>
                     {/* Other Posts Skeleton */}
                     <div className="lg:col-span-1 flex flex-col gap-4">
-                        {[...Array(5)].map((_, i) => (
-                            <Card key={i} className="p-4 bg-card/50">
-                                <div className="flex items-start gap-4">
-                                    <Skeleton className="h-20 w-20 shrink-0 rounded-md" />
-                                    <div className="flex-1 flex flex-col h-20 justify-between">
-                                        <div className="space-y-2">
-                                            <Skeleton className="h-4 w-full" />
-                                            <Skeleton className="h-4 w-4/5" />
-                                            <Skeleton className="h-3 w-full mt-1" />
-                                        </div>
-                                         <div className="flex justify-between items-center">
-                                            <Skeleton className="h-4 w-1/3" />
-                                            <Skeleton className="h-4 w-1/4" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
+                        {[...Array(5)].map((_, i) => <SmallPostCardSkeleton key={i} />)}
                     </div>
                 </div>
             </section>

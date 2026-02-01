@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2 } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import React, { useMemo } from 'react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
@@ -35,12 +35,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
-    const formattedDate = useMemo(() => {
-        if (!post.createdAt) return '';
-        const date = new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt);
-        return format(date, 'yy/MM/dd');
-    }, [post.createdAt]);
-
+    const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '';
 
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
@@ -65,7 +60,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         <Link href={`/bbs/${post.id}`} className="group block h-full">
             <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
                 <CardHeader className="p-0 relative">
-                    <div className="aspect-[2/1] relative overflow-hidden">
+                    <div className="aspect-[1.8/1] relative overflow-hidden">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
                             alt={post.title || t(post.titleKey || '')}
@@ -107,7 +102,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     )}
                 </CardHeader>
                 <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-base mb-2 leading-tight drop-shadow-md">
+                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -151,7 +146,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         <div>
                             <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
                             <p className="text-xs text-muted-foreground">
-                                {formattedDate}
+                                {timeAgo}
                                 {post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
                             </p>
                         </div>
