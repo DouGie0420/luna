@@ -8,8 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2 } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { format, formatDistanceToNow } from 'date-fns';
-import { enUS, zhCN, th } from 'date-fns/locale';
+import { format } from 'date-fns';
 import React, { useMemo } from 'react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
@@ -23,9 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 
-
-const locales = { en: enUS, zh: zhCN, th: th };
-
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
@@ -33,7 +29,7 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
-    const { t, language } = useTranslation();
+    const { t } = useTranslation();
     const { profile } = useUser();
     const { toast } = useToast();
 
@@ -42,7 +38,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     const formattedDate = useMemo(() => {
         if (!post.createdAt) return '';
         const date = new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt);
-        return format(date, 'yy/MM/dd HH:mm');
+        return format(date, 'yy/MM/dd');
     }, [post.createdAt]);
 
 
@@ -69,7 +65,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         <Link href={`/bbs/${post.id}`} className="group block h-full">
             <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
                 <CardHeader className="p-0 relative">
-                    <div className="aspect-video relative overflow-hidden">
+                    <div className="aspect-[2/1] relative overflow-hidden">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
                             alt={post.title || t(post.titleKey || '')}
@@ -111,7 +107,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     )}
                 </CardHeader>
                 <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
+                     <CardTitle className="font-headline text-base mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -128,7 +124,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 </div>
 
                 <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow">
-                    <p className="line-clamp-3">{summary}</p>
+                    <p className="line-clamp-2">{summary}</p>
                 </CardContent>
 
                 <CardFooter className="p-4 flex justify-between items-end">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
@@ -30,9 +30,9 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block">
-            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50 p-4">
+            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50 p-5">
                 <div className="flex items-start gap-4">
-                    <div className="w-20 h-20 relative overflow-hidden rounded-md shrink-0">
+                    <div className="w-24 h-24 relative overflow-hidden rounded-md shrink-0">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
                             alt={post.title || t(post.titleKey || '')}
@@ -41,16 +41,16 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                             data-ai-hint={post.imageHints?.[0] || ''}
                         />
                     </div>
-                    <div className="flex-1 flex flex-col justify-between h-20">
-                         <div>
+                    <div className="flex-1 flex flex-col justify-between">
+                         <div className="flex-grow">
                             <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                                 {post.title || t(post.titleKey || '')}
                             </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-1">
+                            <p className="text-xs text-muted-foreground line-clamp-3">
                                 {summary}
                             </p>
                         </div>
-                         <div className="flex justify-between items-center text-xs text-muted-foreground pt-1">
+                         <div className="flex justify-between items-center text-xs text-muted-foreground pt-2">
                              <div>
                                 <span className="font-semibold text-foreground/80">{post.author.name}</span>
                             </div>
@@ -76,7 +76,6 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     );
 });
 SmallPostCard.displayName = 'SmallPostCard';
-
 
 export function SeaOfTranquility() {
     const { t } = useTranslation();
