@@ -37,59 +37,13 @@ service cloud.firestore {
     function isRequestingUserSupport() {
         return getUserRole(request.auth.uid) in ['support', 'staff', 'ghost', 'admin'];
     }
-
-    function isAllowedSelfUpdate() {
-        let new = request.resource.data;
-        let old = resource.data;
-        
-        // Check immutable fields. These should NEVER change after creation.
-        if (new.uid != old.uid || new.createdAt != old.createdAt || new.loginId != old.loginId) {
-          return false;
-        }
-        
-        // Check admin-only fields. Only allow change if value is unchanged.
-        if (new.rating != old.rating || new.reviewsCount != old.reviewsCount || 
-            new.salesCount != old.salesCount || new.purchasesCount != old.purchasesCount ||
-            new.followersCount != old.followersCount || new.followingCount != old.followingCount ||
-            new.creditScore != old.creditScore || new.creditLevel != old.creditLevel ||
-            new.lunarSoil != old.lunarSoil) {
-           return false;
-        }
-
-        // Special handling for 'role'. Allow guest -> user, but no other self-changes.
-        if (new.role != old.role && !(old.role == 'guest' && new.role == 'user')) {
-          return false;
-        }
-        
-        // Special handling for 'kycStatus'. Allow Not Verified -> Pending.
-        if (new.kycStatus != old.kycStatus && !(old.kycStatus == 'Not Verified' && new.kycStatus == 'Pending')) {
-          return false;
-        }
-        
-        // Special handling for 'postsCount'. Allow increment by 1.
-        if (new.postsCount != old.postsCount && new.postsCount != old.postsCount + 1) {
-          return false;
-        }
-
-        // If all checks passed, the update is allowed.
-        // This implicitly allows changes to: displayName, photoURL, gender, location, bio, lastLogin, emailVerified, walletAddress, etc.
-        return true;
-    }
     
     // --- Collection Rules ---
 
     // USER PROFILES
     match /users/{userId} {
-      // Anyone can read a user's public profile.
-      allow get, list: if true;
-      
-      // A user can create their own profile document.
-      allow create: if isOwner(userId) && request.resource.data.role == 'guest';
-
-      // A user can update their own profile, OR an admin/staff can update it.
-      allow update: if (isOwner(userId) && isAllowedSelfUpdate())
-                    || (isRequestingUserAdmin() && request.auth.uid != userId) 
-                    || (isRequestingUserGhost() && getUserRole(userId) != 'admin' && getUserRole(userId) != 'ghost' && request.auth.uid != userId);
+      allow read: if true;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
 
       // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
       allow delete: if isRequestingUserAdmin() || (isRequestingUserGhost() && getUserRole(userId) != 'admin' && getUserRole(userId) != 'ghost');

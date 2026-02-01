@@ -68,13 +68,18 @@ export default function LoginPage() {
       }
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      await upsertUserProfile(firestore, userCredential.user);
+      
+      // Login is successful, do not await the profile update.
+      // This ensures navigation happens immediately and the UI doesn't get stuck.
+      upsertUserProfile(firestore, userCredential.user);
+      
       toast({
         title: t('loginPage.loginSuccessTitle'),
         duration: 3000,
         variant: 'success',
       });
       router.push('/');
+
     } catch (error: any) {
       let description = "An unknown error occurred.";
        switch (error.code) {
@@ -92,7 +97,6 @@ export default function LoginPage() {
         title: t('loginPage.loginFailedTitle'),
         description,
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -104,7 +108,10 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, provider);
-      await upsertUserProfile(firestore, result.user);
+
+      // Login is successful, do not await the profile update.
+      upsertUserProfile(firestore, result.user);
+      
       toast({
         title: t('loginPage.loginSuccessTitle'),
         duration: 3000,
@@ -122,7 +129,6 @@ export default function LoginPage() {
         x: e.clientX,
         y: e.clientY,
       });
-    } finally {
       setIsLoading(false);
     }
   };
