@@ -55,32 +55,17 @@ service cloud.firestore {
       
       // A user can update their own profile, with specific rules for what can be changed.
       allow update: if isOwner(userId) &&
-        // These fields are immutable or can only be changed by an admin.
-        !request.resource.data.keys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount']) &&
-        // Special rule for 'role': only a guest->user promotion is allowed, otherwise it must not change.
-        (
-            !('role' in request.resource.data) ||
-            request.resource.data.role == resource.data.role ||
-            (resource.data.role == 'guest' && request.resource.data.role == 'user')
-        ) &&
-        // Prevent user from promoting themselves to a privileged role.
-        (
-            !('role' in request.resource.data) ||
-            request.resource.data.role == 'guest' ||
-            request.resource.data.role == 'user'
-        ) &&
-        // Special rule for 'kycStatus': user can only change from 'Not Verified' to 'Pending'.
-        (
-            !('kycStatus' in request.resource.data) ||
-            request.resource.data.kycStatus == resource.data.kycStatus ||
-            (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')
-        ) &&
-         // Special rule for 'postsCount': can only be incremented by 1 (by system) or stay the same.
-        (
-            !('postsCount' in request.resource.data) ||
-            request.resource.data.postsCount == resource.data.postsCount ||
-            request.resource.data.postsCount == resource.data.postsCount + 1
-        );
+          // 1. Fields that a user can NEVER change directly.
+          request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount']) == false &&
+          
+          // 2. Special rule for 'role': can only change from guest to user.
+          (request.resource.data.role == resource.data.role || (resource.data.role == 'guest' && request.resource.data.role == 'user')) &&
+          
+          // 3. Special rule for 'kycStatus': user can only change from 'Not Verified' to 'Pending'.
+          (request.resource.data.kycStatus == resource.data.kycStatus || (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) &&
+          
+          // 4. Special rule for 'postsCount': can only be incremented by 1.
+          (request.resource.data.postsCount == resource.data.postsCount || request.resource.data.postsCount == resource.data.postsCount + 1);
 
 
       // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
