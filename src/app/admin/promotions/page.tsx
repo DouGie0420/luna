@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState } from 'react';
@@ -6,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Megaphone, Award, Newspaper, Tv, SlidersHorizontal, Image as ImageIcon } from "lucide-react";
+import { Megaphone, Award, Newspaper, SlidersHorizontal, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,23 +22,56 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from "@/components/ui/accordion";
+import {
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// This is a placeholder page.
-// In a real application, this would fetch and manage promotion data from Firestore.
-
 export default function AdminPromotionsPage() {
-    const [fixedMerchants, setFixedMerchants] = useState(Array(5).fill(''));
+    const [announcementTitle, setAnnouncementTitle] = useState('【活动】赛博周一, 全场商品限时折扣！');
+    const [announcementContent, setAnnouncementContent] = useState('');
+    const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+    const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+    const [mediaUrl, setMediaUrl] = useState('');
+
+    const [carouselCount, setCarouselCount] = useState('10');
+
+    const [fixedMerchants, setFixedMerchants] = useState(Array(6).fill(''));
     const [duration, setDuration] = useState('24');
     const [position, setPosition] = useState(5);
     const [randomize, setRandomize] = useState(false);
-    const [carouselCount, setCarouselCount] = useState('10');
 
-    const handleFixedMerchantChange = (index: number, value: string) => {
-        const newMerchants = [...fixedMerchants];
-        newMerchants[index] = value;
-        setFixedMerchants(newMerchants);
+    const [mediumPostIds, setMediumPostIds] = useState(Array(10).fill(''));
+    const [smallPostIds, setSmallPostIds] = useState(Array(5).fill(''));
+
+    const handleArrayStateChange = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
+        setter(prev => {
+            const newArr = [...prev];
+            newArr[index] = value;
+            return newArr;
+        });
+    };
+
+    const handleInsertMedia = (type: 'image' | 'video') => {
+        if (!mediaUrl) return;
+        
+        let textToInsert = '';
+        if (type === 'image') {
+            textToInsert = `\n![image](${mediaUrl})\n`;
+            setIsImageDialogOpen(false);
+        } else if (type === 'video') {
+            textToInsert = `\n[video](${mediaUrl})\n`;
+            setIsVideoDialogOpen(false);
+        }
+        
+        setAnnouncementContent(prev => prev + textToInsert);
+        setMediaUrl('');
     };
 
     return (
@@ -51,11 +85,59 @@ export default function AdminPromotionsPage() {
                             <Megaphone /> 顶部官方通知
                         </CardTitle>
                         <CardDescription>
-                            管理网站顶部滚动播放的官方通知或活动信息。
+                            管理网站顶部滚动播放的官方通知或活动信息。支持插入图片和视频链接。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Textarea placeholder="输入当前的公告内容... 例如：【活动】赛博周一, 全场商品限时折扣！" />
+                        <div className="grid gap-2">
+                            <Label htmlFor="announcement-title">通知标题</Label>
+                            <Input 
+                                id="announcement-title"
+                                placeholder="输入当前的公告标题..." 
+                                value={announcementTitle}
+                                onChange={(e) => setAnnouncementTitle(e.target.value)}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="announcement-content">通知内容</Label>
+                            <Textarea 
+                                id="announcement-content"
+                                placeholder="输入公告的详细内容..."
+                                value={announcementContent}
+                                onChange={(e) => setAnnouncementContent(e.target.value)}
+                                rows={5}
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm"><ImageIcon className="mr-2 h-4 w-4" /> 插入图片</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>插入图片链接</DialogTitle>
+                                    </DialogHeader>
+                                    <Input placeholder="https://example.com/image.png" value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} />
+                                    <DialogFooter>
+                                        <Button onClick={() => handleInsertMedia('image')}>确认插入</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                             <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline" size="sm"><VideoIcon className="mr-2 h-4 w-4" /> 插入视频</Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>插入视频链接 (YouTube/TikTok)</DialogTitle>
+                                    </DialogHeader>
+                                    <Input placeholder="https://www.youtube.com/watch?v=..." value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} />
+                                    <DialogFooter>
+                                        <Button onClick={() => handleInsertMedia('video')}>确认插入</Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
                         <div className="flex justify-end">
                             <Button>发布通知</Button>
                         </div>
@@ -101,7 +183,7 @@ export default function AdminPromotionsPage() {
                                         </div>
                                          <div className="grid gap-2">
                                             <Label htmlFor={`carousel-desc-${index}`}>描述</Label>
-                                            <Input id={`carousel-desc-${index}`} placeholder="例如：探索最新潮的赛博装备" />
+                                            <Textarea id={`carousel-desc-${index}`} placeholder="例如：探索最新潮的赛博装备" />
                                         </div>
                                          <div className="grid gap-2">
                                             <Label htmlFor={`carousel-img-${index}`}>图片链接</Label>
@@ -128,7 +210,7 @@ export default function AdminPromotionsPage() {
                             <Award /> 认证商户展示管理
                         </CardTitle>
                         <CardDescription>
-                            控制首页“认证商户”板块的展示逻辑和内容。
+                            控制首页“认证商户”板块的展示逻辑和内容。可设置多个固定商户ID。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -138,14 +220,14 @@ export default function AdminPromotionsPage() {
                         </div>
                         <Separator />
                         <div>
-                             <Label className="mb-4 block">指定固定商户 (最多5个)</Label>
-                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                             <Label className="mb-4 block">指定固定商户 (6个位置)</Label>
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {fixedMerchants.map((merchantId, index) => (
                                     <Input
                                         key={index}
                                         placeholder={`商户ID ${index + 1}`}
                                         value={merchantId}
-                                        onChange={(e) => handleFixedMerchantChange(index, e.target.value)}
+                                        onChange={(e) => handleArrayStateChange(setFixedMerchants, index, e.target.value)}
                                     />
                                 ))}
                              </div>
@@ -199,17 +281,32 @@ export default function AdminPromotionsPage() {
                     </CardHeader>
                     <CardContent className="space-y-6">
                          <div>
-                             <Label>中号推荐位 (2个)</Label>
+                             <Label>中号推荐位 (10个)</Label>
                              <p className="text-xs text-muted-foreground mb-2">输入帖子ID以在首页左侧区域展示。</p>
                              <div className="grid md:grid-cols-2 gap-4">
-                                <Input placeholder="帖子ID 1" />
-                                <Input placeholder="帖子ID 2" />
+                                {mediumPostIds.map((postId, index) => (
+                                    <Input 
+                                        key={`medium-${index}`}
+                                        placeholder={`帖子ID ${index + 1}`}
+                                        value={postId}
+                                        onChange={(e) => handleArrayStateChange(setMediumPostIds, index, e.target.value)}
+                                    />
+                                ))}
                              </div>
                         </div>
                         <div>
                             <Label>小型推荐位 (5个)</Label>
-                             <p className="text-xs text-muted-foreground mb-2">输入帖子ID，用逗号分隔，以在首页右侧列表展示。</p>
-                             <Textarea placeholder="post-id-1, post-id-2, post-id-3, post-id-4, post-id-5"></Textarea>
+                             <p className="text-xs text-muted-foreground mb-2">输入帖子ID以在首页右侧列表展示。</p>
+                            <div className="grid grid-cols-1 gap-4">
+                                {smallPostIds.map((postId, index) => (
+                                     <Input
+                                        key={`small-${index}`}
+                                        placeholder={`帖子ID ${index + 1}`}
+                                        value={postId}
+                                        onChange={(e) => handleArrayStateChange(setSmallPostIds, index, e.target.value)}
+                                    />
+                                ))}
+                            </div>
                         </div>
                          <div className="flex justify-end">
                             <Button>保存社区推荐</Button>
