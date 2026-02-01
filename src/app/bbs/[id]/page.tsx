@@ -484,7 +484,7 @@ export default function BbsPostPage() {
 
     const handleEditPost = (e: React.MouseEvent) => {
         e.preventDefault();
-        toast({ title: t('bbsPage.editComingSoon') });
+        router.push(`/bbs/edit/${id}`);
     };
 
     const handleDeletePost = async (e: React.MouseEvent) => {

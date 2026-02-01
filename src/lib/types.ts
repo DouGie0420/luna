@@ -1,3 +1,4 @@
+
 export type Product = {
   id: string;
   name: string;
@@ -165,6 +166,7 @@ export type BbsPost = {
   likes: number;
   views: number;
   createdAt: any;
+  updatedAt?: any;
   images?: string[];
   imageHints?: string[];
   isFeatured?: boolean;
