@@ -35,7 +35,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
     const { data: sellerProfile } = useDoc<UserProfile>(sellerProfileRef);
 
     const displayUser = sellerProfile || seller;
-    const onSaleCount = sellerProfile?.onSaleCount ?? seller.onSaleCount ?? 0;
+    const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
 
     return (
         <Dialog>
@@ -62,15 +62,16 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                         <span>{t('userProfile.pro')}</span>
                                     </div>
                                 )}
-                                {displayUser.isNftVerified ? (
-                                    <div className="flex items-center gap-1.5 text-cyan-400">
-                                        <EthereumIcon className="h-4 w-4" />
-                                        <span>NFT</span>
-                                    </div>
-                                ) : displayUser.isWeb3Verified && (
+                                {displayUser.isWeb3Verified && (
                                     <div className="flex items-center gap-1.5 text-blue-400">
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>WEB3</span>
+                                    </div>
+                                )}
+                                {displayUser.isNftVerified && (
+                                    <div className="flex items-center gap-1.5 text-cyan-400">
+                                        <EthereumIcon className="h-4 w-4" />
+                                        <span>NFT</span>
                                     </div>
                                 )}
                                 {displayUser.kycStatus === 'Verified' && (
@@ -153,15 +154,16 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     <span>{t('userProfile.pro')}</span>
                                 </div>
                             )}
-                            {displayUser.isNftVerified ? (
-                                <div className="flex items-center gap-1.5 text-cyan-400">
-                                    <EthereumIcon className="h-4 w-4" />
-                                    <span>NFT</span>
-                                </div>
-                            ) : displayUser.isWeb3Verified && (
+                            {displayUser.isWeb3Verified && (
                                 <div className="flex items-center gap-1.5 text-blue-400">
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>WEB3</span>
+                                </div>
+                            )}
+                            {displayUser.isNftVerified && (
+                                <div className="flex items-center gap-1.5 text-cyan-400">
+                                    <EthereumIcon className="h-4 w-4" />
+                                    <span>NFT</span>
                                 </div>
                             )}
                             {displayUser.kycStatus === 'Verified' && (
@@ -170,7 +172,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     <span>{t('userProfile.kyc')}</span>
                                 </div>
                             )}
-                            {!displayUser.isPro && !displayUser.isWeb3Verified && displayUser.kycStatus !== 'Verified' && (
+                            {!displayUser.isPro && !displayUser.isWeb3Verified && !displayUser.isNftVerified && displayUser.kycStatus !== 'Verified' && (
                                 <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                             )}
                         </div>
