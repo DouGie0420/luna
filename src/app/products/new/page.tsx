@@ -69,6 +69,7 @@ export default function NewProductPage() {
       const fileArray = Array.from(files);
       if ((imagePreviews.length + fileArray.length) > 9) {
           toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
+          e.target.value = '';
           return;
       }
       
@@ -111,6 +112,8 @@ export default function NewProductPage() {
         setIsAiLoading(false); // Hide loader
       }
     }
+    // Reset file input to allow re-uploading the same file
+    e.target.value = '';
   };
 
   const removeImage = (indexToRemove: number) => {

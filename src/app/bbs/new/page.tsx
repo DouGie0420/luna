@@ -109,6 +109,7 @@ export default function NewBbsPostPage() {
     if (files) {
       if ((imagePreviews.length + files.length) > 9) {
           toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
+          e.target.value = '';
           return;
       }
       
@@ -151,6 +152,7 @@ export default function NewBbsPostPage() {
         setIsAiLoading(false);
       }
     }
+    e.target.value = ''; // Reset file input to allow re-uploading the same file
   };
 
   const removeImage = (indexToRemove: number) => {
