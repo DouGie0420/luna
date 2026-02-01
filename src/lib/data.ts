@@ -1,3 +1,4 @@
+
 import type { Product, User, KycStatus, BbsPost, UserAddress } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -627,6 +628,59 @@ const products: Product[] = [
 const staffUsers = users.slice(10); // The 10 new staff users
 
 const bbsPosts: BbsPost[] = [
+    {
+      id: 'xhs-post-21',
+      title: '全息投影宠物 | 我的桌上多了一只小狐狸！',
+      content: `
+      最近入手了一个超酷的桌面全息投影仪，自带的宠物模型里有一只小狐狸，简直萌化了！🦊
+      它可以根据你的触摸做出不同的反应，还会追着光标跑来跑去。
+      晚上关了灯，看着它在桌面上发光，感觉整个世界都变科幻了。
+
+      💡 **型号:** HoloPet Desktop V3
+      🔌 **优点:** 设置简单，模型库丰富，互动性强。
+      🤔 **缺点:** 价格小贵，对环境光线有要求。
+      
+      #黑科技 #桌面萌物 #全息投影 #数码好物 #开箱
+      `,
+      author: staffUsers[0],
+      tags: ['黑科技', '桌面萌物', '全息投影'],
+      replies: 288,
+      likes: 7200,
+      views: 130000,
+      favorites: 4100,
+      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+      images: ['https://picsum.photos/seed/xhs-img-21/800/1000'],
+      imageHints: ['hologram pet'],
+      isFeatured: false,
+      location: { city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7278, lng: 100.5241 },
+    },
+    {
+      id: 'xhs-post-22',
+      title: '周末逃离计划 | 误入重庆赛博朋克森林',
+      content: `
+      重庆的夜景真的不是盖的！洪崖洞和千厮门大桥的组合，简直就是现实版的《银翼杀手》。
+      穿梭在层层叠叠的立交桥和霓虹灯牌之间，感觉自己像是进入了一个光怪陆离的赛博世界。
+
+      📸 **拍照机位推荐:**
+      -   **洪崖洞对岸:** 拍全景的最佳位置。
+      -   **千厮门大桥上:** 可以拍到轻轨穿楼的魔幻瞬间。
+      -   **戴家巷:** 老街区和未来感建筑的奇妙碰撞。
+
+      来重庆，一定要晚上出来走走，感受一下8D魔幻都市的魅力！
+      #重庆旅游 #赛博朋克 #城市夜景 #周末去哪儿 #旅行
+      `,
+      author: staffUsers[1],
+      tags: ['重庆旅游', '赛博朋克', '城市夜景'],
+      replies: 350,
+      likes: 8100,
+      views: 160000,
+      favorites: 4800,
+      createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+      images: ['https://picsum.photos/seed/xhs-img-22/800/1000'],
+      imageHints: ['cyberpunk city'],
+      isFeatured: false,
+      location: { city: 'Chongqing', country: 'China', countryCode: 'CN', lat: 29.5630, lng: 106.5516 },
+    },
     {
       id: 'xhs-post-1',
       title: '曼谷ins风咖啡厅天花板☕️ | 随便一拍就是大片!',
