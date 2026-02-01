@@ -252,12 +252,9 @@ export default function MyListingsPage() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleLike(product.id); }}
-                                            className={cn(
-                                                "flex items-center gap-1 z-10 p-1 h-auto text-sm transition-colors",
-                                                isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500 rounded-md" : "hover:text-primary text-muted-foreground"
-                                            )}
+                                            className={cn("flex items-center gap-1 z-10 p-1 h-auto text-sm transition-colors hover:text-primary", isLiked ? "text-yellow-400" : "text-muted-foreground")}
                                         >
-                                            <Heart className="h-4 w-4" />
+                                            <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
                                             <span>{(product.likes || 0) + (isLiked ? 1 : 0)} {t('accountListings.likes')}</span>
                                         </Button>
                                         <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleFavorite(product.id); }} className="flex items-center gap-1 z-10 hover:text-primary transition-colors">

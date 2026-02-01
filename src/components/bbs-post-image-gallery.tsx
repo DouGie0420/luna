@@ -135,16 +135,13 @@ export function BbsPostImageGallery({ post, onLikeToggle, onFavoriteToggle }: Bb
             <Button
                 onClick={onLikeToggle}
                 variant="ghost"
-                className={cn(
-                    "rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm",
-                    isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-black/70 hover:text-rose-500"
-                )}
+                className="rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm hover:bg-black/70"
             >
-              <Heart className="h-4 w-4" />
+              <Heart className={cn("h-4 w-4", isLiked ? "fill-yellow-400 text-yellow-400" : "hover:text-yellow-300")} />
               <span>{post.likes || 0}</span>
           </Button>
-          <Button onClick={onFavoriteToggle} variant="ghost" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm">
-              <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+          <Button onClick={onFavoriteToggle} variant="ghost" className="rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm">
+              <Star className={cn("h-4 w-4", isFavorited ? "fill-yellow-400 text-yellow-400" : "hover:text-yellow-300")} />
               <span>{post.favorites || 0}</span>
           </Button>
           <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">

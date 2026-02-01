@@ -1,10 +1,9 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Eye, MessageSquare, ThumbsUp, Star, Heart } from 'lucide-react';
+import { ArrowRight, Eye, Heart, MessageSquare, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { collection, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -127,7 +126,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
 
     return (
         <Card className="flex h-full flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
-            <Link href={`/bbs/${post.id}`} className="group block p-4">
+            <Link href={`/bbs/${post.id}`} className="group block p-5 flex-grow">
                 <div className="flex items-start gap-4">
                     <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
                         <Image
@@ -143,12 +142,12 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                              <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                                 {post.title || t(post.titleKey || '')}
                             </h3>
-                            <p className="text-xs text-muted-foreground line-clamp-4">{summary}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-3">{summary}</p>
                         </div>
                     </div>
                 </div>
             </Link>
-            <CardFooter className="p-4 pt-0 mt-auto flex justify-between items-center">
+            <CardFooter className="p-5 pt-0 flex justify-between items-center">
                  <div className="flex items-center gap-2 overflow-hidden">
                     <Avatar className="h-6 w-6">
                         <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
@@ -156,15 +155,15 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                     </Avatar>
                     <div className="text-xs">
                         <p className="font-semibold text-foreground truncate">{post.author.name}</p>
-                        <p className="text-muted-foreground truncate">{timeAgo} {post.location?.city && `· ${post.location.city}, ${post.location.countryCode}`}</p>
+                        <p className="text-muted-foreground truncate">{timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
+                        <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
                         <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
-                        <Heart className={cn("h-4 w-4", isLiked && "text-rose-500 fill-rose-500")} />
                     </Button>
                 </div>
             </CardFooter>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, ThumbsUp, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2 } from 'lucide-react';
+import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -158,7 +158,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                             <span>{post.replies}</span>
                         </span>
                         <span className="flex items-center gap-1.5" title={`${post.likes} likes`}>
-                             <ThumbsUp className="h-4 w-4" />
+                             <Heart className="h-4 w-4" />
                             <span>{post.likes}</span>
                         </span>
                         <span className="flex items-center gap-1.5" title={`${post.views} views`}>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronDown, Loader2, MessageSquare, Reply, X, ThumbsUp, Meh, ThumbsDown, Trash2 } from 'lucide-react';
+import { ChevronDown, Loader2, MessageSquare, Reply, X, ThumbsDown, Trash2, Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { getUsers } from '@/lib/data';
@@ -265,21 +266,15 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                 <Button
                                     variant="ghost"
                                     onClick={() => handleLikeDislike(comment.id, 'like')}
-                                    className={cn(
-                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
-                                        isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
-                                    )}
+                                    className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
                                 >
-                                    <ThumbsUp className="h-4 w-4" />
+                                    <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
                                     <span>{(author?.goodReviews ?? 0) + (isLiked ? 1 : 0)}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
                                     onClick={() => handleLikeDislike(comment.id, 'dislike')}
-                                    className={cn(
-                                        "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
-                                        isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
-                                    )}
+                                    className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
                                 >
                                     <ThumbsDown className="h-4 w-4" />
                                     <span>{(author?.badReviews ?? 0) + (isDisliked ? 1 : 0)}</span>

@@ -181,21 +181,15 @@ const CommentItem = ({
                     <Button
                         variant="ghost"
                         onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')}
-                        className={cn(
-                            "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
-                            isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
-                        )}
+                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
                     >
-                        <ThumbsUp className="h-4 w-4" />
+                        <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
                         <span>{comment.likes || 0}</span>
                     </Button>
                     <Button
                         variant="ghost"
                         onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')}
-                        className={cn(
-                            "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
-                            isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
-                        )}
+                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
                     >
                         <ThumbsDown className="h-4 w-4" />
                         <span>{comment.dislikes || 0}</span>
