@@ -168,6 +168,7 @@ export type BbsPost = {
   createdAt: any;
   updatedAt?: any;
   images?: string[];
+  videos?: string[];
   imageHints?: string[];
   isFeatured?: boolean;
   favorites?: number;

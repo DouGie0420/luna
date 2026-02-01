@@ -36,7 +36,6 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { ContentPreviewRenderer } from '@/components/content-preview-renderer';
 
 
 export default function EditBbsPostPage() {
@@ -56,9 +55,11 @@ export default function EditBbsPostPage() {
   const [tags, setTags] = useState('');
   
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
+  const [isImageURLDialogOpen, setIsImageURLDialogOpen] = useState(false);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -70,6 +71,7 @@ export default function EditBbsPostPage() {
         setContent(post.content || '');
         setTags(post.tags?.join(', ') || '');
         setImagePreviews(post.images || []);
+        setVideoUrls(post.videos || []);
     }
   }, [post]);
 
@@ -122,48 +124,43 @@ export default function EditBbsPostPage() {
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
   
-  const handleInsertImage = () => {
-    if (imageUrl) {
-        setContent(prev => `${prev}\n![Image from URL](${imageUrl})\n`);
-        setImageUrl('');
-        setIsImageDialogOpen(false);
+  const handleAddImageUrl = () => {
+    if (imageUrl && imagePreviews.length < 9) {
+        try {
+            new URL(imageUrl);
+            setImagePreviews(prev => [...prev, imageUrl]);
+            setImageUrl('');
+            setIsImageURLDialogOpen(false);
+        } catch (_) {
+            toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid image URL.' });
+        }
+    } else if (imagePreviews.length >= 9) {
+        toast({ variant: 'destructive', title: 'Maximum 9 images allowed.' });
     }
   };
 
-  const handleInsertVideo = () => {
-    if (videoUrl) {
-        let embedUrl = '';
-        const youtubeMatch = videoUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-        const tiktokMatch = videoUrl.match(/tiktok\.com\/.*\/video\/(\d+)/);
-
-        if (youtubeMatch && youtubeMatch[1]) {
-            embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
-            setContent(prev => `${prev}\n[youtube](${embedUrl})\n`);
-        } else if (tiktokMatch && tiktokMatch[1]) {
-            embedUrl = `https://www.tiktok.com/embed/v2/${tiktokMatch[1]}`;
-             setContent(prev => `${prev}\n[tiktok](${embedUrl})\n`);
-        }
-
-        if (embedUrl) {
-            setVideoUrl('');
-            setIsVideoDialogOpen(false);
-        } else {
-            toast({
-                variant: 'destructive',
-                title: 'Invalid URL',
-                description: 'Please enter a valid YouTube or TikTok share link.'
-            })
-        }
-    }
+  const handleAddVideoUrl = () => {
+      if (videoUrl) {
+          let embedUrl = videoUrl; // Default to the URL itself
+          const youtubeMatch = videoUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (youtubeMatch && youtubeMatch[1]) {
+              embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+          }
+          
+          if (embedUrl) {
+              setVideoUrls(prev => [...prev, embedUrl]);
+              setVideoUrl('');
+              setIsVideoDialogOpen(false);
+          } else {
+              toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid YouTube or TikTok share link.' });
+          }
+      }
+  };
+  
+  const handleRemoveVideo = (indexToRemove: number) => {
+    setVideoUrls(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const handleRemoveMediaLine = (lineToRemove: string) => {
-    setContent(prev => {
-        const lines = prev.split('\n');
-        const newLines = lines.filter(line => line.trim() !== lineToRemove.trim());
-        return newLines.join('\n').replace(/\n\n+/g, '\n');
-    });
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +175,7 @@ export default function EditBbsPostPage() {
       content,
       tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
       images: imagePreviews,
+      videos: videoUrls,
       updatedAt: serverTimestamp(),
     };
     
@@ -250,77 +248,15 @@ export default function EditBbsPostPage() {
                   <Input id="title" placeholder="A catchy title for your post" value={title} onChange={(e) => setTitle(e.target.value)} required />
                 </div>
                 <div className="grid gap-2">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="content">Content</Label>
-                        <div className="flex items-center gap-2">
-                            <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="sm">
-                                        <LinkIcon className="mr-2 h-4 w-4" /> Insert Image URL
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Insert Image from URL</DialogTitle>
-                                        <DialogDescription>Paste the URL of the image you want to embed.</DialogDescription>
-                                    </DialogHeader>
-                                    <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
-                                    <DialogFooter>
-                                        <Button onClick={handleInsertImage}>Add Image</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                            <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button type="button" variant="outline" size="sm">
-                                        <Video className="mr-2 h-4 w-4" /> Insert Video URL
-                                    </Button>
-                                </DialogTrigger>
-                                 <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Insert Video from URL</DialogTitle>
-                                        <DialogDescription>Paste a YouTube or TikTok share link.</DialogDescription>
-                                    </DialogHeader>
-                                    <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
-                                    <DialogFooter>
-                                        <Button onClick={handleInsertVideo}>Add Video</Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-                    </div>
-                    <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                        <Textarea id="content" placeholder="What's on your mind? You can use Markdown for formatting." value={content} onChange={(e) => setContent(e.target.value)} required rows={8} className="border-0 rounded-b-none focus-visible:ring-0 focus-visible:ring-offset-0"/>
-                        <ContentPreviewRenderer content={content} onRemove={handleRemoveMediaLine} />
-                    </div>
-                </div>
-                 <div className="grid gap-2">
-                  <Label htmlFor="tags">Tags</Label>
-                  <Input id="tags" placeholder="e.g. DIY, Tutorial, Review" value={tags} onChange={(e) => setTags(e.target.value)} />
-                  <p className="text-xs text-muted-foreground">Separate tags with commas.</p>
+                    <Label htmlFor="content">Content</Label>
+                    <Textarea id="content" placeholder="What's on your mind? You can use Markdown for formatting." value={content} onChange={(e) => setContent(e.target.value)} required rows={8} />
                 </div>
 
-                 <div className="grid gap-2">
-                    <Label>Upload Images (up to 9)</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center">
-                        <Input
-                            id="image-upload"
-                            type="file"
-                            className="sr-only"
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                            multiple
-                            disabled={imagePreviews.length >= 9}
-                        />
-                        <label htmlFor="image-upload" className={imagePreviews.length >= 9 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}>
-                            <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-                            <p className="mt-2 text-sm text-muted-foreground">{t('newProductPage.dragAndDrop')}</p>
-                            <Button asChild variant="outline" className="mt-4 pointer-events-none">
-                                <span>{t('newProductPage.selectFiles')}</span>
-                            </Button>
-                        </label>
+                <div className="grid gap-2">
+                    <Label>Images (up to 9)</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4">
                         {imagePreviews.length > 0 && (
-                            <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-4">
                                 {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative aspect-square">
                                         <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
@@ -337,7 +273,71 @@ export default function EditBbsPostPage() {
                                 ))}
                             </div>
                         )}
+                        {imagePreviews.length < 9 && (
+                            <div className="flex justify-center items-center gap-4">
+                                <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center text-center p-4 border border-dashed rounded-md hover:bg-accent transition-colors">
+                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                    <p className="mt-1 text-xs text-muted-foreground">Upload</p>
+                                </label>
+                                <Input
+                                    id="image-upload"
+                                    type="file"
+                                    className="sr-only"
+                                    onChange={handleImageUpload}
+                                    accept="image/*"
+                                    multiple
+                                />
+                                <Dialog open={isImageURLDialogOpen} onOpenChange={setIsImageURLDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button type="button" variant="outline" className="h-auto flex flex-col items-center justify-center p-4 border-dashed">
+                                            <LinkIcon className="h-8 w-8 text-muted-foreground" />
+                                            <p className="mt-1 text-xs text-muted-foreground">Add from URL</p>
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader><DialogTitle>Add Image from URL</DialogTitle></DialogHeader>
+                                        <Input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" />
+                                        <DialogFooter><Button onClick={handleAddImageUrl}>Add Image</Button></DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+                        )}
                     </div>
+                </div>
+
+                <div className="grid gap-2">
+                    <Label>Videos</Label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 space-y-4">
+                        {videoUrls.map((url, index) => (
+                            <div key={index} className="relative group p-2 rounded-md bg-secondary/50">
+                                <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                <Button type="button" size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100" onClick={() => handleRemoveVideo(index)}>
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ))}
+                        <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button type="button" variant="outline" className="w-full">
+                                    <Video className="mr-2 h-4 w-4" /> Add Video URL
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Add Video from URL</DialogTitle>
+                                    <DialogDescription>Paste a YouTube or TikTok share link.</DialogDescription>
+                                </DialogHeader>
+                                <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+                                <DialogFooter><Button onClick={handleAddVideoUrl}>Add Video</Button></DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+                    </div>
+                </div>
+
+                 <div className="grid gap-2">
+                  <Label htmlFor="tags">Tags</Label>
+                  <Input id="tags" placeholder="e.g. DIY, Tutorial, Review" value={tags} onChange={(e) => setTags(e.target.value)} />
+                  <p className="text-xs text-muted-foreground">Separate tags with commas.</p>
                 </div>
                
                 <div className="flex justify-end items-center gap-4">

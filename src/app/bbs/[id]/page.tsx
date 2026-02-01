@@ -62,73 +62,6 @@ type NestedComment = CommentType & {
 const COMMENTS_INITIAL_LOAD = 10;
 const COMMENTS_LOAD_MORE = 10;
 
-function PostContentRenderer({ content }: { content: string }) {
-  const renderableContent = useMemo(() => {
-    return content.split('\n').map((line, index) => {
-      const trimmedLine = line.trim();
-
-      if (trimmedLine === '') {
-        return <div key={index} className="h-4" />;
-      }
-
-      const imageMatch = trimmedLine.match(/^!\[(.*?)\]\((.+?)\)$/);
-      if (imageMatch) {
-        const [, alt, src] = imageMatch;
-        return (
-          <Dialog key={index}>
-            <DialogTrigger asChild>
-              <div className="relative aspect-video max-w-full w-[600px] mx-auto my-4 cursor-pointer overflow-hidden rounded-lg border hover:border-primary transition-all">
-                <Image src={src} alt={alt || 'Embedded Image'} layout="fill" className="object-contain" />
-              </div>
-            </DialogTrigger>
-            <DialogContent className="max-w-4xl h-[80vh] p-0 bg-transparent border-0">
-               <Image src={src} alt={alt || 'Embedded Image'} layout="fill" className="object-contain" />
-            </DialogContent>
-          </Dialog>
-        );
-      }
-
-      const youtubeMatch = trimmedLine.match(/^\[youtube\]\((.+?)\)$/);
-      if (youtubeMatch) {
-        const [, src] = youtubeMatch;
-        return (
-          <div key={index} className="aspect-video w-full max-w-3xl mx-auto my-4 overflow-hidden rounded-lg border">
-            <iframe width="100%" height="100%" src={src} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
-          </div>
-        );
-      }
-      
-      const tiktokMatch = trimmedLine.match(/^\[tiktok\]\((.+?)\)$/);
-      if (tiktokMatch) {
-          const [, src] = tiktokMatch;
-          return (
-              <div key={index} className="mx-auto my-4" style={{ maxWidth: '340px' }}>
-                  <blockquote className="tiktok-embed" cite={src} data-video-id={src.split('/').pop()} style={{maxWidth: '605px', minWidth: '325px'}} > <section></section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script>
-              </div>
-          );
-      }
-
-      return <p key={index}>{line}</p>;
-    });
-  }, [content]);
-
-  useEffect(() => {
-    // TikTok embeds require a script to be run.
-    const script = document.createElement('script');
-    script.src = "https://www.tiktok.com/embed.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    }
-  }, [content]);
-
-
-  return <div className="space-y-2 text-foreground/90 whitespace-pre-wrap leading-relaxed">{renderableContent}</div>;
-}
-
-
 function PostPageSkeleton() {
     return (
         <>
@@ -340,6 +273,22 @@ export default function BbsPostPage() {
         }
     }, [user, authorProfile]);
 
+    useEffect(() => {
+        if (post?.videos?.some(url => url.includes('tiktok.com'))) {
+            const script = document.createElement('script');
+            script.src = "https://www.tiktok.com/embed.js";
+            script.async = true;
+            document.body.appendChild(script);
+
+            return () => {
+              if (document.body.contains(script)) {
+                document.body.removeChild(script);
+              }
+            }
+        }
+    }, [post?.videos]);
+
+
     const handleInteractionNotAllowed = () => {
         toast({
             variant: 'destructive',
@@ -404,18 +353,16 @@ export default function BbsPostPage() {
         const commentsRef = collection(firestore, 'bbs', post.id, 'comments');
         
         addDoc(commentsRef, commentData).then(() => {
-            // Comment added, now update reply count. Non-blocking.
             updateDoc(postRef, { replies: increment(1) })
                 .catch((serverError) => {
                      const permissionError = new FirestorePermissionError({
                         path: postRef.path,
                         operation: 'update',
-                        requestResourceData: { replies: 'increment(1)' },
+                        requestResourceData: { replies: increment(1) },
                     });
                     errorEmitter.emit('permission-error', permissionError);
                 });
             
-            // Optimistically update UI
             setNewComment('');
             setReplyingTo(null);
             toast({
@@ -439,35 +386,27 @@ export default function BbsPostPage() {
         if (!commentToDelete || !firestore || !post || !postRef) return;
         const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentToDelete);
         
-        // The main operation is deleting the comment.
         deleteDoc(commentRef)
             .then(() => {
-                // If the comment is deleted successfully, then update the reply count.
-                // This is a secondary operation, and its failure shouldn't block the UI feedback.
                 updateDoc(postRef, { replies: increment(-1) })
                     .catch((serverError) => {
                         console.warn("Failed to decrement post reply count, but comment was deleted.", serverError);
-                        // Emit a non-blocking error for developers to see.
                         const permissionError = new FirestorePermissionError({
                             path: postRef.path,
                             operation: 'update',
-                            requestResourceData: { replies: 'increment(-1)' },
+                            requestResourceData: { replies: increment(-1) },
                         });
                         errorEmitter.emit('permission-error', permissionError);
                     });
-
-                // Give immediate feedback to the user.
                 setCommentToDelete(null);
                 toast({ title: t('productComments.commentDeleted') });
             })
             .catch((serverError) => {
-                // This is a critical failure. The comment was not deleted.
                 const permissionError = new FirestorePermissionError({
                     path: commentRef.path,
                     operation: 'delete',
                 });
                 errorEmitter.emit('permission-error', permissionError);
-                // Keep the dialog open, as setCommentToDelete(null) is not called.
                 toast({ variant: 'destructive', title: 'Failed to delete comment.' });
             });
     };
@@ -489,9 +428,9 @@ export default function BbsPostPage() {
 
     const handleDeletePost = async (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!firestore || !post) return;
+        if (!firestore || !post || !postRef) return;
         try {
-            await deleteDoc(postRef!);
+            await deleteDoc(postRef);
             toast({ title: t('bbsPage.postDeleted') });
             router.push('/bbs');
         } catch (error) {
@@ -747,7 +686,34 @@ export default function BbsPostPage() {
                             </div>
                         )}
                         
-                        <PostContentRenderer content={post.content} />
+                        {post.videos && post.videos.length > 0 && (
+                            <div className="my-6 space-y-6">
+                            {post.videos.map((videoUrl, index) => {
+                                if (videoUrl.includes('youtube.com/embed')) {
+                                return (
+                                    <div key={index} className="aspect-video w-full max-w-3xl mx-auto overflow-hidden rounded-lg border">
+                                    <iframe width="100%" height="100%" src={videoUrl} title={`Embedded YouTube video ${index + 1}`} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen></iframe>
+                                    </div>
+                                );
+                                }
+                                if (videoUrl.includes('tiktok.com')) {
+                                const videoId = videoUrl.split('video/')[1]?.split('?')[0];
+                                return (
+                                    <div key={index} className="mx-auto my-4 flex justify-center">
+                                        <blockquote className="tiktok-embed" cite={videoUrl} data-video-id={videoId} style={{maxWidth: '340px', minWidth: '325px'}} > <section></section> </blockquote>
+                                    </div>
+                                );
+                                }
+                                return null;
+                            })}
+                            </div>
+                        )}
+
+                        <div className="space-y-2 text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                            {post.content.split('\n').map((line, index) => (
+                            <p key={index}>{line}</p>
+                            ))}
+                        </div>
 
                         <div className="flex flex-wrap gap-2 mt-6">
                         {post.isFeatured && (
