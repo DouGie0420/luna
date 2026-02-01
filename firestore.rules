@@ -43,40 +43,7 @@ service cloud.firestore {
     // USER PROFILES
     match /users/{userId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-
-      allow update: if 
-        // User updating their own profile
-        (isOwner(userId) &&
-          // They cannot change protected fields defined in this list
-          !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['uid', 'email', 'loginId', 'createdAt', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 
-                     'followersCount', 'followingCount', 'creditScore', 'creditLevel', 'lunarSoil', 'role', 
-                     'postsCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress'])
-        ) ||
-        // User submitting KYC
-        (isOwner(userId) && 
-          resource.data.kycStatus == 'Not Verified' && 
-          request.resource.data.kycStatus == 'Pending' &&
-          request.resource.data.diff(resource.data).affectedKeys().hasAll(['kycStatus', 'kycIdPhotoUrl', 'kycSelfieUrl']) &&
-          request.resource.data.diff(resource.data).affectedKeys().size() == 3
-        ) ||
-         // Admins and staff can modify user profiles, but not their own with these powers
-        (isRequestingUserStaff() && !isOwner(userId));
-
-      // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
-      allow delete: if isRequestingUserAdmin() || (isRequestingUserGhost() && getUserRole(userId) != 'admin' && getUserRole(userId) != 'ghost');
-
-      // User Subcollections
-      match /addresses/{addressId} {
-        allow read, write: if isOwner(userId) || isRequestingUserStaff();
-      }
-      match /lunarSoilLedger/{ledgerEntryId} {
-         allow read, write: if isOwner(userId) || isRequestingUserStaff();
-      }
-      match /notifications/{notificationId} {
-        allow read, write: if isOwner(userId) || isRequestingUserStaff();
-      }
+      allow create, update: if request.auth != null && request.auth.uid == userId;
     }
 
     // PRODUCTS
@@ -128,7 +95,10 @@ service cloud.firestore {
     // BBS Posts
     match /bbs/{postId} {
       allow read, list: if true;
-      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid && request.resource.data.location != null;
+      allow create: if isSignedIn() 
+                    && request.resource.data.authorId == request.auth.uid
+                    && request.resource.data.author.id == request.auth.uid
+                    && request.resource.data.location != null;
       
       allow update: if (isOwner(resource.data.authorId) 
                         && request.resource.data.location == resource.data.location

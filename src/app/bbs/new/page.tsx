@@ -33,6 +33,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 export default function NewBbsPostPage() {
@@ -167,7 +169,7 @@ export default function NewBbsPostPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile || !firestore) {
       toast({ variant: 'destructive', title: 'Please login to create a post.'});
@@ -183,51 +185,53 @@ export default function NewBbsPostPage() {
       id: user.uid,
       name: profile.displayName || user.displayName || 'Anonymous',
       avatarUrl: profile.photoURL || user.photoURL || '',
-      creditLevel: profile.creditLevel,
-      location: { city: profile.location || '', country: '', countryCode: '', lat: 0, lng: 0 }
+      creditLevel: profile.creditLevel || 'Newcomer',
     };
     
-    try {
-      const docRef = await addDoc(collection(firestore, "bbs"), {
-        title,
-        content,
-        authorId: user.uid,
-        author: authorData,
-        tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
-        images: imagePreviews,
-        createdAt: serverTimestamp(),
-        likes: 0,
-        favorites: 0,
-        views: 0,
-        replies: 0,
-        isFeatured: false,
-        likedBy: [],
-        favoritedBy: [],
-        location: location,
-      });
+    const postData = {
+      title,
+      content,
+      authorId: user.uid,
+      author: authorData,
+      tags: tags.split(',').map(tag => tag.trim()).filter(Boolean),
+      images: imagePreviews,
+      createdAt: serverTimestamp(),
+      likes: 0,
+      favorites: 0,
+      views: 0,
+      replies: 0,
+      isFeatured: false,
+      likedBy: [],
+      favoritedBy: [],
+      location: location,
+    };
+    
+    const bbsCollectionRef = collection(firestore, "bbs");
+    addDoc(bbsCollectionRef, postData).then(docRef => {
+        // Post created, now update user's post count (non-critical)
+        const userRef = doc(firestore, 'users', user.uid);
+        updateDoc(userRef, { postsCount: increment(1) }).catch(err => {
+            console.warn("Failed to update user post count:", err);
+            // This failure is not critical, so we don't show a blocking error.
+        });
 
-      // Increment user's post count
-      const userRef = doc(firestore, 'users', user.uid);
-      await updateDoc(userRef, {
-        postsCount: increment(1)
-      });
-      
-      setIsSubmitting(false);
-      toast({
-          title: "Post created!",
-          description: "Your post is now live in the Lacus Somniorum.",
-      });
-      router.push(`/bbs/${docRef.id}`);
+        setIsSubmitting(false);
+        toast({
+            title: "Post created!",
+            description: "Your post is now live in the Lacus Somniorum.",
+        });
+        router.push(`/bbs/${docRef.id}`);
 
-    } catch (error) {
-      console.error("Error creating post:", error);
-      toast({
-        variant: "destructive",
-        title: "Failed to create post",
-        description: "An error occurred while saving your post. Please check permissions and try again.",
-      });
-      setIsSubmitting(false);
-    }
+    }).catch(serverError => {
+        // This is the critical failure for creating the post
+        const permissionError = new FirestorePermissionError({
+            path: bbsCollectionRef.path,
+            operation: 'create',
+            requestResourceData: postData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        setIsSubmitting(false);
+    });
   };
 
   if (loading || !user) {
