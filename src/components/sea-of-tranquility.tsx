@@ -34,16 +34,22 @@ export function SeaOfTranquility() {
             try {
                 const allPosts = await getBbsPosts();
 
-                const featured = allPosts.filter(p => p.isFeatured);
-                const notFeatured = allPosts.filter(p => !p.isFeatured);
+                // Find the first post WITH an image to be the featured post
+                const featuredPostIndex = allPosts.findIndex(p => p.images && p.images.length > 0);
+                
+                let displayPosts: BbsPost[];
 
-                // Sort both by date to ensure newest are picked if needed
-                featured.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                notFeatured.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-                // Combine, prioritizing featured posts, and take the top 6 for the UI
-                const displayPosts = [...featured, ...notFeatured].slice(0, 6);
-
+                if (featuredPostIndex !== -1) {
+                    const featured = allPosts[featuredPostIndex];
+                    // The rest are the other posts, excluding the featured one
+                    const others = allPosts.filter((_, index) => index !== featuredPostIndex);
+                    // Take the featured one + the next 5 from the rest
+                    displayPosts = [featured, ...others.slice(0, 5)];
+                } else {
+                    // If no posts have images, just take the newest 6
+                    displayPosts = allPosts.slice(0, 6);
+                }
+                
                 setPosts(displayPosts);
             } catch (err) {
                 console.error("Failed to fetch posts for Sea of Tranquility.", err);
