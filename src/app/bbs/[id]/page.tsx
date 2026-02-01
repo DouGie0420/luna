@@ -436,17 +436,40 @@ export default function BbsPostPage() {
     };
     
     const handleDeleteComment = async () => {
-        if (!commentToDelete || !firestore || !post) return;
-        try {
-            const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentToDelete);
-            await deleteDoc(commentRef);
-            await updateDoc(postRef!, { replies: increment(-1) });
-            setCommentToDelete(null);
-            toast({ title: t('productComments.commentDeleted') });
-        } catch (error) {
-            console.error("Failed to delete comment:", error);
-            toast({ variant: 'destructive', title: 'Failed to delete comment.' });
-        }
+        if (!commentToDelete || !firestore || !post || !postRef) return;
+        const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentToDelete);
+        
+        // The main operation is deleting the comment.
+        deleteDoc(commentRef)
+            .then(() => {
+                // If the comment is deleted successfully, then update the reply count.
+                // This is a secondary operation, and its failure shouldn't block the UI feedback.
+                updateDoc(postRef, { replies: increment(-1) })
+                    .catch((serverError) => {
+                        console.warn("Failed to decrement post reply count, but comment was deleted.", serverError);
+                        // Emit a non-blocking error for developers to see.
+                        const permissionError = new FirestorePermissionError({
+                            path: postRef.path,
+                            operation: 'update',
+                            requestResourceData: { replies: 'increment(-1)' },
+                        });
+                        errorEmitter.emit('permission-error', permissionError);
+                    });
+
+                // Give immediate feedback to the user.
+                setCommentToDelete(null);
+                toast({ title: t('productComments.commentDeleted') });
+            })
+            .catch((serverError) => {
+                // This is a critical failure. The comment was not deleted.
+                const permissionError = new FirestorePermissionError({
+                    path: commentRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                // Keep the dialog open, as setCommentToDelete(null) is not called.
+                toast({ variant: 'destructive', title: 'Failed to delete comment.' });
+            });
     };
 
     const handleConfirmCancelReply = () => {

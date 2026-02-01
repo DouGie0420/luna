@@ -142,9 +142,9 @@ service cloud.firestore {
         (isSignedIn() &&
          request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits'])
         ) ||
-        // Case 3: Any signed-in user can increment the reply count (and only that count) when posting a comment.
+        // Case 3: Any signed-in user can increment/decrement the reply count (and only that count) when posting/deleting a comment.
         (isSignedIn() &&
-         request.resource.data.replies == resource.data.replies + 1 &&
+         (request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies'])
         );
       
@@ -155,7 +155,7 @@ service cloud.firestore {
         allow read, list: if true;
         allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
         allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'dislikes', 'likedBy', 'dislikedBy']);
-        allow delete: if resource.data.authorId == request.auth.uid || isRequestingUserAdmin();
+        allow delete: if isOwner(resource.data.authorId) || isRequestingUserAdmin();
       }
     }
   }
