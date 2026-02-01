@@ -134,7 +134,7 @@ export function SeaOfTranquility() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     
                     {featuredPosts.length > 0 && (
-                        <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:gap-8">
+                        <div className="lg:col-span-2 flex flex-col gap-0">
                             {featuredPosts.map((post) => (
                                 <BbsPostCard key={post.id} post={post} />
                             ))}
@@ -142,7 +142,7 @@ export function SeaOfTranquility() {
                     )}
                     
                     {otherPosts.length > 0 && (
-                        <div className="lg:col-span-1 flex flex-col gap-4">
+                        <div className="lg:col-span-1 flex flex-col gap-2">
                             {otherPosts.map(post => {
                                 const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
                                     addSuffix: true,
@@ -178,7 +178,7 @@ export function SeaOfTranquility() {
                                                 {post.location?.city && (
                                                     <>
                                                         <span className="mx-1.5">&middot;</span>
-                                                        <span className="text-primary font-semibold">{post.location.city}</span>
+                                                        <span className="text-primary font-semibold">{post.location.city}, {post.location.countryCode}</span>
                                                     </>
                                                 )}
                                             </p>
