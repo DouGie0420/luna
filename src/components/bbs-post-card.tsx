@@ -249,7 +249,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments} asChild>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments}>
                              <span className="flex items-center gap-1 cursor-pointer">
                                 <MessageSquare className="h-4 w-4" />
                                 <span>{post.replies}</span>
