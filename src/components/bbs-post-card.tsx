@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -102,7 +103,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     )}
                 </CardHeader>
                 <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
+                     <CardTitle className="font-headline text-base mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">

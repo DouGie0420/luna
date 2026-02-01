@@ -1,31 +1,53 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Eye, MessageSquare, ThumbsUp } from 'lucide-react';
+import { ArrowRight, Eye, MessageSquare, ThumbsUp, Star, Heart } from 'lucide-react';
 import Link from 'next/link';
-import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { useFirestore, useCollection, useUser } from '@/firebase';
+import { collection, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
 import { BbsPostCard } from './bbs-post-card';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import Image from 'next/image';
+import { formatDistanceToNow } from 'date-fns';
+import { enUS, zhCN, th } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { cn } from '@/lib/utils';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
+
+const locales = { en: enUS, zh: zhCN, th: th };
 
 const SmallPostCardSkeleton = () => (
-    <Card className="p-4 bg-card/50">
-        <div className="flex items-center gap-4">
-            <Skeleton className="h-24 w-24 shrink-0 rounded-md" />
-            <div className="flex-1 flex flex-col h-24 justify-between">
-                <div className="space-y-2">
+    <Card className="flex h-full flex-col bg-card/50">
+        <div className="p-4">
+            <div className="flex items-start gap-4">
+                <Skeleton className="h-28 w-28 shrink-0 rounded-md" />
+                <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-4/5" />
-                    <Skeleton className="h-3 w-1/2 mt-1" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-3 w-4/5 mt-2" />
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
                 </div>
-                <div className="flex justify-end items-center">
-                    <Skeleton className="h-4 w-1/3" />
+            </div>
+        </div>
+        <div className="p-4 pt-0 mt-auto flex justify-between items-center">
+            <div className="flex items-center gap-2">
+                <Skeleton className="h-6 w-6 rounded-full" />
+                <div className="space-y-1">
+                    <Skeleton className="h-3 w-16" />
+                    <Skeleton className="h-3 w-20" />
                 </div>
+            </div>
+            <div className="flex items-center gap-2">
+                <Skeleton className="h-7 w-7" />
+                <Skeleton className="h-7 w-7" />
             </div>
         </div>
     </Card>
@@ -33,7 +55,58 @@ const SmallPostCardSkeleton = () => (
 
 
 const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
+    const { user, profile } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const canInteract = !!user;
+
+    const handleInteractionNotAllowed = () => {
+        toast({
+            variant: 'destructive',
+            title: t('common.loginToInteract'),
+        });
+    };
+
+    const handlePostInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!canInteract || !firestore || !post || !user) {
+            handleInteractionNotAllowed();
+            return;
+        }
+
+        const isLiked = post.likedBy?.includes(user.uid);
+        const isFavorited = post.favoritedBy?.includes(user.uid);
+        const postRef = doc(firestore, 'bbs', post.id);
+        
+        let updateData = {};
+        if (type === 'like') {
+            updateData = {
+                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                likes: increment(isLiked ? -1 : 1)
+            };
+        } else { // favorite
+            updateData = {
+                favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                favorites: increment(isFavorited ? -1 : 1)
+            };
+            if (!isFavorited) {
+                toast({ title: t('productCardActions.addedToFavorites') });
+            }
+        }
+
+        updateDoc(postRef, updateData).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: postRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+    };
 
     const summary = useMemo(() => {
         const content = post.content || t(post.contentKey || '');
@@ -47,10 +120,15 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
             .trim();
     }, [post.content, post.contentKey, t]);
 
+    const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
+
+    const isLiked = user && post.likedBy?.includes(user.uid);
+    const isFavorited = user && post.favoritedBy?.includes(user.uid);
+
     return (
-        <Link href={`/bbs/${post.id}`} className="group block">
-            <Card className="bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
-                <div className="flex items-start gap-4 p-5">
+        <Card className="flex h-full flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-border hover:border-primary/50">
+            <Link href={`/bbs/${post.id}`} className="group block p-4">
+                <div className="flex items-start gap-4">
                     <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
                         <Image
                             src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
@@ -67,24 +145,30 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                             </h3>
                             <p className="text-xs text-muted-foreground line-clamp-4">{summary}</p>
                         </div>
-                        <div className="flex justify-end items-center gap-3 text-xs text-muted-foreground mt-2">
-                            <span className="flex items-center gap-1">
-                                <MessageSquare className="h-3 w-3" />
-                                <span>{post.replies}</span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <ThumbsUp className="h-3 w-3" />
-                                <span>{post.likes}</span>
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <Eye className="h-3 w-3" />
-                                <span>{post.views}</span>
-                            </span>
-                        </div>
                     </div>
                 </div>
-            </Card>
-        </Link>
+            </Link>
+            <CardFooter className="p-4 pt-0 mt-auto flex justify-between items-center">
+                 <div className="flex items-center gap-2 overflow-hidden">
+                    <Avatar className="h-6 w-6">
+                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-xs">
+                        <p className="font-semibold text-foreground truncate">{post.author.name}</p>
+                        <p className="text-muted-foreground truncate">{timeAgo} {post.location?.city && `· ${post.location.city}, ${post.location.countryCode}`}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
+                        <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
+                        <Heart className={cn("h-4 w-4", isLiked && "text-rose-500 fill-rose-500")} />
+                    </Button>
+                </div>
+            </CardFooter>
+        </Card>
     );
 });
 SmallPostCard.displayName = 'SmallPostCard';
@@ -164,7 +248,7 @@ export function SeaOfTranquility() {
                     )}
                     
                     {otherPosts.length > 0 && (
-                         <div className="lg:col-span-1 flex flex-col justify-between">
+                         <div className="lg:col-span-1 flex flex-col gap-4">
                             {otherPosts.map(post => (
                                 <SmallPostCard key={post.id} post={post} />
                             ))}

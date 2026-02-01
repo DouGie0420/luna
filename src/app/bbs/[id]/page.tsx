@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -287,6 +288,17 @@ export default function BbsPostPage() {
             }
         }
     }, [post?.videos]);
+
+    useEffect(() => {
+        if (firestore && id) {
+            const postRef = doc(firestore, 'bbs', id);
+            updateDoc(postRef, {
+                views: increment(1)
+            }).catch(err => {
+                console.warn("Failed to increment view count:", err);
+            });
+        }
+    }, [firestore, id]);
 
 
     const handleInteractionNotAllowed = () => {
