@@ -49,33 +49,30 @@ service cloud.firestore {
       // A user can create their own profile document.
       allow create: if isOwner(userId) && request.resource.data.role == 'guest';
 
-      // Update rules are complex to prevent users from elevating their own privileges.
-      allow update: if 
-        // Admins can update any user document.
-        isAdmin() || 
-        // Ghosts can update anyone except other admins and ghosts
-        (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost') ||
-        // Or the user is updating their own profile within allowed boundaries.
-        (isOwner(userId) &&
-          // --- PROTECTED FIELDS: User cannot change these core data points ---
+      // Admin/Ghost can perform updates.
+      allow update: if isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost');
+      
+      // A user can update their own profile, with specific rules for different scenarios.
+      allow update: if isOwner(userId) && (
+        // SCENARIO A: Updating profile from the account settings page.
+        (
+          // Ensures only fields from the profile form are being changed.
+          request.resource.data.diff(resource.data).affectedKeys().hasAny(['displayName', 'gender', 'location', 'bio', 'kycStatus', 'kycIdPhotoUrl', 'kycSelfieUrl', 'photoURL', 'isNftVerified']) &&
+          // Ensures user cannot change their own core stats during a profile save.
           request.resource.data.creditScore == resource.data.creditScore &&
           request.resource.data.creditLevel == resource.data.creditLevel &&
-          request.resource.data.postsCount == resource.data.postsCount + 1 &&
-          // --- LOGIC: User can submit for KYC by changing status from Not Verified to Pending ---
-          (request.resource.data.kycStatus == resource.data.kycStatus || (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) &&
-          request.resource.data.isPro == resource.data.isPro &&
-          
-          // --- LOGIC: Role can only be promoted from guest to user, or stay the same ---
-          (request.resource.data.role == resource.data.role ||
-            (resource.data.role == 'guest' && request.resource.data.role == 'user')) &&
+          request.resource.data.postsCount == resource.data.postsCount &&
+          // Ensures a valid KYC status transition (Not Verified -> Pending).
+          (resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending' || request.resource.data.kycStatus == resource.data.kycStatus)
+        )
+        ||
+        // SCENARIO B: System action to increment post count after creating a post.
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']) &&
+          request.resource.data.postsCount == resource.data.postsCount + 1
+        )
+      );
 
-          // --- LOGIC: emailVerified can only go from false to true, or stay true ---
-          (resource.data.emailVerified == false || request.resource.data.emailVerified == true) &&
-
-          // --- LOGIC: isNftVerified can be set to true only if web3 is verified ---
-          (request.resource.data.isNftVerified == false || request.resource.data.isWeb3Verified == true)
-        );
-      
       // Admins can delete anyone. Ghosts can delete anyone except other admins and ghosts.
       allow delete: if isAdmin() || (isGhost() && resource.data.role != 'admin' && resource.data.role != 'ghost');
 
@@ -93,16 +90,15 @@ service cloud.firestore {
 
     // PRODUCTS
     match /products/{productId} {
-      // Anyone can view products.
-      allow read: if true;
+      // Anyone can view and list products.
+      allow read, list: if true;
       // Any signed-in user can create a product, but must set themselves as the seller and include location.
       allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid && request.resource.data.location != null;
       
-      // The original seller or staff/admin/ghost can update/delete a product.
-      // Location is immutable.
-      // Any signed in user can update the views and searchHits fields.
+      // The original seller or staff can update a product. Location is immutable.
       allow update: if ( (resource.data.seller.id == request.auth.uid) || isStaff() ) 
                       && request.resource.data.location == resource.data.location;
+      // Any signed-in user can increment views and searchHits.
       allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'searchHits']);
       
       allow delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
@@ -150,7 +146,7 @@ service cloud.firestore {
 
     // BBS Posts
     match /bbs/{postId} {
-      allow read: if true;
+      allow read, list: if true;
       allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid && request.resource.data.location != null;
       
       // Update rules:
@@ -163,7 +159,7 @@ service cloud.firestore {
 
       // Comments subcollection
       match /comments/{commentId} {
-        allow read: if true;
+        allow read, list: if true;
         allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
         allow update: if isSignedIn(); // Relies on frontend for granular control (likes/dislikes)
         allow delete: if resource.data.authorId == request.auth.uid || isAdmin();
