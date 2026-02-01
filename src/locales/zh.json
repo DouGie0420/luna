@@ -74,6 +74,20 @@
   },
   "accountPage": {
     "title": "我的页面",
+    "badges": {
+      "title": "勋章墙",
+      "description": "选择一枚你最引以为傲的勋章，展示在你的头像上。",
+      "no_badges": "你还没有获得任何勋章。完成认证或达成社区目标来解锁它们！",
+      "no_display": "不展示",
+      "email_label": "邮箱认证",
+      "kyc_label": "实名认证",
+      "pro_label": "PRO 商家",
+      "web3_label": "Web3 玩家",
+      "nft_label": "NFT 头像",
+      "influencer_label": "社区达人",
+      "contributor_label": "精华作者",
+      "update_success": "展示勋章已更新"
+    },
     "personalInfo": "个人信息",
     "personalInfoDescription": "更新您的个人信息并查看账户状态。",
     "fullName": "昵称",

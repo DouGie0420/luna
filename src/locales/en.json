@@ -74,6 +74,20 @@
   },
   "accountPage": {
     "title": "My Profile",
+    "badges": {
+      "title": "Badge Wall",
+      "description": "Choose a badge you're most proud of to display on your avatar.",
+      "no_badges": "You haven't earned any badges yet. Complete verifications or achieve community goals to unlock them!",
+      "no_display": "Do not display",
+      "email_label": "Email Verified",
+      "kyc_label": "KYC Verified",
+      "pro_label": "PRO Merchant",
+      "web3_label": "Web3 Player",
+      "nft_label": "NFT Avatar",
+      "influencer_label": "Community KOL",
+      "contributor_label": "Featured Author",
+      "update_success": "Displayed badge updated"
+    },
     "personalInfo": "Personal Information",
     "personalInfoDescription": "Update your personal details and view account status.",
     "fullName": "Nickname",

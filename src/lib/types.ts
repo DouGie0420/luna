@@ -1,5 +1,6 @@
 
-export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email';
+
+export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor';
 
 export type Product = {
   id: string;
@@ -52,6 +53,7 @@ export type User = {
   creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
   followersCount?: number;
   followingCount?: number;
+  featuredCount?: number;
   postsCount?: number;
   onSaleCount?: number;
   displayedBadge?: BadgeType;
@@ -86,6 +88,7 @@ export type UserProfile = {
     purchasesCount?: number;
     followersCount?: number;
     followingCount?: number;
+    featuredCount?: number;
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;

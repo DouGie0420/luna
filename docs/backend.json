@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -178,6 +179,10 @@
         "followingCount": {
           "type": "number",
           "description": "The number of users this user is following."
+        },
+        "featuredCount": {
+          "type": "number",
+          "description": "Total number of times the user's posts have been featured."
         },
         "creditScore": {
           "type": "number",

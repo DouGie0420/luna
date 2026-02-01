@@ -24,6 +24,7 @@ const users: User[] = [
     followingCount: 150,
     postsCount: 0,
     displayedBadge: 'kyc',
+    featuredCount: 10,
   },
   {
     id: 'user2',
@@ -47,6 +48,7 @@ const users: User[] = [
     followingCount: 80,
     postsCount: 1,
     displayedBadge: 'nft',
+    featuredCount: 25,
   },
   {
     id: 'user3',
@@ -92,7 +94,8 @@ const users: User[] = [
     followersCount: 10000,
     followingCount: 5,
     postsCount: 0,
-    displayedBadge: 'nft',
+    displayedBadge: 'influencer',
+    featuredCount: 30,
   },
   {
     id: 'user5',
@@ -246,6 +249,7 @@ const users: User[] = [
     followingCount: 200,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 22
   },
   {
     id: 'staff-user-2',
@@ -265,6 +269,7 @@ const users: User[] = [
     followingCount: 50,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 30
   },
   {
     id: 'staff-user-3',
@@ -303,6 +308,7 @@ const users: User[] = [
     followingCount: 10,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 50,
   },
   {
     id: 'staff-user-5',
@@ -360,6 +366,7 @@ const users: User[] = [
     followingCount: 500,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 40
   },
   {
     id: 'staff-user-8',
