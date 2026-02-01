@@ -586,8 +586,14 @@
       "updateFailed": "การอัปเดตล้มเหลว",
       "updateFailedDesc": "คุณไม่มีสิทธิ์เปลี่ยนบทบาทของผู้ใช้นี้",
       "setRole": "ตั้งค่าบทบาท",
-      "resetPassword": "รีเซ็ตรหัสผ่าน (เร็วๆ นี้)",
-      "noUsers": "ยังไม่มีผู้ใช้ลงทะเบียน"
+      "resetPassword": "รีเซ็ตรหัสผ่าน",
+      "noUsers": "ยังไม่มีผู้ใช้ลงทะเบียน",
+      "proStatus": "ร้านค้ามืออาชีพ",
+      "proStatusYes": "ใช่",
+      "proStatusNo": "ไม่",
+      "nftVerified": "ยืนยัน NFT แล้ว",
+      "web3Verified": "ยืนยัน Web3 แล้ว",
+      "resetPasswordNotImplemented": "เพื่อความปลอดภัย การรีเซ็ตรหัสผ่านต้องทำผ่าน Firebase Console"
     }
   }
 }

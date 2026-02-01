@@ -586,8 +586,14 @@
       "updateFailed": "Update Failed",
       "updateFailedDesc": "You do not have permission to change this user's role.",
       "setRole": "Set role",
-      "resetPassword": "Reset Password (soon)",
-      "noUsers": "No users registered yet."
+      "resetPassword": "Reset Password",
+      "noUsers": "No users registered yet.",
+      "proStatus": "Pro Merchant",
+      "proStatusYes": "Yes",
+      "proStatusNo": "No",
+      "nftVerified": "NFT Verified",
+      "web3Verified": "Web3 Verified",
+      "resetPasswordNotImplemented": "For security, password resets must be initiated from the Firebase Console."
     }
   }
 }

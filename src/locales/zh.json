@@ -586,8 +586,14 @@
       "updateFailed": "更新失败",
       "updateFailedDesc": "您无权更改此用户的角色。",
       "setRole": "设置角色",
-      "resetPassword": "重置密码 (即将推出)",
-      "noUsers": "暂无流浪者注册"
+      "resetPassword": "重置密码",
+      "noUsers": "暂无流浪者注册",
+      "proStatus": "认证商家",
+      "proStatusYes": "是",
+      "proStatusNo": "否",
+      "nftVerified": "NFT已认证",
+      "web3Verified": "Web3已认证",
+      "resetPasswordNotImplemented": "为安全起见，重置密码必须通过Firebase控制台发起。"
     }
   }
 }
