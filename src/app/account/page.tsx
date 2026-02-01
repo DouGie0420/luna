@@ -34,6 +34,8 @@ import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
 import { cn } from "@/lib/utils";
+import { type BadgeType } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -165,6 +167,19 @@ export default function AccountProfilePage() {
         } finally {
             setIsUpdatingAvatar(false);
         }
+    };
+
+    const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
+    if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('userProfile.kyc'), icon: ShieldCheck });
+    if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('userProfile.pro'), icon: ShieldCheck });
+    if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: 'WEB3', icon: ShieldCheck });
+    if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: 'NFT', icon: EthereumIcon });
+
+    const handleBadgeSelection = async (value: string) => {
+        if (!firestore || !user) return;
+        const badge = value as BadgeType;
+        await updateUserProfile(firestore, user.uid, { displayedBadge: badge });
+        toast({ title: '展示勋章已更新' });
     };
 
     if (loading) {
@@ -319,6 +334,38 @@ export default function AccountProfilePage() {
 
                  <Card>
                     <CardHeader>
+                        <CardTitle>勋章墙</CardTitle>
+                        <CardDescription>选择一个你最喜欢的勋章来展示在你的头像上。</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {availableBadges.length > 0 ? (
+                            <RadioGroup
+                                value={profile?.displayedBadge || 'none'}
+                                onValueChange={handleBadgeSelection}
+                                className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                            >
+                                <Label htmlFor="badge-none" className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                                    <RadioGroupItem value="none" id="badge-none" className="sr-only" />
+                                    <XCircle className="h-8 w-8 text-muted-foreground" />
+                                    <span className="font-semibold">不展示</span>
+                                </Label>
+                                {availableBadges.map(({ type, label, icon: Icon }) => (
+                                    <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                                        <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
+                                        <Icon className="h-8 w-8 text-primary" />
+                                        <span className="font-semibold">{label}</span>
+                                    </Label>
+                                ))}
+                            </RadioGroup>
+                        ) : (
+                            <p className="text-muted-foreground text-center p-4">你还没有获得任何勋章。完成认证来解锁它们！</p>
+                        )}
+                    </CardContent>
+                </Card>
+
+
+                <Card>
+                    <CardHeader>
                         <CardTitle>Crypto Wallet</CardTitle>
                         <CardDescription>将您的数字资产展示在月之女神的静谧中</CardDescription>
                     </CardHeader>
@@ -364,8 +411,8 @@ export default function AccountProfilePage() {
                              <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                 <ShoppingBag className="h-6 w-6 text-primary" />
                                 <div>
-                                    <p className="text-sm text-muted-foreground">{t('accountPage.sales')}</p>
-                                    <p className="font-bold">{profile?.salesCount || 0}</p>
+                                    <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                    <p className="font-bold">{profile?.onSaleCount || 0}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">

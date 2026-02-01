@@ -53,6 +53,7 @@ export async function upsertUserProfile(
             rating: 0,
             reviewsCount: 0,
             salesCount: 0,
+            onSaleCount: 0,
             purchasesCount: 0,
             followersCount: 0,
             followingCount: 0,
@@ -60,6 +61,7 @@ export async function upsertUserProfile(
             creditLevel: 'Newcomer',
             role: 'guest',
             postsCount: 0,
+            displayedBadge: 'none',
             ...additionalData
         };
         const dataToSet = { ...newUserProfile, uid: user.uid };
@@ -104,6 +106,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
             rating: 0,
             reviewsCount: 0,
             salesCount: 0,
+            onSaleCount: 0,
             purchasesCount: 0,
             followersCount: 0,
             followingCount: 0,
@@ -111,6 +114,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
             creditLevel: 'Newcomer',
             role: 'user',
             postsCount: 0,
+            displayedBadge: 'web3',
         };
         const dataToSet = { ...newUserProfile, uid: address };
         try {

@@ -1,4 +1,6 @@
 
+export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft';
+
 export type Product = {
   id: string;
   name: string;
@@ -51,6 +53,8 @@ export type User = {
   followersCount?: number;
   followingCount?: number;
   postsCount?: number;
+  onSaleCount?: number;
+  displayedBadge?: BadgeType;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
@@ -78,6 +82,7 @@ export type UserProfile = {
     rating?: number;
     reviewsCount?: number;
     salesCount?: number;
+    onSaleCount?: number;
     purchasesCount?: number;
     followersCount?: number;
     followingCount?: number;
@@ -86,6 +91,7 @@ export type UserProfile = {
     lunarSoil?: number;
     role?: 'guest' | 'admin' | 'staff' | 'support' | 'user' | 'ghost';
     postsCount?: number;
+    displayedBadge?: BadgeType;
 }
 
 export type Promo = {

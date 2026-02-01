@@ -131,7 +131,7 @@ export default function ProductPage() {
 
                         {/* Right Column: Product Details & Actions */}
                         <div className="lg:col-span-2 flex flex-col gap-6">
-                            <div className="relative pt-10">
+                            <div className="relative">
                                 <ProductTitleWithBadge product={product} />
                             </div>
                             
@@ -148,8 +148,9 @@ export default function ProductPage() {
                                 <CardTitle>商品描述</CardTitle>
                                 {isOwner && (
                                     <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="rounded-full">
-                                            <Edit className="h-5 w-5" />
+                                        <Button variant="outline" className="rounded-full h-9 px-4">
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            编辑商品
                                         </Button>
                                     </DialogTrigger>
                                 )}
