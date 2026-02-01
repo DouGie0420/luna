@@ -72,6 +72,7 @@ const users: User[] = [
     followingCount: 300,
     postsCount: 1,
     displayedBadge: 'pro',
+    featuredCount: 5,
   },
   {
     id: 'user4',
@@ -118,6 +119,7 @@ const users: User[] = [
     followingCount: 20,
     postsCount: 1,
     displayedBadge: 'pro',
+    featuredCount: 15,
   },
   {
     id: 'user6',
@@ -140,6 +142,7 @@ const users: User[] = [
     followingCount: 180,
     postsCount: 0,
     displayedBadge: 'web3',
+    featuredCount: 2,
   },
   {
     id: 'user7',
@@ -161,6 +164,7 @@ const users: User[] = [
     followingCount: 250,
     postsCount: 1,
     displayedBadge: 'none',
+    featuredCount: 0,
   },
   {
     id: 'user8',
@@ -184,6 +188,7 @@ const users: User[] = [
     followingCount: 90,
     postsCount: 1,
     displayedBadge: 'none',
+    featuredCount: 0,
   },
   {
     id: 'user9',
@@ -207,6 +212,7 @@ const users: User[] = [
     followingCount: 400,
     postsCount: 1,
     displayedBadge: 'pro',
+    featuredCount: 8,
   },
   {
     id: 'user10',
@@ -230,6 +236,7 @@ const users: User[] = [
     followingCount: 120,
     postsCount: 0,
     displayedBadge: 'nft',
+    featuredCount: 18,
   },
   {
     id: 'staff-user-1',
@@ -289,6 +296,7 @@ const users: User[] = [
     followingCount: 120,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 12,
   },
   {
     id: 'staff-user-4',
@@ -328,6 +336,7 @@ const users: User[] = [
     followingCount: 300,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 3,
   },
   {
     id: 'staff-user-6',
@@ -347,6 +356,7 @@ const users: User[] = [
     followingCount: 88,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 28,
   },
   {
     id: 'staff-user-7',
@@ -386,6 +396,7 @@ const users: User[] = [
     followingCount: 210,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 9,
   },
   {
     id: 'staff-user-9',
@@ -405,6 +416,7 @@ const users: User[] = [
     followingCount: 800,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 4,
   },
   {
     id: 'staff-user-10',
@@ -424,6 +436,7 @@ const users: User[] = [
     followingCount: 90,
     postsCount: 2,
     displayedBadge: 'pro',
+    featuredCount: 1,
   }
 ];
 
