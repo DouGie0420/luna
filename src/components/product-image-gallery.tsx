@@ -23,9 +23,13 @@ import type { Product } from '@/lib/types';
 
 interface ProductImageGalleryProps {
   product: Product;
+  isLiked: boolean;
+  isFavorited: boolean;
+  onLikeToggle: () => void;
+  onFavoriteToggle: () => void;
 }
 
-export function ProductImageGallery({ product }: ProductImageGalleryProps) {
+export function ProductImageGallery({ product, isLiked, isFavorited, onLikeToggle, onFavoriteToggle }: ProductImageGalleryProps) {
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbApi, setThumbApi] = useState<CarouselApi>();
   const [lightboxApi, setLightboxApi] = useState<CarouselApi>();
@@ -116,11 +120,11 @@ export function ProductImageGallery({ product }: ProductImageGalleryProps) {
         </Carousel>
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-rose-500 backdrop-blur-sm animate-glow">
-              <Heart className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm animate-glow" onClick={onLikeToggle}>
+              <Heart className={cn("h-5 w-5", isLiked ? "text-yellow-400 fill-yellow-400" : "hover:text-rose-500")} />
           </Button>
-          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow">
-              <Star className="h-5 w-5" />
+          <Button variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 backdrop-blur-sm animate-glow" onClick={onFavoriteToggle}>
+              <Star className={cn("h-5 w-5", isFavorited ? "text-yellow-400 fill-yellow-400" : "hover:text-yellow-400")} />
           </Button>
         </div>
       </div>

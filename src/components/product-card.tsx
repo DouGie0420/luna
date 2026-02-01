@@ -9,7 +9,7 @@ import type { Product } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from './ui/button';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UserAvatar } from './ui/user-avatar';
 
@@ -21,20 +21,48 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  // Mock interaction state locally as we don't have a backend for this yet
+  
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  
+  useEffect(() => {
+    const checkState = () => {
+      const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+      const favoritedItems = JSON.parse(localStorage.getItem('favoritedProducts') || '[]');
+      setIsLiked(likedItems.includes(product.id));
+      setIsFavorited(favoritedItems.includes(product.id));
+    };
+
+    checkState();
+    window.addEventListener('focus', checkState);
+    return () => {
+      window.removeEventListener('focus', checkState);
+    };
+  }, [product.id]);
 
   const handleInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
       e.preventDefault();
       e.stopPropagation();
-      if (type === 'like') {
-          setIsLiked(!isLiked);
+
+      const key = type === 'like' ? 'likedProducts' : 'favoritedProducts';
+      const currentItems: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+      const isCurrentlySet = currentItems.includes(product.id);
+
+      let newItems: string[];
+      if (isCurrentlySet) {
+          newItems = currentItems.filter((id) => id !== product.id);
       } else {
-          setIsFavorited(!isFavorited);
-          if (!isFavorited) {
+          newItems = [...currentItems, product.id];
+          if (type === 'favorite') {
               toast({ title: t('productCardActions.addedToFavorites') });
           }
+      }
+      localStorage.setItem(key, JSON.stringify(newItems));
+
+      if (type === 'like') {
+          setIsLiked(!isCurrentlySet);
+      } else {
+          setIsFavorited(!isCurrentlySet);
       }
   };
 

@@ -20,6 +20,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Edit } from 'lucide-react';
 import { ProductEditForm } from '@/components/product-edit-form';
+import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/use-translation';
+
 
 function ProductPageSkeleton() {
     return (
@@ -58,11 +61,16 @@ export default function ProductPage() {
     const params = useParams();
     const id = params.id as string;
     const { user } = useUser();
+    const { toast } = useToast();
+    const { t } = useTranslation();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    
+    const [isLiked, setIsLiked] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
 
     useEffect(() => {
         if (!id) return;
@@ -100,8 +108,45 @@ export default function ProductPage() {
         };
         
         fetchProductData();
+        
+        const checkState = () => {
+            const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
+            const favoritedItems = JSON.parse(localStorage.getItem('favoritedProducts') || '[]');
+            setIsLiked(likedItems.includes(id));
+            setIsFavorited(favoritedItems.includes(id));
+        };
+        checkState();
+        window.addEventListener('focus', checkState);
+
+        return () => {
+            window.removeEventListener('focus', checkState);
+        }
 
     }, [id]);
+
+    const handleInteraction = (type: 'like' | 'favorite') => {
+        const key = type === 'like' ? 'likedProducts' : 'favoritedProducts';
+        const currentItems: string[] = JSON.parse(localStorage.getItem(key) || '[]');
+        const isCurrentlySet = currentItems.includes(id);
+    
+        let newItems: string[];
+        if (isCurrentlySet) {
+            newItems = currentItems.filter((pid: string) => pid !== id);
+        } else {
+            newItems = [...currentItems, id];
+            if (type === 'favorite') {
+                toast({ title: t('productCardActions.addedToFavorites') });
+            }
+        }
+        localStorage.setItem(key, JSON.stringify(newItems));
+    
+        if (type === 'like') {
+            setIsLiked(!isCurrentlySet);
+        } else {
+            setIsFavorited(!isCurrentlySet);
+        }
+    };
+
 
     const isOwner = user && product && user.uid === product.seller.id;
 
@@ -126,7 +171,13 @@ export default function ProductPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
                         {/* Left Column: Image Carousel & Actions */}
                         <div className="lg:col-span-3">
-                            <ProductImageGallery product={product} />
+                             <ProductImageGallery 
+                                product={product} 
+                                isLiked={isLiked}
+                                isFavorited={isFavorited}
+                                onLikeToggle={() => handleInteraction('like')}
+                                onFavoriteToggle={() => handleInteraction('favorite')}
+                            />
                         </div>
 
                         {/* Right Column: Product Details & Actions */}
