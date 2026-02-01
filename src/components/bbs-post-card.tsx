@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin } from 'lucide-react';
+import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin, Share2 } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
@@ -22,7 +22,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -32,12 +34,13 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const { t } = useTranslation();
-    const { profile } = useUser();
+    const { user, profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
     const router = useRouter();
 
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
+    const canInteract = !!user;
 
     const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : '';
 
@@ -57,8 +60,11 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
       if (!firestore) return;
 
       if (action === 'edit') {
-        router.push(`/bbs/edit/${post.id}`);
-      } else if (action === 'feature') {
+          router.push(`/bbs/edit/${post.id}`);
+          return;
+      }
+
+      if (action === 'feature') {
           const postRef = doc(firestore, 'bbs', post.id);
           const newFeaturedState = !post.isFeatured;
           try {
@@ -68,11 +74,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             });
           } catch (error) {
             console.error("Error updating feature status:", error);
-            toast({
-              title: "操作失败",
-              description: "更新精华状态时出错。",
-              variant: "destructive",
+            const permissionError = new FirestorePermissionError({
+              path: postRef.path,
+              operation: 'update',
+              requestResourceData: { isFeatured: newFeaturedState },
             });
+            errorEmitter.emit('permission-error', permissionError);
           }
       } else {
         toast({
@@ -81,6 +88,65 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         });
       }
     };
+
+    const handleInteractionNotAllowed = () => {
+        toast({
+            variant: 'destructive',
+            title: t('common.loginToInteract'),
+        });
+    };
+
+    const handlePostInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (!canInteract || !firestore || !post || !user) {
+            handleInteractionNotAllowed();
+            return;
+        }
+
+        const isLiked = post.likedBy?.includes(user.uid);
+        const isFavorited = post.favoritedBy?.includes(user.uid);
+        const postRef = doc(firestore, 'bbs', post.id);
+        
+        let updateData = {};
+        if (type === 'like') {
+            updateData = {
+                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                likes: increment(isLiked ? -1 : 1)
+            };
+        } else { // favorite
+            updateData = {
+                favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                favorites: increment(isFavorited ? -1 : 1)
+            };
+            if (!isFavorited) {
+                toast({ title: t('productCardActions.addedToFavorites') });
+            }
+        }
+
+        updateDoc(postRef, updateData).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: postRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+    };
+
+    const handleShare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const postUrl = `${window.location.origin}/bbs/${post.id}`;
+        navigator.clipboard.writeText(postUrl);
+        toast({
+            title: t('bbsPage.linkCopied'),
+        });
+    };
+
+    const isLiked = user && post.likedBy?.includes(user.uid);
+    const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
     return (
         <Link href={`/bbs/${post.id}`} className="group block h-full">
@@ -128,7 +194,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     )}
                 </CardHeader>
                 <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-base mb-2 leading-tight drop-shadow-md">
+                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
                         {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
@@ -176,16 +242,23 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                             </p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1.5" title={`${post.replies} replies`}>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1" title={`${post.replies} replies`}>
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.replies}</span>
                         </span>
-                        <span className="flex items-center gap-1.5" title={`${post.likes} likes`}>
-                             <Heart className="h-4 w-4" />
-                            <span>{post.likes}</span>
-                        </span>
-                        <span className="flex items-center gap-1.5" title={`${post.views} views`}>
+                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={(e) => handlePostInteraction(e, 'like')} title={`${post.likes} likes`}>
+                            <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                            <span className="ml-1">{post.likes}</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={(e) => handlePostInteraction(e, 'favorite')} title={`${post.favorites} favorites`}>
+                            <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                            <span className="ml-1">{post.favorites}</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare} title="Share">
+                            <Share2 className="h-4 w-4" />
+                        </Button>
+                        <span className="flex items-center gap-1" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />
                             <span>{post.views}</span>
                         </span>
