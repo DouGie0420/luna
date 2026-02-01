@@ -25,30 +25,16 @@ export async function upsertUserProfile(
                 displayName: userProfile.displayName || user.displayName || 'User',
             };
 
-            // This is the critical part.
-            // We only want to change the stored emailVerified status if the user has *just now* become verified according to Firebase Auth.
-            // We NEVER want to downgrade a `true` in our database back to `false` just because the auth token is lagging.
             if (userProfile.emailVerified !== true) {
-                // If the database profile is not verified, we can safely update it
-                // with the latest status from Firebase Auth.
                 updateData.emailVerified = user.emailVerified;
             }
-            // If userProfile.emailVerified is already true, we do NOT add emailVerified
-            // to updateData, so the existing 'true' value is preserved.
 
+            await updateDoc(userRef, updateData);
+            const updatedDoc = await getDoc(userRef);
+            return updatedDoc.data() as UserProfile;
 
-            updateDoc(userRef, updateData).catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-            return { ...userProfile, ...updateData };
         } else {
-            const newUserProfile: UserProfile = {
-                uid: user.uid,
+            const newUserProfile: Omit<UserProfile, 'uid'> & { createdAt: any, lastLogin: any } = {
                 email: additionalData.email || user.email || '',
                 displayName: additionalData.displayName || user.displayName || 'New User',
                 photoURL: user.photoURL || `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
@@ -73,22 +59,17 @@ export async function upsertUserProfile(
                 role: 'guest',
                 ...additionalData
             };
-            setDoc(userRef, newUserProfile).catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'create',
-                    requestResourceData: newUserProfile,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-            return newUserProfile;
+            const dataToSet = { ...newUserProfile, uid: user.uid };
+
+            await setDoc(userRef, dataToSet);
+            const createdDoc = await getDoc(userRef);
+            return createdDoc.data() as UserProfile;
         }
     } catch (error) {
         console.error("Error upserting user profile: ", error);
-        // Re-throw or handle as a permission error if applicable
         const permissionError = new FirestorePermissionError({
             path: userRef.path,
-            operation: 'get',
+            operation: 'get', 
         });
         errorEmitter.emit('permission-error', permissionError);
         throw permissionError;
@@ -101,21 +82,13 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
     try {
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
-            const userProfile = userDoc.data() as UserProfile;
             const updateData = { lastLogin: serverTimestamp() };
-            updateDoc(userRef, updateData).catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-            return { ...userProfile, ...updateData };
+            await updateDoc(userRef, updateData);
+            const updatedDoc = await getDoc(userRef);
+            return updatedDoc.data() as UserProfile;
         } else {
             const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
-            const newUserProfile: UserProfile = {
-                uid: address,
+            const newUserProfile: Omit<UserProfile, 'uid'> & { createdAt: any, lastLogin: any } = {
                 displayName: shortAddress,
                 photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${address}`,
                 emailVerified: true, // Wallet users are considered verified by default
@@ -134,15 +107,10 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
                 creditLevel: 'Newcomer',
                 role: 'user',
             };
-            setDoc(userRef, newUserProfile).catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userRef.path,
-                    operation: 'create',
-                    requestResourceData: newUserProfile,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-            return newUserProfile;
+            const dataToSet = { ...newUserProfile, uid: address };
+            await setDoc(userRef, dataToSet);
+            const createdDoc = await getDoc(userRef);
+            return createdDoc.data() as UserProfile;
         }
     } catch (error) {
         console.error("Error upserting wallet user profile: ", error);
