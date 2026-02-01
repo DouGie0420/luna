@@ -187,5 +187,3 @@ export type SupportTicket = {
     updatedAt?: any;
     assignedTo?: string;
 };
-
-    
