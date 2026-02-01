@@ -83,6 +83,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'goop-img.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
   devIndicators: {
