@@ -27,7 +27,7 @@ export async function getTrendingKeywords(
 
 const prompt = ai.definePrompt({
   name: 'trendingKeywordsPrompt',
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'googleai/gemini-1.5-flash',
   input: { schema: z.object({ count: z.number() }) },
   output: { schema: TrendingKeywordsOutputSchema },
   prompt: `You are an e-commerce platform's AI assistant. Generate a list of {{{count}}} trending search keywords.
