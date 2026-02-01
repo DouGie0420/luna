@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart } from 'lucide-react';
+import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin } from 'lucide-react';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { format, formatDistanceToNow } from 'date-fns';
