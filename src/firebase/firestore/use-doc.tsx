@@ -20,6 +20,10 @@ export function useDoc<T>(ref: DocumentReference<DocumentData> | null) {
   const [error, setError] = useState<FirestoreError | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // By depending on the path, we avoid re-running the effect when the parent component
+  // re-creates the DocumentReference object on every render.
+  const path = ref?.path;
+
   useEffect(() => {
     if (!ref) {
       setData(null);
@@ -61,7 +65,7 @@ export function useDoc<T>(ref: DocumentReference<DocumentData> | null) {
     );
 
     return () => unsubscribe();
-  }, [ref]);
+  }, [path]); // Changed dependency from `ref` to `path`
 
   return { data, error, loading };
 }
