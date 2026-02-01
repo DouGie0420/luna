@@ -50,6 +50,8 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
   const canInteract = user && profile?.kycStatus === 'Verified';
   const isGuest = !user;
 
+  const postTitle = post.title || t(post.titleKey || '');
+
   useEffect(() => {
     if (permissionErrorToast) {
         toast({
@@ -128,14 +130,14 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
         <DialogContent className="max-w-none w-screen h-screen p-0 border-0 bg-black/90">
             <DialogHeader className="sr-only">
-                <DialogTitle>Enlarged image gallery for {t(post.titleKey)}</DialogTitle>
+                <DialogTitle>Enlarged image gallery for {postTitle}</DialogTitle>
             </DialogHeader>
             <Carousel setApi={setLightboxApi} className="w-full h-full" opts={{ loop: true, startIndex: selectedIndex }}>
                 <CarouselContent>
                     {images.map((img, index) => (
                         <CarouselItem key={index}>
                         <div className="w-full h-full flex items-center justify-center">
-                            <Image src={img} alt={`${t(post.titleKey)} image ${index + 1}`} width={1920} height={1080} className="object-contain max-w-full max-h-full" />
+                            <Image src={img} alt={`${postTitle} image ${index + 1}`} width={1920} height={1080} className="object-contain max-w-full max-h-full" />
                         </div>
                         </CarouselItem>
                     ))}
@@ -154,7 +156,7 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
                 <div className="aspect-video relative cursor-zoom-in overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-lg ring-1 ring-inset ring-white/20 group-hover:ring-white/30 transition-all">
                     <Image
                         src={img}
-                        alt={`${t(post.titleKey)} image ${index + 1}`}
+                        alt={`${postTitle} image ${index + 1}`}
                         fill
                         className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
                         data-ai-hint={imageHints[index] || ''}

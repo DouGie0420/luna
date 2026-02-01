@@ -57,7 +57,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         <div className="aspect-video relative overflow-hidden">
                             <Image
                                 src={post.images[0]}
-                                alt={t(post.titleKey)}
+                                alt={post.title || t(post.titleKey || '')}
                                 fill
                                 className="object-cover"
                                 data-ai-hint={post.imageHints?.[0] || ''}
@@ -68,7 +68,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 )}
                 <div className={post.images && post.images.length > 0 ? "p-4 -mt-16 z-10 text-white" : "p-4"}>
                      <CardTitle className="font-headline text-xl mb-2 leading-tight">
-                        {t(post.titleKey)}
+                        {post.title || t(post.titleKey || '')}
                     </CardTitle>
                     <div className="flex items-center gap-1.5 flex-wrap">
                         {post.isFeatured && (
@@ -84,7 +84,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 </div>
 
                 <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow">
-                    <p className="line-clamp-3">{t(post.contentKey)}</p>
+                    <p className="line-clamp-3">{post.content || t(post.contentKey || '')}</p>
                 </CardContent>
 
                 <CardFooter className="p-4 flex flex-col items-start gap-4">

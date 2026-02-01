@@ -151,8 +151,10 @@ export type LunarSoilLedgerEntry = {
 
 export type BbsPost = {
   id: string;
-  titleKey: string;
-  contentKey: string;
+  titleKey?: string;
+  contentKey?: string;
+  title?: string;
+  content?: string;
   author: User;
   tags: string[];
   replies: number;

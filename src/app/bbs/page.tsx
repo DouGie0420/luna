@@ -79,7 +79,19 @@ export default function BbsPage() {
         const fetchPosts = async () => {
             setLoading(true);
             const fetchedPosts = await getBbsPosts();
-            setPosts(fetchedPosts);
+
+            const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
+            let localPosts: BbsPost[] = [];
+            if (localPostsJSON) {
+                try {
+                    localPosts = JSON.parse(localPostsJSON);
+                } catch(e) { console.error(e) }
+            }
+            
+            const combined = [...localPosts, ...fetchedPosts];
+            const uniquePosts = Array.from(new Map(combined.map(p => [p.id, p])).values());
+
+            setPosts(uniquePosts);
             setLoading(false);
         };
         fetchPosts();
@@ -124,8 +136,8 @@ export default function BbsPage() {
         if (debouncedSearchTerm) {
             processedPosts = processedPosts.filter(post => {
                 const lowercasedTerm = debouncedSearchTerm.toLowerCase();
-                const titleMatch = t(post.titleKey).toLowerCase().includes(lowercasedTerm);
-                const contentMatch = t(post.contentKey).toLowerCase().includes(lowercasedTerm);
+                const titleMatch = (post.title || t(post.titleKey || '')).toLowerCase().includes(lowercasedTerm);
+                const contentMatch = (post.content || t(post.contentKey || '')).toLowerCase().includes(lowercasedTerm);
                 const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedTerm));
                 return titleMatch || contentMatch || tagMatch;
             });
@@ -214,9 +226,11 @@ export default function BbsPage() {
                            {t('bbsPage.filterNearest')}
                         </Button>
                     </div>
-                    <Button>
-                       <Plus className="mr-2 h-4 w-4" />
-                       {t('bbsPage.newPost')}
+                    <Button asChild>
+                       <Link href="/bbs/new">
+                           <Plus className="mr-2 h-4 w-4" />
+                           {t('bbsPage.newPost')}
+                       </Link>
                     </Button>
                 </div>
 

@@ -187,10 +187,21 @@ export default function BbsPostPage() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const [postData, usersData] = await Promise.all([
-                    getBbsPostById(id),
-                    getUsers()
-                ]);
+                let postData: BbsPost | null | undefined = null;
+
+                const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
+                if (localPostsJSON) {
+                    try {
+                        const localPosts: BbsPost[] = JSON.parse(localPostsJSON);
+                        postData = localPosts.find(p => p.id === id);
+                    } catch (e) { console.error(e); }
+                }
+
+                if (!postData) {
+                    postData = await getBbsPostById(id);
+                }
+                
+                const usersData = await getUsers();
 
                 if (!postData) {
                     return;
@@ -311,6 +322,14 @@ export default function BbsPostPage() {
 
     const handleDeletePost = (e: React.MouseEvent) => {
         e.preventDefault();
+        
+        const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
+        if (localPostsJSON) {
+            let localPosts: BbsPost[] = JSON.parse(localPostsJSON);
+            localPosts = localPosts.filter(p => p.id !== id);
+            localStorage.setItem('luna_new_bbs_posts', JSON.stringify(localPosts));
+        }
+
         toast({ title: t('bbsPage.postDeleted') });
         router.push('/bbs');
     };
@@ -578,7 +597,7 @@ export default function BbsPostPage() {
 
                      {/* Content */}
                     <div className="p-6">
-                        <h1 className="font-headline text-3xl font-bold mb-4">{t(post.titleKey)}</h1>
+                        <h1 className="font-headline text-3xl font-bold mb-4">{post.title || t(post.titleKey || '')}</h1>
                         
                         <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
                             <div className="flex items-center gap-2">
@@ -599,7 +618,7 @@ export default function BbsPostPage() {
                             </div>
                         )}
 
-                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{t(post.contentKey)}</p>
+                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{post.content || t(post.contentKey || '')}</p>
 
                         <div className="flex flex-wrap gap-2 mt-6">
                         {post.isFeatured && (
