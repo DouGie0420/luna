@@ -121,7 +121,6 @@ const CommentForm = ({
         placeholder={t('productComments.placeholder')}
         maxLength={2000}
         rows={3}
-        autoFocus
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
