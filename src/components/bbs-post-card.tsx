@@ -14,18 +14,24 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const router = useRouter();
     const { t, language } = useTranslation();
-    const [isLiked, setIsLiked] = useState(false);
+    const { user } = useUser();
+    const firestore = useFirestore();
+
+    const isLiked = user ? post.likedBy?.includes(user.uid) : false;
     
-    const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
+    const timeAgo = post.createdAt ? formatDistanceToNow(new Date(post.createdAt.toDate ? post.createdAt.toDate() : post.createdAt), {
         addSuffix: true,
         locale: locales[language] || enUS
-    });
+    }) : '';
 
     const handleInteraction = (e: React.MouseEvent, action?: () => void) => {
         e.stopPropagation();
@@ -39,10 +45,22 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         });
     };
 
-    const handleLikeClick = (e: React.MouseEvent) => {
-        handleInteraction(e, () => {
-            setIsLiked(prev => !prev);
-        });
+    const handleLikeClick = async (e: React.MouseEvent) => {
+        handleInteraction(e);
+        if (!user || !firestore) {
+            // Optionally, show a toast to prompt login
+            return;
+        }
+
+        const postRef = doc(firestore, 'bbs', post.id);
+        try {
+            await updateDoc(postRef, {
+                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                likes: increment(isLiked ? -1 : 1),
+            });
+        } catch (error) {
+            console.error("Failed to update like status", error);
+        }
     };
     
     const handleViewsClick = (e: React.MouseEvent) => {
@@ -114,7 +132,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                             title={`${post.likes} likes`}
                         >
                             <ThumbsUp className="h-4 w-4 mr-1" />
-                            <span>{post.likes + (isLiked ? 1 : 0)}</span>
+                            <span>{post.likes}</span>
                         </Button>
                         <button onClick={handleViewsClick} className="flex items-center gap-1.5 z-10 hover:text-primary" title={`${post.views} views`}>
                             <Eye className="h-4 w-4" />

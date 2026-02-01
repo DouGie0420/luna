@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { BbsPostCard } from '@/components/bbs-post-card';
 import { Button } from '@/components/ui/button';
-import { getBbsPosts } from '@/lib/data';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { Plus, Flame, Sparkles, Star, MapPin } from 'lucide-react';
@@ -15,6 +14,8 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
 
 function haversineDistance(
   coords1: { lat: number; lng: number },
@@ -67,35 +68,16 @@ function BbsPageSkeleton() {
 
 export default function BbsPage() {
     const { t } = useTranslation();
-    const [posts, setPosts] = useState<BbsPost[]>([]);
-    const [loading, setLoading] = useState(true);
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const postsQuery = useMemo(() => firestore ? query(collection(firestore, 'bbs'), orderBy('createdAt', 'desc')) : null, [firestore]);
+    const { data: posts, loading } = useCollection<BbsPost>(postsQuery);
+
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'featured' | 'nearest'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-    const { toast } = useToast();
-
-    useEffect(() => {
-        const fetchPosts = async () => {
-            setLoading(true);
-            const fetchedPosts = await getBbsPosts();
-
-            const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
-            let localPosts: BbsPost[] = [];
-            if (localPostsJSON) {
-                try {
-                    localPosts = JSON.parse(localPostsJSON);
-                } catch(e) { console.error(e) }
-            }
-            
-            const combined = [...localPosts, ...fetchedPosts];
-            const uniquePosts = Array.from(new Map(combined.map(p => [p.id, p])).values());
-
-            setPosts(uniquePosts);
-            setLoading(false);
-        };
-        fetchPosts();
-    }, []);
 
     const handleNearestFilter = () => {
         setActiveFilter('nearest');
@@ -130,14 +112,14 @@ export default function BbsPage() {
 
 
     const filteredAndSortedPosts = useMemo(() => {
-        let processedPosts = [...posts];
+        let processedPosts = posts ? [...posts] : [];
 
         // 1. Filter by search term
         if (debouncedSearchTerm) {
             processedPosts = processedPosts.filter(post => {
                 const lowercasedTerm = debouncedSearchTerm.toLowerCase();
-                const titleMatch = (post.title || t(post.titleKey || '')).toLowerCase().includes(lowercasedTerm);
-                const contentMatch = (post.content || t(post.contentKey || '')).toLowerCase().includes(lowercasedTerm);
+                const titleMatch = post.title?.toLowerCase().includes(lowercasedTerm);
+                const contentMatch = post.content?.toLowerCase().includes(lowercasedTerm);
                 const tagMatch = post.tags.some(tag => tag.toLowerCase().includes(lowercasedTerm));
                 return titleMatch || contentMatch || tagMatch;
             });
@@ -149,10 +131,10 @@ export default function BbsPage() {
                 processedPosts.sort((a, b) => (b.likes + b.replies * 2) - (a.likes + a.replies * 2));
                 break;
             case 'featured':
-                 processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                 processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
                 break;
             case 'nearest':
-                if (userLocation) {
+                if (userLocation && post.author.location) {
                     processedPosts.sort((a, b) => {
                         const distA = a.author.location ? haversineDistance(userLocation, a.author.location) : Infinity;
                         const distB = b.author.location ? haversineDistance(userLocation, b.author.location) : Infinity;
@@ -162,7 +144,7 @@ export default function BbsPage() {
                 break;
             case 'newest':
             default:
-                processedPosts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                // Already sorted by 'createdAt' from the query
                 break;
         }
 

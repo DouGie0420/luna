@@ -82,6 +82,7 @@ export type UserProfile = {
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
     lunarSoil?: number;
     role?: 'guest' | 'admin' | 'staff' | 'support' | 'user' | 'ghost';
+    postsCount?: number;
 }
 
 export type Promo = {
@@ -155,17 +156,33 @@ export type BbsPost = {
   contentKey?: string;
   title?: string;
   content?: string;
+  authorId: string;
   author: User;
   tags: string[];
   replies: number;
   likes: number;
   views: number;
-  createdAt: string;
+  createdAt: any;
   images?: string[];
   imageHints?: string[];
   isFeatured?: boolean;
   favorites?: number;
+  likedBy?: string[];
+  favoritedBy?: string[];
 };
+
+export type Comment = {
+  id: string;
+  authorId: string;
+  text: string;
+  parentId?: string;
+  createdAt: any;
+  likes?: number;
+  dislikes?: number;
+  likedBy?: string[];
+  dislikedBy?: string[];
+};
+
 
 export type Notification = {
   id: string;

@@ -15,7 +15,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Heart, Star, Share2 } from 'lucide-react';
@@ -27,12 +26,14 @@ import { useUser } from '@/firebase';
 
 interface BbsPostImageGalleryProps {
   post: BbsPost;
+  onLikeToggle: () => void;
+  onFavoriteToggle: () => void;
 }
 
-export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
+export function BbsPostImageGallery({ post, onLikeToggle, onFavoriteToggle }: BbsPostImageGalleryProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { user, profile } = useUser();
+  const { user } = useUser();
 
   const [mainApi, setMainApi] = useState<CarouselApi>();
   const [thumbApi, setThumbApi] = useState<CarouselApi>();
@@ -40,33 +41,15 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [permissionErrorToast, setPermissionErrorToast] = useState(false);
 
   const images = post.images || [];
   const imageHints = post.imageHints || [];
 
-  const canInteract = user && profile?.kycStatus === 'Verified';
-  const isGuest = !user;
-
   const postTitle = post.title || t(post.titleKey || '');
 
-  useEffect(() => {
-    if (permissionErrorToast) {
-        toast({
-            variant: 'destructive',
-            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-        });
-        setPermissionErrorToast(false);
-    }
-  }, [permissionErrorToast, isGuest, t, toast]);
+  const isLiked = user ? post.likedBy?.includes(user.uid) : false;
+  const isFavorited = user ? post.favoritedBy?.includes(user.uid) : false;
 
-  if (images.length === 0) {
-      return null;
-  }
-
-  // Sync main carousel and thumbnails
   useEffect(() => {
     if (!mainApi) return;
     const onSelect = () => {
@@ -78,7 +61,6 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
     return () => mainApi.off('select', onSelect);
   }, [mainApi, thumbApi]);
 
-  // Scroll lightbox to correct image on open
   useEffect(() => {
     if (isLightboxOpen && lightboxApi) {
         lightboxApi.scrollTo(selectedIndex, true);
@@ -101,28 +83,8 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
     });
   };
 
-  const handleInteractionNotAllowed = () => {
-    setPermissionErrorToast(true);
-  }
-
-  const handleLikeClick = () => {
-    if (!canInteract) {
-        handleInteractionNotAllowed();
-        return;
-    }
-    setIsLiked(prev => !prev);
-  }
-
-  const handleFavoriteClick = () => {
-    if (!canInteract) {
-        handleInteractionNotAllowed();
-        return;
-    }
-    const newFavoriteState = !isFavorited;
-    setIsFavorited(newFavoriteState);
-    if(newFavoriteState) {
-        toast({ title: t('productCardActions.addedToFavorites') });
-    }
+  if (images.length === 0) {
+      return null;
   }
 
   return (
@@ -171,7 +133,7 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
             <Button
-                onClick={handleLikeClick}
+                onClick={onLikeToggle}
                 variant="ghost"
                 className={cn(
                     "rounded-full bg-black/50 text-white backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm",
@@ -179,11 +141,11 @@ export function BbsPostImageGallery({ post }: BbsPostImageGalleryProps) {
                 )}
             >
               <Heart className="h-4 w-4" />
-              <span>{(post.likes || 0) + (isLiked ? 1 : 0)}</span>
+              <span>{post.likes || 0}</span>
           </Button>
-          <Button onClick={handleFavoriteClick} variant="ghost" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm">
+          <Button onClick={onFavoriteToggle} variant="ghost" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-yellow-400 backdrop-blur-sm animate-glow h-auto px-3 py-1.5 flex items-center gap-2 text-sm">
               <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
-              <span>{(post.favorites || 0) + (isFavorited ? 1 : 0)}</span>
+              <span>{post.favorites || 0}</span>
           </Button>
           <Button onClick={handleShare} variant="ghost" size="icon" className="rounded-full bg-black/50 text-white hover:bg-black/70 hover:text-sky-400 backdrop-blur-sm animate-glow">
               <Share2 className="h-5 w-5" />

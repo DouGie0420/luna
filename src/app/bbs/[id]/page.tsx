@@ -5,12 +5,13 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound, useRouter } from 'next/navigation';
-import { getBbsPostById, getUsers } from '@/lib/data';
-import type { BbsPost, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
-import { useUser } from '@/firebase';
-import { Loader2 } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
+import { Loader2, Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star, Heart } from 'lucide-react';
+import { doc, collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import type { BbsPost, UserProfile, Comment as CommentType } from '@/lib/types';
+
 
 import {
   AlertDialog,
@@ -43,7 +44,6 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
-import { Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { BbsPostImageGallery } from '@/components/bbs-post-image-gallery';
@@ -52,31 +52,9 @@ import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/comp
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
-type Comment = {
-  id: string;
-  authorId: string;
-  text: string;
-  date: Date;
-  parentId?: string;
-};
-
-type NestedComment = Comment & {
+type NestedComment = CommentType & {
     replies: NestedComment[];
 };
-
-// Placeholder comments
-const initialComments: Comment[] = [
-    { id: 'c1', authorId: 'user10', text: '这件商品还有吗？', date: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-    { id: 'c8', authorId: 'user1', text: '有货！', date: new Date(Date.now() - 4 * 60 * 60 * 1000), parentId: 'c1' },
-    { id: 'c2', authorId: 'user3', text: '价格可以商量吗？', date: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-    { id: 'c3', authorId: 'user2', text: '太棒了！我有一个类似的，非常喜欢。', date: new Date(Date.now() - 1 * 60 * 60 * 1000) },
-    { id: 'c4', authorId: 'user1', text: '有国际保修吗？', date: new Date(Date.now() - 55 * 60 * 1000) },
-    { id: 'c9', authorId: 'user3', text: '问得好，我也想知道。', date: new Date(Date.now() - 50 * 60 * 1000), parentId: 'c4' },
-    { id: 'c5', authorId: 'user6', text: '这太适合我的设置了。', date: new Date(Date.now() - 45 * 60 * 1000) },
-    { id: 'c6', authorId: 'user5', text: '刚订了一个，等不及了！', date: new Date(Date.now() - 30 * 60 * 1000) },
-    { id: 'c7', authorId: 'user4', text: '看起来不错，但电池续航怎么样？', date: new Date(Date.now() - 2 * 60 * 1000) },
-];
-
 
 const COMMENTS_INITIAL_LOAD = 10;
 const COMMENTS_LOAD_MORE = 10;
@@ -139,6 +117,7 @@ const CommentForm = ({
         placeholder={t('productComments.placeholder')}
         maxLength={2000}
         rows={3}
+        autoFocus
       />
       <div className="flex items-center justify-between">
         <p className="text-xs text-muted-foreground">{value.length} / 2000</p>
@@ -161,12 +140,20 @@ export default function BbsPostPage() {
     const router = useRouter();
     const { t, language } = useTranslation();
     const { toast } = useToast();
-    const [post, setPost] = useState<BbsPost | null>(null);
-    const [users, setUsers] = useState<User[]>([]);
-    const [loading, setLoading] = useState(true);
+    const firestore = useFirestore();
 
     const { user, profile } = useUser();
-    const [comments, setComments] = useState<Comment[]>(initialComments);
+    
+    const id = typeof params.id === 'string' ? params.id : '';
+
+    const postRef = useMemo(() => firestore && id ? doc(firestore, 'bbs', id) : null, [firestore, id]);
+    const { data: post, loading: postLoading, error: postError } = useDoc<BbsPost>(postRef);
+
+    const commentsQuery = useMemo(() => firestore && id ? query(collection(firestore, 'bbs', id, 'comments'), orderBy('createdAt', 'desc')) : null, [firestore, id]);
+    const { data: comments, loading: commentsLoading } = useCollection<CommentType>(commentsQuery);
+
+    const { data: authorProfile } = useDoc<UserProfile>(firestore && post ? doc(firestore, 'users', post.authorId) : null);
+    
     const [newComment, setNewComment] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
@@ -175,105 +162,64 @@ export default function BbsPostPage() {
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     
-    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-    const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
-    
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
-    const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
 
-    const id = typeof params.id === 'string' ? params.id : '';
-
-    const canInteract = user && user.emailVerified && profile?.kycStatus === 'Verified';
+    const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
-    const isOwner = user?.uid === post?.author.id;
+    const isOwner = user?.uid === post?.authorId;
 
     useEffect(() => {
-        if (!id) return;
-        
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                let postData: BbsPost | null | undefined = null;
-
-                const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
-                if (localPostsJSON) {
-                    try {
-                        const localPosts: BbsPost[] = JSON.parse(localPostsJSON);
-                        postData = localPosts.find(p => p.id === id);
-                    } catch (e) { console.error(e); }
-                }
-
-                if (!postData) {
-                    postData = await getBbsPostById(id);
-                }
-                
-                const usersData = await getUsers();
-
-                if (!postData) {
-                    return;
-                }
-                setPost(postData);
-                setUsers(usersData);
-            } catch (error) {
-                console.error("Failed to fetch post data", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchData();
-    }, [id]);
-
-    useEffect(() => {
-        if(user && post) {
-            // Mock following state
-            const isFollowed = localStorage.getItem(`follow_${post.author.id}`) === 'true';
+        if(user && authorProfile) {
+            // In a real app, this would check a `followers` subcollection or a field on the user profile.
+            // For now, we mock it based on a local storage flag to persist the "Follow" button state.
+            const isFollowed = localStorage.getItem(`follow_${authorProfile.uid}`) === 'true';
             setIsFollowing(isFollowed);
         }
-    }, [user, post]);
-
-    useEffect(() => {
-        if (permissionErrorToast) {
-            setTimeout(() => {
-                toast({
-                    variant: 'destructive',
-                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-                });
-                setPermissionErrorToast(false);
-            }, 0);
-        }
-    }, [permissionErrorToast, isGuest, t, toast]);
-    
-    useEffect(() => {
-        if (followToast) {
-            setTimeout(() => {
-                toast({
-                    title: followToast === 'followed' ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
-                });
-                setFollowToast(null);
-            }, 0);
-        }
-    }, [followToast, t, toast]);
+    }, [user, authorProfile]);
 
     const handleInteractionNotAllowed = () => {
-        setPermissionErrorToast(true);
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
     }
 
-    const handleFollowToggle = () => {
-        if (!canInteract || !post) {
+    const handleFollowToggle = async () => {
+        if (!canInteract || !authorProfile || !firestore) {
             handleInteractionNotAllowed();
             return;
         }
-        setIsFollowing(prev => {
-            const newState = !prev;
-            setFollowToast(newState ? 'followed' : 'unfollowed');
-            // Mock persistence
-            localStorage.setItem(`follow_${post.author.id}`, String(newState));
-            return newState;
-        });
+
+        const currentUserRef = doc(firestore, 'users', user.uid);
+        const targetUserRef = doc(firestore, 'users', authorProfile.uid);
+        
+        try {
+            if (isFollowing) {
+                // Unfollow
+                await updateDoc(currentUserRef, { followingCount: increment(-1) });
+                await updateDoc(targetUserRef, { followersCount: increment(-1) });
+            } else {
+                // Follow
+                await updateDoc(currentUserRef, { followingCount: increment(1) });
+                await updateDoc(targetUserRef, { followersCount: increment(1) });
+            }
+            
+            // Toggle local state and persist for mock UI
+            setIsFollowing(prev => {
+                const newState = !prev;
+                localStorage.setItem(`follow_${authorProfile.uid}`, String(newState));
+                toast({ title: newState ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess') });
+                return newState;
+            });
+
+        } catch (error) {
+            console.error("Failed to update follow status:", error);
+            toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+        }
     };
 
-    const handlePostComment = () => {
-        if (!newComment.trim()) return;
+    const handlePostComment = async () => {
+        if (!newComment.trim() || !user || !firestore || !post) return;
 
         if (!canInteract) {
             handleInteractionNotAllowed();
@@ -281,30 +227,47 @@ export default function BbsPostPage() {
         }
 
         setIsSubmitting(true);
-        setTimeout(() => {
-            const newCommentObject: Comment = {
-                id: `c${Date.now()}`,
+        try {
+            const commentsRef = collection(firestore, 'bbs', post.id, 'comments');
+            await addDoc(commentsRef, {
                 authorId: user.uid,
                 text: newComment,
-                date: new Date(),
-                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
-            };
-            setComments(prev => [newCommentObject, ...prev]);
+                createdAt: serverTimestamp(),
+                parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
+                likes: 0,
+                dislikes: 0,
+                likedBy: [],
+                dislikedBy: [],
+            });
+
+            await updateDoc(postRef!, { replies: increment(1) });
+
             setNewComment('');
             setReplyingTo(null);
-            setIsSubmitting(false);
             toast({
                 title: t('productComments.commentPosted'),
                 description: t('productComments.replyNotification'),
             });
-        }, 500);
+        } catch (error) {
+             console.error("Failed to post comment:", error);
+            toast({ variant: 'destructive', title: 'Failed to post comment.' });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
-    const handleDeleteComment = () => {
-        if (!commentToDelete) return;
-        setComments(prev => prev.filter(c => c.id !== commentToDelete && c.parentId !== commentToDelete));
-        setCommentToDelete(null);
-        toast({ title: t('productComments.commentDeleted') });
+    const handleDeleteComment = async () => {
+        if (!commentToDelete || !firestore || !post) return;
+        try {
+            const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentToDelete);
+            await deleteDoc(commentRef);
+            await updateDoc(postRef!, { replies: increment(-1) });
+            setCommentToDelete(null);
+            toast({ title: t('productComments.commentDeleted') });
+        } catch (error) {
+            console.error("Failed to delete comment:", error);
+            toast({ variant: 'destructive', title: 'Failed to delete comment.' });
+        }
     };
 
     const handleConfirmCancelReply = () => {
@@ -314,10 +277,6 @@ export default function BbsPostPage() {
     };
     
     const handleLoadMoreComments = () => {
-        if (isGuest) {
-            handleInteractionNotAllowed();
-            return;
-        }
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
 
@@ -326,46 +285,93 @@ export default function BbsPostPage() {
         toast({ title: t('bbsPage.editComingSoon') });
     };
 
-    const handleDeletePost = (e: React.MouseEvent) => {
+    const handleDeletePost = async (e: React.MouseEvent) => {
         e.preventDefault();
-        
-        const localPostsJSON = localStorage.getItem('luna_new_bbs_posts');
-        if (localPostsJSON) {
-            let localPosts: BbsPost[] = JSON.parse(localPostsJSON);
-            localPosts = localPosts.filter(p => p.id !== id);
-            localStorage.setItem('luna_new_bbs_posts', JSON.stringify(localPosts));
+        if (!firestore || !post) return;
+        try {
+            await deleteDoc(postRef!);
+            toast({ title: t('bbsPage.postDeleted') });
+            router.push('/bbs');
+        } catch (error) {
+            console.error("Failed to delete post:", error);
+            toast({ variant: 'destructive', title: 'Failed to delete post.' });
         }
-
-        toast({ title: t('bbsPage.postDeleted') });
-        router.push('/bbs');
     };
 
-    const handleLikeDislike = (commentId: string, type: 'like' | 'dislike') => {
-        if (!canInteract) {
+    const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
+        if (!canInteract || !firestore || !user || !post) {
             handleInteractionNotAllowed();
             return;
         }
-        setCommentInteractions(prev => {
-            const currentStatus = prev[commentId];
-            let newStatus;
-    
-            if (type === 'like') {
-                newStatus = currentStatus === 'liked' ? null : 'liked';
-                if (newStatus === 'liked') {
-                    // No toast on like
-                }
-            } else { // dislike
-                newStatus = currentStatus === 'disliked' ? null : 'disliked';
+
+        const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentId);
+        let likeIncrement = 0;
+        let dislikeIncrement = 0;
+
+        if (type === 'like') {
+            if (isLiked) {
+                likeIncrement = -1;
+            } else {
+                likeIncrement = 1;
+                if (isDisliked) dislikeIncrement = -1;
             }
+        } else { // dislike
+            if (isDisliked) {
+                dislikeIncrement = -1;
+            } else {
+                dislikeIncrement = 1;
+                if (isLiked) likeIncrement = -1;
+            }
+        }
+
+        try {
+            await updateDoc(commentRef, {
+                likedBy: type === 'like' && !isLiked ? arrayUnion(user.uid) : arrayRemove(user.uid),
+                dislikedBy: type === 'dislike' && !isDisliked ? arrayUnion(user.uid) : arrayRemove(user.uid),
+                ...(likeIncrement !== 0 && { likes: increment(likeIncrement) }),
+                ...(dislikeIncrement !== 0 && { dislikes: increment(dislikeIncrement) }),
+            });
+        } catch (error) {
+            console.error("Failed to update comment interaction:", error);
+        }
+    };
     
-            return { ...prev, [commentId]: newStatus };
-        });
+     const handlePostInteraction = async (type: 'like' | 'favorite') => {
+        if (!canInteract || !firestore || !post || !user) {
+            handleInteractionNotAllowed();
+            return;
+        }
+        
+        const isLiked = post.likedBy?.includes(user.uid);
+        const isFavorited = post.favoritedBy?.includes(user.uid);
+        const postRef = doc(firestore, 'bbs', post.id);
+
+        try {
+            if (type === 'like') {
+                await updateDoc(postRef, {
+                    likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                    likes: increment(isLiked ? -1 : 1)
+                });
+            } else if (type === 'favorite') {
+                await updateDoc(postRef, {
+                    favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                    favorites: increment(isFavorited ? -1 : 1)
+                });
+                if (!isFavorited) {
+                    toast({ title: t('productCardActions.addedToFavorites') });
+                }
+            }
+        } catch(error) {
+            console.error(`Failed to update ${type}:`, error);
+            toast({ variant: 'destructive', title: `Failed to update ${type}` });
+        }
     };
 
     const nestedComments = useMemo(() => {
+        if (!comments) return [];
         const commentMap: { [key: string]: NestedComment } = {};
         comments.forEach(comment => {
-            commentMap[comment.id] = { ...comment, date: new Date(comment.date), replies: [] };
+            commentMap[comment.id] = { ...comment, replies: [] };
         });
     
         const topLevelComments: NestedComment[] = [];
@@ -377,10 +383,9 @@ export default function BbsPostPage() {
             }
         });
         
-        topLevelComments.sort((a, b) => b.date.getTime() - a.date.getTime());
         topLevelComments.forEach(comment => {
             if (comment.replies) {
-              comment.replies.sort((a, b) => a.date.getTime() - b.date.getTime());
+              comment.replies.sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
             }
         });
     
@@ -388,77 +393,59 @@ export default function BbsPostPage() {
     }, [comments]);
 
 
-    if (loading) {
+    if (postLoading || commentsLoading) {
         return <PostPageSkeleton />;
     }
     
-    if (!post) {
+    if (!post || postError) {
         return notFound();
     }
     
-    const postDate = new Date(post.createdAt);
-    
-    const getUserById = (userId: string): User | undefined => {
-       if (user && userId === user.uid) {
-            const currentUserAsLibUser: User = {
-                id: user.uid,
-                name: profile?.displayName || user.displayName || 'You',
-                avatarUrl: profile?.photoURL || user.photoURL || '',
-                rating: profile?.rating || 0,
-                reviews: profile?.reviewsCount || 0,
-                followersCount: profile?.followersCount || 0,
-                followingCount: profile?.followingCount || 0,
-                location: { city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
-                postsCount: 0, 
-            };
-            return currentUserAsLibUser;
-        }
-        return users.find(u => u.id === userId);
-    };
+    const postDate = post.createdAt?.toDate();
     
     const renderComment = (comment: NestedComment) => {
-        const author = getUserById(comment.authorId);
-        const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
-        const isLiked = commentInteractions[comment.id] === 'liked';
-        const isDisliked = commentInteractions[comment.id] === 'disliked';
+        const {data: author} = useDoc<UserProfile>(firestore ? doc(firestore, 'users', comment.authorId) : null);
+        const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
+        const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
+        const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
 
         return (
             <div key={comment.id}>
                 <div className="flex items-start gap-3">
-                    <Link href={`/user/${author?.id || comment.authorId}`}>
+                    <Link href={`/user/${author?.uid || comment.authorId}`}>
                         <Avatar className="h-10 w-10">
-                            {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
-                            <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
+                            {author?.photoURL && <AvatarImage src={author.photoURL} alt={author.displayName} />}
+                            <AvatarFallback>{author?.displayName?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div className="flex-1">
                          <div className="flex items-center justify-between">
                             <div>
-                                <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-xs text-muted-foreground inline ml-2">{author.location.city}, {author.location.countryCode}</p>}
+                                <span className="font-semibold text-foreground">{author?.displayName}</span>
+                                {author?.location && <p className="text-xs text-muted-foreground inline ml-2">{author.location}</p>}
                             </div>
                             <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                                 <Button
                                     variant="ghost"
-                                    onClick={() => handleLikeDislike(comment.id, 'like')}
+                                    onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')}
                                     className={cn(
                                         "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
                                         isLiked ? "bg-yellow-400 text-black hover:bg-yellow-500" : "hover:bg-accent"
                                     )}
                                 >
                                     <ThumbsUp className="h-4 w-4" />
-                                    <span>{(author?.goodReviews ?? 0) + (isLiked ? 1 : 0)}</span>
+                                    <span>{comment.likes || 0}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
-                                    onClick={() => handleLikeDislike(comment.id, 'dislike')}
+                                    onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')}
                                     className={cn(
                                         "h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5",
                                         isDisliked ? "bg-gray-500 text-white hover:bg-gray-600" : "hover:bg-accent"
                                     )}
                                 >
                                     <ThumbsDown className="h-4 w-4" />
-                                    <span>{(author?.badReviews ?? 0) + (isDisliked ? 1 : 0)}</span>
+                                    <span>{comment.dislikes || 0}</span>
                                 </Button>
                                 <span>{timeAgo}</span>
                             </div>
@@ -469,7 +456,7 @@ export default function BbsPostPage() {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
+                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.displayName || 'User' }) : handleInteractionNotAllowed()}
                             >
                                 <Reply className="mr-1 h-3 w-3 -scale-x-100" />
                                 {t('productComments.reply')}
@@ -490,28 +477,13 @@ export default function BbsPostPage() {
                 </div>
                  {replyingTo?.id === comment.id && (
                     <div className="mt-4 ml-11 pl-4 border-l-2">
-                         <div className="space-y-2">
-                            <Textarea
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                placeholder={`${t('productComments.replyTo')} ${replyingTo.authorName}...`}
-                                maxLength={2000}
-                                rows={3}
-                                autoFocus
-                            />
-                            <div className="flex items-center justify-between">
-                                <p className="text-xs text-muted-foreground">{newComment.length} / 2000</p>
-                                <div className="flex items-center gap-2">
-                                <Button onClick={handlePostComment} disabled={isSubmitting || !newComment.trim()}>
-                                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    {t('productComments.submit')}
-                                </Button>
-                                <Button variant="default" onClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}>
-                                    {t('productComments.cancelReply')}
-                                </Button>
-                                </div>
-                            </div>
-                        </div>
+                         <CommentForm
+                            isSubmitting={isSubmitting}
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            onSubmit={handlePostComment}
+                            onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
+                        />
                     </div>
                 )}
             </div>
@@ -530,43 +502,43 @@ export default function BbsPostPage() {
                             <Dialog>
                                 <DialogTrigger asChild>
                                     <Avatar className="h-20 w-20 cursor-pointer">
-                                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={authorProfile?.photoURL} alt={authorProfile?.displayName} />
+                                        <AvatarFallback>{authorProfile?.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 </DialogTrigger>
                                 <DialogContent className="p-0 border-0 max-w-lg bg-transparent shadow-none">
                                     <DialogHeader>
-                                        <DialogTitle className="sr-only">Enlarged avatar for {post.author.name}</DialogTitle>
+                                        <DialogTitle className="sr-only">Enlarged avatar for {authorProfile?.displayName}</DialogTitle>
                                     </DialogHeader>
-                                    <Image src={post.author.avatarUrl} alt={post.author.name} width={512} height={512} className="rounded-lg" />
+                                    <Image src={authorProfile?.photoURL || ''} alt={authorProfile?.displayName || ''} width={512} height={512} className="rounded-lg" />
                                 </DialogContent>
                             </Dialog>
                             <div className="flex flex-col gap-1 pt-1">
                                 <div className="flex items-baseline gap-4">
-                                     <Link href={`/user/${post.author.id}`} className="hover:underline">
-                                        <h2 className="font-bold text-xl">{post.author.name}</h2>
+                                     <Link href={`/user/${post.authorId}`} className="hover:underline">
+                                        <h2 className="font-bold text-xl">{authorProfile?.displayName}</h2>
                                     </Link>
                                     <p className="text-sm font-semibold text-red-400">
-                                        {post.author.creditLevel || t('userProfile.noVerifications')}
-                                        {post.author.location && (
+                                        {authorProfile?.creditLevel || t('userProfile.noVerifications')}
+                                        {authorProfile?.location && (
                                             <>
                                                 <span className="mx-2 text-muted-foreground font-normal">&middot;</span>
-                                                <span className="text-muted-foreground font-normal">{post.author.location.city}, {post.author.location.countryCode}</span>
+                                                <span className="text-muted-foreground font-normal">{authorProfile.location}</span>
                                             </>
                                         )}
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                    <Link href={`/user/${post.author.id}/followers`} className="hover:underline">
-                                        {t('userProfile.followers')} <span className="font-bold text-foreground">{post.author.followersCount || 0}</span>
+                                    <Link href={`/user/${post.authorId}/followers`} className="hover:underline">
+                                        {t('userProfile.followers')} <span className="font-bold text-foreground">{authorProfile?.followersCount || 0}</span>
                                     </Link>
                                     <span>&middot;</span>
-                                    <Link href={`/user/${post.author.id}/following`} className="hover:underline">
-                                        {t('userProfile.following')} <span className="font-bold text-foreground">{post.author.followingCount || 0}</span>
+                                    <Link href={`/user/${post.authorId}/following`} className="hover:underline">
+                                        {t('userProfile.following')} <span className="font-bold text-foreground">{authorProfile?.followingCount || 0}</span>
                                     </Link>
                                     <span>&middot;</span>
-                                    <Link href={`/user/${post.author.id}/listings`} className="hover:underline">
-                                        {t('userProfile.posts')} <span className="font-bold text-foreground">{post.author.postsCount || 0}</span>
+                                    <Link href={`/user/${post.authorId}/listings`} className="hover:underline">
+                                        {t('userProfile.posts')} <span className="font-bold text-foreground">{authorProfile?.postsCount || 0}</span>
                                     </Link>
                                 </div>
                             </div>
@@ -603,28 +575,32 @@ export default function BbsPostPage() {
 
                      {/* Content */}
                     <div className="p-6">
-                        <h1 className="font-headline text-3xl font-bold mb-4">{post.title || t(post.titleKey || '')}</h1>
+                        <h1 className="font-headline text-3xl font-bold mb-4">{post.title}</h1>
                         
                         <div className="flex items-center gap-6 text-sm text-muted-foreground mb-6">
                             <div className="flex items-center gap-2">
                                 <Calendar className="h-4 w-4" />
-                                <span>{format(postDate, 'PPP')}</span>
+                                <span>{postDate ? format(postDate, 'PPP') : '...'}</span>
                             </div>
-                            {post.author.location && (
+                            {authorProfile?.location && (
                                 <div className="flex items-center gap-2">
                                     <span>&middot;</span>
-                                    <span>{post.author.location.city}, {post.author.location.countryCode}</span>
+                                    <span>{authorProfile.location}</span>
                                 </div>
                             )}
                         </div>
 
                         {post.images && post.images.length > 0 && (
                             <div className="my-6">
-                                <BbsPostImageGallery post={post} />
+                                <BbsPostImageGallery 
+                                    post={post}
+                                    onLikeToggle={() => handlePostInteraction('like')}
+                                    onFavoriteToggle={() => handlePostInteraction('favorite')}
+                                />
                             </div>
                         )}
 
-                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{post.content || t(post.contentKey || '')}</p>
+                        <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{post.content}</p>
 
                         <div className="flex flex-wrap gap-2 mt-6">
                         {post.isFeatured && (
@@ -642,7 +618,7 @@ export default function BbsPostPage() {
                     {/* Comments */}
                      <div id="comments" className="px-6 pb-6 scroll-mt-24">
                         <Separator className="my-6" />
-                        <p className="text-lg font-semibold mb-4">{nestedComments.length} 条评论</p>
+                        <p className="text-lg font-semibold mb-4">{post.replies || 0} 条评论</p>
 
                         {canInteract && !replyingTo && (
                             <TooltipProvider>
@@ -732,8 +708,3 @@ export default function BbsPostPage() {
         </>
     );
 }
-
-    
-
-    
-
