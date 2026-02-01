@@ -22,7 +22,8 @@ import { cn } from '@/lib/utils';
 export function SeaOfTranquility() {
     const router = useRouter();
     const { t, language } = useTranslation();
-    const [posts, setPosts] = useState<BbsPost[]>([]);
+    const [featuredPosts, setFeaturedPosts] = useState<BbsPost[]>([]);
+    const [otherPosts, setOtherPosts] = useState<BbsPost[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const locales = { en: enUS, zh: zhCN, th: th };
     const { toast } = useToast();
@@ -33,27 +34,15 @@ export function SeaOfTranquility() {
             setIsLoading(true);
             try {
                 const allPosts = await getBbsPosts();
-
-                // Find the first post WITH an image to be the featured post
-                const featuredPostIndex = allPosts.findIndex(p => p.images && p.images.length > 0);
                 
-                let displayPosts: BbsPost[];
+                // New logic: 2 featured posts, 5 other posts
+                setFeaturedPosts(allPosts.slice(0, 2));
+                setOtherPosts(allPosts.slice(2, 7));
 
-                if (featuredPostIndex !== -1) {
-                    const featured = allPosts[featuredPostIndex];
-                    // The rest are the other posts, excluding the featured one
-                    const others = allPosts.filter((_, index) => index !== featuredPostIndex);
-                    // Take the featured one + the next 5 from the rest
-                    displayPosts = [featured, ...others.slice(0, 5)];
-                } else {
-                    // If no posts have images, just take the newest 6
-                    displayPosts = allPosts.slice(0, 6);
-                }
-                
-                setPosts(displayPosts);
             } catch (err) {
                 console.error("Failed to fetch posts for Sea of Tranquility.", err);
-                setPosts([]);
+                setFeaturedPosts([]);
+                setOtherPosts([]);
             } finally {
                 setIsLoading(false);
             }
@@ -94,17 +83,26 @@ export function SeaOfTranquility() {
                         </Link>
                     </Button>
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                    {/* Main Post Skeleton */}
-                    <div className="flex flex-col space-y-3">
-                        <Skeleton className="aspect-video w-full" />
-                        <div className="space-y-2 p-4">
-                            <Skeleton className="h-4 w-4/5" />
-                            <Skeleton className="h-4 w-1/2" />
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                    {/* Main Posts Skeleton */}
+                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                         <div className="flex flex-col space-y-3">
+                            <Skeleton className="aspect-video w-full" />
+                            <div className="space-y-2 p-4">
+                                <Skeleton className="h-4 w-4/5" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col space-y-3">
+                            <Skeleton className="aspect-video w-full" />
+                            <div className="space-y-2 p-4">
+                                <Skeleton className="h-4 w-4/5" />
+                                <Skeleton className="h-4 w-1/2" />
+                            </div>
                         </div>
                     </div>
                     {/* Other Posts Skeleton */}
-                    <div className="space-y-4">
+                    <div className="space-y-4 lg:col-span-1">
                         {[...Array(5)].map((_, i) => (
                              <div key={i} className="flex items-center gap-4 p-2">
                                 <Skeleton className="h-20 w-20 shrink-0 rounded-md" />
@@ -121,8 +119,6 @@ export function SeaOfTranquility() {
         );
     }
     
-    const [featuredPost, ...otherPosts] = posts;
-
     return (
         <section className="container mx-auto px-4 py-12 md:py-16">
             <div className="flex justify-between items-center mb-6">
@@ -134,16 +130,19 @@ export function SeaOfTranquility() {
                 </Button>
             </div>
             
-             {posts.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                    {featuredPost && (
-                        <div className="md:col-span-1">
-                            <BbsPostCard post={featuredPost} />
+             {(featuredPosts.length > 0 || otherPosts.length > 0) && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+                    
+                    {featuredPosts.length > 0 && (
+                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                            {featuredPosts.map((post) => (
+                                <BbsPostCard key={post.id} post={post} />
+                            ))}
                         </div>
                     )}
                     
                     {otherPosts.length > 0 && (
-                        <div className="md:col-span-1 flex flex-col gap-4 justify-between">
+                        <div className="lg:col-span-1 flex flex-col gap-4 justify-between">
                             {otherPosts.map(post => {
                                 const timeAgo = formatDistanceToNow(new Date(post.createdAt), {
                                     addSuffix: true,

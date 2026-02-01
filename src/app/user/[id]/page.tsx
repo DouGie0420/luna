@@ -26,6 +26,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    </svg>
+);
+
+
 export default function UserProfilePage() {
     const params = useParams();
     const { t } = useTranslation();
@@ -155,8 +162,8 @@ export default function UserProfilePage() {
                                         <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                      {user.isNftVerified && (
-                                        <div className="absolute -bottom-2 -right-2 z-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 p-1.5 animate-glow-border-primary">
-                                            <ShieldCheck className="h-5 w-5 text-white" />
+                                        <div className="absolute -bottom-2 -right-2 z-10 rounded-full bg-black/80 p-1.5 backdrop-blur-sm">
+                                            <EthereumIcon className="h-5 w-5 text-cyan-400" />
                                         </div>
                                     )}
                                 </div>
@@ -247,8 +254,8 @@ export default function UserProfilePage() {
                                         </div>
                                     )}
                                     {user.isNftVerified ? (
-                                        <div className="flex items-center gap-1.5 text-purple-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
+                                            <EthereumIcon className="h-4 w-4" />
                                             <span>NFT</span>
                                         </div>
                                     ) : user.isWeb3Verified && (

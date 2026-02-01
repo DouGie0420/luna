@@ -35,6 +35,13 @@ import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
 import { cn } from "@/lib/utils";
 
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    </svg>
+);
+
+
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
     const firestore = useFirestore();
@@ -396,8 +403,8 @@ export default function AccountProfilePage() {
                                         </div>
                                     )}
                                     {profile?.isNftVerified ? (
-                                        <div className="flex items-center gap-1.5 text-purple-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
+                                            <EthereumIcon className="h-4 w-4" />
                                             <span>NFT</span>
                                         </div>
                                     ) : profile?.isWeb3Verified && (

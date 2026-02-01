@@ -27,6 +27,11 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    </svg>
+);
 
 export function UserNav() {
   const { t } = useTranslation();
@@ -294,8 +299,8 @@ export function UserNav() {
                       <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   {profile?.isNftVerified && (
-                      <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 p-0.5">
-                          <ShieldCheck className="h-3 w-3 text-white" />
+                      <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                          <EthereumIcon className="h-4 w-4 text-cyan-400" />
                       </div>
                   )}
                 </div>

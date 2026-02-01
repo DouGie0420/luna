@@ -13,6 +13,14 @@ import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, Th
 import type { Product } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
 import Link from 'next/link';
+import React from 'react';
+
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    </svg>
+);
+
 
 export function SellerProfileCard({ product }: { product: Product }) {
     const { t } = useTranslation();
@@ -47,8 +55,8 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     </div>
                                 )}
                                 {seller.isNftVerified ? (
-                                    <div className="flex items-center gap-1.5 text-purple-400">
-                                        <ShieldCheck className="h-4 w-4" />
+                                    <div className="flex items-center gap-1.5 text-cyan-400">
+                                        <EthereumIcon className="h-4 w-4" />
                                         <span>NFT</span>
                                     </div>
                                 ) : seller.isWeb3Verified && (
@@ -141,8 +149,8 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 </div>
                             )}
                             {seller.isNftVerified ? (
-                                <div className="flex items-center gap-1.5 text-purple-400">
-                                    <ShieldCheck className="h-4 w-4" />
+                                <div className="flex items-center gap-1.5 text-cyan-400">
+                                    <EthereumIcon className="h-4 w-4" />
                                     <span>NFT</span>
                                 </div>
                             ) : seller.isWeb3Verified && (
