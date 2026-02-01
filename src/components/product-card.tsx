@@ -26,15 +26,18 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const [isLiked, setIsLiked] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
-  
+  const [isRecommended, setIsRecommended] = useState(false);
+
   const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
   useEffect(() => {
     const checkState = () => {
       const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
       const favoritedItems = JSON.parse(localStorage.getItem('favoritedProducts') || '[]');
+      const recommendedItems = JSON.parse(localStorage.getItem('recommended_products') || '[]');
       setIsLiked(likedItems.includes(product.id));
       setIsFavorited(favoritedItems.includes(product.id));
+      setIsRecommended(recommendedItems.includes(product.id));
     };
 
     checkState();
@@ -75,10 +78,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
     e.stopPropagation();
 
     const recommendedProducts: string[] = JSON.parse(localStorage.getItem('recommended_products') || '[]');
-    const isRecommended = recommendedProducts.includes(product.id);
+    const isCurrentlyRecommended = recommendedProducts.includes(product.id);
 
     let newRecommended: string[];
-    if (isRecommended) {
+    if (isCurrentlyRecommended) {
       newRecommended = recommendedProducts.filter(id => id !== product.id);
       toast({ title: 'Removed from Recommendations' });
     } else {
@@ -86,6 +89,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       toast({ title: 'Added to Recommendations' });
     }
     localStorage.setItem('recommended_products', JSON.stringify(newRecommended));
+    setIsRecommended(!isCurrentlyRecommended);
   };
 
 
@@ -109,7 +113,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                     onClick={handleRecommend}
                     title="Add to Recommendations"
                 >
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className={cn("h-4 w-4", isRecommended && "text-yellow-400 fill-yellow-400")} />
                 </Button>
             )}
           </div>
