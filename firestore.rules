@@ -43,7 +43,27 @@ service cloud.firestore {
     // USER PROFILES
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow user to update their own non-critical profile info.
+      // Critical fields like 'role', 'creditScore', 'uid' are immutable by the user.
+      allow update: if request.auth.uid == userId &&
+                       !('uid' in request.resource.data) &&
+                       !('createdAt' in request.resource.data) &&
+                       !('creditScore' in request.resource.data) &&
+                       !('creditLevel' in request.resource.data) &&
+                       !('lunarSoil' in request.resource.data) &&
+                       !('rating' in request.resource.data) &&
+                       !('reviewsCount' in request.resource.data) &&
+                       !('salesCount' in request.resource.data) &&
+                       !('purchasesCount' in request.resource.data) &&
+                       !('followersCount' in request.resource.data) &&
+                       !('followingCount' in request.resource.data) &&
+                       !('postsCount' in request.resource.data) &&
+                       // Allow role change only from guest to user
+                       (request.resource.data.role == resource.data.role || (resource.data.role == 'guest' && request.resource.data.role == 'user'));
+      
+      allow create: if request.auth != null && request.auth.uid == userId;
+
 
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isRequestingUserStaff();
@@ -113,13 +133,20 @@ service cloud.firestore {
                     && request.resource.data.author.id == request.auth.uid
                     && request.resource.data.location != null;
       
-      allow update: if (isOwner(resource.data.authorId) 
-                        && request.resource.data.location == resource.data.location
-                        && request.resource.data.likes == resource.data.likes
-                        && request.resource.data.favorites == resource.data.favorites
-                        && request.resource.data.replies == resource.data.replies
-                      ) 
-                    || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits']));
+      allow update: if 
+        // Case 1: Post owner can edit their post, but cannot change location or interaction counts.
+        (isOwner(resource.data.authorId) &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits'])
+        ) ||
+        // Case 2: Any signed-in user can update interaction counts (likes, favorites, views, and their corresponding user lists).
+        (isSignedIn() &&
+         request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits'])
+        ) ||
+        // Case 3: Any signed-in user can increment the reply count (and only that count) when posting a comment.
+        (isSignedIn() &&
+         request.resource.data.replies == resource.data.replies + 1 &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies'])
+        );
       
       allow delete: if resource.data.authorId == request.auth.uid || isRequestingUserAdmin();
 

@@ -12,6 +12,8 @@ import type { User as FirebaseUser } from 'firebase/auth';
 import { Loader2, Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star, Heart } from 'lucide-react';
 import { doc, collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import type { BbsPost, UserProfile, Comment as CommentType } from '@/lib/types';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 import {
@@ -379,8 +381,8 @@ export default function BbsPostPage() {
         }
     };
 
-    const handlePostComment = async () => {
-        if (!newComment.trim() || !user || !firestore || !post) return;
+    const handlePostComment = () => {
+        if (!newComment.trim() || !user || !firestore || !post || !postRef) return;
 
         if (!canInteract) {
             handleInteractionNotAllowed();
@@ -388,33 +390,49 @@ export default function BbsPostPage() {
         }
 
         setIsSubmitting(true);
-        try {
-            const commentsRef = collection(firestore, 'bbs', post.id, 'comments');
-            await addDoc(commentsRef, {
-                authorId: user.uid,
-                text: newComment,
-                createdAt: serverTimestamp(),
-                parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
-                likes: 0,
-                dislikes: 0,
-                likedBy: [],
-                dislikedBy: [],
-            });
 
-            await updateDoc(postRef!, { replies: increment(1) });
-
+        const commentData = {
+            authorId: user.uid,
+            text: newComment,
+            createdAt: serverTimestamp(),
+            parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
+            likes: 0,
+            dislikes: 0,
+            likedBy: [],
+            dislikedBy: [],
+        };
+        const commentsRef = collection(firestore, 'bbs', post.id, 'comments');
+        
+        addDoc(commentsRef, commentData).then(() => {
+            // Comment added, now update reply count. Non-blocking.
+            updateDoc(postRef, { replies: increment(1) })
+                .catch((serverError) => {
+                     const permissionError = new FirestorePermissionError({
+                        path: postRef.path,
+                        operation: 'update',
+                        requestResourceData: { replies: 'increment(1)' },
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                });
+            
+            // Optimistically update UI
             setNewComment('');
             setReplyingTo(null);
             toast({
                 title: t('productComments.commentPosted'),
                 description: t('productComments.replyNotification'),
             });
-        } catch (error) {
-             console.error("Failed to post comment:", error);
-            toast({ variant: 'destructive', title: 'Failed to post comment.' });
-        } finally {
             setIsSubmitting(false);
-        }
+
+        }).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: commentsRef.path,
+                operation: 'create',
+                requestResourceData: commentData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setIsSubmitting(false);
+        });
     };
     
     const handleDeleteComment = async () => {
