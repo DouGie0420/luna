@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { ContentPreviewRenderer } from '@/components/content-preview-renderer';
 
 
 export default function EditBbsPostPage() {
@@ -154,6 +155,14 @@ export default function EditBbsPostPage() {
             })
         }
     }
+  };
+
+  const handleRemoveMediaLine = (lineToRemove: string) => {
+    setContent(prev => {
+        const lines = prev.split('\n');
+        const newLines = lines.filter(line => line.trim() !== lineToRemove.trim());
+        return newLines.join('\n').replace(/\n\n+/g, '\n');
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -280,7 +289,10 @@ export default function EditBbsPostPage() {
                             </Dialog>
                         </div>
                     </div>
-                  <Textarea id="content" placeholder="What's on your mind? You can use Markdown for formatting." value={content} onChange={(e) => setContent(e.target.value)} required rows={12} />
+                    <div className="rounded-md border border-input focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                        <Textarea id="content" placeholder="What's on your mind? You can use Markdown for formatting." value={content} onChange={(e) => setContent(e.target.value)} required rows={8} className="border-0 rounded-b-none focus-visible:ring-0 focus-visible:ring-offset-0"/>
+                        <ContentPreviewRenderer content={content} onRemove={handleRemoveMediaLine} />
+                    </div>
                 </div>
                  <div className="grid gap-2">
                   <Label htmlFor="tags">Tags</Label>
