@@ -145,6 +145,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         });
     };
 
+    const handleGoToComments = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        router.push(`/bbs/${post.id}#comments`);
+    };
+
     const isLiked = user && post.likedBy?.includes(user.uid);
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
@@ -210,7 +216,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     </div>
                 </div>
 
-                <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow line-clamp-2">
+                <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow line-clamp-3">
                     <p>{summary}</p>
                 </CardContent>
 
@@ -243,14 +249,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Link href={`/bbs/${post.id}#comments`} passHref>
-                           <Button variant="ghost" size="icon" className="h-7 w-7" asChild>
-                            <span className="flex items-center gap-1 cursor-pointer">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments} asChild>
+                             <span className="flex items-center gap-1 cursor-pointer">
                                 <MessageSquare className="h-4 w-4" />
                                 <span>{post.replies}</span>
                             </span>
-                           </Button>
-                        </Link>
+                        </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
                             <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
                         </Button>
