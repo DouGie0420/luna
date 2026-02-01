@@ -47,7 +47,7 @@ export async function recommendProducts(
 
 const prompt = ai.definePrompt({
   name: 'recommendProductsPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: 'googleai/gemini-pro',
   input: {schema: RecommendProductsInputSchema},
   output: {schema: RecommendProductsOutputSchema},
   prompt: `You are a personal shopping assistant. A user is at latitude {{{latitude}}}, longitude {{{longitude}}}. They want you to recommend products available within {{{radius}}}km to them based on their purchase history.
