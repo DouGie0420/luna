@@ -43,6 +43,7 @@ export function UserNav() {
   const [isLinkingWallet, setIsLinkingWallet] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
 
+  const hasAdminAccess = profile && ['staff', 'support', 'ghost', 'admin'].includes(profile.role || '');
 
   const handleLogout = async () => {
     if (isTestUser) {
@@ -257,6 +258,15 @@ export function UserNav() {
     <>
       <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
       <div className="flex items-center gap-2">
+          {hasAdminAccess && (
+            <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+              <Button asChild variant="ghost" size="icon" title="Admin Dashboard" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+                  <Link href="/admin">
+                      <LayoutDashboard className="h-5 w-5" />
+                  </Link>
+              </Button>
+            </div>
+          )}
           <NotificationBell />
           <div className={cn(
             "relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate",

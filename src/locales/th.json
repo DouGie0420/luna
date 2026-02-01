@@ -66,8 +66,8 @@
     "web3Wallet": "กระเป๋า Web3",
     "web3LoginComingSoonTitle": "ฟีเจอร์นี้จะมาในเร็วๆ นี้",
     "web3LoginComingSoonDescription": "การเข้าสู่ระบบด้วยกระเป๋าเงิน Web3 กำลังอยู่ในระหว่างการพัฒนา",
-    "walletAlreadyLinkedTitle": "เชื่อมต่อกระเป๋าเงินล้มเหลว",
-    "walletAlreadyLinkedDesc": "ที่อยู่กระเป๋าเงินนี้ถูกเชื่อมต่อกับบัญชี LUNA อื่นแล้ว"
+    "walletAlreadyLinkedTitle": "การผูกกระเป๋าเงินล้มเหลว",
+    "walletAlreadyLinkedDesc": "ที่อยู่นี้ถูกผูกไว้กับบัญชีอื่นแล้ว"
   },
   "support": {
     "title": "ติดต่อฝ่ายสนับสนุน"

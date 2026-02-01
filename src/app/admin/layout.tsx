@@ -36,7 +36,7 @@ import type { UserProfile } from '@/lib/types'
 import { useTranslation } from '@/hooks/use-translation'
 
 const hasAdminAccess = (role?: UserProfile['role']) => {
-    return role === 'admin' || role === 'staff' || role === 'support';
+    return role === 'admin' || role === 'staff' || role === 'support' || role === 'ghost';
 }
 
 const hasRole = (role: UserProfile['role'] | undefined, targetRoles: Array<UserProfile['role']>) => {
@@ -115,7 +115,7 @@ export default function AdminLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {hasRole(profile?.role, ['admin', 'staff', 'support']) && (
+            {hasRole(profile?.role, ['admin', 'staff', 'support', 'ghost']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -177,7 +177,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {(hasRole(profile?.role, ['admin', 'support'])) && (
+            {(hasRole(profile?.role, ['admin', 'support', 'ghost'])) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">

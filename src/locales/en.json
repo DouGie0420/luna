@@ -66,8 +66,8 @@
     "web3Wallet": "Web3 Wallet",
     "web3LoginComingSoonTitle": "Feature Coming Soon",
     "web3LoginComingSoonDescription": "Web3 wallet login is currently under development.",
-    "walletAlreadyLinkedTitle": "Wallet Link Failed",
-    "walletAlreadyLinkedDesc": "This wallet address is already linked to another LUNA account."
+    "walletAlreadyLinkedTitle": "Wallet Binding Failed",
+    "walletAlreadyLinkedDesc": "This address has been bound to another account."
   },
   "support": {
     "title": "Contact Support"
