@@ -95,10 +95,17 @@ service cloud.firestore {
     match /products/{productId} {
       // Anyone can view products.
       allow read: if true;
-      // Any signed-in user can create a product, but must set themselves as the seller.
-      allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid;
-      // Only the original seller or staff/admin/ghost can update/delete a product.
-      allow update, delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
+      // Any signed-in user can create a product, but must set themselves as the seller and include location.
+      allow create: if isSignedIn() && request.resource.data.seller.id == request.auth.uid && request.resource.data.location != null;
+      
+      // The original seller or staff/admin/ghost can update/delete a product.
+      // Location is immutable.
+      // Any signed in user can update the views and searchHits fields.
+      allow update: if ( (resource.data.seller.id == request.auth.uid) || isStaff() ) 
+                      && request.resource.data.location == resource.data.location;
+      allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'searchHits']);
+      
+      allow delete: if (resource.data.seller.id == request.auth.uid) || isStaff();
     }
     
     // PROMOS (Managed by Staff/Admins/Ghosts)
@@ -144,15 +151,21 @@ service cloud.firestore {
     // BBS Posts
     match /bbs/{postId} {
       allow read: if true;
-      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-      allow update: if isSignedIn(); // Relies on frontend for granular control (e.g., only update own likes)
+      allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid && request.resource.data.location != null;
+      
+      // Update rules:
+      // 1. The author can update their post, but not the location.
+      // 2. Any signed-in user can interact (like, favorite) or increment views/searchHits.
+      allow update: if (isOwner(resource.data.authorId) && request.resource.data.location == resource.data.location) 
+                    || (isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits']));
+      
       allow delete: if resource.data.authorId == request.auth.uid || isAdmin();
 
       // Comments subcollection
       match /comments/{commentId} {
         allow read: if true;
         allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-        allow update: if isSignedIn(); // Relies on frontend for granular control
+        allow update: if isSignedIn(); // Relies on frontend for granular control (likes/dislikes)
         allow delete: if resource.data.authorId == request.auth.uid || isAdmin();
       }
     }

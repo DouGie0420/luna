@@ -37,6 +37,25 @@
             "Seller Pays",
             "Buyer Pays"
           ]
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "city": { "type": "string" },
+            "country": { "type": "string" },
+            "countryCode": { "type": "string" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "views": {
+          "type": "number",
+          "description": "Total number of views."
+        },
+        "searchHits": {
+          "type": "number",
+          "description": "How many times this item appeared in search results."
         }
       },
       "required": [
@@ -44,7 +63,8 @@
         "price",
         "currency",
         "sellerId",
-        "category"
+        "category",
+        "location"
       ]
     },
     "UserProfile": {
@@ -613,9 +633,24 @@
         "replies": { "type": "number" },
         "isFeatured": { "type": "boolean" },
         "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who liked the post." },
-        "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." }
+        "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "city": { "type": "string" },
+            "country": { "type": "string" },
+            "countryCode": { "type": "string" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "searchHits": {
+          "type": "number",
+          "description": "How many times this item appeared in search results."
+        }
       },
-      "required": ["title", "content", "authorId", "createdAt"]
+      "required": ["title", "content", "authorId", "createdAt", "location"]
     },
     "Comment": {
       "title": "BBS Comment",

@@ -19,6 +19,8 @@ export type Product = {
   shippingMethod?: 'Seller Pays' | 'Buyer Pays';
   likes?: number;
   favorites?: number;
+  views?: number;
+  searchHits?: number;
 };
 
 export type User = {
@@ -169,6 +171,14 @@ export type BbsPost = {
   favorites?: number;
   likedBy?: string[];
   favoritedBy?: string[];
+  location: {
+    lat: number;
+    lng: number;
+    city?: string;
+    country?: string;
+    countryCode?: string;
+  };
+  searchHits?: number;
 };
 
 export type Comment = {
