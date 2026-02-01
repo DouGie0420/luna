@@ -26,12 +26,7 @@ import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { collection, getDocs, query, where } from "firebase/firestore";
-
-const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
-    </svg>
-);
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 export function UserNav() {
   const { t } = useTranslation();
@@ -184,6 +179,7 @@ export function UserNav() {
     const dataToUpdate = {
         photoURL: nft.imageUrl,
         isNftVerified: true,
+        displayedBadge: 'nft' as const,
     };
     try {
         await updateUserProfile(firestore, user.uid, dataToUpdate);
@@ -293,17 +289,7 @@ export function UserNav() {
           <DropdownMenu>
           <DropdownMenuTrigger asChild>
               <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-                <div className="relative">
-                  <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.photoURL || user.photoURL || undefined} alt={user.displayName || 'User'} />
-                      <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                  </Avatar>
-                  {profile?.isNftVerified && (
-                      <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                          <EthereumIcon className="h-4 w-4 text-cyan-400" />
-                      </div>
-                  )}
-                </div>
+                  <UserAvatar profile={profile || user} className="h-8 w-8" />
               </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>

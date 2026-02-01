@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
@@ -34,6 +34,9 @@ import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
 import type { Product, User } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
+import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 export default function NewProductPage() {
@@ -41,6 +44,7 @@ export default function NewProductPage() {
   const router = useRouter();
   const { t } = useTranslation();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -122,7 +126,7 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) {
+    if (!user || !profile || !firestore) {
       toast({ variant: 'destructive', title: 'Please login to list an item.'});
       return;
     }
@@ -140,13 +144,13 @@ export default function NewProductPage() {
       isWeb3Verified: profile.isWeb3Verified,
       kycStatus: profile.kycStatus,
       location: { city: profile.location || 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
-      itemsOnSale: profile.salesCount,
-      itemsSold: 0,
+      onSaleCount: profile.onSaleCount,
+      itemsSold: profile.salesCount,
       creditScore: profile.creditScore,
       creditLevel: profile.creditLevel,
       followersCount: profile.followersCount,
       followingCount: profile.followingCount,
-      postsCount: 0,
+      postsCount: profile.postsCount,
     };
 
     const newProduct: Product = {
@@ -169,6 +173,17 @@ export default function NewProductPage() {
     const localProductsJSON = localStorage.getItem('luna_new_products');
     const localProducts = localProductsJSON ? JSON.parse(localProductsJSON) : [];
     localStorage.setItem('luna_new_products', JSON.stringify([newProduct, ...localProducts]));
+
+    // Increment onSaleCount in Firestore
+    const userRef = doc(firestore, 'users', user.uid);
+    updateDoc(userRef, { onSaleCount: increment(1) }).catch(serverError => {
+        const permissionError = new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'update',
+            requestResourceData: { onSaleCount: increment(1) },
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
 
     setIsSubmitting(false);
     toast({

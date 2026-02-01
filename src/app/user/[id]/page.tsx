@@ -18,9 +18,9 @@ import { getUsers, getProducts } from "@/lib/data";
 import { notFound, useParams } from "next/navigation";
 import type { User, Product } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { ProductCard } from "@/components/product-card";
-import Link from "next/link";
+import Link from 'next/link';
 import { useUser } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -156,17 +156,7 @@ export default function UserProfilePage() {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                                <div className="relative">
-                                    <Avatar className="h-20 w-20">
-                                        <AvatarImage src={user.avatarUrl} alt={user.name} />
-                                        <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                     {user.isNftVerified && (
-                                        <div className="absolute -bottom-2 -right-2 z-10 rounded-full bg-black/80 p-1.5 backdrop-blur-sm">
-                                            <EthereumIcon className="h-5 w-5 text-cyan-400" />
-                                        </div>
-                                    )}
-                                </div>
+                                <UserAvatar profile={user} className="h-20 w-20" />
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
                                         <CardTitle>{user.name}</CardTitle>
@@ -231,7 +221,7 @@ export default function UserProfilePage() {
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold group-hover:underline">{user.itemsOnSale || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.onSaleCount ?? 0}</p>
                                     </div>
                                 </div>
                             </Link>

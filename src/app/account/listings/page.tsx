@@ -29,7 +29,8 @@ import { MoreHorizontal, Edit, Trash2, Sparkles, Share2, Heart, Star } from 'luc
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, increment, updateDoc } from 'firebase/firestore';
 
 function ProductActions({ product, onDelete }: { product: Product; onDelete: (productId: string) => void; }) {
     const { t } = useTranslation();
@@ -117,6 +118,7 @@ export default function MyListingsPage() {
     const [productsLoading, setProductsLoading] = useState(true);
     const [interactionState, setInteractionState] = useState<Record<string, { liked: boolean; favorited: boolean }>>({});
     const { user, loading: userLoading } = useUser();
+    const firestore = useFirestore();
 
 
     useEffect(() => {
@@ -162,6 +164,12 @@ export default function MyListingsPage() {
             localStorage.setItem('luna_new_products', JSON.stringify(updatedLocalProducts));
         }
         setUserProducts(currentProducts => currentProducts.filter(p => p.id !== productId));
+        if (firestore && user) {
+            const userRef = doc(firestore, 'users', user.uid);
+            updateDoc(userRef, { onSaleCount: increment(-1) }).catch(error => {
+                console.error("Failed to decrement onSaleCount", error);
+            });
+        }
     };
     
     const handleLike = (productId: string) => {

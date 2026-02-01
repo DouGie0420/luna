@@ -8,12 +8,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem, Users, UserPlus } from 'lucide-react';
-import type { Product } from '@/lib/types';
+import type { Product, User, UserProfile } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
 import Link from 'next/link';
-import React from 'react';
+import React, { useMemo } from 'react';
+import { useDoc, useFirestore } from "@/firebase";
+import { doc } from 'firebase/firestore';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -25,6 +27,15 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export function SellerProfileCard({ product }: { product: Product }) {
     const { t } = useTranslation();
     const { seller, location } = product;
+    const firestore = useFirestore();
+
+    const sellerProfileRef = useMemo(() => 
+        firestore ? doc(firestore, 'users', seller.id) : null,
+    [firestore, seller.id]);
+    const { data: sellerProfile } = useDoc<UserProfile>(sellerProfileRef);
+
+    const displayUser = sellerProfile || seller;
+    const onSaleCount = sellerProfile?.onSaleCount ?? seller.onSaleCount ?? 0;
 
     return (
         <Dialog>
@@ -32,15 +43,12 @@ export function SellerProfileCard({ product }: { product: Product }) {
                 <Card className="cursor-pointer hover:border-primary/50 transition-colors">
                     <CardContent className="p-4">
                         <div className="flex items-start gap-4">
-                            <Avatar className="h-16 w-16">
-                                <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                                <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
+                            <UserAvatar profile={displayUser} className="h-16 w-16" />
                             <div className="flex-1">
-                                <p className="font-bold text-lg">{seller.name}</p>
+                                <p className="font-bold text-lg">{displayUser.name}</p>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 fill-primary text-primary" />
-                                    <span>{seller.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', (seller.itemsOnSale ?? 0).toString())})</span>
+                                    <span>{displayUser.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                     <MapPin className="h-4 w-4" />
@@ -48,24 +56,24 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 </div>
                             </div>
                             <div className="flex flex-col items-start gap-1 text-sm font-medium">
-                                {seller.isPro && (
+                                {displayUser.isPro && (
                                     <div className="flex items-center gap-1.5 text-green-400">
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>{t('userProfile.pro')}</span>
                                     </div>
                                 )}
-                                {seller.isNftVerified ? (
+                                {displayUser.isNftVerified ? (
                                     <div className="flex items-center gap-1.5 text-cyan-400">
                                         <EthereumIcon className="h-4 w-4" />
                                         <span>NFT</span>
                                     </div>
-                                ) : seller.isWeb3Verified && (
+                                ) : displayUser.isWeb3Verified && (
                                     <div className="flex items-center gap-1.5 text-blue-400">
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>WEB3</span>
                                     </div>
                                 )}
-                                {seller.kycStatus === 'Verified' && (
+                                {displayUser.kycStatus === 'Verified' && (
                                     <div className="flex items-center gap-1.5 text-cyan-400">
                                         <ShieldCheck className="h-4 w-4" />
                                         <span>{t('userProfile.kyc')}</span>
@@ -79,15 +87,12 @@ export function SellerProfileCard({ product }: { product: Product }) {
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                            <AvatarImage src={seller.avatarUrl} alt={seller.name} />
-                            <AvatarFallback>{seller.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                        <UserAvatar profile={displayUser} className="h-12 w-12" />
                         <div>
-                            <p className="text-xl font-bold">{seller.name}</p>
+                            <p className="text-xl font-bold">{displayUser.name}</p>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span>{seller.rating.toFixed(1)} ({seller.reviews} {t('sellerProfile.reviews')})</span>
+                                <span>{displayUser.rating.toFixed(1)} ({displayUser.reviews} {t('sellerProfile.reviews')})</span>
                             </div>
                         </div>
                     </DialogTitle>
@@ -97,11 +102,11 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         <Gem className="h-10 w-10 text-primary" />
                         <div className="flex-1">
                             <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
-                            <p className="text-2xl font-bold">{seller.creditLevel || 'Newcomer'}</p>
+                            <p className="text-2xl font-bold">{displayUser.creditLevel || 'Newcomer'}</p>
                         </div>
                         <div className="text-right">
                             <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
-                            <p className="text-2xl font-bold">{seller.creditScore || 0}</p>
+                            <p className="text-2xl font-bold">{displayUser.creditScore || 0}</p>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -110,7 +115,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
                                 <p className="font-bold hover:underline">
-                                    {seller.itemsOnSale ?? 0}
+                                    {onSaleCount}
                                 </p>
                             </div>
                         </Link>
@@ -119,7 +124,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
                                 <p className="font-bold hover:underline">
-                                    {seller.itemsSold ?? 0}
+                                    {displayUser.itemsSold ?? 0}
                                 </p>
                             </div>
                         </Link>
@@ -127,14 +132,14 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <Users className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                <p className="font-bold hover:underline">{seller.followersCount || 0}</p>
+                                <p className="font-bold hover:underline">{displayUser.followersCount || 0}</p>
                             </div>
                         </Link>
                         <Link href={`/user/${seller.id}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <UserPlus className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                <p className="font-bold hover:underline">{seller.followingCount || 0}</p>
+                                <p className="font-bold hover:underline">{displayUser.followingCount || 0}</p>
                             </div>
                         </Link>
                     </div>
@@ -142,30 +147,30 @@ export function SellerProfileCard({ product }: { product: Product }) {
                     <div>
                         <h4 className="font-semibold mb-2">{t('userProfile.verifications')}</h4>
                          <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-                            {seller.isPro && (
+                            {displayUser.isPro && (
                                 <div className="flex items-center gap-1.5 text-green-400">
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>{t('userProfile.pro')}</span>
                                 </div>
                             )}
-                            {seller.isNftVerified ? (
+                            {displayUser.isNftVerified ? (
                                 <div className="flex items-center gap-1.5 text-cyan-400">
                                     <EthereumIcon className="h-4 w-4" />
                                     <span>NFT</span>
                                 </div>
-                            ) : seller.isWeb3Verified && (
+                            ) : displayUser.isWeb3Verified && (
                                 <div className="flex items-center gap-1.5 text-blue-400">
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>WEB3</span>
                                 </div>
                             )}
-                            {seller.kycStatus === 'Verified' && (
+                            {displayUser.kycStatus === 'Verified' && (
                                 <div className="flex items-center gap-1.5 text-cyan-400">
                                     <ShieldCheck className="h-4 w-4" />
                                     <span>{t('userProfile.kyc')}</span>
                                 </div>
                             )}
-                            {!seller.isPro && !seller.isWeb3Verified && seller.kycStatus !== 'Verified' && (
+                            {!displayUser.isPro && !displayUser.isWeb3Verified && displayUser.kycStatus !== 'Verified' && (
                                 <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                             )}
                         </div>
@@ -177,19 +182,19 @@ export function SellerProfileCard({ product }: { product: Product }) {
                              <Link href={`/user/${seller.id}/reviews?type=good`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
-                                    <span className="font-medium hover:underline">{seller.goodReviews ?? 0}</span>
+                                    <span className="font-medium hover:underline">{displayUser.goodReviews ?? 0}</span>
                                 </div>
                              </Link>
                              <Link href={`/user/${seller.id}/reviews?type=neutral`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
-                                    <span className="font-medium hover:underline">{seller.neutralReviews ?? 0}</span>
+                                    <span className="font-medium hover:underline">{displayUser.neutralReviews ?? 0}</span>
                                 </div>
                              </Link>
                              <Link href={`/user/${seller.id}/reviews?type=bad`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
-                                    <span className="font-medium hover:underline">{seller.badReviews ?? 0}</span>
+                                    <span className="font-medium hover:underline">{displayUser.badReviews ?? 0}</span>
                                 </div>
                              </Link>
                         </div>
