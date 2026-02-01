@@ -132,13 +132,6 @@ export default function ProductPage() {
                         {/* Right Column: Product Details & Actions */}
                         <div className="lg:col-span-2 flex flex-col gap-6">
                             <div className="relative pt-10">
-                                {isOwner && (
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" className="absolute top-0 left-0 z-10 animate-glow-border-primary">
-                                            <Edit className="mr-2 h-4 w-4" /> Edit Product
-                                        </Button>
-                                    </DialogTrigger>
-                                )}
                                 <ProductTitleWithBadge product={product} />
                             </div>
                             
@@ -151,8 +144,15 @@ export default function ProductPage() {
                     {/* Description and other sections below */}
                     <div className="mt-12 flex flex-col gap-8">
                         <Card>
-                            <CardHeader>
+                            <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>商品描述</CardTitle>
+                                {isOwner && (
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="rounded-full">
+                                            <Edit className="h-5 w-5" />
+                                        </Button>
+                                    </DialogTrigger>
+                                )}
                             </CardHeader>
                             <CardContent>
                                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
