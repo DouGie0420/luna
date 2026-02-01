@@ -39,38 +39,40 @@ service cloud.firestore {
     }
 
     function isAllowedSelfUpdate() {
-        let changedKeys = request.resource.data.diff(resource.data).affectedKeys();
-
-        // List of fields a user can NEVER change on their own.
-        let protectedKeys = [
-          'uid', 'loginId', 'createdAt', 'rating', 'reviewsCount', 'salesCount',
-          'purchasesCount', 'followersCount', 'followingCount',
-          'creditScore', 'creditLevel', 'lunarSoil', 'role'
-        ];
+        let new = request.resource.data;
+        let old = resource.data;
         
-        // 1. Block any attempt to change a protected key.
-        if (changedKeys.hasAny(protectedKeys)) {
-            return false;
-        }
-
-        // 2. Handle special conditional updates.
-        // Rule for KYC submission
-        if (changedKeys.has('kycStatus')) {
-            // If kycStatus is the *only* thing changing (or with photo URLs), allow it only if moving from Not Verified to Pending.
-            if (!(resource.data.kycStatus == 'Not Verified' && request.resource.data.kycStatus == 'Pending')) {
-                return false;
-            }
+        // Check immutable fields. These should NEVER change after creation.
+        if (new.uid != old.uid || new.createdAt != old.createdAt || new.loginId != old.loginId) {
+          return false;
         }
         
-        // Rule for post count increment
-        if (changedKeys.has('postsCount')) {
-             if (request.resource.data.postsCount != resource.data.postsCount + 1) {
-                return false;
-            }
+        // Check admin-only fields. Only allow change if value is unchanged.
+        if (new.rating != old.rating || new.reviewsCount != old.reviewsCount || 
+            new.salesCount != old.salesCount || new.purchasesCount != old.purchasesCount ||
+            new.followersCount != old.followersCount || new.followingCount != old.followingCount ||
+            new.creditScore != old.creditScore || new.creditLevel != old.creditLevel ||
+            new.lunarSoil != old.lunarSoil) {
+           return false;
         }
 
-        // 3. If no protected keys were changed and special conditions passed, allow the update.
-        // This implicitly allows updates to fields like displayName, bio, photoURL, lastLogin, etc.
+        // Special handling for 'role'. Allow guest -> user, but no other self-changes.
+        if (new.role != old.role && !(old.role == 'guest' && new.role == 'user')) {
+          return false;
+        }
+        
+        // Special handling for 'kycStatus'. Allow Not Verified -> Pending.
+        if (new.kycStatus != old.kycStatus && !(old.kycStatus == 'Not Verified' && new.kycStatus == 'Pending')) {
+          return false;
+        }
+        
+        // Special handling for 'postsCount'. Allow increment by 1.
+        if (new.postsCount != old.postsCount && new.postsCount != old.postsCount + 1) {
+          return false;
+        }
+
+        // If all checks passed, the update is allowed.
+        // This implicitly allows changes to: displayName, photoURL, gender, location, bio, lastLogin, emailVerified, walletAddress, etc.
         return true;
     }
     
