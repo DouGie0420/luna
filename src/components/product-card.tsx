@@ -11,6 +11,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Button } from './ui/button';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { UserAvatar } from './ui/user-avatar';
 
 interface ProductCardProps {
   product: Product;
@@ -73,6 +74,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <CardTitle className="font-headline text-lg mb-2 leading-tight group-hover:text-primary transition-colors">
             {product.name}
           </CardTitle>
+           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+                <UserAvatar profile={{ displayName: product.seller.name, photoURL: product.seller.avatarUrl, displayedBadge: product.seller.displayedBadge }} className="h-5 w-5" />
+                <span>{product.seller.name}</span>
+            </div>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {product.isConsignment && (
                 <Badge variant="outline" className="gap-1.5 border-lime-400/50 bg-lime-400/10 text-lime-300 animate-glow-green px-3 py-1 text-xs">

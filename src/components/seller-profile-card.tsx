@@ -36,6 +36,8 @@ export function SellerProfileCard({ product }: { product: Product }) {
 
     const displayUser = sellerProfile || seller;
     const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
+    const displayName = displayUser.displayName || displayUser.name;
+
 
     return (
         <Dialog>
@@ -45,7 +47,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         <div className="flex items-start gap-4">
                             <UserAvatar profile={displayUser} className="h-16 w-16" />
                             <div className="flex-1">
-                                <p className="font-bold text-lg">{displayUser.name}</p>
+                                <p className="font-bold text-lg">{displayName}</p>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 fill-primary text-primary" />
                                     <span>{displayUser.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
@@ -90,7 +92,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                     <DialogTitle className="flex items-center gap-3">
                         <UserAvatar profile={displayUser} className="h-12 w-12" />
                         <div>
-                            <p className="text-xl font-bold">{displayUser.name}</p>
+                            <p className="text-xl font-bold">{displayName}</p>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
                                 <span>{displayUser.rating.toFixed(1)} ({displayUser.reviews} {t('sellerProfile.reviews')})</span>
