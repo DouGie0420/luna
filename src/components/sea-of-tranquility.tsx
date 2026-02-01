@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -85,7 +86,7 @@ export function SeaOfTranquility() {
                 </div>
                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     {/* Main Posts Skeleton */}
-                    <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="lg:col-span-2 grid grid-cols-1 gap-6">
                          <div className="flex flex-col space-y-3">
                             <Skeleton className="aspect-video w-full" />
                             <div className="space-y-2 p-4">
@@ -134,7 +135,7 @@ export function SeaOfTranquility() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
                     
                     {featuredPosts.length > 0 && (
-                        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                        <div className="lg:col-span-2 grid grid-cols-1 gap-6 md:gap-8">
                             {featuredPosts.map((post) => (
                                 <BbsPostCard key={post.id} post={post} />
                             ))}
