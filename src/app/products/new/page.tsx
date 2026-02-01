@@ -103,6 +103,10 @@ export default function NewProductPage() {
             const result = await analyzeProductImage({ imageDataUri });
             setName(result.title);
             setDescription(result.description);
+            toast({
+              title: "AI Analysis Complete",
+              description: "Title and description have been generated.",
+            });
           } catch (error) {
             console.error("AI analysis failed:", error);
             toast({

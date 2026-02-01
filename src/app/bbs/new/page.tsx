@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Loader2, MapPin, Link as LinkIcon, Video } from "lucide-react"
+import { Upload, ShieldAlert, X, Loader2, MapPin, Link as LinkIcon, Video, Sparkles } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -36,6 +36,8 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Checkbox } from '@/components/ui/checkbox';
+import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
 
 
 export default function NewBbsPostPage() {
@@ -60,6 +62,9 @@ export default function NewBbsPostPage() {
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
+
+  const [isAiAnalysisEnabled, setIsAiAnalysisEnabled] = useState(false);
+  const [isAiLoading, setIsAiLoading] = useState(false);
 
   useEffect(() => {
       if (!loading && !user) {
@@ -98,7 +103,7 @@ export default function NewBbsPostPage() {
     }
   }, [toast]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       if ((imagePreviews.length + files.length) > 9) {
@@ -116,18 +121,33 @@ export default function NewBbsPostPage() {
         });
       });
 
-      Promise.all(filePromises)
-        .then(newPreviews => {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-        })
-        .catch(error => {
-          console.error("Error reading files for preview: ", error);
+      const newPreviews = await Promise.all(filePromises);
+      setImagePreviews(prev => [...prev, ...newPreviews]);
+      
+      if (isAiAnalysisEnabled && newPreviews.length > 0) {
+        setIsAiLoading(true);
+        const imageDataUri = newPreviews[0];
+        try {
+          // Note: Using analyzeProductImage which is optimized for products.
+          // For a BBS, a different flow might be better, but this will work as a demo.
+          const result = await analyzeProductImage({ imageDataUri });
+          setTitle(result.title);
+          setContent(result.description);
+          toast({
+              title: "AI Analysis Complete",
+              description: "Title and content have been generated.",
+          });
+        } catch (error) {
+          console.error("AI analysis failed:", error);
           toast({
             variant: "destructive",
-            title: "Could not preview images",
-            description: "There was an error reading the selected files.",
+            title: "AI Analysis Failed",
+            description: "Could not analyze the image. Please fill in the details manually.",
           });
-        });
+        } finally {
+          setIsAiLoading(false);
+        }
+      }
     }
   };
 
@@ -213,8 +233,13 @@ export default function NewBbsPostPage() {
     const bbsCollectionRef = collection(firestore, "bbs");
     addDoc(bbsCollectionRef, postData).then(docRef => {
         const userRef = doc(firestore, 'users', user.uid);
-        updateDoc(userRef, { postsCount: increment(1) }).catch(err => {
-            console.warn("Failed to update user post count:", err);
+        updateDoc(userRef, { postsCount: increment(1) }).catch(serverError => {
+             const permissionError = new FirestorePermissionError({
+                path: userRef.path,
+                operation: 'update',
+                requestResourceData: { postsCount: increment(1) },
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
 
         setIsSubmitting(false);
@@ -318,13 +343,31 @@ export default function NewBbsPostPage() {
             </CardHeader>
             <CardContent>
               <form className="grid gap-6" onSubmit={handleSubmit}>
+                <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
+                    <Checkbox id="ai-analysis" checked={isAiAnalysisEnabled} onCheckedChange={(checked) => setIsAiAnalysisEnabled(!!checked)} />
+                    <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="ai-analysis" className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        {t('newProductPage.aiAnalysis')}
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                        {t('newProductPage.aiAnalysisDescription')}
+                    </p>
+                    </div>
+                </div>
                 <div className="grid gap-2">
                   <Label htmlFor="title">Title</Label>
-                  <Input id="title" placeholder="A catchy title for your post" value={title} onChange={(e) => setTitle(e.target.value)} required />
+                   <div className="relative">
+                    <Input id="title" placeholder="A catchy title for your post" value={title} onChange={(e) => setTitle(e.target.value)} required disabled={isAiLoading} />
+                    {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                  </div>
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="content">Content</Label>
-                    <Textarea id="content" placeholder="What's on your mind?" value={content} onChange={(e) => setContent(e.target.value)} required rows={8}/>
+                    <div className="relative">
+                        <Textarea id="content" placeholder="What's on your mind?" value={content} onChange={(e) => setContent(e.target.value)} required rows={8} disabled={isAiLoading}/>
+                        {isAiLoading && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />}
+                    </div>
                 </div>
 
                 <div className="grid gap-2">
