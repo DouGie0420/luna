@@ -443,28 +443,25 @@ export default function BbsPostPage() {
 
     const handleDeletePost = () => {
         if (!firestore || !post || !postRef) return;
-
+    
         const updateData = { status: 'under_review' as const };
         updateDoc(postRef, updateData)
             .then(() => {
-                setTimeout(() => {
-                    toast({
-                        title: "帖子已提交审核",
-                        description: "该帖子现在将在后台等待最终审核。",
-                    });
-                }, 0);
+                setIsDeleteDialogOpen(false);
+                toast({
+                    title: "帖子已提交审核",
+                    description: "该帖子现在将在后台等待最终审核。",
+                });
                 router.push('/bbs');
             })
             .catch(serverError => {
+                setIsDeleteDialogOpen(false);
                 const permissionError = new FirestorePermissionError({
                     path: postRef.path,
                     operation: 'update',
                     requestResourceData: updateData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
-            })
-            .finally(() => {
-                setIsDeleteDialogOpen(false);
             });
       };
 

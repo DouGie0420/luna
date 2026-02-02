@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -10,7 +11,7 @@ import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit
 import type { BbsPost, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
 import { useUser, useFirestore } from '@/firebase';
@@ -21,6 +22,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -40,6 +51,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     const { toast } = useToast();
     const router = useRouter();
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
     const canInteract = !!user;
 
@@ -57,12 +70,42 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             .trim();
     }, [post.content, post.contentKey, t]);
     
+    const handleMarkForReview = () => {
+        if (!firestore) return;
+        const postRef = doc(firestore, 'bbs', post.id);
+        const updateData = { status: 'under_review' as const };
+
+        updateDoc(postRef, updateData)
+            .then(() => {
+                toast({
+                    title: "帖子已提交审核",
+                    description: "该帖子现在将在后台等待最终审核。",
+                });
+            })
+            .catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            })
+            .finally(() => {
+                setIsDeleteDialogOpen(false);
+            });
+    };
+    
     const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
       if (!firestore || !profile) return;
 
       if (action === 'edit') {
           router.push(`/bbs/edit/${post.id}`);
           return;
+      }
+      
+      if (action === 'delete') {
+        setIsDeleteDialogOpen(true);
+        return;
       }
 
       if (action === 'feature') {
@@ -169,118 +212,134 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
     return (
-        <Link href={`/bbs/${post.id}`} className="group block h-full">
-            <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
-                <CardHeader className="p-0 relative">
-                    <div className="aspect-[1.8/1] relative overflow-hidden">
-                        <Image
-                            src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
-                            alt={post.title || t(post.titleKey || '')}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={post.imageHints?.[0] || ''}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    </div>
-                    {hasAdminAccess && (
-                        <div className="absolute top-2 right-2 z-20">
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" onClick={(e) => {e.preventDefault(); e.stopPropagation();}} className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
-                                    <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
-                                        <Star className="mr-2 h-4 w-4" />
-                                        <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
-                                        <TrendingUp className="mr-2 h-4 w-4" />
-                                        <span>加曝光</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        <span>编辑</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>删除</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+        <>
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>确认提交审核</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleMarkForReview} className="bg-destructive hover:bg-destructive/90">确认提交</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <Link href={`/bbs/${post.id}`} className="group block h-full">
+                <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
+                    <CardHeader className="p-0 relative">
+                        <div className="aspect-[1.8/1] relative overflow-hidden">
+                            <Image
+                                src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
+                                alt={post.title || t(post.titleKey || '')}
+                                fill
+                                className="object-cover"
+                                data-ai-hint={post.imageHints?.[0] || ''}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
-                    )}
-                </CardHeader>
-                <div className="p-4 -mt-16 z-10 text-white">
-                     <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
-                        {post.title || t(post.titleKey || '')}
-                    </CardTitle>
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                        {post.isFeatured && (
-                            <Badge variant="outline" className="text-xs border-amber-400/50 bg-amber-400/10 text-amber-300">
-                                <Star className="mr-1 h-3 w-3 fill-amber-300" />
-                                {t('bbsPage.featuredBadge')}
-                            </Badge>
+                        {hasAdminAccess && (
+                            <div className="absolute top-2 right-2 z-20">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" onClick={(e) => {e.preventDefault(); e.stopPropagation();}} className="h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/70">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                                        <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
+                                            <Star className="mr-2 h-4 w-4" />
+                                            <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
+                                            <TrendingUp className="mr-2 h-4 w-4" />
+                                            <span>加曝光</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
+                                            <Edit className="mr-2 h-4 w-4" />
+                                            <span>编辑</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            <span>删除</span>
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
                         )}
-                        {post.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="text-xs bg-white/10 text-white/80 border-white/20">{tag}</Badge>
-                        ))}
-                    </div>
-                </div>
-
-                <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow line-clamp-3">
-                    <p>{summary}</p>
-                </CardContent>
-
-                <CardFooter className="p-4 flex justify-between items-end">
-                    <div className="flex items-center gap-3">
-                        <div className="relative">
-                            <Avatar className="h-8 w-8">
-                                <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            {post.author.isNftVerified ? (
-                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                    <EthereumIcon className="h-3 w-3 text-cyan-400" />
-                                </div>
-                            ) : post.author.isWeb3Verified ? (
-                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                    <ShieldCheck className="h-3 w-3 text-blue-400" />
-                                </div>
-                            ) : post.author.kycStatus === 'Verified' && (
-                                <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                    <ShieldCheck className="h-3 w-3 text-cyan-400" />
-                                </div>
+                    </CardHeader>
+                    <div className="p-4 -mt-16 z-10 text-white">
+                         <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
+                            {post.title || t(post.titleKey || '')}
+                        </CardTitle>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                            {post.isFeatured && (
+                                <Badge variant="outline" className="text-xs border-amber-400/50 bg-amber-400/10 text-amber-300">
+                                    <Star className="mr-1 h-3 w-3 fill-amber-300" />
+                                    {t('bbsPage.featuredBadge')}
+                                </Badge>
                             )}
-                        </div>
-                        <div>
-                            <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                                {timeAgo}{post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
-                            </p>
+                            {post.tags.map(tag => (
+                                <Badge key={tag} variant="secondary" className="text-xs bg-white/10 text-white/80 border-white/20">{tag}</Badge>
+                            ))}
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments}>
-                             <span className="flex items-center gap-1 cursor-pointer">
-                                <MessageSquare className="h-4 w-4" />
-                                <span>{post.replies}</span>
-                            </span>
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
-                            <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
-                            <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare}>
-                            <Share2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </CardFooter>
-            </Card>
-        </Link>
+
+                    <CardContent className="p-4 pt-2 text-sm text-muted-foreground flex-grow line-clamp-3">
+                        <p>{summary}</p>
+                    </CardContent>
+
+                    <CardFooter className="p-4 flex justify-between items-end">
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                {post.author.isNftVerified ? (
+                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                        <EthereumIcon className="h-3 w-3 text-cyan-400" />
+                                    </div>
+                                ) : post.author.isWeb3Verified ? (
+                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                        <ShieldCheck className="h-3 w-3 text-blue-400" />
+                                    </div>
+                                ) : post.author.kycStatus === 'Verified' && (
+                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                        <ShieldCheck className="h-3 w-3 text-cyan-400" />
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {timeAgo}{post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments}>
+                                 <span className="flex items-center gap-1 cursor-pointer">
+                                    <MessageSquare className="h-4 w-4" />
+                                    <span>{post.replies}</span>
+                                </span>
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
+                                <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
+                                <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare}>
+                                <Share2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </CardFooter>
+                </Card>
+            </Link>
+        </>
     )
 }
