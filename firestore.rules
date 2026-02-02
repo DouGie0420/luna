@@ -108,7 +108,7 @@ service cloud.firestore {
     // PRODUCTS
     match /products/{productId} {
       allow read, list: if true;
-      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid && request.resource.data.location != null;
+      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow delete: if isRequestingUserAdmin();
       
       // Scenario 1: Staff can ONLY modify the status for moderation.

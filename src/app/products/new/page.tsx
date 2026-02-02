@@ -32,7 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
-import type { Product, User } from '@/lib/types';
+import type { User } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -132,8 +132,6 @@ export default function NewProductPage() {
     }
     setIsSubmitting(true);
 
-    const imageUrls = imagePreviews;
-
     const sellerData: User = {
       id: user.uid,
       name: profile.displayName || user.displayName || 'New Seller',
@@ -142,6 +140,7 @@ export default function NewProductPage() {
       reviews: profile.reviewsCount || 0,
       isPro: profile.isPro,
       isWeb3Verified: profile.isWeb3Verified,
+      isNftVerified: profile.isNftVerified,
       kycStatus: profile.kycStatus,
       location: { city: profile.location || 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
       onSaleCount: profile.onSaleCount,
@@ -151,47 +150,58 @@ export default function NewProductPage() {
       followersCount: profile.followersCount,
       followingCount: profile.followingCount,
       postsCount: profile.postsCount,
+      displayedBadge: profile.displayedBadge
     };
 
-    const newProduct: Product = {
-      id: `prod_${Date.now()}`,
+    const newProductData = {
       name,
       description,
       price: Number(price),
       currency: currency.startsWith('RMB') ? 'RMB' : (currency as 'THB' | 'USDT'),
-      images: imageUrls.length > 0 ? imageUrls : ['https://picsum.photos/seed/default-product/600/400'],
+      images: imagePreviews.length > 0 ? imagePreviews : ['https://picsum.photos/seed/default-product/600/400'],
       imageHints: ['user uploaded'],
       seller: sellerData,
-      location: sellerData.location || { city: 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
+      sellerId: user.uid,
+      location: sellerData.location,
       category: category || 'Electronics',
       isConsignment,
       shippingMethod,
       likes: 0,
       favorites: 0,
+      views: 0,
+      searchHits: 0,
+      likedBy: [],
+      favoritedBy: [],
+      createdAt: serverTimestamp(),
+      status: 'active' as const,
     };
 
-    const localProductsJSON = localStorage.getItem('luna_new_products');
-    const localProducts = localProductsJSON ? JSON.parse(localProductsJSON) : [];
-    localStorage.setItem('luna_new_products', JSON.stringify([newProduct, ...localProducts]));
+    try {
+      const productsCollectionRef = collection(firestore, 'products');
+      const docRef = await addDoc(productsCollectionRef, newProductData);
+      
+      const userRef = doc(firestore, 'users', user.uid);
+      await updateDoc(userRef, { onSaleCount: increment(1) });
+      
+      toast({
+          title: t('newProductPage.submitSuccessTitle'),
+          description: t('newProductPage.submitSuccessDescription'),
+      });
+      router.push(`/products/${docRef.id}`);
 
-    // Increment onSaleCount in Firestore
-    const userRef = doc(firestore, 'users', user.uid);
-    updateDoc(userRef, { onSaleCount: increment(1) }).catch(serverError => {
-        const permissionError = new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'update',
-            requestResourceData: { onSaleCount: increment(1) },
-        });
-        errorEmitter.emit('permission-error', permissionError);
-    });
-
-    setIsSubmitting(false);
-    toast({
-        title: t('newProductPage.submitSuccessTitle'),
-        description: t('newProductPage.submitSuccessDescription'),
-    });
-    router.push(`/products/${newProduct.id}`);
+    } catch (serverError) {
+      console.error("Failed to create product:", serverError);
+      const permissionError = new FirestorePermissionError({
+          path: collection(firestore, 'products').path,
+          operation: 'create',
+          requestResourceData: newProductData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
 
   if (loading || !user) {
       return (

@@ -2,11 +2,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getProductById, getProducts } from '@/lib/data';
+import { getProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +17,7 @@ import { SellerProfileCard } from '@/components/seller-profile-card';
 import { ProductPurchaseActions } from '@/components/product-purchase-actions';
 import { ProductCommentSection } from '@/components/product-comment-section';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2, Loader2 } from 'lucide-react';
@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayRemove, arrayUnion, increment } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -81,97 +81,68 @@ export default function ProductPage() {
     const { toast } = useToast();
     const { t } = useTranslation();
 
-    const [product, setProduct] = useState<Product | null>(null);
+    const productRef = useMemo(() => firestore && id ? doc(firestore, 'products', id) : null, [firestore, id]);
+    const { data: product, loading: productLoading, error: productError } = useDoc<Product>(productRef);
+    
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingRecs, setLoadingRecs] = useState(true);
+
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-    
-    const [isLiked, setIsLiked] = useState(false);
-    const [isFavorited, setIsFavorited] = useState(false);
 
     useEffect(() => {
-        if (!id) return;
-
-        const fetchProductData = async () => {
-            setLoading(true);
-            
-            let foundProduct: Product | undefined | null = null;
-            
-            // 1. Check localStorage first
-            const localProductsJSON = localStorage.getItem('luna_new_products');
-            if (localProductsJSON) {
-                try {
-                    const localProducts: Product[] = JSON.parse(localProductsJSON);
-                    foundProduct = localProducts.find(p => p.id === id);
-                } catch (e) {
-                    console.error("Failed to parse local products:", e);
-                }
-            }
-
-            // 2. If not in localStorage, check mock data
-            if (!foundProduct) {
-                foundProduct = await getProductById(id);
-            }
-
-            if (foundProduct) {
-                setProduct(foundProduct);
-                // Fetch recommendations
-                const allProducts = await getProducts();
-                const recs = allProducts.filter(p => p.id !== id).slice(0, 5);
-                setRecommendedProducts(recs);
-            }
-            
-            setLoading(false);
+        const fetchRecs = async () => {
+            if (!product) return;
+            setLoadingRecs(true);
+            const allProducts = await getProducts(); // Using mock data for recommendations for now
+            const recs = allProducts.filter(p => p.id !== id).slice(0, 5);
+            setRecommendedProducts(recs);
+            setLoadingRecs(false);
         };
-        
-        fetchProductData();
-        
-        const checkState = () => {
-            const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
-            const favoritedItems = JSON.parse(localStorage.getItem('favoritedProducts') || '[]');
-            setIsLiked(likedItems.includes(id));
-            setIsFavorited(favoritedItems.includes(id));
-        };
-        checkState();
-        window.addEventListener('focus', checkState);
+        fetchRecs();
+    }, [product, id]);
 
-        return () => {
-            window.removeEventListener('focus', checkState);
-        }
+    const isOwner = user && product && user.uid === product.sellerId;
+    const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
+    
+    const isLiked = user && product && product.likedBy?.includes(user.uid);
+    const isFavorited = user && product && product.favoritedBy?.includes(user.uid);
 
-    }, [id]);
 
     const handleInteraction = (type: 'like' | 'favorite') => {
-        const key = type === 'like' ? 'likedProducts' : 'favoritedProducts';
-        const currentItems: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-        const isCurrentlySet = currentItems.includes(id);
-    
-        let newItems: string[];
-        if (isCurrentlySet) {
-            newItems = currentItems.filter((pid: string) => pid !== id);
-        } else {
-            newItems = [...currentItems, id];
-            if (type === 'favorite') {
-                toast({ title: t('productCardActions.addedToFavorites') });
-            }
+        if (!user || !firestore || !product) {
+            toast({ variant: 'destructive', title: t('common.loginToInteract') });
+            return;
         }
-        localStorage.setItem(key, JSON.stringify(newItems));
-    
+
+        const productRef = doc(firestore, 'products', product.id);
+        let updateData: any;
+
         if (type === 'like') {
-            setIsLiked(!isCurrentlySet);
-        } else {
-            setIsFavorited(!isCurrentlySet);
+            updateData = {
+                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                likes: increment(isLiked ? -1 : 1)
+            };
+        } else { // favorite
+            updateData = {
+                favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
+                favorites: increment(isFavorited ? -1 : 1)
+            };
         }
+        
+        updateDoc(productRef, updateData).catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: productRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
     };
 
-
-    const isOwner = user && product && user.uid === product.seller.id;
-    const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
-
     const handleProductUpdate = (updatedProduct: Product) => {
-        setProduct(updatedProduct);
+        // useDoc provides real-time updates, so we just need to close the dialog.
         setIsEditDialogOpen(false);
     };
 
@@ -205,11 +176,11 @@ export default function ProductPage() {
     };
 
 
-    if (loading) {
+    if (productLoading) {
         return <ProductPageSkeleton />;
     }
 
-    if (!product) {
+    if (!product || productError) {
         notFound();
     }
 
@@ -222,8 +193,8 @@ export default function ProductPage() {
                     <div className="lg:col-span-3">
                          <ProductImageGallery 
                             product={product} 
-                            isLiked={isLiked}
-                            isFavorited={isFavorited}
+                            isLiked={!!isLiked}
+                            isFavorited={!!isFavorited}
                             onLikeToggle={() => handleInteraction('like')}
                             onFavoriteToggle={() => handleInteraction('favorite')}
                         />

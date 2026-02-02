@@ -11,9 +11,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
-import { useToast } from '@/hooks/use-toast';
-import { getProducts } from '@/lib/data';
 import Link from 'next/link';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 
 function ProductsPageSkeleton() {
     return (
@@ -47,28 +47,22 @@ function ProductsPageSkeleton() {
 
 export default function AllProductsPage() {
     const { t } = useTranslation();
-    const { toast } = useToast();
-
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const firestore = useFirestore();
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'popular'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            const allProducts = await getProducts();
-            const localProductsJSON = localStorage.getItem('luna_new_products');
-            const localProducts: Product[] = localProductsJSON ? JSON.parse(localProductsJSON) : [];
-            const combined = [...localProducts, ...allProducts];
-            const uniqueProducts = Array.from(new Map(combined.map(p => [p.id, p])).values());
-            setProducts(uniqueProducts);
-            setLoading(false);
-        };
-        fetchProducts();
-    }, []);
+    const productsQuery = useMemo(() => {
+        if (!firestore) return null;
+        return query(
+            collection(firestore, 'products'), 
+            where('status', '==', 'active'), 
+            orderBy('createdAt', 'desc')
+        );
+    }, [firestore]);
+
+    const { data: products, loading } = useCollection<Product>(productsQuery);
 
     const filteredAndSortedProducts = useMemo(() => {
         let processedProducts = products ? [...products] : [];
@@ -93,7 +87,7 @@ export default function AllProductsPage() {
                 break;
             case 'newest':
             default:
-                // Mock data doesn't have a date, so this is just for show.
+                // Already sorted by 'createdAt' from the Firestore query
                 break;
         }
 
