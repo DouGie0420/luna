@@ -1,232 +1,191 @@
-'use client'
+'use client';
 
-import { useMemo, useState } from 'react';
-import Link from 'next/link';
-import Image from "next/image";
-import { format } from 'date-fns';
-import { useTranslation } from "@/hooks/use-translation";
-import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
-import { collection, query, where, doc, orderBy, type Firestore } from 'firebase/firestore';
-import type { Order, Product, UserProfile, OrderStatus } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import React, { useMemo } from 'react';
+import { useUser, useCollection, useFirestore, useDoc } from "@/firebase";
+import { query, collection, where, orderBy, doc } from "firebase/firestore";
+import type { Order, Product } from '@/lib/types';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle, Package } from "lucide-react";
+import { format } from "date-fns";
+import { useTranslation } from "@/hooks/use-translation";
+import Link from 'next/link';
+import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
-import { type User as FirebaseUser } from 'firebase/auth';
-import { Loader2 } from 'lucide-react';
 
-function DynamicOrderCard({ order }: { order: Order }) {
+function OrderCard({ order }: { order: Order }) {
     const { t } = useTranslation();
-    const firestore = useFirestore();
+    const db = useFirestore();
 
-    const { data: product, loading: productLoading } = useDoc<Product>(
-        firestore ? doc(firestore, 'products', order.productId) : null
-    );
-    const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(
-        firestore ? doc(firestore, 'users', order.sellerId) : null
-    );
+    const productRef = useMemo(() => {
+        if (!db || !order.productId) return null;
+        return doc(db, 'products', order.productId);
+    }, [db, order.productId]);
 
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case 'Completed': return 'default';
-            case 'Disputed': return 'destructive';
-            case 'Shipped':
-            case 'Awaiting Confirmation':
-                return 'secondary';
-            default: return 'secondary';
-        }
-    }
+    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
 
-    const getStatusTranslation = (status: string) => {
-        const keyPart = status.replace(/\s+/g, '').charAt(0).toLowerCase() + status.replace(/\s+/g, '').slice(1);
-        const translationKey = `accountPurchases.status.${keyPart}` as any;
-        const translated = t(translationKey);
-        return translated === translationKey ? status : translated;
-    }
+    const handleConfirmReceipt = async () => {
+        // WEB3: 99% 卖家, 1% 平台 (0x2fa2aa...)。
+        alert("Web3 settlement logic placeholder.");
+    };
 
-    if (productLoading || sellerLoading) {
+    if (productLoading) {
         return (
             <Card className="overflow-hidden">
-                <CardHeader className="p-4"><Skeleton className="h-8 w-3/4" /></CardHeader>
-                <CardContent className="p-4 bg-secondary/20">
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-24 w-24 rounded-md" />
-                        <div className="flex-1 space-y-2">
-                            <Skeleton className="h-5 w-full" />
-                            <Skeleton className="h-4 w-3/4" />
-                            <Skeleton className="h-6 w-1/2 mt-2" />
-                        </div>
-                    </div>
-                </CardContent>
-                <CardFooter className="p-4 flex justify-end gap-2">
-                    <Skeleton className="h-9 w-24" />
-                    <Skeleton className="h-9 w-24" />
-                </CardFooter>
-            </Card>
-        );
-    }
-
-    if (!product || !seller) return null;
-
-    return (
-        <Link href={`/account/purchases/${order.id}`}>
-            <Card className="overflow-hidden hover:border-primary/50 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between p-4">
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                            <AvatarImage src={seller.photoURL} alt={seller.displayName} />
-                            <AvatarFallback>{seller.displayName?.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                        <span className="font-semibold text-sm">{seller.displayName}</span>
-                    </div>
-                    <Badge variant={getStatusBadgeVariant(order.status)}>{getStatusTranslation(order.status)}</Badge>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-6 w-20" />
                 </CardHeader>
-                <CardContent className="p-4 bg-secondary/20">
-                    <div className="flex items-center gap-4">
-                        <div className="aspect-square w-24 relative">
-                            <Image src={product.images[0]} alt={product.name} fill className="object-cover rounded-md" data-ai-hint={product.imageHints ? product.imageHints[0] : ''} />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold leading-tight">{product.name}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{order.id.slice(0, 8).toUpperCase()} | {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd') : ''}</p>
-                            <p className="text-lg font-bold text-primary mt-2">{order.totalAmount.toLocaleString()} {order.currency}</p>
+                <CardContent className="p-4">
+                    <div className="flex gap-4">
+                        <Skeleton className="h-16 w-16 rounded-md" />
+                        <div className="flex-1 space-y-2">
+                            <Skeleton className="h-5 w-3/4" />
+                            <Skeleton className="h-4 w-1/4" />
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="p-4 flex justify-end gap-2">
-                    <Button variant="outline" size="sm">{t('accountPurchases.orderCard.contactSeller')}</Button>
-                    {order.status === 'Completed' && !order.buyerReviewId ? (
-                         <Button asChild size="sm"><Link href={`/account/purchases/${order.id}/review`}>{t('accountPurchases.orderCard.leaveReview')}</Link></Button>
-                    ) : (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') ? (
-                         <Button asChild size="sm"><Link href={`/account/purchases/${order.id}`}>{t('accountPurchases.orderCard.confirmReceipt')}</Link></Button>
-                    ) : null }
+                 <CardFooter className="bg-muted/30 p-4 flex justify-end gap-2">
+                    <Skeleton className="h-8 w-24" />
                 </CardFooter>
             </Card>
-        </Link>
-    );
-}
-
-function PurchasesSkeleton() {
-    return (
-        <div className="space-y-6">
-            {[...Array(2)].map((_, i) => (
-                <Card key={i} className="overflow-hidden">
-                    <CardHeader className="p-4"><Skeleton className="h-8 w-3/4" /></CardHeader>
-                    <CardContent className="p-4 bg-secondary/20">
-                        <div className="flex items-center gap-4">
-                            <Skeleton className="h-24 w-24 rounded-md" />
-                            <div className="flex-1 space-y-2">
-                                <Skeleton className="h-5 w-full" />
-                                <Skeleton className="h-4 w-3/4" />
-                                <Skeleton className="h-6 w-1/2 mt-2" />
-                            </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="p-4 flex justify-end gap-2">
-                        <Skeleton className="h-9 w-24" />
-                        <Skeleton className="h-9 w-24" />
-                    </CardFooter>
-                </Card>
-            ))}
-        </div>
-    );
-}
-
-
-function UserOrdersList({ user, firestore }: { user: FirebaseUser; firestore: Firestore }) {
-    const { t } = useTranslation();
-    
-    const ordersQuery = useMemo(() => {
-        // This query is now guaranteed to have a valid user.uid
-        return query(
-            collection(firestore, 'orders'),
-            where('buyerId', '==', user.uid),
-            orderBy('createdAt', 'desc')
-        );
-    }, [user.uid, firestore]);
-
-    const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
-
-    if (ordersLoading) {
-        return <PurchasesSkeleton />;
+        )
     }
 
-    const renderOrders = (status?: OrderStatus | 'In Escrow') => {
-        let filteredOrders;
-        if (status === 'In Escrow') {
-            filteredOrders = orders?.filter(o => o.status === 'Pending' || o.status === 'In Escrow');
-        } else if (status) {
-             filteredOrders = orders?.filter(o => o.status === status);
-        } else {
-            filteredOrders = orders;
-        }
-        
-        if (!filteredOrders || filteredOrders.length === 0) {
-            return (
-                <div className="text-center py-20 border-2 border-dashed rounded-lg">
-                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
-                    <p className="text-muted-foreground mt-2 mb-6">{t('accountPurchases.noOrdersDescription')}</p>
-                </div>
-            )
-        }
-        return (
-            <div className="space-y-6">
-                {filteredOrders.map(order => <DynamicOrderCard key={order.id} order={order} />)}
-            </div>
-        )
-    };
-    
     return (
-        <Tabs defaultValue="all">
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="all">{t('accountPurchases.tabs.all')}</TabsTrigger>
-                <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.toShip')}</TabsTrigger>
-                <TabsTrigger value="shipped">{t('accountPurchases.tabs.toReceive')}</TabsTrigger>
-                <TabsTrigger value="completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
-                <TabsTrigger value="disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all">{renderOrders()}</TabsContent>
-            <TabsContent value="in-escrow">{renderOrders('In Escrow')}</TabsContent>
-            <TabsContent value="shipped">{renderOrders('Shipped')}</TabsContent>
-            <TabsContent value="completed">{renderOrders('Completed')}</TabsContent>
-            <TabsContent value="disputed">{renderOrders('Disputed')}</TabsContent>
-        </Tabs>
+        <Card key={order.id} className="overflow-hidden hover:ring-1 hover:ring-primary/20 transition-all">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
+                <div>
+                    <p className="text-[10px] text-muted-foreground font-mono uppercase">Order: {order.id.slice(0, 8)}</p>
+                    <p className="text-xs text-muted-foreground">
+                        {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
+                    </p>
+                </div>
+                <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'}>
+                    {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}
+                </Badge>
+            </CardHeader>
+            <CardContent className="p-4">
+                 <Link href={`/products/${order.productId}`} className="flex items-start gap-4 group">
+                    {product?.images?.[0] && (
+                        <Image src={product.images[0]} alt={product.name || 'Product Image'} width={80} height={80} className="rounded-md object-cover border" data-ai-hint={product.imageHints?.[0]}/>
+                    )}
+                    <div className="flex-1">
+                        <p className="font-semibold group-hover:underline">{product?.name || 'Loading product...'}</p>
+                        <p className="text-sm font-bold text-primary mt-1">
+                            {order.totalAmount.toLocaleString()} {order.currency}
+                        </p>
+                    </div>
+                </Link>
+            </CardContent>
+            <CardFooter className="bg-muted/30 p-4 flex justify-end gap-2">
+                <Button variant="outline" size="sm" asChild>
+                    <Link href={`/account/purchases/${order.id}`}>
+                        <Package className="h-4 w-4 mr-1" /> 查看详情
+                    </Link>
+                </Button>
+                {order.status === 'Shipped' && (
+                    <Button size="sm" onClick={handleConfirmReceipt}>
+                        <CheckCircle2 className="h-4 w-4 mr-1" /> {t('accountPurchases.orderCard.confirmReceipt')}
+                    </Button>
+                )}
+                 {order.status === 'Completed' && !order.buyerReviewId && (
+                    <Button size="sm" asChild>
+                        <Link href={`/account/purchases/${order.id}/review`}>
+                             {t('accountPurchases.orderCard.leaveReview')}
+                        </Link>
+                    </Button>
+                )}
+            </CardFooter>
+        </Card>
+    )
+}
+
+function PurchasesList({ user }: { user: NonNullable<ReturnType<typeof useUser>['user']>}) {
+    const db = useFirestore();
+    const { t } = useTranslation();
+    
+    // This query is now safe because this component only renders when user and db are available.
+    const ordersQuery = useMemo(() => {
+        if (!db) return null; // Still good practice to have this check
+        return query(
+            collection(db, "orders"),
+            where("buyerId", "==", user.uid),
+            orderBy("createdAt", "desc")
+        );
+    }, [user.uid, db]);
+
+    const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+
+    if (dataLoading) {
+        return (
+            <div className="grid gap-4">
+                {[...Array(3)].map((_, i) => <OrderCard key={i} order={{} as Order} />)}
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/10 m-6 text-center">
+                <XCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                <h2 className="text-destructive font-bold text-lg">权限或索引异常</h2>
+                <p className="text-sm mt-2 text-muted-foreground">
+                    Firestore 安全规则拒绝了此请求。请确保复合索引已正确配置。
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <>
+            {!orders || orders.length === 0 ? (
+                <Card className="bg-secondary/10 border-dashed">
+                    <CardContent className="py-20 text-center text-muted-foreground">
+                        暂无已完成或进行中的订单。
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid gap-4">
+                    {orders.map((order) => (
+                       <OrderCard key={order.id} order={order} />
+                    ))}
+                </div>
+            )}
+        </>
     );
 }
 
 
-export default function MyPurchasesPage() {
+export default function PurchasesPage() {
+    const { user, loading: authLoading } = useUser();
     const { t } = useTranslation();
-    const { user, loading: userLoading } = useUser();
-    const firestore = useFirestore();
 
-    const renderContent = () => {
-        // Strict guard: Wait for auth and Firestore to be ready.
-        if (userLoading || !firestore) {
-            return <PurchasesSkeleton />;
-        }
-        
-        // Strict guard: Only proceed if we have a logged-in user with a UID.
-        if (!user) {
-            return (
-                <div className="text-center py-20 border-2 border-dashed rounded-lg">
-                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
-                    <p className="text-muted-foreground mt-2 mb-6">Please log in to view your purchases.</p>
-                     <Button asChild><Link href="/login">Login</Link></Button>
-                </div>
-            );
-        }
+    if (authLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center p-20 space-y-4">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground italic">正在安全检索您的账户信息...</p>
+            </div>
+        );
+    }
 
-        // If all checks pass, render the component that makes the query.
-        return <UserOrdersList user={user} firestore={firestore} />;
-    };
+    if (!user) {
+        return (
+            <div className="p-20 text-center">
+                <p className="text-muted-foreground">请先登录以查看您的购买记录。</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 md:p-8 lg:p-12">
-            <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
-            {renderContent()}
+        <div className="p-6 md:p-8 lg:p-12 max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-8">
+                <ShoppingBag className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-headline">{t('accountPurchases.title')}</h1>
+            </div>
+            <PurchasesList user={user} />
         </div>
-    )
+    );
 }
