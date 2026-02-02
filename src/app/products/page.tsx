@@ -133,7 +133,7 @@ export default function AllProductsPage() {
                             placeholder="Search all items..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="h-16 w-full rounded-full border-2 border-primary/30 bg-background/50 pl-16 pr-6 text-lg backdrop-blur-sm transition-all focus:bg-background/70 focus:border-primary/80"
+                            className="h-16 w-full rounded-full border-2 border-primary/30 bg-background/50 pl-16 pr-6 text-lg backdrop-blur-sm transition-all focus:bg-background/70 focus:border-primary/80 animate-glow-border-primary"
                         />
                     </div>
                 </div>
