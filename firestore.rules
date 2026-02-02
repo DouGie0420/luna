@@ -113,8 +113,8 @@ service cloud.firestore {
       allow update: if 
         // Staff can ONLY modify the status (for flagging and for admin panel management).
         (isRequestingUserStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
-        // Product owner can edit their product, but not protected fields.
-        (resource.data.sellerId == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt'])) ||
+        // Product owner (who is NOT staff) can edit their product, but not protected fields.
+        (resource.data.sellerId == request.auth.uid && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt'])) ||
         // Any signed-in user can update interaction counts.
         (isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
@@ -170,8 +170,8 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured'])
         )) ||
-        // Post owner can edit their post, but not protected fields.
-        (isOwner(resource.data.authorId) &&
+        // Post owner (who is NOT staff) can edit their post, but not protected fields.
+        (isOwner(resource.data.authorId) && !isRequestingUserStaff() &&
                         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt'])) ||
         // Any signed-in user can update interaction counts and replies.
         (isSignedIn() && (
