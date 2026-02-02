@@ -111,23 +111,25 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid && request.resource.data.location != null;
       allow delete: if isRequestingUserAdmin();
       
+      // Scenario 1: Staff can ONLY modify the status for moderation.
       allow update: if
-        // Scenario 1: Staff can ONLY modify the status for moderation.
-        (isRequestingUserStaff() && (
-            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status'))
-        ))
-        ||
-        // Scenario 2: Product owner can edit their product, but not protected fields.
-        (isOwner(resource.data.sellerId) &&
-         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']))
-        ||
-        // Scenario 3: Any signed-in user can update interaction counts.
-        (isSignedIn() && (
+        isRequestingUserStaff() &&
+        request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
+        request.resource.data.diff(resource.data).affectedKeys().has('status');
+
+      // Scenario 2: Product owner can edit their product, but not protected fields.
+      allow update: if
+        isOwner(resource.data.sellerId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']);
+
+      // Scenario 3: Any signed-in user can update interaction counts.
+      allow update: if
+        isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
-        ));
+        );
     }
     
     // PROMOS (Managed by Staff/Admins/Ghosts)
@@ -168,26 +170,28 @@ service cloud.firestore {
                     && request.resource.data.location != null;
       allow delete: if isRequestingUserAdmin();
 
+      // Scenario 1: Staff can ONLY modify the status or featured flag for moderation.
       allow update: if
-        // Scenario 1: Staff can ONLY modify the status or featured flag for moderation.
-        (isRequestingUserStaff() && (
+        isRequestingUserStaff() && (
             (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status')) ||
             (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
-        ))
-        ||
-        // Scenario 2: Post owner can edit their post, but not protected fields.
-        (isOwner(resource.data.authorId) &&
-         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']))
-        ||
-        // Scenario 3: Any signed-in user can update interaction counts and replies.
-        (isSignedIn() && (
+        );
+
+      // Scenario 2: Post owner can edit their post, but not protected fields.
+      allow update: if
+        isOwner(resource.data.authorId) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']);
+
+      // Scenario 3: Any signed-in user can update interaction counts and replies.
+      allow update: if
+        isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
           ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
-        ));
+        );
 
       // Comments subcollection
       match /comments/{commentId} {
