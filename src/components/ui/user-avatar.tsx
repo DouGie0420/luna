@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -14,26 +15,24 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 interface UserAvatarProps {
-    profile: (UserProfile | null) | { photoURL?: string | null; displayName?: string | null; displayedBadge?: BadgeType };
+    profile: (UserProfile | null) | { photoURL?: string | null; displayName?: string | null; displayedBadge?: BadgeType; isPro?: boolean };
     className?: string;
 }
 
-const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
+const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro'>, React.FC<{ className?: string }>> = {
     email: (props) => <CheckCircle2 {...props} />,
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
-    pro: (props) => <ShieldCheck {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
     admin: (props) => <BadgeCheck {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
+const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
     email: 'text-green-400',
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
-    pro: 'text-green-500',
     nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
@@ -42,7 +41,12 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {
     const displayedBadge = profile?.displayedBadge;
-    const BadgeIcon = displayedBadge && displayedBadge !== 'none' ? badgeIcons[displayedBadge] : null;
+
+    const isProBadgeActive = displayedBadge === 'pro';
+    
+    // Handle other badges, but exclude 'pro' since it has a special display.
+    const otherBadgeType = (displayedBadge && !isProBadgeActive && displayedBadge !== 'none') ? displayedBadge : null;
+    const OtherBadgeIcon = otherBadgeType ? badgeIcons[otherBadgeType as keyof typeof badgeIcons] : null;
 
     return (
         <div className={cn("relative", className)}>
@@ -50,9 +54,21 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
                 <AvatarImage src={profile?.photoURL || undefined} alt={profile?.displayName || 'User'} />
                 <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
-            {BadgeIcon && (
+            
+            {/* Render other badges as small icons */}
+            {OtherBadgeIcon && (
                  <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                    <BadgeIcon className={cn("h-4 w-4", badgeColors[displayedBadge!])} />
+                    <OtherBadgeIcon className={cn("h-4 w-4", badgeColors[otherBadgeType as keyof typeof badgeColors])} />
+                </div>
+            )}
+
+            {/* Render PRO badge as a label below */}
+            {isProBadgeActive && (
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                    <Badge variant="default" className="bg-primary border-transparent text-primary-foreground flex items-center gap-1.5 px-3 py-1 shadow-lg shadow-primary/50">
+                        <ShieldCheck className="h-4 w-4" />
+                        <span className="text-sm font-bold tracking-wider">PRO</span>
+                    </Badge>
                 </div>
             )}
         </div>
