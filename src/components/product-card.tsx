@@ -134,7 +134,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <CardTitle className="font-headline text-lg mb-2 leading-tight group-hover:text-primary transition-colors">
             {product.name}
           </CardTitle>
-           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+           <div className="flex items-end gap-2 text-xs text-muted-foreground mb-2">
                 <UserAvatar profile={{ displayName: product.seller.name, photoURL: product.seller.avatarUrl, displayedBadge: product.seller.displayedBadge }} className="h-5 w-5" />
                 <span>{product.seller.name}</span>
             </div>
