@@ -23,6 +23,7 @@ import { createNotification } from '@/lib/notifications';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { getMockOrderById } from '@/lib/data';
 
 
 function OrderDetailPageSkeleton() {
@@ -88,9 +89,28 @@ export default function OrderDetailPage() {
 
     const orderId = params.id as string;
 
-    const orderRef = useMemo(() => (firestore ? doc(firestore, 'orders', orderId) : null), [firestore, orderId]);
-    const { data: order, loading: orderLoading } = useDoc<Order>(orderRef);
+    const [order, setOrder] = useState<Order | null>(null);
+    const [isOrderLoading, setIsOrderLoading] = useState(true);
     
+    const orderRef = useMemo(() => (firestore && orderId ? doc(firestore, 'orders', orderId) : null), [firestore, orderId]);
+    const { data: orderFromDb, loading: orderDbLoading } = useDoc<Order>(orderRef);
+
+    useEffect(() => {
+      const loadOrder = async () => {
+        if (!orderDbLoading) {
+          if (orderFromDb) {
+            setOrder(orderFromDb);
+          } else {
+            // Fallback to mock data if not found in Firestore
+            const mockOrder = await getMockOrderById(orderId);
+            setOrder(mockOrder || null);
+          }
+          setIsOrderLoading(false);
+        }
+      };
+      loadOrder();
+    }, [orderFromDb, orderDbLoading, orderId]);
+
     const productRef = useMemo(() => (firestore && order ? doc(firestore, 'products', order.productId) : null), [firestore, order]);
     const { data: product, loading: productLoading } = useDoc<Product>(productRef);
 
@@ -99,7 +119,7 @@ export default function OrderDetailPage() {
     
     const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
     
-    const isLoading = orderLoading || productLoading || sellerLoading;
+    const isLoading = isOrderLoading || productLoading || sellerLoading;
 
     const handleCopy = (text: string) => {
         if (!text) return;

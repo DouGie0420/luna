@@ -114,19 +114,22 @@ export default function MyPurchasesPage() {
     const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        if (!user || !user.uid || !firestore) {
+        // Circuit breaker: Do not create a query if user is not logged in.
+        if (!user?.uid || !firestore) {
             return null;
         }
+        // Force query with user ID filter.
         return query(
             collection(firestore, 'orders'), 
             where('buyerId', '==', user.uid), 
             orderBy('createdAt', 'desc')
         );
-    }, [user, firestore]);
+    }, [user?.uid, firestore]);
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
     
-    const isLoading = userLoading || ordersLoading;
+    // Effective loading state: true if user is loading, or if a query exists and it is loading.
+    const isLoading = userLoading || (!!ordersQuery && ordersLoading);
 
     const renderOrders = (status?: OrderStatus | 'In Escrow') => {
         if (isLoading) {
@@ -153,6 +156,16 @@ export default function MyPurchasesPage() {
                     ))}
                 </div>
             );
+        }
+
+        // If not loading, but no query was constructed (user not logged in), show an empty state.
+        if (!ordersQuery) {
+             return (
+                <div className="text-center py-20 border-2 border-dashed rounded-lg">
+                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
+                    <p className="text-muted-foreground mt-2 mb-6">Please log in to view your purchases.</p>
+                </div>
+            )
         }
         
         let filteredOrders;
