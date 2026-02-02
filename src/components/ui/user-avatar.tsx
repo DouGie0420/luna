@@ -1,12 +1,10 @@
-
 'use client';
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Award, Sparkles, Fingerprint, Globe, BadgeCheck, ShieldCheck } from 'lucide-react';
-import { ProBadgeIcon } from './pro-badge-icon';
+import { Award, Sparkles, Fingerprint, Globe, BadgeCheck, ShieldCheck, CheckCircle } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -59,9 +57,13 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
                 <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             
-            {displayedBadge === 'pro' || (profile?.isPro && displayedBadge === undefined) ? (
+            {displayedBadge === 'pro' ? (
                  <div className="absolute -bottom-1.5 left-0 right-0 z-10 text-center">
                     <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
+                </div>
+            ) : displayedBadge === 'email' ? (
+                <div className="absolute -bottom-1 -right-1 z-10">
+                    <CheckCircle className={cn(badgeSize, "text-green-400")} />
                 </div>
             ) : OtherBadgeIcon ? (
                  <div className="absolute -bottom-1 -right-1 z-10">
