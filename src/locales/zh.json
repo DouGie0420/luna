@@ -560,12 +560,13 @@
     "ordersPage": {
       "title": "管理订单",
       "orderId": "订单ID",
-      "productId": "商品ID",
+      "createdAt": "创建时间",
       "buyerId": "买家ID",
       "sellerId": "卖家ID",
       "amount": "金额",
       "status": "状态",
-      "actions": "操作"
+      "actions": "操作",
+      "noOrders": "当前没有订单数据。"
     },
     "productsPage": {
       "title": "管理商品",

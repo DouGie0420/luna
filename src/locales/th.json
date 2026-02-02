@@ -560,12 +560,13 @@
     "ordersPage": {
       "title": "จัดการคำสั่งซื้อ",
       "orderId": "รหัสคำสั่งซื้อ",
-      "productId": "รหัสสินค้า",
+      "createdAt": "สร้างเมื่อ",
       "buyerId": "รหัสผู้ซื้อ",
       "sellerId": "รหัสผู้ขาย",
       "amount": "จำนวนเงิน",
       "status": "สถานะ",
-      "actions": "การดำเนินการ"
+      "actions": "การดำเนินการ",
+      "noOrders": "ไม่มีข้อมูลคำสั่งซื้อ"
     },
     "productsPage": {
       "title": "จัดการสินค้า",

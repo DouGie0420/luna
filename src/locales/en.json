@@ -560,12 +560,13 @@
     "ordersPage": {
       "title": "Manage Orders",
       "orderId": "Order ID",
-      "productId": "Product ID",
+      "createdAt": "Created At",
       "buyerId": "Buyer ID",
       "sellerId": "Seller ID",
       "amount": "Amount",
       "status": "Status",
-      "actions": "Actions"
+      "actions": "Actions",
+      "noOrders": "No order data available."
     },
     "productsPage": {
       "title": "Manage Products",

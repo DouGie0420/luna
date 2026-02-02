@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useCollection, useFirestore } from "@/firebase";
-import { collection, query } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import type { Order } from "@/lib/types";
 import {
   Table,
@@ -16,11 +16,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
+import { format } from 'date-fns';
 
 export default function AdminOrdersPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
-    const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders')) : null, [firestore]);
+    const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders'), orderBy('createdAt', 'desc')) : null, [firestore]);
     const { data: orders, loading } = useCollection<Order>(ordersQuery);
 
     if (loading) {
@@ -34,32 +35,41 @@ export default function AdminOrdersPage() {
                 <TableHeader>
                     <TableRow>
                         <TableHead>{t('admin.ordersPage.orderId')}</TableHead>
-                        <TableHead>{t('admin.ordersPage.productId')}</TableHead>
+                        <TableHead>{t('admin.ordersPage.createdAt')}</TableHead>
                         <TableHead>{t('admin.ordersPage.buyerId')}</TableHead>
                         <TableHead>{t('admin.ordersPage.sellerId')}</TableHead>
                         <TableHead>{t('admin.ordersPage.amount')}</TableHead>
                         <TableHead>{t('admin.ordersPage.status')}</TableHead>
-                        <TableHead>{t('admin.ordersPage.actions')}</TableHead>
+                        <TableHead className="text-right">{t('admin.ordersPage.actions')}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {orders && orders.map(order => (
+                    {orders && orders.length > 0 ? (
+                        orders.map(order => (
                         <TableRow key={order.id}>
                             <TableCell className="font-medium font-mono text-xs">{order.id}</TableCell>
-                            <TableCell className="font-mono text-xs">{order.productId}</TableCell>
+                             <TableCell>
+                                {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
+                            </TableCell>
                             <TableCell className="font-mono text-xs">{order.buyerId}</TableCell>
                             <TableCell className="font-mono text-xs">{order.sellerId}</TableCell>
                             <TableCell>{order.totalAmount.toLocaleString()} {order.currency}</TableCell>
                             <TableCell>
                                 <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' ? 'destructive' : 'secondary')}>{order.status}</Badge>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-right">
                                 <Button variant="ghost" size="icon">
                                     <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                             </TableCell>
                         </TableRow>
-                    ))}
+                    ))) : (
+                        <TableRow>
+                            <TableCell colSpan={7} className="h-24 text-center">
+                                {t('admin.ordersPage.noOrders')}
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
         </div>
