@@ -44,11 +44,19 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const ProIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M4.42871 2.31934L49.0321 23.6765C51.5287 24.8762 51.5287 27.1238 49.0321 28.3235L4.42871 49.6807C1.83204 50.8804 -0.764648 48.696 -0.764648 45.3572V6.64283C-0.764648 3.30399 1.83204 1.11963 4.42871 2.31934Z" fill="#FDE047"/>
+        <text x="50%" y="65%" dominantBaseline="middle" textAnchor="middle" style={{ font: "bold 20px sans-serif", fill: "#374151" }}>pro</text>
+    </svg>
+);
+
+
 const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
     email: (props) => <CheckCircle {...props} />,
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
-    pro: (props) => <ShieldCheck {...props} />,
+    pro: (props) => <ProIcon {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
@@ -59,7 +67,7 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     email: 'text-green-400',
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
-    pro: 'text-green-500',
+    pro: '', // PRO icon is self-colored
     nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
@@ -193,15 +201,15 @@ export default function AccountProfilePage() {
     };
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
-    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle });
-    if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: Fingerprint });
-    if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: ShieldCheck });
-    if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: Globe });
-    if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: t('accountPage.badges.nft_label'), icon: EthereumIcon });
-    if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: Award });
-    if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: Sparkles });
+    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: badgeIcons['email'] });
+    if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: badgeIcons['kyc'] });
+    if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: badgeIcons['pro'] });
+    if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: badgeIcons['web3'] });
+    if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: t('accountPage.badges.nft_label'), icon: badgeIcons['nft'] });
+    if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: badgeIcons['influencer'] });
+    if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: badgeIcons['contributor'] });
     if (['admin', 'staff', 'support', 'ghost'].includes(profile?.role || '')) {
-      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: BadgeCheck });
+      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: badgeIcons['admin'] });
     }
 
     const handleBadgeSelection = async (value: string) => {
@@ -386,7 +394,7 @@ export default function AccountProfilePage() {
                                 {availableBadges.map(({ type, label, icon: Icon }) => (
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        <Icon className={cn("h-8 w-8", badgeColors[type])} />
+                                        <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
                                         <span className="font-semibold">{label}</span>
                                     </Label>
                                 ))}

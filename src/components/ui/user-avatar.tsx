@@ -4,8 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -14,25 +13,34 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const ProIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <path d="M4.42871 2.31934L49.0321 23.6765C51.5287 24.8762 51.5287 27.1238 49.0321 28.3235L4.42871 49.6807C1.83204 50.8804 -0.764648 48.696 -0.764648 45.3572V6.64283C-0.764648 3.30399 1.83204 1.11963 4.42871 2.31934Z" fill="#FDE047"/>
+        <text x="50%" y="65%" dominantBaseline="middle" textAnchor="middle" style={{ font: "bold 20px sans-serif", fill: "#374151" }}>pro</text>
+    </svg>
+);
+
 interface UserAvatarProps {
     profile: (UserProfile | null) | { photoURL?: string | null; displayName?: string | null; displayedBadge?: BadgeType; isPro?: boolean };
     className?: string;
 }
 
-const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro'>, React.FC<{ className?: string }>> = {
+const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
     email: (props) => <CheckCircle2 {...props} />,
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
+    pro: (props) => <ProIcon {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
     admin: (props) => <BadgeCheck {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
+const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     email: 'text-green-400',
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
+    pro: '', // PRO icon is self-colored
     nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
@@ -42,11 +50,15 @@ const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
 export function UserAvatar({ profile, className }: UserAvatarProps) {
     const displayedBadge = profile?.displayedBadge;
 
-    const isProBadgeActive = displayedBadge === 'pro';
+    const BadgeIcon = displayedBadge && displayedBadge !== 'none' 
+        ? badgeIcons[displayedBadge] 
+        : null;
     
-    // Handle other badges, but exclude 'pro' since it has a special display.
-    const otherBadgeType = (displayedBadge && !isProBadgeActive && displayedBadge !== 'none') ? displayedBadge : null;
-    const OtherBadgeIcon = otherBadgeType ? badgeIcons[otherBadgeType as keyof typeof badgeIcons] : null;
+    const badgeColorClass = displayedBadge && displayedBadge !== 'none'
+        ? badgeColors[displayedBadge]
+        : '';
+        
+    const badgeSize = displayedBadge === 'pro' ? 'h-5 w-5' : 'h-4 w-4';
 
     return (
         <div className={cn("relative", className)}>
@@ -55,18 +67,9 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
                 <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             
-            {/* Render other badges as small icons */}
-            {OtherBadgeIcon && (
-                 <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                    <OtherBadgeIcon className={cn("h-4 w-4", badgeColors[otherBadgeType as keyof typeof badgeColors])} />
-                </div>
-            )}
-
-            {/* Render PRO badge as a label below */}
-            {isProBadgeActive && (
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-0.5">
-                    <ShieldCheck className="h-2.5 w-2.5 text-primary" />
-                    <span style={{ fontSize: '8px', lineHeight: '1' }} className="font-bold tracking-wider text-primary">PRO</span>
+            {BadgeIcon && (
+                 <div className="absolute -bottom-1 -right-1 z-10">
+                    <BadgeIcon className={cn(badgeSize, badgeColorClass)} />
                 </div>
             )}
         </div>
