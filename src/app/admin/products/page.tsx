@@ -61,10 +61,10 @@ function ProductTable({ products, loading, onStatusChange, onSetReason }: { prod
                 <TableRow>
                     <TableHead>商品</TableHead>
                     <TableHead>卖家</TableHead>
-                    <TableHead>价格</TableHead>
-                    <TableHead>提交时间</TableHead>
-                    <TableHead>原因</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead className="w-[120px]">价格</TableHead>
+                    <TableHead className="w-[180px]">提交时间</TableHead>
+                    <TableHead className="w-[120px]">原因</TableHead>
+                    <TableHead className="w-[80px] text-right">操作</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -126,10 +126,10 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
                 <TableRow>
                     <TableHead>帖子</TableHead>
                     <TableHead>作者</TableHead>
-                    <TableHead></TableHead>
-                    <TableHead>提交时间</TableHead>
-                    <TableHead>原因</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead className="w-[120px]"></TableHead>
+                    <TableHead className="w-[180px]">提交时间</TableHead>
+                    <TableHead className="w-[120px]">原因</TableHead>
+                    <TableHead className="w-[80px] text-right">操作</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -140,7 +140,7 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
                             <p className="text-xs text-muted-foreground font-mono">{post.id}</p>
                         </TableCell>
                         <TableCell>{post.author.name}</TableCell>
-                        <TableCell></TableCell>
+                        <TableCell />
                         <TableCell>{post.createdAt ? format(post.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
                          <TableCell>
                             <Badge variant={post.reviewReason ? "destructive" : "secondary"}>{post.reviewReason || 'N/A'}</Badge>
