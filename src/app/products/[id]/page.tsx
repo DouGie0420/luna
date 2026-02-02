@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getProductById, getProducts } from '@/lib/data';
+import { getProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { doc, updateDoc, arrayRemove, arrayUnion, increment } from 'firebase/firestore';
+import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -81,8 +81,8 @@ export default function ProductPage() {
     const { toast } = useToast();
     const { t } = useTranslation();
 
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState(true);
+    const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
+    const { data: product, loading } = useDoc<Product>(productRef);
     
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
@@ -92,21 +92,38 @@ export default function ProductPage() {
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
     
     useEffect(() => {
-      const fetchProductAndRecs = async () => {
-        setLoading(true);
-        const p = await getProductById(id);
-        if (p) {
-            setProduct(p);
-            const allProducts = await getProducts(); // Using mock data for recommendations for now
+      if (!firestore) {
+        setLoadingRecs(false);
+        return;
+      }
+  
+      const fetchRecs = async () => {
+        setLoadingRecs(true);
+        const recsQuery = query(
+            collection(firestore, 'products'),
+            where('status', '==', 'active'),
+            orderBy('createdAt', 'desc'),
+            limit(6)
+        );
+        try {
+            const querySnapshot = await getDocs(recsQuery);
+            const recs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            const filteredRecs = recs.filter(p => p.id !== id).slice(0, 5);
+            setRecommendedProducts(filteredRecs);
+        } catch (error) {
+            console.error("Failed to fetch recommendations from Firestore, falling back to mock data:", error);
+            const allProducts = await getProducts();
             const recs = allProducts.filter(rec => rec.id !== id).slice(0, 5);
             setRecommendedProducts(recs);
+        } finally {
+            setLoadingRecs(false);
         }
-        setLoading(false);
       };
-      fetchProductAndRecs();
-    }, [id]);
+  
+      fetchRecs();
+    }, [firestore, id]);
 
-    const isOwner = user && product && user.uid === product.seller.id;
+    const isOwner = user && product && user.uid === product.sellerId;
     const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
     
     const isLiked = user && product && product.likedBy?.includes(user.uid);
@@ -145,8 +162,9 @@ export default function ProductPage() {
     };
 
     const handleProductUpdate = (updatedProduct: Product) => {
-        setProduct(updatedProduct);
+        // useDoc will update the product automatically, so we just close the dialog.
         setIsEditDialogOpen(false);
+        toast({ title: 'Product Updated', description: 'Your changes have been saved.' });
     };
 
     const handleDeleteProduct = async () => {
@@ -264,21 +282,33 @@ export default function ProductPage() {
                 <div className="mt-20">
                     <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                        {recommendedProducts.map((p) => (
-                            <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
-                                <Image
-                                src={p.images[0]}
-                                alt={p.name}
-                                fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                data-ai-hint={p.imageHints[0]}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
-                                {p.name}
-                                </h3>
-                            </Link>
-                        ))}
+                        {loadingRecs ? (
+                            [...Array(5)].map((_, i) => (
+                                <div key={i} className="flex flex-col space-y-3">
+                                    <Skeleton className="aspect-video w-full" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-4 w-4/5" />
+                                        <Skeleton className="h-4 w-3/5" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            recommendedProducts.map((p) => (
+                                <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
+                                    <Image
+                                    src={p.images[0]}
+                                    alt={p.name}
+                                    fill
+                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                    data-ai-hint={p.imageHints[0]}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                    <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
+                                    {p.name}
+                                    </h3>
+                                </Link>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>

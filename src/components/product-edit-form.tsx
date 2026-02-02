@@ -16,6 +16,10 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useFirestore } from '@/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 interface ProductEditFormProps {
   product: Product;
@@ -26,6 +30,7 @@ export function ProductEditForm({ product, onSave }: ProductEditFormProps) {
   const [formData, setFormData] = useState(product);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
 
   useEffect(() => {
     setFormData(product);
@@ -49,26 +54,33 @@ export function ProductEditForm({ product, onSave }: ProductEditFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firestore) return;
+    
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you would save this to a database.
-      // Here, we'll update localStorage for locally-created products.
-      const localProductsJSON = localStorage.getItem('luna_new_products');
-      if (localProductsJSON) {
-        let localProducts: Product[] = JSON.parse(localProductsJSON);
-        const productIndex = localProducts.findIndex(p => p.id === formData.id);
-        if (productIndex > -1) {
-          localProducts[productIndex] = formData;
-          localStorage.setItem('luna_new_products', JSON.stringify(localProducts));
-        }
-      }
-      
-      onSave(formData);
-      setIsSubmitting(false);
-      toast({ title: 'Product Updated', description: 'Your changes have been saved.' });
-    }, 1000);
+    const productRef = doc(firestore, 'products', product.id);
+
+    // Only include fields that can be edited by the owner.
+    const { name, description, price, category, shippingMethod } = formData;
+    const dataToUpdate = { name, description, price, category, shippingMethod };
+
+    updateDoc(productRef, dataToUpdate)
+      .then(() => {
+        // The parent component will receive the updated data via the `useDoc` hook.
+        // We call onSave to close the dialog.
+        onSave(formData);
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: productRef.path,
+            operation: 'update',
+            requestResourceData: dataToUpdate,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+      })
+      .finally(() => {
+        setIsSubmitting(false);
+      });
   };
 
   return (
