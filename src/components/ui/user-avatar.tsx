@@ -58,13 +58,11 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             </Avatar>
             
             {displayedBadge === 'pro' ? (
-                 <div className="absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-1/2">
-                    <span className="font-headline text-[10px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
+                 <div className="absolute top-full left-0 right-0 z-10 pt-px text-center">
+                    <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
                 </div>
             ) : displayedBadge === 'email' ? (
-                // Email verified is the default, so we don't show a badge for it unless explicitly selected
                 <div className="absolute -bottom-1 -right-1 z-10">
-                    {/* You can add a specific icon for email if you want, but for now it's hidden to declutter */}
                 </div>
             ) : OtherBadgeIcon ? (
                  <div className="absolute -bottom-1 -right-1 z-10">
