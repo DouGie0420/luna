@@ -86,6 +86,7 @@
       "nft_label": "NFT",
       "influencer_label": "KOL ชุมชน",
       "contributor_label": "ผู้เขียนแนะนำ",
+      "admin_label": "ทีมผู้ดูแล",
       "update_success": "อัปเดตเหรียญตราที่แสดงแล้ว"
     },
     "personalInfo": "ข้อมูลส่วนตัว",

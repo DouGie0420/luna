@@ -86,6 +86,7 @@
       "nft_label": "NFT",
       "influencer_label": "Community KOL",
       "contributor_label": "Featured Author",
+      "admin_label": "Admin Team",
       "update_success": "Displayed badge updated"
     },
     "personalInfo": "Personal Information",

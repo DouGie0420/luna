@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, Shield } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -177,6 +177,9 @@ export default function AccountProfilePage() {
     if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: t('accountPage.badges.nft_label'), icon: EthereumIcon });
     if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: Award });
     if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: Sparkles });
+    if (['admin', 'staff', 'support', 'ghost'].includes(profile?.role || '')) {
+      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: Shield });
+    }
 
     const handleBadgeSelection = async (value: string) => {
         if (!firestore || !user) return;
@@ -336,9 +339,19 @@ export default function AccountProfilePage() {
                 </Card>
 
                  <Card>
-                    <CardHeader>
-                        <CardTitle>{t('accountPage.badges.title')}</CardTitle>
-                        <CardDescription>{t('accountPage.badges.description')}</CardDescription>
+                    <CardHeader className="flex flex-row items-start justify-between">
+                        <div>
+                            <CardTitle>{t('accountPage.badges.title')}</CardTitle>
+                            <CardDescription>{t('accountPage.badges.description')}</CardDescription>
+                        </div>
+                         <Button
+                            variant={!profile?.displayedBadge || profile.displayedBadge === 'none' ? 'default' : 'outline'}
+                            onClick={() => handleBadgeSelection('none')}
+                            className="flex-shrink-0"
+                        >
+                            <XCircle className="mr-2 h-4 w-4" />
+                            {t('accountPage.badges.no_display')}
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         {availableBadges.length > 0 ? (
@@ -347,15 +360,10 @@ export default function AccountProfilePage() {
                                 onValueChange={handleBadgeSelection}
                                 className="grid grid-cols-2 md:grid-cols-3 gap-4"
                             >
-                                <Label htmlFor="badge-none" className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                                    <RadioGroupItem value="none" id="badge-none" className="sr-only" />
-                                    <XCircle className="h-8 w-8 text-muted-foreground" />
-                                    <span className="font-semibold">{t('accountPage.badges.no_display')}</span>
-                                </Label>
                                 {availableBadges.map(({ type, label, icon: Icon }) => (
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        <Icon className="h-8 w-8 text-primary" />
+                                        <Icon className={cn("h-8 w-8", type === 'admin' ? 'text-destructive' : 'text-primary')} />
                                         <span className="font-semibold">{label}</span>
                                     </Label>
                                 ))}

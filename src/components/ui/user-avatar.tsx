@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ShieldCheck, CheckCircle, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
+import { Shield, ShieldCheck, CheckCircle, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -25,6 +25,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: stri
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
+    admin: (props) => <Shield {...props} />,
 };
 
 const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
@@ -35,14 +36,20 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     nft: 'text-purple-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
+    admin: 'text-destructive',
 };
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {
     const displayedBadge = profile?.displayedBadge;
     const BadgeIcon = displayedBadge && displayedBadge !== 'none' ? badgeIcons[displayedBadge] : null;
+    const isAdminBadge = displayedBadge === 'admin';
 
     return (
-        <div className={cn("relative", className)}>
+        <div className={cn(
+            "relative",
+            isAdminBadge && "rounded-full border-2 border-dashed border-destructive p-0.5 animate-pulse",
+            className
+        )}>
             <Avatar className="h-full w-full">
                 <AvatarImage src={profile?.photoURL || undefined} alt={profile?.displayName || 'User'} />
                 <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>

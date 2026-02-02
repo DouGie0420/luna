@@ -86,6 +86,7 @@
       "nft_label": "NFT",
       "influencer_label": "社区达人",
       "contributor_label": "精华作者",
+      "admin_label": "管理组",
       "update_success": "展示勋章已更新"
     },
     "personalInfo": "个人信息",
