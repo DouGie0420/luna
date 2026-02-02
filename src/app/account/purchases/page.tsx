@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from "next/image";
 import { format } from 'date-fns';
 import { useTranslation } from "@/hooks/use-translation";
-import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
+import { useUser, useFirestore, useCollection } from '@/firebase';
 import { collection, query, where, doc, orderBy } from 'firebase/firestore';
 import type { Order, Product, UserProfile, OrderStatus } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -108,13 +108,39 @@ function DynamicOrderCard({ order }: { order: Order }) {
     );
 }
 
+function PurchasesSkeleton() {
+    return (
+        <div className="space-y-6">
+            {[...Array(2)].map((_, i) => (
+                <Card key={i} className="overflow-hidden">
+                    <CardHeader className="p-4"><Skeleton className="h-8 w-3/4" /></CardHeader>
+                    <CardContent className="p-4 bg-secondary/20">
+                        <div className="flex items-center gap-4">
+                            <Skeleton className="h-24 w-24 rounded-md" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-5 w-full" />
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-6 w-1/2 mt-2" />
+                            </div>
+                        </div>
+                    </CardContent>
+                    <CardFooter className="p-4 flex justify-end gap-2">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-24" />
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
 export default function MyPurchasesPage() {
     const { t } = useTranslation();
     const { user, loading: userLoading } = useUser();
     const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        // Stricter circuit breaker: Query is only created when user and firestore are definitely available.
+        // Strict UID Guard: Only create the query if user.uid is available.
         if (user && user.uid && firestore) {
             return query(
                 collection(firestore, 'orders'), 
@@ -130,29 +156,7 @@ export default function MyPurchasesPage() {
     const renderOrders = (status?: OrderStatus | 'In Escrow') => {
         // Top-level loading state: if user auth is loading, or if we have a query but its data isn't here yet.
         if (userLoading || (ordersQuery && ordersLoading)) {
-            return (
-                <div className="space-y-6">
-                    {[...Array(2)].map((_, i) => (
-                        <Card key={i} className="overflow-hidden">
-                            <CardHeader className="p-4"><Skeleton className="h-8 w-3/4" /></CardHeader>
-                            <CardContent className="p-4 bg-secondary/20">
-                                <div className="flex items-center gap-4">
-                                    <Skeleton className="h-24 w-24 rounded-md" />
-                                    <div className="flex-1 space-y-2">
-                                        <Skeleton className="h-5 w-full" />
-                                        <Skeleton className="h-4 w-3/4" />
-                                        <Skeleton className="h-6 w-1/2 mt-2" />
-                                    </div>
-                                </div>
-                            </CardContent>
-                            <CardFooter className="p-4 flex justify-end gap-2">
-                                <Skeleton className="h-9 w-24" />
-                                <Skeleton className="h-9 w-24" />
-                            </CardFooter>
-                        </Card>
-                    ))}
-                </div>
-            );
+            return <PurchasesSkeleton />;
         }
 
         // If not loading, and we don't have a user, it means the user is logged out.
