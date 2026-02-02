@@ -4,7 +4,8 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck, ShieldCheck } from 'lucide-react';
+import { Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
+import { ProBadgeIcon } from './pro-badge-icon';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -19,8 +20,7 @@ interface UserAvatarProps {
     className?: string;
 }
 
-const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro'>, React.FC<{ className?: string }>> = {
-    email: (props) => <CheckCircle2 {...props} />,
+const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro' | 'email'>, React.FC<{ className?: string }>> = {
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
@@ -29,8 +29,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro'>, React.FC<{ classNam
     admin: (props) => <BadgeCheck {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
-    email: 'text-green-400',
+const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro' | 'email'>, string> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     nft: 'text-blue-400',
@@ -42,12 +41,12 @@ const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
 export function UserAvatar({ profile, className }: UserAvatarProps) {
     const displayedBadge = profile?.displayedBadge;
 
-    const OtherBadgeIcon = displayedBadge && displayedBadge !== 'none' && displayedBadge !== 'pro' 
-        ? badgeIcons[displayedBadge as Exclude<BadgeType, 'none' | 'pro'>] 
+    const OtherBadgeIcon = displayedBadge && displayedBadge !== 'none' && displayedBadge !== 'pro' && displayedBadge !== 'email'
+        ? badgeIcons[displayedBadge as Exclude<BadgeType, 'none' | 'pro' | 'email'>] 
         : null;
     
     const badgeColorClass = OtherBadgeIcon && displayedBadge
-        ? badgeColors[displayedBadge as Exclude<BadgeType, 'none' | 'pro'>]
+        ? badgeColors[displayedBadge as Exclude<BadgeType, 'none' | 'pro' | 'email'>]
         : '';
         
     const badgeSize = 'h-4 w-4';
@@ -60,8 +59,13 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             </Avatar>
             
             {displayedBadge === 'pro' ? (
-                <div className="absolute -bottom-1 left-1/2 z-10 h-5 w-5 -translate-x-1/2 translate-y-1/4 rounded-full bg-background p-0.5">
-                    <ShieldCheck className="h-full w-full text-yellow-400" />
+                <div className="absolute -bottom-1.5 left-1/2 z-10 w-3/4 -translate-x-1/2 flex justify-center">
+                    <ProBadgeIcon className="h-auto w-full drop-shadow-lg" />
+                </div>
+            ) : displayedBadge === 'email' ? (
+                // Email verified is the default, so we don't show a badge for it unless explicitly selected
+                <div className="absolute -bottom-1 -right-1 z-10">
+                    {/* You can add a specific icon for email if you want, but for now it's hidden to declutter */}
                 </div>
             ) : OtherBadgeIcon ? (
                  <div className="absolute -bottom-1 -right-1 z-10">

@@ -36,6 +36,7 @@ import { sendEmailVerification } from "firebase/auth";
 import { cn } from "@/lib/utils";
 import { type BadgeType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ProBadgeIcon } from "@/components/ui/pro-badge-icon";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,22 +45,20 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
+const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro'>, React.FC<{ className?: string }>> = {
     email: (props) => <CheckCircle {...props} />,
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
-    pro: (props) => <ShieldCheck {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
     admin: (props) => <BadgeCheck {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
+const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro'>, string> = {
     email: 'text-green-400',
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
-    pro: 'text-yellow-400',
     nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
@@ -195,7 +194,7 @@ export default function AccountProfilePage() {
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
     if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: badgeIcons['email'] });
     if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: badgeIcons['kyc'] });
-    if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: badgeIcons['pro'] });
+    if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: ProBadgeIcon });
     if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: badgeIcons['web3'] });
     if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: t('accountPage.badges.nft_label'), icon: badgeIcons['nft'] });
     if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: badgeIcons['influencer'] });
@@ -386,7 +385,11 @@ export default function AccountProfilePage() {
                                 {availableBadges.map(({ type, label, icon: Icon }) => (
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
+                                        <Icon className={cn(
+                                            "h-8",
+                                            type === 'pro' ? 'w-auto' : 'w-8',
+                                            badgeColors[type as keyof typeof badgeColors]
+                                        )} />
                                         <span className="font-semibold">{label}</span>
                                     </Label>
                                 ))}
@@ -478,9 +481,8 @@ export default function AccountProfilePage() {
                                 <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
                                 <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                                     {profile?.isPro && (
-                                        <div className="flex items-center gap-1.5 text-green-500">
-                                            <ShieldCheck className="h-4 w-4" />
-                                            <span>{t('userProfile.pro')}</span>
+                                        <div className="flex items-center gap-1.5 text-yellow-400">
+                                            <ProBadgeIcon className="h-3" />
                                         </div>
                                     )}
                                     {profile?.isWeb3Verified && (
