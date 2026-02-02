@@ -99,19 +99,24 @@ export default function ProductPage() {
   
       const fetchRecs = async () => {
         setLoadingRecs(true);
+        // Query without ordering to avoid needing an index
         const recsQuery = query(
             collection(firestore, 'products'),
             where('status', '==', 'active'),
-            orderBy('createdAt', 'desc'),
-            limit(6)
+            limit(12) // Fetch a bit more to ensure we have enough after filtering
         );
         try {
             const querySnapshot = await getDocs(recsQuery);
-            const recs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            let recs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            
+            // Sort on the client-side
+            recs.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+
             const filteredRecs = recs.filter(p => p.id !== id).slice(0, 5);
             setRecommendedProducts(filteredRecs);
         } catch (error) {
             console.error("Failed to fetch recommendations from Firestore, falling back to mock data:", error);
+            // Fallback to mock data if Firestore fails for any reason
             const allProducts = await getProducts();
             const recs = allProducts.filter(rec => rec.id !== id).slice(0, 5);
             setRecommendedProducts(recs);
