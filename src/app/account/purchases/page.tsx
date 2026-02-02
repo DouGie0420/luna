@@ -114,25 +114,22 @@ export default function MyPurchasesPage() {
     const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        // Circuit breaker: Do not create a query if user is not logged in.
-        if (!user?.uid || !firestore) {
-            return null;
+        // Stricter circuit breaker: Query is only created when user and firestore are definitely available.
+        if (user && user.uid && firestore) {
+            return query(
+                collection(firestore, 'orders'), 
+                where('buyerId', '==', user.uid), 
+                orderBy('createdAt', 'desc')
+            );
         }
-        // Force query with user ID filter.
-        return query(
-            collection(firestore, 'orders'), 
-            where('buyerId', '==', user.uid), 
-            orderBy('createdAt', 'desc')
-        );
-    }, [user?.uid, firestore]);
+        return null;
+    }, [user, firestore]);
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
     
-    // Effective loading state: true if user is loading, or if a query exists and it is loading.
-    const isLoading = userLoading || (!!ordersQuery && ordersLoading);
-
     const renderOrders = (status?: OrderStatus | 'In Escrow') => {
-        if (isLoading) {
+        // Top-level loading state: if user auth is loading, or if we have a query but its data isn't here yet.
+        if (userLoading || (ordersQuery && ordersLoading)) {
             return (
                 <div className="space-y-6">
                     {[...Array(2)].map((_, i) => (
@@ -158,8 +155,8 @@ export default function MyPurchasesPage() {
             );
         }
 
-        // If not loading, but no query was constructed (user not logged in), show an empty state.
-        if (!ordersQuery) {
+        // If not loading, and we don't have a user, it means the user is logged out.
+        if (!user) {
              return (
                 <div className="text-center py-20 border-2 border-dashed rounded-lg">
                     <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
