@@ -5,11 +5,11 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useUser, useFirestore, useDoc } from '@/firebase';
-import type { Order, Product, UserProfile } from '@/lib/types';
+import { useUser, useFirestore } from '@/firebase';
+import type { Order, Product, UserProfile, User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { createNotification } from '@/lib/notifications';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { getMockOrderById, getProductById, getUserById } from '@/lib/data';
 
 function OrderDetailPageSkeleton() {
     return (
@@ -80,23 +81,93 @@ export default function OrderDetailPage() {
     const router = useRouter();
     const { t } = useTranslation();
     const { toast } = useToast();
-    const { user: currentUser, profile: currentUserProfile, loading: userLoading } = useUser();
+    const { user: currentUser, profile: currentUserProfile } = useUser();
     const firestore = useFirestore();
 
     const orderId = params.id as string;
+
+    const [order, setOrder] = useState<Order | null>(null);
+    const [product, setProduct] = useState<Product | null>(null);
+    const [seller, setSeller] = useState<UserProfile | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
     const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
 
-    const orderRef = useMemo(() => firestore && orderId ? doc(firestore, 'orders', orderId) : null, [firestore, orderId]);
-    const { data: order, loading: orderLoading } = useDoc<Order>(orderRef);
-    
-    const productRef = useMemo(() => firestore && order?.productId ? doc(firestore, 'products', order.productId) : null, [firestore, order]);
-    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
+    useEffect(() => {
+        const loadOrderData = async () => {
+            if (!orderId) {
+                setIsLoading(false);
+                return;
+            }
+            setIsLoading(true);
+            
+            let finalOrder: Order | null = null;
+            let finalProduct: Product | null = null;
+            let finalSeller: UserProfile | null = null;
 
-    const sellerRef = useMemo(() => firestore && order?.sellerId ? doc(firestore, 'users', order.sellerId) : null, [firestore, order]);
-    const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
+            // 1. Fetch Order
+            if (firestore) {
+                const orderRef = doc(firestore, 'orders', orderId);
+                try {
+                    const orderSnap = await getDoc(orderRef);
+                    if (orderSnap.exists()) {
+                        finalOrder = { id: orderSnap.id, ...orderSnap.data() } as Order;
+                    }
+                } catch (e) { console.error("Error fetching order from Firestore:", e); }
+            }
+            if (!finalOrder) {
+                finalOrder = (await getMockOrderById(orderId)) || null;
+            }
 
+            // 2. If Order exists, fetch Product and Seller
+            if (finalOrder) {
+                // Fetch Product
+                if (firestore) {
+                    const productRef = doc(firestore, 'products', finalOrder.productId);
+                    try {
+                        const productSnap = await getDoc(productRef);
+                        if (productSnap.exists()) {
+                            finalProduct = { id: productSnap.id, ...productSnap.data() } as Product;
+                        }
+                    } catch (e) { console.error("Error fetching product from Firestore:", e); }
+                }
+                if (!finalProduct) {
+                    finalProduct = (await getProductById(finalOrder.productId)) || null;
+                }
 
-    const isLoading = userLoading || orderLoading || productLoading || sellerLoading;
+                // Fetch Seller
+                if (firestore) {
+                    const sellerRef = doc(firestore, 'users', finalOrder.sellerId);
+                     try {
+                        const sellerSnap = await getDoc(sellerRef);
+                        if (sellerSnap.exists()) {
+                            finalSeller = sellerSnap.data() as UserProfile;
+                        }
+                    } catch (e) { console.error("Error fetching seller from Firestore:", e); }
+                }
+                if (!finalSeller) {
+                    const mockSeller = await getUserById(finalOrder.sellerId);
+                    if (mockSeller) {
+                        finalSeller = {
+                            ...mockSeller,
+                            uid: mockSeller.id,
+                            photoURL: mockSeller.avatarUrl,
+                            displayName: mockSeller.name,
+                            reviewsCount: mockSeller.reviews,
+                            onSaleCount: mockSeller.itemsOnSale,
+                        };
+                    }
+                }
+            }
+            
+            setOrder(finalOrder);
+            setProduct(finalProduct);
+            setSeller(finalSeller);
+            setIsLoading(false);
+        };
+
+        loadOrderData();
+    }, [orderId, firestore]);
 
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
@@ -117,14 +188,18 @@ export default function OrderDetailPage() {
     };
     
     const handleConfirmReceipt = async () => {
-        if (!firestore || !orderRef) return;
+        if (!firestore) return;
         
         // As per spec, this should trigger a smart contract.
         // For prototype, we will just update status and show a toast.
+        const orderRef = doc(firestore, 'orders', orderId);
         await updateDoc(orderRef, {
             status: 'Completed',
             completedAt: serverTimestamp()
         });
+        
+        // This is a mock update for the UI, as useDoc is not used anymore in this component.
+        setOrder(prev => prev ? {...prev, status: 'Completed'} : null);
 
         toast({
             title: t('orderDetails.receiptConfirmed'),
@@ -133,8 +208,6 @@ export default function OrderDetailPage() {
     };
     
     const blockExplorerUrl = useMemo(() => {
-        // This is a placeholder. A real implementation would depend on the chain.
-        // I'll assume Ethereum for now.
         if (order?.paymentTransactionId) {
             return `https://etherscan.io/tx/${order.paymentTransactionId}`;
         }
@@ -185,7 +258,7 @@ export default function OrderDetailPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                         <p className="text-4xl font-bold">{order.totalAmount.toLocaleString()} <span className="text-xl text-muted-foreground">{order.currency}</span></p>
-                        {(order as any).paymentTransactionId && (
+                        {order.paymentTransactionId && (
                             <Button asChild variant="outline">
                                 <Link href={blockExplorerUrl} target="_blank" rel="noopener noreferrer">
                                     查看链上凭证 <ExternalLink className="ml-2 h-4 w-4"/>
@@ -224,7 +297,7 @@ export default function OrderDetailPage() {
                              <InfoRow label="卖家钱包" value={`${seller.walletAddress.slice(0, 6)}...${seller.walletAddress.slice(-4)}`} onCopy={() => handleCopy(seller.walletAddress!)} />
                         )}
 
-                        <InfoRow label="下单时间" value={order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm:ss') : 'N/A'} />
+                        <InfoRow label="下单时间" value={order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm:ss') : (order.createdAt ? format(new Date(order.createdAt), 'yyyy-MM-dd HH:mm:ss') : 'N/A')} />
                         
                         <Separator />
 
@@ -293,3 +366,4 @@ export default function OrderDetailPage() {
         </>
     );
 }
+    

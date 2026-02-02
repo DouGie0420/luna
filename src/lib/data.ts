@@ -1,5 +1,5 @@
 
-import type { Product, User, KycStatus, BbsPost, UserAddress } from './types';
+import type { Product, User, KycStatus, BbsPost, UserAddress, Order } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -1211,6 +1211,116 @@ export const mockAddresses: UserAddress[] = [
   },
 ];
 
+const mockOrders: Order[] = [
+  {
+    id: "ORD007",
+    productId: "ceramic-vase",
+    buyerId: "test-user-uid",
+    sellerId: "user1",
+    price: 2500,
+    shippingFee: 150,
+    totalAmount: 2650,
+    currency: "THB",
+    status: "In Escrow",
+    createdAt: new Date("2023-10-29T10:00:00Z"),
+    shippingAddress: {
+        recipientName: '测试用户',
+        phone: '+66 12 345 6789',
+        country: 'Thailand',
+        province: 'Bangkok',
+        city: 'Bangkok',
+        addressLine1: '123 Cyberpunk Road',
+        postalCode: '10110',
+    },
+    shippingMethod: 'Buyer Pays',
+    paymentTransactionId: '0xmocktxhashfordinperson007'
+  },
+  {
+    id: "ORD004",
+    productId: "smart-watch",
+    buyerId: "test-user-uid",
+    sellerId: "user10",
+    price: 76.00,
+    shippingFee: 0,
+    totalAmount: 76.00,
+    currency: 'RMB',
+    status: 'Shipped',
+    createdAt: new Date('2023-10-27T12:00:00Z'),
+    shippingAddress: {
+      recipientName: '测试用户',
+      phone: '+86 13800138000',
+      country: 'China',
+      province: 'Shanghai',
+      city: 'Shanghai',
+      addressLine1: 'Cyberpunk District, Apt 2077',
+      postalCode: '200120',
+    },
+    shippingMethod: 'Seller Pays',
+    shippingProvider: 'SF Express',
+    trackingNumber: 'SF1234567890',
+    paymentTransactionId: '0x123abc456def789ghi012jkl345mno678pqr901stu234vwx567yz890'
+  },
+  {
+    id: "ORD002",
+    productId: "leather-wallet",
+    buyerId: "test-user-uid",
+    sellerId: "user2",
+    price: 120,
+    shippingFee: 0,
+    totalAmount: 120,
+    currency: 'RMB',
+    status: 'Completed',
+    createdAt: new Date('2023-10-25T14:00:00Z'),
+    completedAt: new Date('2023-10-28T14:00:00Z'),
+    shippingAddress: {
+      recipientName: '测试用户',
+      phone: '+86 13800138000',
+      country: 'China',
+      province: 'Shanghai',
+      city: 'Shanghai',
+      addressLine1: 'Cyberpunk District, Apt 2077',
+      postalCode: '200120',
+    },
+    shippingMethod: 'Seller Pays',
+    shippingProvider: 'YTO Express',
+    trackingNumber: 'YT987654321'
+  },
+    {
+    id: "ORD006",
+    productId: "vintage-camera",
+    buyerId: "test-user-uid",
+    sellerId: "user4",
+    price: 6500,
+    shippingFee: 150,
+    totalAmount: 6650,
+    currency: 'THB',
+    status: 'Disputed',
+    createdAt: new Date('2023-10-24T18:00:00Z'),
+    shippingAddress: {
+      recipientName: '测试用户',
+      phone: '+66 12 345 6789',
+      country: 'Thailand',
+      province: 'Phuket',
+      city: 'Phuket',
+      addressLine1: '99 Beach Road',
+      postalCode: '83000',
+    },
+    shippingMethod: 'Buyer Pays',
+    shippingProvider: 'Kerry Express',
+    trackingNumber: 'TH0123456789'
+  }
+];
+
+export async function getMockOrders(): Promise<Order[]> {
+  await new Promise(resolve => setTimeout(resolve, 200));
+  return mockOrders;
+}
+
+export async function getMockOrderById(id: string): Promise<Order | undefined> {
+  await new Promise(resolve => setTimeout(resolve, 50));
+  return mockOrders.find(o => o.id === id);
+}
+
 export async function getProducts(): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -1219,13 +1329,18 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getProductById(id: string): Promise<Product | undefined> {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 50));
   return products.find(p => p.id === id);
 }
 
 export async function getUsers(): Promise<User[]> {
     await new Promise(resolve => setTimeout(resolve, 500));
     return users;
+}
+
+export async function getUserById(id: string): Promise<User | undefined> {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return users.find(u => u.id === id);
 }
 
 export async function getBbsPosts(): Promise<BbsPost[]> {
@@ -1249,3 +1364,5 @@ export async function getBbsPostById(id: string): Promise<BbsPost | undefined> {
   }
   return undefined;
 }
+
+    
