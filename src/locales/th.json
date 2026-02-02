@@ -513,7 +513,7 @@
       "community": "ชุมชน",
       "orders": "คำสั่งซื้อ",
       "kycApplications": "แอปพลิเคชัน KYC",
-      "supportTickets": "ตั๋วสนับสนุน",
+      "supportTickets": "ตั๋วบริการลูกค้า",
       "settings": "การตั้งค่า",
       "logout": "ออกจากระบบ",
       "accessDenied": "การเข้าถึงถูกปฏิเสธ",
@@ -578,7 +578,7 @@
       "actions": "การดำเนินการ"
     },
     "supportPage": {
-      "title": "ตั๋วสนับสนุน",
+      "title": "ตั๋วบริการลูกค้า",
       "ticketId": "รหัสตั๋ว",
       "subject": "หัวเรื่อง",
       "user": "ผู้ใช้",

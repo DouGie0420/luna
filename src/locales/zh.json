@@ -513,7 +513,7 @@
       "community": "社区管理",
       "orders": "订单管理",
       "kycApplications": "KYC申请",
-      "supportTickets": "支持工单",
+      "supportTickets": "客服工单",
       "settings": "设置",
       "logout": "退出登录",
       "accessDenied": "访问被拒绝",
@@ -578,7 +578,7 @@
       "actions": "操作"
     },
     "supportPage": {
-      "title": "支持工单",
+      "title": "客服工单",
       "ticketId": "工单ID",
       "subject": "主题",
       "user": "用户",

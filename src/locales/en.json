@@ -513,7 +513,7 @@
       "community": "Community",
       "orders": "Orders",
       "kycApplications": "KYC Applications",
-      "supportTickets": "Support Tickets",
+      "supportTickets": "Service Tickets",
       "settings": "Settings",
       "logout": "Logout",
       "accessDenied": "Access Denied",
@@ -578,7 +578,7 @@
       "actions": "Actions"
     },
     "supportPage": {
-      "title": "Support Tickets",
+      "title": "Service Tickets",
       "ticketId": "Ticket ID",
       "subject": "Subject",
       "user": "User",
