@@ -664,6 +664,11 @@
         "views": { "type": "number" },
         "replies": { "type": "number" },
         "isFeatured": { "type": "boolean" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "under_review", "hidden"],
+          "description": "The current status of the BBS post."
+        },
         "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who liked the post." },
         "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." },
         "location": {

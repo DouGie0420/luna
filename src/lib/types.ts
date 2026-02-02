@@ -28,6 +28,7 @@ export type Product = {
   searchHits?: number;
   likedBy?: string[];
   favoritedBy?: string[];
+  createdAt?: any;
 };
 
 export type User = {
@@ -183,6 +184,7 @@ export type BbsPost = {
   videos?: string[];
   imageHints?: string[];
   isFeatured?: boolean;
+  status?: 'active' | 'under_review' | 'hidden';
   favorites?: number;
   likedBy?: string[];
   favoritedBy?: string[];

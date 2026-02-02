@@ -131,8 +131,8 @@ export default function AdminLayout({
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
                     <Link href="/admin/products">
-                      <ShoppingBag />
-                      {t('admin.layout.products')}
+                      <ShieldAlert />
+                      {t('admin.layout.reviewQueue')}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

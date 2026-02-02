@@ -229,6 +229,7 @@ export default function NewBbsPostPage() {
       views: 0,
       replies: 0,
       isFeatured: false,
+      status: 'active' as 'active' | 'under_review' | 'hidden',
       likedBy: [],
       favoritedBy: [],
       location: location,

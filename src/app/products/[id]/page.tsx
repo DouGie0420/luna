@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser, useFirestore } from '@/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Loader2 } from 'lucide-react';
 import { ProductEditForm } from '@/components/product-edit-form';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
@@ -33,7 +34,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { doc, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 
 
 function ProductPageSkeleton() {
@@ -83,6 +84,7 @@ export default function ProductPage() {
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
     
     const [isLiked, setIsLiked] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
@@ -173,23 +175,25 @@ export default function ProductPage() {
 
     const handleDeleteProduct = async () => {
         if (!product || !firestore) return;
+        setIsSubmittingDelete(true);
 
         const productRef = doc(firestore, "products", product.id);
         try {
-            await deleteDoc(productRef);
+            await updateDoc(productRef, { status: 'under_review' });
             toast({
-                title: "商品已删除",
-                description: "该商品已被永久移除。",
+                title: "商品已提交审核",
+                description: "该商品已从前台隐藏，等待管理员审核。",
             });
             router.push('/products');
         } catch (error) {
-            console.error("Failed to delete product:", error);
+            console.error("Failed to flag product for review:", error);
             toast({
                 variant: "destructive",
-                title: "删除失败",
-                description: "无法删除该商品，请检查权限。",
+                title: "操作失败",
+                description: "无法提交审核，请检查权限。",
             });
         }
+        setIsSubmittingDelete(false);
         setIsDeleteDialogOpen(false);
     };
 
@@ -246,8 +250,8 @@ export default function ProductPage() {
                                         </DialogTrigger>
                                     )}
                                     {hasAdminAccess && (
-                                        <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)}>
-                                            <Trash2 className="mr-2 h-4 w-4" />
+                                        <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmittingDelete}>
+                                            {isSubmittingDelete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
                                             删除商品
                                         </Button>
                                     )}
@@ -297,15 +301,16 @@ export default function ProductPage() {
              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>您确定要永久删除吗？</AlertDialogTitle>
+                        <AlertDialogTitle>确认提交审核</AlertDialogTitle>
                         <AlertDialogDescription>
-                            此操作无法撤销。这将从数据库中永久删除商品 "{product.name}".
+                            此操作会将商品从前台隐藏并提交给管理员审核。您确定吗？
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive hover:bg-destructive/90">
-                            确认删除
+                        <AlertDialogAction onClick={handleDeleteProduct} disabled={isSubmittingDelete} className="bg-destructive hover:bg-destructive/90">
+                           {isSubmittingDelete && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           确认提交
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
