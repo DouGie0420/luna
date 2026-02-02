@@ -43,7 +43,7 @@ service cloud.firestore {
       allow update: if 
         (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) && resource.data.walletAddress == null && request.resource.data.isWeb3Verified == true)
         ||
-        (isOwner(userId) && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role', 'followersCount', 'followingCount', 'postsCount', 'featuredCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress']))
+        (isOwner(userId) && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role', 'followersCount', 'followingCount', 'postsCount', 'featuredCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress', 'isInfluencer', 'isContributor']))
         ||
         (isOwner(userId) && resource.data.role == 'guest' && request.resource.data.role == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']))
         ||
@@ -101,7 +101,7 @@ service cloud.firestore {
        allow get, update, delete: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
                          || request.auth.uid == resource.data.sellerId))
                          || isRequestingUserAdmin() || isRequestingUserGhost();
-       allow list: if isRequestingUserAdmin() || isRequestingUserGhost();
+       allow list: if isSignedIn();
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
     

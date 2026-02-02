@@ -1,3 +1,5 @@
+
+      
 'use client';
 
 import { useCollection, useFirestore, useUser } from "@/firebase";
@@ -226,9 +228,9 @@ export default function AdminUsersPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Column 2: Verifications */}
+                                                {/* Column 2: Verifications & Badges */}
                                                 <div className="space-y-4">
-                                                    <div className="grid gap-2">
+                                                     <div className="grid gap-2">
                                                         <Label>{t('admin.usersPage.proStatus')}</Label>
                                                         <Select 
                                                             value={user.isPro ? 'true' : 'false'}
@@ -352,3 +354,5 @@ export default function AdminUsersPage() {
         </div>
     )
 }
+
+    
