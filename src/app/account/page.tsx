@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, Shield, CheckCircle2, BadgeCheck } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -38,10 +38,33 @@ import { type BadgeType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1.75l-6.172 9.5L12 17.5l6.172-6.25L12 1.75z"/>
+        <path d="M5.828 12.5L12 22.25l6.172-9.75L12 17.5 5.828 12.5z"/>
     </svg>
 );
+
+const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
+    email: (props) => <CheckCircle {...props} />,
+    kyc: (props) => <Fingerprint {...props} />,
+    web3: (props) => <Globe {...props} />,
+    pro: (props) => <ShieldCheck {...props} />,
+    nft: (props) => <EthereumIcon {...props} />,
+    influencer: (props) => <Award {...props} />,
+    contributor: (props) => <Sparkles {...props} />,
+    admin: (props) => <BadgeCheck {...props} />,
+};
+
+const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
+    email: 'text-green-400',
+    kyc: 'text-yellow-400',
+    web3: 'text-blue-400',
+    pro: 'text-green-500',
+    nft: 'text-cyan-400',
+    influencer: 'text-yellow-400',
+    contributor: 'text-pink-500',
+    admin: 'text-sky-500',
+};
 
 
 export default function AccountProfilePage() {
@@ -170,7 +193,7 @@ export default function AccountProfilePage() {
     };
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
-    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle2 });
+    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle });
     if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: Fingerprint });
     if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: ShieldCheck });
     if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: Globe });
@@ -363,7 +386,7 @@ export default function AccountProfilePage() {
                                 {availableBadges.map(({ type, label, icon: Icon }) => (
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        <Icon className={cn("h-8 w-8", type === 'admin' ? 'text-blue-500' : 'text-primary')} />
+                                        <Icon className={cn("h-8 w-8", badgeColors[type])} />
                                         <span className="font-semibold">{label}</span>
                                     </Label>
                                 ))}
@@ -467,7 +490,7 @@ export default function AccountProfilePage() {
                                         </div>
                                     )}
                                     {profile?.isNftVerified && (
-                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
                                             <EthereumIcon className="h-4 w-4" />
                                             <span>NFT</span>
                                         </div>

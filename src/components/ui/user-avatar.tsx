@@ -7,8 +7,9 @@ import { cn } from '@/lib/utils';
 import { ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1.75l-6.172 9.5L12 17.5l6.172-6.25L12 1.75z"/>
+        <path d="M5.828 12.5L12 22.25l6.172-9.75L12 17.5 5.828 12.5z"/>
     </svg>
 );
 
@@ -33,10 +34,10 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     pro: 'text-green-500',
-    nft: 'text-purple-400',
+    nft: 'text-cyan-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-blue-500',
+    admin: 'text-sky-500',
 };
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {

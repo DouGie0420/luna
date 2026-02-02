@@ -27,8 +27,9 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1.75l-6.172 9.5L12 17.5l6.172-6.25L12 1.75z"/>
+        <path d="M5.828 12.5L12 22.25l6.172-9.75L12 17.5 5.828 12.5z"/>
     </svg>
 );
 
@@ -250,7 +251,7 @@ export default function UserProfilePage() {
                                         </div>
                                     )}
                                     {user.isNftVerified && (
-                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                        <div className="flex items-center gap-1.5 text-cyan-400">
                                             <EthereumIcon className="h-4 w-4" />
                                             <span>NFT</span>
                                         </div>
