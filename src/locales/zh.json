@@ -592,7 +592,8 @@
       "setOpen": "设为开启",
       "setPending": "设为待定",
       "setResolved": "设为已解决",
-      "setClosed": "设为已关闭"
+      "setClosed": "设为已关闭",
+      "noTickets": "当前没有待处理的支持工单。"
     },
     "usersPage": {
       "title": "管理用户",

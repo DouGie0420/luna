@@ -72,34 +72,42 @@ export default function AdminSupportPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {tickets && tickets.map(ticket => (
-                        <TableRow key={ticket.id}>
-                            <TableCell className="font-medium font-mono text-xs">{ticket.id}</TableCell>
-                            <TableCell>{ticket.subject}</TableCell>
-                            <TableCell>{ticket.userName} <span className="text-muted-foreground text-xs">({ticket.userEmail})</span></TableCell>
-                            <TableCell>
-                               <Badge variant={ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'default' : (ticket.status === 'Open' ? 'destructive' : 'secondary')}>{ticket.status}</Badge>
-                            </TableCell>
-                             <TableCell>
-                                {ticket.updatedAt?.toDate ? formatDistanceToNow(ticket.updatedAt.toDate(), { addSuffix: true }) : formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true })}
-                             </TableCell>
-                            <TableCell>
-                                 <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Open')}>{t('admin.supportPage.setOpen')}</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Pending')}>{t('admin.supportPage.setPending')}</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Resolved')}>{t('admin.supportPage.setResolved')}</DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Closed')}>{t('admin.supportPage.setClosed')}</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                    {tickets && tickets.length > 0 ? (
+                        tickets.map(ticket => (
+                            <TableRow key={ticket.id}>
+                                <TableCell className="font-medium font-mono text-xs">{ticket.id}</TableCell>
+                                <TableCell>{ticket.subject}</TableCell>
+                                <TableCell>{ticket.userName} <span className="text-muted-foreground text-xs">({ticket.userEmail})</span></TableCell>
+                                <TableCell>
+                                <Badge variant={ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'default' : (ticket.status === 'Open' ? 'destructive' : 'secondary')}>{ticket.status}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {ticket.updatedAt?.toDate ? formatDistanceToNow(ticket.updatedAt.toDate(), { addSuffix: true }) : formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true })}
+                                </TableCell>
+                                <TableCell>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Open')}>{t('admin.supportPage.setOpen')}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Pending')}>{t('admin.supportPage.setPending')}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Resolved')}>{t('admin.supportPage.setResolved')}</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => handleStatusChange(ticket.id, 'Closed')}>{t('admin.supportPage.setClosed')}</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    ) : (
+                        <TableRow>
+                            <TableCell colSpan={6} className="h-24 text-center">
+                                {t('admin.supportPage.noTickets')}
                             </TableCell>
                         </TableRow>
-                    ))}
+                    )}
                 </TableBody>
             </Table>
         </div>

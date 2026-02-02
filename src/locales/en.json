@@ -592,7 +592,8 @@
       "setOpen": "Set as Open",
       "setPending": "Set as Pending",
       "setResolved": "Set as Resolved",
-      "setClosed": "Set as Closed"
+      "setClosed": "Set as Closed",
+      "noTickets": "There are no pending support tickets."
     },
     "usersPage": {
       "title": "Manage Users",
