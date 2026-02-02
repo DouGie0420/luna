@@ -383,7 +383,9 @@ export default function AccountProfilePage() {
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
                                         {type === 'pro' ? (
-                                            <span className="font-headline text-lg h-8 flex items-center justify-center text-yellow-400 drop-shadow-lg">PRO</span>
+                                            <div className="relative h-8 w-8 flex items-center justify-center">
+                                                <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg">PRO</span>
+                                            </div>
                                         ) : (
                                             <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
                                         )}
