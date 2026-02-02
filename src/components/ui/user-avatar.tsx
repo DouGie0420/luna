@@ -59,7 +59,7 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             </Avatar>
             
             {displayedBadge === 'pro' ? (
-                 <div className="absolute top-full left-0 right-0 z-10 text-center -translate-y-1.5">
+                 <div className="absolute top-full left-0 right-0 z-10 text-center -translate-y-2">
                     <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
                 </div>
             ) : displayedBadge === 'email' ? (
