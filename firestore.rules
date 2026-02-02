@@ -42,7 +42,7 @@ service cloud.firestore {
 
     // USER PROFILES
     match /users/{userId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isOwner(userId);
 
       // Allow user to link their Web3 wallet for the first time.
@@ -53,6 +53,7 @@ service cloud.firestore {
 
       // General-purpose profile update by the owner.
       allow update: if isOwner(userId) &&
+                      !isRequestingUserStaff() &&
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                          'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
                          'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
@@ -107,7 +108,7 @@ service cloud.firestore {
 
     // PRODUCTS
     match /products/{productId} {
-      allow read, list: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow delete: if isRequestingUserAdmin();
       
@@ -135,7 +136,7 @@ service cloud.firestore {
     
     // PROMOS (Managed by Staff/Admins/Ghosts)
     match /promos/{promoId} {
-      allow read, list: if true;
+      allow get, list: if true;
       allow write: if isRequestingUserStaff();
     }
 
@@ -150,7 +151,7 @@ service cloud.firestore {
     
     // REVIEWS
     match /reviews/{reviewId} {
-       allow read, list: if true;
+       allow get, list: if true;
        allow create: if isOwner(request.resource.data.reviewerId);
        allow update, delete: if isOwner(resource.data.reviewerId) || isRequestingUserAdmin() || isRequestingUserGhost();
     }
@@ -164,7 +165,7 @@ service cloud.firestore {
 
     // BBS Posts
     match /bbs/{postId} {
-      allow read, list: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() 
                     && request.resource.data.authorId == request.auth.uid
                     && request.resource.data.author.id == request.auth.uid
