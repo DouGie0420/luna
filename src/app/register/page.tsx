@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import { useFirebaseAuth } from "@/firebase/auth/use-user"
+import { useFirebaseAuth, useUser } from "@/firebase/auth/use-user"
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
@@ -36,6 +36,7 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function RegisterPage() {
   const { t } = useTranslation();
+  const { user, loading: userLoading } = useUser();
   const auth = useFirebaseAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -48,6 +49,13 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.push('/');
+    }
+  }, [user, userLoading, router]);
+
 
   const handleEmailRegister = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -114,6 +122,15 @@ export default function RegisterPage() {
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     await signInWithRedirect(auth, provider);
   };
+  
+  if (userLoading || user) {
+    return (
+      <div className="flex h-[calc(100vh-16rem)] items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
 
   return (
     <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">

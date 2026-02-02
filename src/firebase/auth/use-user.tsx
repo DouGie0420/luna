@@ -111,7 +111,7 @@ export const useUser = (): UserState => {
     }
 
     getRedirectResult(auth)
-      .then((result) => {
+      .then(async (result) => {
         if (result) {
           // This means a user has just signed in via redirect.
           toast({
@@ -119,8 +119,10 @@ export const useUser = (): UserState => {
             duration: 3000,
             variant: 'success',
           });
-          // Not awaiting is fine, can happen in background
-          upsertUserProfile(firestore, result.user);
+          // Awaiting this is important to ensure profile exists on next page load
+          await upsertUserProfile(firestore, result.user);
+          // Hard redirect to ensure all state is cleared and re-fetched.
+          window.location.href = '/';
         }
         // If result is null, it's a normal page load.
         // onAuthStateChanged will handle the user session.

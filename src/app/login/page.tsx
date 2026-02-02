@@ -13,14 +13,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
-import { useFirebaseAuth } from "@/firebase/auth/use-user";
+import { useFirebaseAuth, useUser } from "@/firebase/auth/use-user";
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
 import { useToast } from "@/hooks/use-toast";
 import { X, Loader2 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -33,6 +33,7 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export default function LoginPage() {
   const { t } = useTranslation();
+  const { user, loading: userLoading } = useUser();
   const auth = useFirebaseAuth();
   const firestore = useFirestore();
   const router = useRouter();
@@ -41,6 +42,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.push('/');
+    }
+  }, [user, userLoading, router]);
 
   const handleEmailLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -110,6 +117,14 @@ export default function LoginPage() {
     // The page will redirect away, so no further code here is needed.
     // The result will be handled by the useUser hook on page load.
   };
+
+  if (userLoading || user) {
+    return (
+      <div className="flex h-[calc(100vh-16rem)] items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
