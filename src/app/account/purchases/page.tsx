@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
+import { getMockOrderById } from '@/lib/data';
 
 // New component for dynamic orders from Firestore
 function DynamicOrderCard({ order }: { order: Order }) {
@@ -40,7 +41,10 @@ function DynamicOrderCard({ order }: { order: Order }) {
 
     const getStatusTranslation = (status: string) => {
         const keyPart = status.replace(/\s+/g, '').charAt(0).toLowerCase() + status.replace(/\s+/g, '').slice(1);
-        return t(`accountPurchases.status.${keyPart}`);
+        const translationKey = `accountPurchases.status.${keyPart}` as any;
+        const translated = t(translationKey);
+        // Fallback to status itself if translation is missing
+        return translated === translationKey ? status : translated;
     }
 
     if (productLoading || sellerLoading) {
@@ -74,7 +78,7 @@ function DynamicOrderCard({ order }: { order: Order }) {
                     <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                             <AvatarImage src={seller.photoURL} alt={seller.displayName} />
-                            <AvatarFallback>{seller.displayName.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{seller.displayName?.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                         <span className="font-semibold text-sm">{seller.displayName}</span>
                     </div>
@@ -87,7 +91,7 @@ function DynamicOrderCard({ order }: { order: Order }) {
                         </div>
                         <div className="flex-1">
                             <p className="font-semibold leading-tight">{product.name}</p>
-                            <p className="text-sm text-muted-foreground mt-1">{order.id.slice(0, 8).toUpperCase()} | {format(order.createdAt.toDate(), 'yyyy-MM-dd')}</p>
+                            <p className="text-sm text-muted-foreground mt-1">{order.id.slice(0, 8).toUpperCase()} | {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd') : ''}</p>
                             <p className="text-lg font-bold text-primary mt-2">{order.totalAmount.toLocaleString()} {order.currency}</p>
                         </div>
                     </div>
@@ -96,7 +100,7 @@ function DynamicOrderCard({ order }: { order: Order }) {
                     <Button variant="outline" size="sm">{t('accountPurchases.orderCard.contactSeller')}</Button>
                     {order.status === 'Completed' && !order.buyerReviewId ? (
                          <Button asChild size="sm"><Link href={`/account/purchases/${order.id}/review`}>{t('accountPurchases.orderCard.leaveReview')}</Link></Button>
-                    ) : order.status !== 'Completed' ? (
+                    ) : (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') ? (
                          <Button asChild size="sm"><Link href={`/account/purchases/${order.id}`}>{t('accountPurchases.orderCard.confirmReceipt')}</Link></Button>
                     ) : null }
                 </CardFooter>
@@ -111,13 +115,23 @@ export default function MyPurchasesPage() {
     const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        if (!user || !firestore) return null;
-        return query(collection(firestore, 'orders'), where('buyerId', '==', user.uid), orderBy('createdAt', 'desc'));
+        // A user must be logged in to query their own orders.
+        if (!user || !user.uid || !firestore) {
+            return null;
+        }
+        // This query is constrained to only fetch orders where the 'buyerId'
+        // matches the currently logged-in user's UID. This is crucial for
+        // complying with Firestore security rules for listing documents.
+        return query(
+            collection(firestore, 'orders'), 
+            where('buyerId', '==', user.uid), 
+            orderBy('createdAt', 'desc')
+        );
     }, [user, firestore]);
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
     
-    // Fallback to mock data for test user or if there are no real orders yet
+    // Fallback to mock data for test user only if there are no real orders yet
     const purchases = [
         { 
           id: "ORD007", 
@@ -170,8 +184,10 @@ export default function MyPurchasesPage() {
             );
         }
         
-        const ordersToDisplay = (orders && orders.length > 0) ? orders : (user?.uid === 'test-user-uid' ? purchases as Order[] : []);
-        const filteredOrders = status ? ordersToDisplay.filter(o => o.status === status) : ordersToDisplay;
+        // Use real orders for real users. Use mock data as a fallback for the test user only.
+        const ordersToDisplay = user?.uid === 'test-user-uid' && (!orders || orders.length === 0) ? purchases as Order[] : orders;
+
+        const filteredOrders = status ? ordersToDisplay?.filter(o => o.status === status) : ordersToDisplay;
         
         if (!filteredOrders || filteredOrders.length === 0) {
             return (
