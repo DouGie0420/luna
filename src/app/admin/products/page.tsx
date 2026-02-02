@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -16,10 +15,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Loader2, Edit, Trash2, ShieldCheck, EyeOff, ShieldX } from "lucide-react"
+import { MoreHorizontal, Loader2, Edit, Trash2, ShieldCheck } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -51,7 +49,7 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
     }
 
     if (!products || products.length === 0) {
-        return <div className="text-center py-12 text-muted-foreground">No products in this category.</div>
+        return <div className="text-center py-12 text-muted-foreground">没有需要审核的商品。</div>
     }
 
     return (
@@ -92,23 +90,15 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem onClick={() => onStatusChange(product.id, 'active')}>
                                         <ShieldCheck className="mr-2 h-4 w-4" />
-                                        <span>Approve (Republish)</span>
-                                    </DropdownMenuItem>
-                                     <DropdownMenuItem onClick={() => onStatusChange(product.id, 'under_review')}>
-                                        <ShieldX className="mr-2 h-4 w-4" />
-                                        <span>Flag for Review</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onStatusChange(product.id, 'hidden')}>
-                                        <EyeOff className="mr-2 h-4 w-4" />
-                                        <span>Hide</span>
+                                        <span>批准 (重新发布)</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem disabled>
                                         <Edit className="mr-2 h-4 w-4" />
-                                        <span>Edit</span>
+                                        <span>编辑</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem className="text-destructive" onClick={() => onProductDelete(product)}>
                                         <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>Delete</span>
+                                        <span>确认删除</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -122,24 +112,15 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
 
 export default function AdminProductsPage() {
     const firestore = useFirestore();
-    const { t } = useTranslation();
     const { toast } = useToast();
-    const [filter, setFilter] = useState<ProductStatus | 'all'>('under_review');
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
 
     const productsQuery = useMemo(() => {
         if (!firestore) return null;
-        const baseQuery = collection(firestore, 'products');
-        if (filter === 'all') {
-            return query(baseQuery);
-        }
-        // Firestore doesn't allow querying for documents where a field does NOT exist.
-        // So for 'active', we check for documents where status is 'active' or where it doesn't exist (legacy data).
-        // This is complex and best handled by ensuring all documents have a default status.
-        // For now, we will only query for the specific status. New items should get 'active' by default.
-        return query(baseQuery, where('status', '==', filter));
-    }, [firestore, filter]);
+        // Only query for products that are under review.
+        return query(collection(firestore, 'products'), where('status', '==', 'under_review'));
+    }, [firestore]);
 
     const { data: products, loading } = useCollection<Product>(productsQuery);
 
@@ -148,7 +129,7 @@ export default function AdminProductsPage() {
         const productRef = doc(firestore, 'products', productId);
         try {
             await updateDoc(productRef, { status });
-            toast({ title: 'Status Updated', description: `Product status set to ${status}.` });
+            toast({ title: '商品状态已更新', description: `商品已重新发布为 "${status}"。` });
         } catch (error) {
             console.error("Failed to update status:", error);
             const permissionError = new FirestorePermissionError({
@@ -165,7 +146,7 @@ export default function AdminProductsPage() {
         const productRef = doc(firestore, 'products', productToDelete.id);
         try {
             await deleteDoc(productRef);
-            toast({ title: 'Product Deleted', description: `'${productToDelete.name}' has been deleted.` });
+            toast({ title: '商品已删除', description: `商品 '${productToDelete.name}' 已被永久删除。` });
             setProductToDelete(null);
         } catch (error) {
             console.error("Failed to delete product:", error);
@@ -180,42 +161,24 @@ export default function AdminProductsPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">{t('admin.productsPage.title')}</h2>
+            <h2 className="text-3xl font-headline mb-2">商品审核</h2>
+            <p className="text-muted-foreground mb-6">此页面列出了被标记为需要审核的商品。请检查并进行相应操作。</p>
             
-            <Tabs value={filter} onValueChange={(value) => setFilter(value as any)} className="w-full">
-                <TabsList>
-                    <TabsTrigger value="under_review">Under Review</TabsTrigger>
-                    <TabsTrigger value="active">Active</TabsTrigger>
-                    <TabsTrigger value="hidden">Hidden</TabsTrigger>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                </TabsList>
-                <TabsContent value="under_review">
-                    <ProductTable products={products} loading={loading} onStatusChange={handleStatusChange} onProductDelete={setProductToDelete} />
-                </TabsContent>
-                <TabsContent value="active">
-                    <ProductTable products={products} loading={loading} onStatusChange={handleStatusChange} onProductDelete={setProductToDelete} />
-                </TabsContent>
-                <TabsContent value="hidden">
-                    <ProductTable products={products} loading={loading} onStatusChange={handleStatusChange} onProductDelete={setProductToDelete} />
-                </TabsContent>
-                <TabsContent value="all">
-                    <ProductTable products={products} loading={loading} onStatusChange={handleStatusChange} onProductDelete={setProductToDelete} />
-                </TabsContent>
-            </Tabs>
+            <ProductTable products={products} loading={loading} onStatusChange={handleStatusChange} onProductDelete={setProductToDelete} />
 
             <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogTitle>您确定要永久删除吗？</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the product
+                            此操作无法撤销。这将从数据库中永久删除商品
                              "{productToDelete?.name}".
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
                         <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-                            Delete
+                            确认删除
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
