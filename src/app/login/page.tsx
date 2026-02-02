@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
 import { useFirebaseAuth, useUser } from "@/firebase/auth/use-user";
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail, getRedirectResult } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
@@ -42,12 +42,47 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
+
+  // Effect to handle social login redirects
   useEffect(() => {
-    if (!userLoading && user) {
+    if (!auth || !firestore) {
+      setIsProcessingRedirect(false);
+      return;
+    }
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          // User signed in via redirect. The page will show a loader.
+          toast({
+            title: t('loginPage.loginSuccessTitle'),
+            duration: 3000,
+            variant: 'success',
+          });
+          await upsertUserProfile(firestore, result.user);
+          router.push('/');
+        } else {
+          // No redirect result, this is a normal page load.
+          setIsProcessingRedirect(false);
+        }
+      })
+      .catch((error) => {
+        console.error("Firebase redirect login error:", error);
+        toast({
+          variant: "destructive",
+          title: t('loginPage.loginFailedTitle'),
+          description: error.message || t('loginPage.loginFailedDescription'),
+        });
+        setIsProcessingRedirect(false);
+      });
+  }, [auth, firestore, router, t, toast]);
+
+  // Effect to redirect already logged-in users
+  useEffect(() => {
+    if (!isProcessingRedirect && !userLoading && user) {
       router.push('/');
     }
-  }, [user, userLoading, router]);
+  }, [user, userLoading, router, isProcessingRedirect]);
 
   const handleEmailLogin = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,8 +111,7 @@ export default function LoginPage() {
 
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
-      // Login is successful, do not await the profile update.
-      // This ensures navigation happens immediately and the UI doesn't get stuck.
+      // Don't await the profile update to navigate faster.
       upsertUserProfile(firestore, userCredential.user);
       
       toast({
@@ -104,21 +138,21 @@ export default function LoginPage() {
         title: t('loginPage.loginFailedTitle'),
         description,
       });
+    } finally {
       setIsLoading(false);
     }
   };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
     if (!auth || !firestore) return;
-
-    const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     setIsLoading(true);
+    const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     await signInWithRedirect(auth, provider);
-    // The page will redirect away, so no further code here is needed.
-    // The result will be handled by the useUser hook on page load.
+    // The page will redirect away. The result is handled by the useEffect hook on return.
   };
 
-  if (userLoading || user) {
+  // Show a loading screen while checking auth state or processing a redirect
+  if (userLoading || isProcessingRedirect || user) {
     return (
       <div className="flex h-[calc(100vh-16rem)] items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -144,11 +178,11 @@ export default function LoginPage() {
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
-              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">

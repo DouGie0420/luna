@@ -106,35 +106,9 @@ export const useUser = (): UserState => {
 
   useEffect(() => {
     if (!auth || !firestore) {
-      setUserState(s => ({ ...s, loading: true }));
+      setUserState(s => ({ ...s, loading: false }));
       return;
     }
-
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          // This means a user has just signed in via redirect.
-          toast({
-            title: 'Login Successful',
-            duration: 3000,
-            variant: 'success',
-          });
-          // Awaiting this is important to ensure profile exists on next page load
-          await upsertUserProfile(firestore, result.user);
-          // Hard redirect to ensure all state is cleared and re-fetched.
-          window.location.href = '/';
-        }
-        // If result is null, it's a normal page load.
-        // onAuthStateChanged will handle the user session.
-      })
-      .catch((error) => {
-        console.error("Firebase redirect login error:", error);
-        toast({
-          variant: "destructive",
-          title: "Login Failed",
-          description: error.message || "Could not sign in with social account.",
-        });
-      });
 
     let unsubscribe: Unsubscribe = () => {};
 
@@ -210,7 +184,7 @@ export const useUser = (): UserState => {
       authUnsubscribe();
       unsubscribe();
     };
-  }, [auth, firestore, toast]);
+  }, [auth, firestore]);
 
   return userState;
 };
