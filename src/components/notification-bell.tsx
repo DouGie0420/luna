@@ -85,7 +85,7 @@ export function NotificationBell() {
                  <p className="p-4 text-sm text-center text-muted-foreground">Loading...</p>
             ) : notifications && notifications.length > 0 ? (
               notifications.map(notif => (
-                <DropdownMenuItem key={notif.id} className="flex items-start gap-3 whitespace-normal" asChild>
+                <DropdownMenuItem key={notif.id} className="flex items-start gap-3 whitespace-normal">
                   {/* We can make notifications link somewhere in the future */}
                   {/* <Link href={notif.link || '#'}> */}
                     <div className="mt-1">{getIconForType(notif.type)}</div>
