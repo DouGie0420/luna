@@ -72,15 +72,19 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     
     const handleMarkForReview = () => {
         if (!firestore) return;
+        setIsDeleteDialogOpen(false); // Close dialog immediately to prevent UI freeze
+
         const postRef = doc(firestore, 'bbs', post.id);
         const updateData = { status: 'under_review' as const };
 
         updateDoc(postRef, updateData)
             .then(() => {
-                toast({
-                    title: "帖子已提交审核",
-                    description: "该帖子现在将在后台等待最终审核。",
-                });
+                setTimeout(() => { // Defer toast to avoid render-while-rendering error
+                    toast({
+                        title: "帖子已提交审核",
+                        description: "该帖子现在将在后台等待最终审核。",
+                    });
+                }, 0);
             })
             .catch(serverError => {
                 const permissionError = new FirestorePermissionError({
@@ -89,9 +93,6 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     requestResourceData: updateData,
                 });
                 errorEmitter.emit('permission-error', permissionError);
-            })
-            .finally(() => {
-                setIsDeleteDialogOpen(false);
             });
     };
     
@@ -178,8 +179,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
         updateDoc(postRef, updateData)
             .then(() => {
-                if (type === 'like' && !isLiked) {
-                    createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post: post });
+                if(type === 'like' && !isLiked) {
+                    createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post });
                 }
             })
             .catch(serverError => {
