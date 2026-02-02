@@ -4,8 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
-import { ProBadgeIcon } from './pro-badge-icon';
+import { Award, Sparkles, Fingerprint, Globe, BadgeCheck, ShieldCheck } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -59,8 +58,8 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             </Avatar>
             
             {displayedBadge === 'pro' ? (
-                <div className="absolute -bottom-1.5 left-1/2 z-10 w-3/4 -translate-x-1/2 flex justify-center">
-                    <ProBadgeIcon className="h-auto w-full drop-shadow-lg" />
+                 <div className="absolute bottom-0 left-1/2 z-10 -translate-x-1/2 translate-y-1/2">
+                    <span className="font-headline text-[10px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
                 </div>
             ) : displayedBadge === 'email' ? (
                 // Email verified is the default, so we don't show a badge for it unless explicitly selected
