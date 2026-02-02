@@ -45,52 +45,14 @@ service cloud.firestore {
       allow get, list: if true;
       allow create: if isOwner(userId);
 
-      // Allow user to link their Web3 wallet for the first time.
-      allow update: if isOwner(userId) &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) &&
-                      resource.data.walletAddress == null &&
-                      request.resource.data.isWeb3Verified == true;
-
-      // General-purpose profile update by the owner.
-      allow update: if isOwner(userId) &&
-                      !isRequestingUserStaff() &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-                         'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
-                         'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
-                         'followersCount', 'followingCount', 'postsCount', 'featuredCount',
-                         'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress'
-                       ]);
-      
-      // Allow user to change their role from 'guest' to 'user' upon first verified login.
-      allow update: if isOwner(userId) &&
-                       resource.data.role == 'guest' &&
-                       request.resource.data.role == 'user' &&
-                       request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']);
-
-      // Allow user to increment/decrement their own following count.
-      allow update: if isOwner(userId) &&
-                       (request.resource.data.followingCount == resource.data.followingCount + 1 ||
-                        request.resource.data.followingCount == resource.data.followingCount - 1) &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']);
-      
-      // Allow any signed-in user to increment/decrement another user's followers count.
-      allow update: if isSignedIn() &&
-                       (request.resource.data.followersCount == resource.data.followersCount + 1 ||
-                        request.resource.data.followersCount == resource.data.followersCount - 1) &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
-      
-      // Allow user to increment their own post count (e.g., when creating a new post).
-      allow update: if isOwner(userId) &&
-                       request.resource.data.postsCount == resource.data.postsCount + 1 &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']);
-
-      // Allow staff/admins to manage user profiles, with safeguards.
-      allow update: if isRequestingUserStaff() &&
-                      // Prevent editing immutable fields
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']) &&
-                      // Prevent staff/ghosts from editing admins/ghosts. Admins can edit anyone.
-                      (isRequestingUserAdmin() || !(getUserRole(userId) in ['admin', 'ghost']));
+      // Multiple allow updates for different scenarios
+      allow update: if isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) && resource.data.walletAddress == null && request.resource.data.isWeb3Verified == true;
+      allow update: if isOwner(userId) && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role', 'followersCount', 'followingCount', 'postsCount', 'featuredCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress']);
+      allow update: if isOwner(userId) && resource.data.role == 'guest' && request.resource.data.role == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']);
+      allow update: if isOwner(userId) && (request.resource.data.followingCount == resource.data.followingCount + 1 || request.resource.data.followingCount == resource.data.followingCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']);
+      allow update: if isSignedIn() && (request.resource.data.followersCount == resource.data.followersCount + 1 || request.resource.data.followersCount == resource.data.followersCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
+      allow update: if isOwner(userId) && request.resource.data.postsCount == resource.data.postsCount + 1 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']);
+      allow update: if isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']) && (isRequestingUserAdmin() || !(getUserRole(userId) in ['admin', 'ghost']));
 
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isRequestingUserStaff();
@@ -112,25 +74,23 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
       allow delete: if isRequestingUserAdmin();
       
-      allow update: if
-        // Scenario 1: Staff can ONLY modify the status for moderation.
-        (isRequestingUserStaff() &&
-          request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
-          request.resource.data.diff(resource.data).affectedKeys().has('status'))
-        ||
-        // Scenario 2: Product owner (who is NOT staff) can edit their product.
-        (isOwner(resource.data.sellerId) &&
-          !isRequestingUserStaff() &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']))
-        ||
-        // Scenario 3: Any signed-in user can update interaction counts.
-        (isSignedIn() && (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
-          )
-        );
+      // Rule 1: Staff can ONLY modify the status for moderation.
+      allow update: if isRequestingUserStaff() &&
+                      request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
+                      request.resource.data.diff(resource.data).affectedKeys().has('status');
+
+      // Rule 2: Product owner (who is NOT staff) can edit their product.
+      allow update: if isOwner(resource.data.sellerId) &&
+                      !isRequestingUserStaff() &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']);
+
+      // Rule 3: Any signed-in user can update interaction counts.
+      allow update: if isSignedIn() && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
+      );
     }
     
     // PROMOS (Managed by Staff/Admins/Ghosts)
@@ -171,27 +131,25 @@ service cloud.firestore {
                     && request.resource.data.location != null;
       allow delete: if isRequestingUserAdmin();
 
-      allow update: if
-        // Scenario 1: Staff can ONLY modify the status or featured flag for moderation.
-        (isRequestingUserStaff() && (
-            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status')) ||
-            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
-        ))
-        ||
-        // Scenario 2: Post owner (who is NOT staff) can edit their post.
-        (isOwner(resource.data.authorId) &&
-          !isRequestingUserStaff() &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']))
-        ||
-        // Scenario 3: Any signed-in user can update interaction counts and replies.
-        (isSignedIn() && (
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
-            ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
-             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
-          )
+      // Rule 1: Staff can ONLY modify status or featured flag for moderation.
+      allow update: if isRequestingUserStaff() && (
+          (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status')) ||
+          (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
+        );
+
+      // Rule 2: Post owner (who is NOT staff) can edit their post.
+      allow update: if isOwner(resource.data.authorId) &&
+                      !isRequestingUserStaff() &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']);
+
+      // Rule 3: Any signed-in user can update interaction counts and replies.
+      allow update: if isSignedIn() && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
+          ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
         );
 
       // Comments subcollection
