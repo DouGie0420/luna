@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Shield, ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
+import { Shield, ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -25,7 +25,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: stri
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
-    admin: (props) => <CheckCircle2 {...props} />,
+    admin: (props) => <BadgeCheck {...props} />,
 };
 
 const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
@@ -36,7 +36,7 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     nft: 'text-purple-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-white',
+    admin: 'text-blue-500',
 };
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {
@@ -47,7 +47,7 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
     return (
         <div className={cn(
             "relative",
-            isAdminBadge && "p-0.5 bg-indigo-500 hexagon-clip",
+            isAdminBadge && "p-1 bg-indigo-500 hexagon-clip",
             className
         )}>
             <Avatar className={cn("h-full w-full", isAdminBadge && "hexagon-clip")}>
@@ -57,7 +57,7 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             {BadgeIcon && (
                  <div className={cn(
                      "absolute -bottom-1 -right-1 z-10 rounded-full p-0.5 backdrop-blur-sm",
-                     isAdminBadge ? 'bg-indigo-500' : 'bg-black/80'
+                     isAdminBadge ? 'bg-white' : 'bg-black/80'
                  )}>
                     <BadgeIcon className={cn("h-4 w-4", badgeColors[displayedBadge!])} />
                 </div>
