@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
-import { getMockOrderById } from '@/lib/data';
 
 // New component for dynamic orders from Firestore
 function DynamicOrderCard({ order }: { order: Order }) {
@@ -115,13 +114,9 @@ export default function MyPurchasesPage() {
     const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        // A user must be logged in to query their own orders.
         if (!user || !user.uid || !firestore) {
             return null;
         }
-        // This query is constrained to only fetch orders where the 'buyerId'
-        // matches the currently logged-in user's UID. This is crucial for
-        // complying with Firestore security rules for listing documents.
         return query(
             collection(firestore, 'orders'), 
             where('buyerId', '==', user.uid), 
@@ -131,30 +126,6 @@ export default function MyPurchasesPage() {
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
     
-    // Fallback to mock data for test user only if there are no real orders yet
-    const purchases = [
-        { 
-          id: "ORD007", 
-          productId: "ceramic-vase",
-          buyerId: "test-user-uid",
-          sellerId: "user1",
-          totalAmount: 2650,
-          currency: "THB", 
-          status: "In Escrow" as OrderStatus,
-          createdAt: new Date("2023-10-29T10:00:00Z"),
-        },
-        { 
-          id: "ORD004", 
-          productId: "smart-watch",
-          buyerId: "test-user-uid",
-          sellerId: "user10",
-          totalAmount: 76.00,
-          currency: 'RMB',
-          status: "Shipped" as OrderStatus,
-          createdAt: new Date('2023-10-27T12:00:00Z'),
-        },
-    ];
-
     const isLoading = userLoading || ordersLoading;
 
     const renderOrders = (status?: OrderStatus) => {
@@ -184,10 +155,7 @@ export default function MyPurchasesPage() {
             );
         }
         
-        // Use real orders for real users. Use mock data as a fallback for the test user only.
-        const ordersToDisplay = user?.uid === 'test-user-uid' && (!orders || orders.length === 0) ? purchases as Order[] : orders;
-
-        const filteredOrders = status ? ordersToDisplay?.filter(o => o.status === status) : ordersToDisplay;
+        const filteredOrders = status ? orders?.filter(o => o.status === status) : orders;
         
         if (!filteredOrders || filteredOrders.length === 0) {
             return (
