@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -36,6 +36,7 @@ import { sendEmailVerification } from "firebase/auth";
 import { cn } from "@/lib/utils";
 import { type BadgeType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -44,22 +45,20 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro' | 'email'>, React.FC<{ className?: string }>> = {
+const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, React.FC<{ className?: string }>> = {
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
-    admin: (props) => <BadgeCheck {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro' | 'email'>, string> = {
+const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, string> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-blue-500',
 };
 
 
@@ -197,7 +196,7 @@ export default function AccountProfilePage() {
     if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: badgeIcons['influencer'] });
     if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: badgeIcons['contributor'] });
     if (['admin', 'staff', 'support', 'ghost'].includes(profile?.role || '')) {
-      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: badgeIcons['admin'] });
+      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: AdminBadgeIcon });
     }
 
     const handleBadgeSelection = async (value: string) => {
@@ -386,6 +385,8 @@ export default function AccountProfilePage() {
                                             <div className="relative h-8 w-8 flex items-center justify-center">
                                                 <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg">PRO</span>
                                             </div>
+                                        ) : type === 'admin' ? (
+                                            <AdminBadgeIcon className="h-8 w-8" />
                                         ) : (
                                             <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
                                         )}
