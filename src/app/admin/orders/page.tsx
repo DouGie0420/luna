@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useCollection, useFirestore } from "@/firebase";
+import { useCollection, useFirestore, useUser } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
 import type { Order } from "@/lib/types";
 import {
@@ -14,18 +14,47 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal, Loader2 } from "lucide-react"
+import { MoreHorizontal, Loader2, ShieldAlert } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AdminOrdersPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
-    const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders'), orderBy('createdAt', 'desc')) : null, [firestore]);
-    const { data: orders, loading } = useCollection<Order>(ordersQuery);
+    const { profile, loading: userLoading } = useUser();
+
+    const ordersQuery = useMemo(() => {
+        if (!firestore || !profile) return null;
+        // Only allow 'admin' or 'ghost' roles to view all orders.
+        if (profile.role === 'admin' || profile.role === 'ghost') {
+            return query(collection(firestore, 'orders'), orderBy('createdAt', 'desc'));
+        }
+        return null; // Return null for unauthorized roles
+    }, [firestore, profile]);
+
+    const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
+
+    const loading = userLoading || (ordersQuery && ordersLoading);
 
     if (loading) {
         return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+    }
+
+    // If the query is null, it means the user doesn't have permission.
+    if (!ordersQuery) {
+        return (
+             <div>
+                <h2 className="text-3xl font-headline mb-6">{t('admin.ordersPage.title')}</h2>
+                <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>{t('admin.layout.accessDenied')}</AlertTitle>
+                    <AlertDescription>
+                        Only users with 'Admin' or 'Ghost' roles can view all orders.
+                    </AlertDescription>
+                </Alert>
+            </div>
+        )
     }
 
     return (
