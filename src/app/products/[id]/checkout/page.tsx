@@ -3,11 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { getProductById } from '@/lib/data';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import type { Product, UserAddress } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { collection } from 'firebase/firestore';
+import { collection, doc } from 'firebase/firestore';
 
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -63,8 +62,10 @@ export default function CheckoutPage() {
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loadingProduct, setLoadingProduct] = useState(true);
+  
+  const id = params.id as string;
+  const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
+  const { data: product, loading: loadingProduct } = useDoc<Product>(productRef);
 
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
   
@@ -106,21 +107,6 @@ export default function CheckoutPage() {
       return () => clearTimeout(timer);
     }
   }, [progress]);
-
-  const id = params.id as string;
-
-  useEffect(() => {
-    if (!id) return;
-    const fetchProduct = async () => {
-      setLoadingProduct(true);
-      const p = await getProductById(id);
-      if (p) {
-        setProduct(p);
-      }
-      setLoadingProduct(false);
-    };
-    fetchProduct();
-  }, [id]);
 
   const handleConfirmPurchase = () => {
     // In a real app, this would create an order in the database.
