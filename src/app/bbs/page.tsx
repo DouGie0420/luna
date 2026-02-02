@@ -76,8 +76,7 @@ export default function BbsPage() {
         firestore 
         ? query(
             collection(firestore, 'bbs'), 
-            where('status', '==', 'active'), 
-            orderBy('createdAt', 'desc')
+            where('status', '==', 'active')
           ) 
         : null, 
     [firestore]);
@@ -141,7 +140,7 @@ export default function BbsPage() {
                 processedPosts.sort((a, b) => (b.likes + b.replies * 2) - (a.likes + a.replies * 2));
                 break;
             case 'featured':
-                 processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+                 processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
                 break;
             case 'nearest':
                 if (userLocation) {
@@ -154,7 +153,7 @@ export default function BbsPage() {
                 break;
             case 'newest':
             default:
-                // Already sorted by 'createdAt' from the query
+                processedPosts.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
                 break;
         }
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -57,8 +58,7 @@ export default function AllProductsPage() {
         if (!firestore) return null;
         return query(
             collection(firestore, 'products'), 
-            where('status', '==', 'active'), 
-            orderBy('createdAt', 'desc')
+            where('status', '==', 'active')
         );
     }, [firestore]);
 
@@ -87,7 +87,7 @@ export default function AllProductsPage() {
                 break;
             case 'newest':
             default:
-                // Already sorted by 'createdAt' from the Firestore query
+                processedProducts.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
                 break;
         }
 
