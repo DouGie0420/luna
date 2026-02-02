@@ -126,6 +126,7 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
                 <TableRow>
                     <TableHead>帖子</TableHead>
                     <TableHead>作者</TableHead>
+                    <TableHead></TableHead>
                     <TableHead>提交时间</TableHead>
                     <TableHead>原因</TableHead>
                     <TableHead className="text-right">操作</TableHead>
@@ -139,6 +140,7 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
                             <p className="text-xs text-muted-foreground font-mono">{post.id}</p>
                         </TableCell>
                         <TableCell>{post.author.name}</TableCell>
+                        <TableCell></TableCell>
                         <TableCell>{post.createdAt ? format(post.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
                          <TableCell>
                             <Badge variant={post.reviewReason ? "destructive" : "secondary"}>{post.reviewReason || 'N/A'}</Badge>
