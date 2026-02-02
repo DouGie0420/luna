@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin, Share2 } from 'lucide-react';
-import type { BbsPost } from '@/lib/types';
+import type { BbsPost, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
 import React, { useMemo } from 'react';
@@ -25,6 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { createNotification } from '@/lib/notifications';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -57,7 +58,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
     }, [post.content, post.contentKey, t]);
     
     const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-      if (!firestore) return;
+      if (!firestore || !profile) return;
 
       if (action === 'edit') {
           router.push(`/bbs/edit/${post.id}`);
@@ -72,6 +73,13 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             toast({
               title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
             });
+            if (newFeaturedState) {
+                createNotification(firestore, post.authorId, {
+                    type: 'feature',
+                    actor: profile,
+                    post: post,
+                });
+            }
           } catch (error) {
             console.error("Error updating feature status:", error);
             const permissionError = new FirestorePermissionError({
@@ -100,7 +108,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canInteract || !firestore || !post || !user) {
+        if (!canInteract || !firestore || !post || !user || !profile) {
             handleInteractionNotAllowed();
             return;
         }
@@ -125,14 +133,20 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             }
         }
 
-        updateDoc(postRef, updateData).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: postRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
+        updateDoc(postRef, updateData)
+            .then(() => {
+                if (type === 'like' && !isLiked) {
+                    createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post: post });
+                }
+            })
+            .catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
             });
-            errorEmitter.emit('permission-error', permissionError);
-        });
     };
 
     const handleShare = (e: React.MouseEvent) => {

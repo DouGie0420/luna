@@ -28,6 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createNotification } from '@/lib/notifications';
 
 
 const locales = { en: enUS, zh: zhCN, th: th };
@@ -84,7 +85,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
         e.preventDefault();
         e.stopPropagation();
 
-        if (!canInteract || !firestore || !post || !user) {
+        if (!canInteract || !firestore || !post || !user || !profile) {
             handleInteractionNotAllowed();
             return;
         }
@@ -109,7 +110,11 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
             }
         }
 
-        updateDoc(postRef, updateData).catch(serverError => {
+        updateDoc(postRef, updateData).then(() => {
+            if(type === 'like' && !isLiked) {
+                createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post });
+            }
+        }).catch(serverError => {
             const permissionError = new FirestorePermissionError({
                 path: postRef.path,
                 operation: 'update',
@@ -120,7 +125,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     };
 
     const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-        if (!firestore) return;
+        if (!firestore || !profile) return;
 
         if (action === 'edit') {
             router.push(`/bbs/edit/${post.id}`);
@@ -132,6 +137,9 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                 toast({
                     title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
                 });
+                 if (newFeaturedState) {
+                    createNotification(firestore, post.authorId, { type: 'feature', actor: profile, post });
+                }
             } catch (error) {
                 console.error("Error updating feature status:", error);
                 toast({

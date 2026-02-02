@@ -5,14 +5,19 @@ import Link from 'next/link';
 import { MapPin, Gem, Heart, Star, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Product } from '@/lib/types';
+import type { Product, UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from './ui/button';
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { UserAvatar } from './ui/user-avatar';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
+import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { createNotification } from '@/lib/notifications';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+
 
 interface ProductCardProps {
   product: Product;
@@ -22,55 +27,62 @@ interface ProductCardProps {
 export function ProductCard({ product, className }: ProductCardProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { profile } = useUser();
+  const { user, profile } = useUser();
+  const firestore = useFirestore();
 
-  const [isLiked, setIsLiked] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
+  const isLiked = user && product.likedBy?.includes(user.uid);
+  const isFavorited = user && product.favoritedBy?.includes(user.uid);
+  
   const [isRecommended, setIsRecommended] = useState(false);
 
   const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
   useEffect(() => {
-    const checkState = () => {
-      const likedItems = JSON.parse(localStorage.getItem('likedProducts') || '[]');
-      const favoritedItems = JSON.parse(localStorage.getItem('favoritedProducts') || '[]');
-      const recommendedItems = JSON.parse(localStorage.getItem('recommended_products') || '[]');
-      setIsLiked(likedItems.includes(product.id));
-      setIsFavorited(favoritedItems.includes(product.id));
-      setIsRecommended(recommendedItems.includes(product.id));
-    };
-
-    checkState();
-    window.addEventListener('focus', checkState);
-    return () => {
-      window.removeEventListener('focus', checkState);
-    };
+    const recommendedItems = JSON.parse(localStorage.getItem('recommended_products') || '[]');
+    setIsRecommended(recommendedItems.includes(product.id));
   }, [product.id]);
 
   const handleInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
       e.preventDefault();
       e.stopPropagation();
 
-      const key = type === 'like' ? 'likedProducts' : 'favoritedProducts';
-      const currentItems: string[] = JSON.parse(localStorage.getItem(key) || '[]');
-      const isCurrentlySet = currentItems.includes(product.id);
-
-      let newItems: string[];
-      if (isCurrentlySet) {
-          newItems = currentItems.filter((id) => id !== product.id);
-      } else {
-          newItems = [...currentItems, product.id];
-          if (type === 'favorite') {
-              toast({ title: t('productCardActions.addedToFavorites') });
-          }
+      if (!user || !profile || !firestore) {
+        toast({ variant: 'destructive', title: t('common.loginToInteract') });
+        return;
       }
-      localStorage.setItem(key, JSON.stringify(newItems));
+      
+      const productRef = doc(firestore, 'products', product.id);
 
+      let updateData = {};
       if (type === 'like') {
-          setIsLiked(!isCurrentlySet);
-      } else {
-          setIsFavorited(!isCurrentlySet);
+          updateData = {
+              likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+              likes: increment(isLiked ? -1 : 1)
+          };
+      } else { // favorite
+          updateData = {
+              favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
+              favorites: increment(isFavorited ? -1 : 1)
+          };
       }
+      
+      updateDoc(productRef, updateData)
+        .then(() => {
+            if (type === 'like' && !isLiked) {
+                createNotification(firestore, product.seller.id, { type: 'like-product', actor: profile, product: product });
+            }
+            if (type === 'favorite' && !isFavorited) {
+                toast({ title: t('productCardActions.addedToFavorites') });
+            }
+        })
+        .catch(serverError => {
+            const permissionError = new FirestorePermissionError({
+                path: productRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
   };
 
   const handleRecommend = (e: React.MouseEvent) => {
@@ -155,7 +167,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 onClick={(e) => handleInteraction(e, 'like')}
             >
                 <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                <span>{(product.likes || 0) + (isLiked ? 1 : 0)}</span>
+                <span>{product.likes || 0}</span>
             </Button>
             <Button
                 variant="ghost"
@@ -164,7 +176,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 onClick={(e) => handleInteraction(e, 'favorite')}
             >
                 <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
-                <span>{(product.favorites || 0) + (isFavorited ? 1 : 0)}</span>
+                <span>{product.favorites || 0}</span>
             </Button>
           </div>
         </CardFooter>

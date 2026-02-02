@@ -25,6 +25,8 @@ export type Product = {
   favorites?: number;
   views?: number;
   searchHits?: number;
+  likedBy?: string[];
+  favoritedBy?: string[];
 };
 
 export type User = {

@@ -57,6 +57,24 @@
         "searchHits": {
           "type": "number",
           "description": "How many times this item appeared in search results."
+        },
+        "likes": {
+          "type": "number"
+        },
+        "favorites": {
+          "type": "number"
+        },
+        "likedBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "favoritedBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [

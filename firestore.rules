@@ -60,7 +60,7 @@ service cloud.firestore {
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny([
                          'uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil',
                          'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role',
-                         'followersCount', 'followingCount', 'postsCount',
+                         'followersCount', 'followingCount', 'postsCount', 'featuredCount',
                          'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress'
                        ]);
       
@@ -100,7 +100,7 @@ service cloud.firestore {
       
       match /notifications/{notificationId} {
           allow read, update: if isOwner(userId);
-          allow create: if isRequestingUserStaff(); 
+          allow create: if isSignedIn(); 
       }
       
       match /lunarSoilLedger/{ledgerId} {
@@ -117,9 +117,10 @@ service cloud.firestore {
                       && request.resource.data.location == resource.data.location;
 
       allow update: if isSignedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'searchHits']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
+        request.resource.data.diff(resource.data).hasOnly(['views', 'searchHits']) ||
+        request.resource.data.diff(resource.data).hasOnly(['views']) ||
+        request.resource.data.diff(resource.data).hasOnly(['searchHits']) ||
+        request.resource.data.diff(resource.data).hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy'])
       );
       
       allow delete: if (resource.data.sellerId == request.auth.uid) || isRequestingUserStaff();
@@ -169,7 +170,7 @@ service cloud.firestore {
         ) ||
         // Case 2: Any signed-in user can update interaction counts.
         (isSignedIn() &&
-         request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits'])
+         request.resource.data.diff(resource.data).hasAny(['likes', 'favorites', 'likedBy', 'favoritedBy', 'views', 'searchHits'])
         ) ||
         // Case 3: Any signed-in user can update reply count.
         (isSignedIn() &&
@@ -186,7 +187,7 @@ service cloud.firestore {
       match /comments/{commentId} {
         allow read, list: if true;
         allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
-        allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'dislikes', 'likedBy', 'dislikedBy']);
+        allow update: if isSignedIn() && request.resource.data.diff(resource.data).hasAny(['likes', 'dislikes', 'likedBy', 'dislikedBy']);
         allow delete: if isOwner(resource.data.authorId) || isRequestingUserAdmin();
       }
     }
