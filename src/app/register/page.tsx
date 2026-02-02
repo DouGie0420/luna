@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { useFirebaseAuth } from "@/firebase/auth/use-user"
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
@@ -112,34 +112,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
-
-    try {
-      const result = await signInWithPopup(auth, provider);
-      await upsertUserProfile(firestore, result.user);
-      toast({
-        title: t('registerPage.registrationSuccessTitle'),
-        duration: 3000,
-        variant: 'success',
-      });
-      router.push('/');
-    } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast({
-          variant: 'default',
-          title: t('registerPage.popupClosedTitle'),
-          description: t('registerPage.popupClosed'),
-        });
-      } else {
-        console.error("Social login error:", error);
-        toast({
-          variant: 'destructive',
-          title: t('registerPage.registrationFailedTitle'),
-          description: error.message || t('registerPage.registrationFailedDescription'),
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
+    await signInWithRedirect(auth, provider);
   };
 
   return (

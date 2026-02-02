@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
 import { useFirebaseAuth } from "@/firebase/auth/use-user";
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
@@ -106,42 +106,9 @@ export default function LoginPage() {
 
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     setIsLoading(true);
-    try {
-      const result = await signInWithPopup(auth, provider);
-
-      // Login is successful, do not await the profile update.
-      upsertUserProfile(firestore, result.user);
-      
-      toast({
-        title: t('loginPage.loginSuccessTitle'),
-        duration: 3000,
-        variant: 'success',
-        x: e.clientX,
-        y: e.clientY,
-      });
-      router.push('/');
-    } catch (error: any) {
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast({
-          variant: 'default',
-          title: t('loginPage.popupClosedTitle'),
-          description: t('loginPage.popupClosed'),
-          x: e.clientX,
-          y: e.clientY,
-        });
-      } else {
-        console.error("Social login error:", error);
-        toast({
-          variant: 'destructive',
-          title: t('loginPage.loginFailedTitle'),
-          description: error.message || t('loginPage.loginFailedDescription'),
-          x: e.clientX,
-          y: e.clientY,
-        });
-      }
-    } finally {
-        setIsLoading(false);
-    }
+    await signInWithRedirect(auth, provider);
+    // The page will redirect away, so no further code here is needed.
+    // The result will be handled by the useUser hook on page load.
   };
 
   return (

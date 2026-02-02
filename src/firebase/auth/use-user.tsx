@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, type Auth, type User as FirebaseUser, type UserInfo, type UserMetadata, type IdTokenResult, Unsubscribe } from 'firebase/auth';
+import { onAuthStateChanged, getRedirectResult, type Auth, type User as FirebaseUser, type UserInfo, type UserMetadata, type IdTokenResult, Unsubscribe } from 'firebase/auth';
 import { doc, onSnapshot, type Firestore } from 'firebase/firestore';
 import { FirebaseContext } from '@/firebase/provider';
 import type { UserProfile } from '@/lib/types';
-import { updateUserProfile } from '@/lib/user';
+import { updateUserProfile, upsertUserProfile } from '@/lib/user';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserState {
   user: FirebaseUser | null;
@@ -101,12 +102,37 @@ export const useUser = (): UserState => {
 
   const auth = useFirebaseAuth();
   const firestore = useContext(FirebaseContext)?.firestore;
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!auth || !firestore) {
       setUserState(s => ({ ...s, loading: true }));
       return;
     }
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This means a user has just signed in via redirect.
+          toast({
+            title: 'Login Successful',
+            duration: 3000,
+            variant: 'success',
+          });
+          // Not awaiting is fine, can happen in background
+          upsertUserProfile(firestore, result.user);
+        }
+        // If result is null, it's a normal page load.
+        // onAuthStateChanged will handle the user session.
+      })
+      .catch((error) => {
+        console.error("Firebase redirect login error:", error);
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: error.message || "Could not sign in with social account.",
+        });
+      });
 
     let unsubscribe: Unsubscribe = () => {};
 
@@ -182,7 +208,7 @@ export const useUser = (): UserState => {
       authUnsubscribe();
       unsubscribe();
     };
-  }, [auth, firestore]);
+  }, [auth, firestore, toast]);
 
   return userState;
 };
