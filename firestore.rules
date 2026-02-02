@@ -96,8 +96,7 @@ service cloud.firestore {
       allow update: if 
         // Rule 1: Staff can ONLY modify the status for moderation.
         (isRequestingUserStaff() &&
-          request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
-          request.resource.data.diff(resource.data).affectedKeys().has('status')) 
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) 
         ||
         // Rule 2: Product owner (who is NOT staff) can edit their product details.
         (isOwner(resource.data.sellerId) && !isRequestingUserStaff() &&
@@ -153,8 +152,8 @@ service cloud.firestore {
       allow update: if 
         // Rule 1: Staff can ONLY modify status or featured flag for moderation.
         (isRequestingUserStaff() && (
-            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status')) ||
-            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
+            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
+            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured']))
         ))
         ||
         // Rule 2: Post owner (who is NOT staff) can edit their post details.
