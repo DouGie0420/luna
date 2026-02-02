@@ -16,10 +16,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Truck, Copy, MessageCircle, ExternalLink, PackageSearch, CircleDollarSign, Bell, Edit } from 'lucide-react';
+import { CheckCircle, Truck, Copy, MessageCircle, ExternalLink, Package, CircleDollarSign, Bell, Edit, Star } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { createNotification } from '@/lib/notifications';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 function OrderDetailPageSkeleton() {
     return (
@@ -49,8 +50,9 @@ function OrderDetailPageSkeleton() {
              </CardContent>
           </Card>
            <Card>
-             <CardFooter className="p-4 pt-4 justify-end gap-2">
+             <CardFooter className="p-4 pt-4 justify-between flex-wrap gap-2">
                  <Skeleton className="h-10 w-28" />
+                 <div className="flex-grow" />
                  <Skeleton className="h-10 w-28" />
                  <Skeleton className="h-10 w-28" />
              </CardFooter>
@@ -82,6 +84,7 @@ export default function OrderDetailPage() {
     const firestore = useFirestore();
 
     const orderId = params.id as string;
+    const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
 
     const orderRef = useMemo(() => firestore && orderId ? doc(firestore, 'orders', orderId) : null, [firestore, orderId]);
     const { data: order, loading: orderLoading } = useDoc<Order>(orderRef);
@@ -170,6 +173,7 @@ export default function OrderDetailPage() {
 
 
     return (
+        <>
         <div className="container mx-auto max-w-4xl px-4 py-8">
             <div className="space-y-6">
                 
@@ -231,22 +235,61 @@ export default function OrderDetailPage() {
                         </div>
 
                     </CardContent>
-                     <CardFooter className="p-4 pt-0 justify-end gap-2 flex-wrap">
-                        <Button variant="outline"><MessageCircle className="mr-2"/>联系卖家</Button>
-                        {(order.status === 'Pending' || order.status === 'In Escrow') && (
-                            <>
-                                <Button variant="outline" onClick={handleRemindSeller}><Bell className="mr-2"/>提醒发货</Button>
-                                <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}><Edit className="mr-2"/>修改地址</Button>
-                            </>
-                        )}
-                        <Button onClick={() => toast({ title: "功能即将推出" })}><CircleDollarSign className="mr-2"/>申请退款</Button>
-                         {(order.status === 'Shipped' || order.status === 'Awaiting Confirmation') && (
-                            <Button onClick={handleConfirmReceipt}>确认收货</Button>
-                        )}
+                     <CardFooter className="p-4 pt-0 flex justify-between items-center flex-wrap gap-2">
+                        <div>
+                            <Button variant="outline" onClick={() => setIsLogisticsOpen(true)} disabled={!order.trackingNumber}>
+                                <Package className="mr-2 h-4 w-4"/>
+                                {t('orderDetails.viewLogistics')}
+                            </Button>
+                        </div>
+                        <div className="flex gap-2 flex-wrap justify-end">
+                            <Button variant="outline"><MessageCircle className="mr-2"/>{t('orderDetails.contactSeller')}</Button>
+                            {(order.status === 'Pending' || order.status === 'In Escrow') && (
+                                <>
+                                    <Button variant="outline" onClick={handleRemindSeller}><Bell className="mr-2"/>提醒发货</Button>
+                                    <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}><Edit className="mr-2"/>修改地址</Button>
+                                </>
+                            )}
+                            <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}>
+                                <CircleDollarSign className="mr-2"/>{t('orderDetails.refund')}
+                            </Button>
+                            
+                            {order.status === 'Completed' ? (
+                                order.buyerReviewId ? (
+                                    <Button disabled variant="outline">
+                                        <CheckCircle className="mr-2"/>{t('orderDetails.reviewed')}
+                                    </Button>
+                                ) : (
+                                    <Button asChild>
+                                        <Link href={`/account/purchases/${order.id}/review`}>
+                                            <Star className="mr-2"/>{t('orderDetails.leaveReview')}
+                                        </Link>
+                                    </Button>
+                                )
+                            ) : (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') ? (
+                                <Button onClick={handleConfirmReceipt}>{t('orderDetails.confirmReceipt')}</Button>
+                            ) : null}
+                        </div>
                     </CardFooter>
                 </Card>
 
             </div>
         </div>
+        <Dialog open={isLogisticsOpen} onOpenChange={setIsLogisticsOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('orderDetails.logisticsInfo')}</DialogTitle>
+                    <DialogDescription>
+                        {t('orderDetails.snapshotInfo')}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <InfoRow label={t('orderDetails.courier')} value={order.shippingProvider || 'N/A'} />
+                    <InfoRow label={t('orderDetails.trackingNumber')} value={order.trackingNumber || 'N/A'} onCopy={() => handleCopy(order.trackingNumber || '')} />
+                    <Button className="w-full mt-4" disabled>{t('orderDetails.trackPackage')}</Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+        </>
     );
 }

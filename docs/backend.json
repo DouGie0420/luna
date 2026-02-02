@@ -466,6 +466,14 @@
             "Buyer Pays",
             "In-person"
           ]
+        },
+        "shippingProvider": {
+          "type": "string",
+          "description": "The shipping company used for the order."
+        },
+        "trackingNumber": {
+          "type": "string",
+          "description": "The tracking number provided by the shipping company."
         }
       },
       "required": [

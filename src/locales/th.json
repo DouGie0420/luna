@@ -452,6 +452,10 @@
     "confirmReceipt": "ยืนยันการรับสินค้า",
     "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!",
     "viewLogistics": "ดูการขนส่ง",
+    "logisticsInfo": "ข้อมูลการขนส่ง",
+    "courier": "บริษัทขนส่ง",
+    "trackingNumber": "หมายเลขติดตามพัสดุ",
+    "trackPackage": "ติดตามพัสดุ (เร็วๆนี้)",
     "selectCourier": "เลือกบริษัทขนส่ง",
     "courierSF": "SF Express",
     "courierYTO": "YTO Express",
@@ -459,7 +463,24 @@
     "featureWIP": "ฟังก์ชันกำลังพัฒนา",
     "wipSF": "การรวมระบบติดตามพัสดุของ SF Express กำลังจะมาในเร็วๆ นี้",
     "wipYTO": "การรวมระบบติดตามพัสดุของ YTO Express กำลังจะมาในเร็วๆ นี้",
-    "wipOther": "การรวมระบบกับบริษัทขนส่งท้องถิ่นอื่นๆ กำลังจะมาในเร็วๆ นี้"
+    "wipOther": "การรวมระบบกับบริษัทขนส่งท้องถิ่นอื่นๆ กำลังจะมาในเร็วๆ นี้",
+    "refund": "ฉันต้องการขอคืนเงิน",
+    "leaveReview": "เขียนรีวิว",
+    "reviewed": "รีวิวแล้ว"
+  },
+  "reviewPage": {
+    "title": "เขียนรีวิว",
+    "forProduct": "สำหรับ {productName}",
+    "seller": "ผู้ขาย: {sellerName}",
+    "rating": "คะแนน",
+    "ratingGood": "ดี",
+    "ratingNeutral": "ปานกลาง",
+    "ratingBad": "แย่",
+    "comment": "ความคิดเห็น (ไม่จำเป็น)",
+    "commentPlaceholder": "แบ่งปันประสบการณ์ของคุณ...",
+    "submit": "ส่งรีวิว",
+    "submitSuccess": "ส่งรีวิวสำเร็จ!",
+    "ratingRequired": "กรุณาเลือกคะแนน"
   },
   "productComments": {
     "title": "ส่วนความคิดเห็น",

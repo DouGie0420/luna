@@ -1,5 +1,6 @@
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type Product = {
@@ -148,6 +149,8 @@ export type Order = {
   sellerReviewId?: string;
   shippingAddress: Omit<UserAddress, 'id' | 'isDefault'>;
   shippingMethod: 'Seller Pays' | 'Buyer Pays' | 'In-person';
+  shippingProvider?: string;
+  trackingNumber?: string;
 };
 
 export type Review = {

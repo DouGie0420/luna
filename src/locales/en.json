@@ -452,6 +452,10 @@
     "confirmReceipt": "Confirm Receipt",
     "receiptConfirmed": "Receipt confirmed!",
     "viewLogistics": "View Logistics",
+    "logisticsInfo": "Logistics Information",
+    "courier": "Courier",
+    "trackingNumber": "Tracking Number",
+    "trackPackage": "Track Package (Coming Soon)",
     "selectCourier": "Select Courier Company",
     "courierSF": "SF Express",
     "courierYTO": "YTO Express",
@@ -459,7 +463,24 @@
     "featureWIP": "Feature In Development",
     "wipSF": "SF Express tracking integration is coming soon.",
     "wipYTO": "YTO Express tracking integration is coming soon.",
-    "wipOther": "Other local courier integrations are coming soon."
+    "wipOther": "Other local courier integrations are coming soon.",
+    "refund": "I want a refund",
+    "leaveReview": "Leave Review",
+    "reviewed": "Reviewed"
+  },
+  "reviewPage": {
+    "title": "Leave a Review",
+    "forProduct": "for {productName}",
+    "seller": "Seller: {sellerName}",
+    "rating": "Rating",
+    "ratingGood": "Good",
+    "ratingNeutral": "Neutral",
+    "ratingBad": "Bad",
+    "comment": "Comment (Optional)",
+    "commentPlaceholder": "Share more about your experience...",
+    "submit": "Submit Review",
+    "submitSuccess": "Review submitted successfully!",
+    "ratingRequired": "Please select a rating."
   },
   "productComments": {
     "title": "Comment Section",

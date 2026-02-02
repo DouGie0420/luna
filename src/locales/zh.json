@@ -452,6 +452,10 @@
     "confirmReceipt": "确认收货",
     "receiptConfirmed": "已确认收货！",
     "viewLogistics": "查看物流",
+    "logisticsInfo": "物流信息",
+    "courier": "快递公司",
+    "trackingNumber": "快递单号",
+    "trackPackage": "跟踪包裹 (功能开发中)",
     "selectCourier": "选择快递公司",
     "courierSF": "顺丰快递 (SF Express)",
     "courierYTO": "圆通快递 (YTO Express)",
@@ -459,7 +463,24 @@
     "featureWIP": "功能开发中",
     "wipSF": "即将对接顺丰快递物流查询",
     "wipYTO": "即将对接圆通快递物流查询",
-    "wipOther": "即将对接其他本地快递"
+    "wipOther": "即将对接其他本地快递",
+    "refund": "我要退款",
+    "leaveReview": "去评价",
+    "reviewed": "已评价"
+  },
+  "reviewPage": {
+    "title": "评价订单",
+    "forProduct": "关于 “{productName}”",
+    "seller": "卖家: {sellerName}",
+    "rating": "评分",
+    "ratingGood": "好评",
+    "ratingNeutral": "中评",
+    "ratingBad": "差评",
+    "comment": "留言 (选填)",
+    "commentPlaceholder": "分享您的购物体验...",
+    "submit": "提交评价",
+    "submitSuccess": "评价提交成功！",
+    "ratingRequired": "请选择一个评分。"
   },
   "productComments": {
     "title": "留言板",
