@@ -296,20 +296,23 @@ export default function BbsPostPage() {
 
 
     const handleInteractionNotAllowed = () => {
-        toast({
-            variant: 'destructive',
-            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-        });
+        setTimeout(() => {
+            toast({
+                variant: 'destructive',
+                title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+            });
+        }, 0);
     }
 
     const handleFollowToggle = async () => {
-        if (!canInteract || !authorProfile || !firestore) {
+        if (!canInteract || !authorProfile || !firestore || !user) {
             handleInteractionNotAllowed();
             return;
         }
 
         const currentUserRef = doc(firestore, 'users', user.uid);
         const targetUserRef = doc(firestore, 'users', authorProfile.uid);
+        const newState = !isFollowing;
         
         try {
             if (isFollowing) {
@@ -322,17 +325,17 @@ export default function BbsPostPage() {
                 await updateDoc(targetUserRef, { followersCount: increment(1) });
             }
             
-            // Toggle local state and persist for mock UI
-            setIsFollowing(prev => {
-                const newState = !prev;
-                localStorage.setItem(`follow_${authorProfile.uid}`, String(newState));
+            setIsFollowing(newState);
+            localStorage.setItem(`follow_${authorProfile.uid}`, String(newState));
+            setTimeout(() => {
                 toast({ title: newState ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess') });
-                return newState;
-            });
+            }, 0);
 
         } catch (error) {
             console.error("Failed to update follow status:", error);
-            toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+            setTimeout(() => {
+                toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+            }, 0);
         }
     };
 
@@ -371,10 +374,12 @@ export default function BbsPostPage() {
             
             setNewComment('');
             setReplyingTo(null);
-            toast({
-                title: t('productComments.commentPosted'),
-                description: t('productComments.replyNotification'),
-            });
+            setTimeout(() => {
+                toast({
+                    title: t('productComments.commentPosted'),
+                    description: t('productComments.replyNotification'),
+                });
+            }, 0);
             setIsSubmitting(false);
 
         }).catch(serverError => {
@@ -405,7 +410,9 @@ export default function BbsPostPage() {
                         errorEmitter.emit('permission-error', permissionError);
                     });
                 setCommentToDelete(null);
-                toast({ title: t('productComments.commentDeleted') });
+                setTimeout(() => {
+                    toast({ title: t('productComments.commentDeleted') });
+                }, 0);
             })
             .catch((serverError) => {
                 const permissionError = new FirestorePermissionError({
@@ -413,7 +420,9 @@ export default function BbsPostPage() {
                     operation: 'delete',
                 });
                 errorEmitter.emit('permission-error', permissionError);
-                toast({ variant: 'destructive', title: 'Failed to delete comment.' });
+                setTimeout(() => {
+                    toast({ variant: 'destructive', title: 'Failed to delete comment.' });
+                }, 0);
             });
     };
 
@@ -438,10 +447,12 @@ export default function BbsPostPage() {
         const updateData = { status: 'under_review' as const };
         updateDoc(postRef, updateData)
             .then(() => {
-                toast({
-                    title: "帖子已提交审核",
-                    description: "该帖子现在将在后台等待最终审核。",
-                });
+                setTimeout(() => {
+                    toast({
+                        title: "帖子已提交审核",
+                        description: "该帖子现在将在后台等待最终审核。",
+                    });
+                }, 0);
                 router.push('/bbs');
             })
             .catch(serverError => {
@@ -517,12 +528,16 @@ export default function BbsPostPage() {
                     favorites: increment(isFavorited ? -1 : 1)
                 });
                 if (!isFavorited) {
-                    toast({ title: t('productCardActions.addedToFavorites') });
+                    setTimeout(() => {
+                        toast({ title: t('productCardActions.addedToFavorites') });
+                    }, 0);
                 }
             }
         } catch(error) {
             console.error(`Failed to update ${type}:`, error);
-            toast({ variant: 'destructive', title: `Failed to update ${type}` });
+            setTimeout(() => {
+                toast({ variant: 'destructive', title: `Failed to update ${type}` });
+            }, 0);
         }
     };
 
