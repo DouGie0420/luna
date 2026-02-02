@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
+import { Award, Sparkles, Fingerprint, Globe, BadgeCheck, ShieldCheck } from 'lucide-react';
 import { ProBadgeIcon } from './pro-badge-icon';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -59,7 +59,7 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             </Avatar>
             
             {displayedBadge === 'pro' ? (
-                 <div className="absolute bottom-1 left-0 right-0 z-10 text-center">
+                 <div className="absolute bottom-0.5 left-0 right-0 z-10 text-center">
                     <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
                 </div>
             ) : OtherBadgeIcon ? (
