@@ -69,7 +69,8 @@ service cloud.firestore {
       allow update: if isOwner(userId) &&
                        resource.data.role == 'guest' &&
                        request.resource.data.role == 'user' &&
-                       request.resource.data.diff(resource.data).affectedKeys().difference(['role', 'lastLogin', 'displayName', 'photoURL', 'emailVerified']).size() == 0;
+                       ['role', 'lastLogin', 'displayName', 'photoURL', 'emailVerified']
+                         .hasAll(request.resource.data.diff(resource.data).affectedKeys());
 
       // Allow user to increment/decrement their own following count.
       allow update: if isOwner(userId) &&
