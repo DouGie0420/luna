@@ -39,6 +39,15 @@
             "Buyer Pays"
           ]
         },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "under_review",
+            "hidden"
+          ],
+          "description": "The current status of the product listing."
+        },
         "location": {
           "type": "object",
           "properties": {

@@ -21,6 +21,7 @@ export type Product = {
   category: string;
   isConsignment?: boolean;
   shippingMethod?: 'Seller Pays' | 'Buyer Pays';
+  status?: 'active' | 'under_review' | 'hidden';
   likes?: number;
   favorites?: number;
   views?: number;
