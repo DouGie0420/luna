@@ -8,23 +8,14 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    
+
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
-    // Optimized to return the full resource for one read
-    function getUserData(userId) {
-      return get(/databases/$(database)/documents/users/$(userId));
-    }
     
-    // Optimized to use the single read from getUserData
+    // Corrected getUserRole as per user feedback and best practices
     function getUserRole(userId) {
-      let userDoc = getUserData(userId);
-      if (isSignedIn() && userDoc.data != null && 'role' in userDoc.data) {
-        return userDoc.data.role;
-      }
-      return 'guest';
+      return get(/databases/$(database)/documents/users/$(userId)).data.get('role', 'guest');
     }
 
     function isRequestingUserAdmin() {
@@ -64,7 +55,7 @@ service cloud.firestore {
         (isOwner(userId) && (request.resource.data.followingCount == resource.data.followingCount + 1 || request.resource.data.followingCount == resource.data.followingCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']))
         ||
         // Rule 5: User getting a new follower
-        (isSignedIn() && (request.resource.data.followersCount == resource.data.followersCount + 1 || request.resource.data.followersCount == resource.data.followersCount - 1) && request.resource.data.affectedKeys().hasOnly(['followersCount']))
+        (isSignedIn() && (request.resource.data.followersCount == resource.data.followersCount + 1 || request.resource.data.followersCount == resource.data.followersCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']))
         ||
         // Rule 6: User creating a post, incrementing their count
         (isOwner(userId) && request.resource.data.postsCount == resource.data.postsCount + 1 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']))
@@ -95,10 +86,9 @@ service cloud.firestore {
       
       allow update: if 
         // Rule 1: Staff can ONLY modify the status for moderation. This is the highest priority.
-        (isRequestingUserStaff() &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) 
+        (isRequestingUserStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) 
         ||
-        // Rule 2: Product owner (who is NOT staff) can edit their product details.
+        // Rule 2: Product owner (who is NOT staff) can edit their product details, with strong restrictions.
         (!isRequestingUserStaff() && isOwner(resource.data.sellerId) &&
           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt', 'isWeb3Verified', 'walletAddress']))
         ||
@@ -152,8 +142,8 @@ service cloud.firestore {
       allow update: if 
         // Rule 1: Staff can ONLY modify status or featured flag for moderation.
         (isRequestingUserStaff() && (
-            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
-            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured']))
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) ||
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured'])
         ))
         ||
         // Rule 2: Post owner (who is NOT staff) can edit their post details.
@@ -166,7 +156,7 @@ service cloud.firestore {
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
-            ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
+            (request.resource.data.replies == resource.data.replies + 1 &&
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
         ));
 
