@@ -58,11 +58,11 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
             
             {displayedBadge === 'pro' ? (
                  <div className="absolute -bottom-1.5 left-0 right-0 z-10 text-center">
-                    <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
+                    <p className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap pt-px">PRO</p>
                 </div>
             ) : displayedBadge === 'admin' ? (
                 <div className="absolute -bottom-1.5 left-0 right-0 z-10 flex justify-center">
-                    <AdminBadgeIcon className="h-5 w-5" />
+                    <AdminBadgeIcon className="h-5 w-5 relative left-px" />
                 </div>
             ) : displayedBadge === 'email' ? (
                 <div className="absolute -bottom-1 -right-1 z-10">
