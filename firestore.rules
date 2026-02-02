@@ -65,7 +65,7 @@ service cloud.firestore {
                        resource.data.role == 'guest' &&
                        request.resource.data.role == 'user' &&
                        request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['role', 'emailVerified']);
+                         .hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']);
 
       // Allow user to increment/decrement their own following count.
       allow update: if isOwner(userId) &&
@@ -110,11 +110,16 @@ service cloud.firestore {
       allow read, list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid && request.resource.data.location != null;
       
-      allow update: if 
+      allow update: if
         // Staff can ONLY modify the status (for flagging and for admin panel management).
-        (isRequestingUserStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
+        (isRequestingUserStaff() &&
+         request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
+         request.resource.data.diff(resource.data).affectedKeys().has('status'))
+      ||
         // Product owner (who is NOT staff) can edit their product, but not protected fields.
-        (resource.data.sellerId == request.auth.uid && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt'])) ||
+        (resource.data.sellerId == request.auth.uid && !isRequestingUserStaff() &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']))
+      ||
         // Any signed-in user can update interaction counts.
         (isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
@@ -167,12 +172,14 @@ service cloud.firestore {
       allow update: if
         // Staff can ONLY modify the status (for flagging/featuring).
         (isRequestingUserStaff() && (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) ||
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured'])
-        )) ||
+            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('status')) ||
+            (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
+         ))
+      ||
         // Post owner (who is NOT staff) can edit their post, but not protected fields.
         (isOwner(resource.data.authorId) && !isRequestingUserStaff() &&
-                        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt'])) ||
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']))
+      ||
         // Any signed-in user can update interaction counts and replies.
         (isSignedIn() && (
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
