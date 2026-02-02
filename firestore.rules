@@ -101,7 +101,7 @@ service cloud.firestore {
        allow get, update, delete: if (isSignedIn() && (request.auth.uid == resource.data.buyerId 
                          || request.auth.uid == resource.data.sellerId))
                          || isRequestingUserAdmin() || isRequestingUserGhost();
-       allow list: if isSignedIn();
+       allow list: if isSignedIn() && request.query.where.buyerId == request.auth.uid;
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
     }
     
