@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Shield, ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
+import { ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe, BadgeCheck } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -42,23 +42,15 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
 export function UserAvatar({ profile, className }: UserAvatarProps) {
     const displayedBadge = profile?.displayedBadge;
     const BadgeIcon = displayedBadge && displayedBadge !== 'none' ? badgeIcons[displayedBadge] : null;
-    const isAdminBadge = displayedBadge === 'admin';
 
     return (
-        <div className={cn(
-            "relative",
-            isAdminBadge && "p-1 bg-indigo-500 hexagon-clip",
-            className
-        )}>
-            <Avatar className={cn("h-full w-full", isAdminBadge && "hexagon-clip")}>
+        <div className={cn("relative", className)}>
+            <Avatar className="h-full w-full">
                 <AvatarImage src={profile?.photoURL || undefined} alt={profile?.displayName || 'User'} />
-                <AvatarFallback className={cn(isAdminBadge && "hexagon-clip")}>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             {BadgeIcon && (
-                 <div className={cn(
-                     "absolute -bottom-1 -right-1 z-10 rounded-full p-0.5 backdrop-blur-sm",
-                     isAdminBadge ? 'bg-white' : 'bg-black/80'
-                 )}>
+                 <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
                     <BadgeIcon className={cn("h-4 w-4", badgeColors[displayedBadge!])} />
                 </div>
             )}
