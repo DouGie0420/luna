@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
-import { User as FirebaseUser } from 'firebase/auth';
+import { type User as FirebaseUser } from 'firebase/auth';
+import { Loader2 } from 'lucide-react';
 
 function DynamicOrderCard({ order }: { order: Order }) {
     const { t } = useTranslation();
@@ -133,14 +134,15 @@ function PurchasesSkeleton() {
     );
 }
 
-function UserOrders({ user, firestore }: { user: FirebaseUser, firestore: Firestore }) {
-    const { t } = useTranslation();
 
+function UserOrdersList({ user, firestore }: { user: FirebaseUser; firestore: Firestore }) {
+    const { t } = useTranslation();
+    
     const ordersQuery = useMemo(() => {
-        // This is safe because we've guarded user.uid before rendering this component
+        // This query is now guaranteed to have a valid user.uid
         return query(
-            collection(firestore, 'orders'), 
-            where('buyerId', '==', user.uid), 
+            collection(firestore, 'orders'),
+            where('buyerId', '==', user.uid),
             orderBy('createdAt', 'desc')
         );
     }, [user.uid, firestore]);
@@ -175,7 +177,7 @@ function UserOrders({ user, firestore }: { user: FirebaseUser, firestore: Firest
             </div>
         )
     };
-
+    
     return (
         <Tabs defaultValue="all">
             <TabsList className="grid w-full grid-cols-5 mb-6">
@@ -194,40 +196,37 @@ function UserOrders({ user, firestore }: { user: FirebaseUser, firestore: Firest
     );
 }
 
+
 export default function MyPurchasesPage() {
     const { t } = useTranslation();
     const { user, loading: userLoading } = useUser();
     const firestore = useFirestore();
 
-    // Strict UID Guard: Show skeleton while user is loading or firestore is not ready.
-    if (userLoading || !firestore) {
-        return (
-            <div className="p-6 md:p-8 lg:p-12">
-                <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
-                <PurchasesSkeleton />
-            </div>
-        );
-    }
-    
-    // User is not logged in, show login prompt.
-    if (!user) {
-        return (
-            <div className="p-6 md:p-8 lg:p-12">
-                <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
+    const renderContent = () => {
+        // Strict guard: Wait for auth and Firestore to be ready.
+        if (userLoading || !firestore) {
+            return <PurchasesSkeleton />;
+        }
+        
+        // Strict guard: Only proceed if we have a logged-in user with a UID.
+        if (!user) {
+            return (
                 <div className="text-center py-20 border-2 border-dashed rounded-lg">
                     <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
                     <p className="text-muted-foreground mt-2 mb-6">Please log in to view your purchases.</p>
+                     <Button asChild><Link href="/login">Login</Link></Button>
                 </div>
-            </div>
-        );
-    }
+            );
+        }
 
-    // If we've reached here, user and firestore are guaranteed to be available.
-    // Render the component that performs the data fetching.
+        // If all checks pass, render the component that makes the query.
+        return <UserOrdersList user={user} firestore={firestore} />;
+    };
+
     return (
         <div className="p-6 md:p-8 lg:p-12">
             <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
-            <UserOrders user={user} firestore={firestore} />
+            {renderContent()}
         </div>
     )
 }
