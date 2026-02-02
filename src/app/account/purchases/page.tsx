@@ -1,12 +1,12 @@
 'use client'
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import Image from "next/image";
 import { format } from 'date-fns';
 import { useTranslation } from "@/hooks/use-translation";
-import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, doc, orderBy } from 'firebase/firestore';
+import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
+import { collection, query, where, doc, orderBy, type Firestore } from 'firebase/firestore';
 import type { Order, Product, UserProfile, OrderStatus } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,8 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
+import { User as FirebaseUser } from 'firebase/auth';
 
-// New component for dynamic orders from Firestore
 function DynamicOrderCard({ order }: { order: Order }) {
     const { t } = useTranslation();
     const firestore = useFirestore();
@@ -42,7 +42,6 @@ function DynamicOrderCard({ order }: { order: Order }) {
         const keyPart = status.replace(/\s+/g, '').charAt(0).toLowerCase() + status.replace(/\s+/g, '').slice(1);
         const translationKey = `accountPurchases.status.${keyPart}` as any;
         const translated = t(translationKey);
-        // Fallback to status itself if translation is missing
         return translated === translationKey ? status : translated;
     }
 
@@ -134,44 +133,27 @@ function PurchasesSkeleton() {
     );
 }
 
-export default function MyPurchasesPage() {
+function UserOrders({ user, firestore }: { user: FirebaseUser, firestore: Firestore }) {
     const { t } = useTranslation();
-    const { user, loading: userLoading } = useUser();
-    const firestore = useFirestore();
 
     const ordersQuery = useMemo(() => {
-        // Strict UID Guard: Only create the query if user.uid is available.
-        if (user && user.uid && firestore) {
-            return query(
-                collection(firestore, 'orders'), 
-                where('buyerId', '==', user.uid), 
-                orderBy('createdAt', 'desc')
-            );
-        }
-        return null;
-    }, [user, firestore]);
+        // This is safe because we've guarded user.uid before rendering this component
+        return query(
+            collection(firestore, 'orders'), 
+            where('buyerId', '==', user.uid), 
+            orderBy('createdAt', 'desc')
+        );
+    }, [user.uid, firestore]);
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
-    
-    const renderOrders = (status?: OrderStatus | 'In Escrow') => {
-        // Top-level loading state: if user auth is loading, or if we have a query but its data isn't here yet.
-        if (userLoading || (ordersQuery && ordersLoading)) {
-            return <PurchasesSkeleton />;
-        }
 
-        // If not loading, and we don't have a user, it means the user is logged out.
-        if (!user) {
-             return (
-                <div className="text-center py-20 border-2 border-dashed rounded-lg">
-                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
-                    <p className="text-muted-foreground mt-2 mb-6">Please log in to view your purchases.</p>
-                </div>
-            )
-        }
-        
+    if (ordersLoading) {
+        return <PurchasesSkeleton />;
+    }
+
+    const renderOrders = (status?: OrderStatus | 'In Escrow') => {
         let filteredOrders;
         if (status === 'In Escrow') {
-            // "To Ship" tab should show both "Pending" and "In Escrow"
             filteredOrders = orders?.filter(o => o.status === 'Pending' || o.status === 'In Escrow');
         } else if (status) {
              filteredOrders = orders?.filter(o => o.status === status);
@@ -192,26 +174,60 @@ export default function MyPurchasesPage() {
                 {filteredOrders.map(order => <DynamicOrderCard key={order.id} order={order} />)}
             </div>
         )
+    };
+
+    return (
+        <Tabs defaultValue="all">
+            <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="all">{t('accountPurchases.tabs.all')}</TabsTrigger>
+                <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.toShip')}</TabsTrigger>
+                <TabsTrigger value="shipped">{t('accountPurchases.tabs.toReceive')}</TabsTrigger>
+                <TabsTrigger value="completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
+                <TabsTrigger value="disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all">{renderOrders()}</TabsContent>
+            <TabsContent value="in-escrow">{renderOrders('In Escrow')}</TabsContent>
+            <TabsContent value="shipped">{renderOrders('Shipped')}</TabsContent>
+            <TabsContent value="completed">{renderOrders('Completed')}</TabsContent>
+            <TabsContent value="disputed">{renderOrders('Disputed')}</TabsContent>
+        </Tabs>
+    );
+}
+
+export default function MyPurchasesPage() {
+    const { t } = useTranslation();
+    const { user, loading: userLoading } = useUser();
+    const firestore = useFirestore();
+
+    // Strict UID Guard: Show skeleton while user is loading or firestore is not ready.
+    if (userLoading || !firestore) {
+        return (
+            <div className="p-6 md:p-8 lg:p-12">
+                <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
+                <PurchasesSkeleton />
+            </div>
+        );
+    }
+    
+    // User is not logged in, show login prompt.
+    if (!user) {
+        return (
+            <div className="p-6 md:p-8 lg:p-12">
+                <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
+                <div className="text-center py-20 border-2 border-dashed rounded-lg">
+                    <h2 className="text-xl font-semibold">{t('accountPurchases.noOrdersTitle')}</h2>
+                    <p className="text-muted-foreground mt-2 mb-6">Please log in to view your purchases.</p>
+                </div>
+            </div>
+        );
     }
 
+    // If we've reached here, user and firestore are guaranteed to be available.
+    // Render the component that performs the data fetching.
     return (
         <div className="p-6 md:p-8 lg:p-12">
             <h1 className="text-3xl font-headline mb-6">{t('accountPurchases.title')}</h1>
-            
-            <Tabs defaultValue="all">
-                <TabsList className="grid w-full grid-cols-5 mb-6">
-                    <TabsTrigger value="all">{t('accountPurchases.tabs.all')}</TabsTrigger>
-                    <TabsTrigger value="in-escrow">{t('accountPurchases.tabs.toShip')}</TabsTrigger>
-                    <TabsTrigger value="shipped">{t('accountPurchases.tabs.toReceive')}</TabsTrigger>
-                    <TabsTrigger value="completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
-                    <TabsTrigger value="disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
-                </TabsList>
-                <TabsContent value="all">{renderOrders()}</TabsContent>
-                <TabsContent value="in-escrow">{renderOrders('In Escrow')}</TabsContent>
-                <TabsContent value="shipped">{renderOrders('Shipped')}</TabsContent>
-                <TabsContent value="completed">{renderOrders('Completed')}</TabsContent>
-                <TabsContent value="disputed">{renderOrders('Disputed')}</TabsContent>
-            </Tabs>
+            <UserOrders user={user} firestore={firestore} />
         </div>
     )
 }
