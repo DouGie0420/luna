@@ -128,7 +128,7 @@ export default function MyPurchasesPage() {
     
     const isLoading = userLoading || ordersLoading;
 
-    const renderOrders = (status?: OrderStatus) => {
+    const renderOrders = (status?: OrderStatus | 'In Escrow') => {
         if (isLoading) {
             return (
                 <div className="space-y-6">
@@ -155,7 +155,15 @@ export default function MyPurchasesPage() {
             );
         }
         
-        const filteredOrders = status ? orders?.filter(o => o.status === status) : orders;
+        let filteredOrders;
+        if (status === 'In Escrow') {
+            // "To Ship" tab should show both "Pending" and "In Escrow"
+            filteredOrders = orders?.filter(o => o.status === 'Pending' || o.status === 'In Escrow');
+        } else if (status) {
+             filteredOrders = orders?.filter(o => o.status === status);
+        } else {
+            filteredOrders = orders;
+        }
         
         if (!filteredOrders || filteredOrders.length === 0) {
             return (
