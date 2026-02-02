@@ -618,7 +618,8 @@
       "web3Verified": "Web3已认证",
       "resetPasswordNotImplemented": "为安全起见，重置密码必须通过Firebase控制台发起。",
       "viewPassword": "查看密码",
-      "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。"
+      "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。",
+      "manualBadges": "手动授予徽章"
     }
   }
 }

@@ -509,7 +509,7 @@
       "users": "ผู้ใช้",
       "products": "สินค้า",
       "reviewQueue": "การจัดการเนื้อหา",
-      "promotions": "โปรโมชั่น",
+      "promotions": "การจัดการโฆษณา",
       "community": "ชุมชน",
       "orders": "คำสั่งซื้อ",
       "kycApplications": "แอปพลิเคชัน KYC",
@@ -618,7 +618,8 @@
       "web3Verified": "ยืนยัน Web3 แล้ว",
       "resetPasswordNotImplemented": "เพื่อความปลอดภัย การรีเซ็ตรหัสผ่านต้องทำผ่าน Firebase Console",
       "viewPassword": "ดูรหัสผ่าน",
-      "viewPasswordNotImplemented": "การกระทำนี้ไม่สามารถทำได้เพื่อความปลอดภัย"
+      "viewPasswordNotImplemented": "การกระทำนี้ไม่สามารถทำได้เพื่อความปลอดภัย",
+      "manualBadges": "มอบเหรียญตราด้วยตนเอง"
     }
   }
 }

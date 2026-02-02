@@ -179,6 +179,14 @@
           "type": "boolean",
           "description": "Whether the user's avatar is a verified NFT."
         },
+        "isInfluencer": {
+          "type": "boolean",
+          "description": "Whether the user is manually granted the 'Influencer' badge."
+        },
+        "isContributor": {
+          "type": "boolean",
+          "description": "Whether the user is manually granted the 'Contributor' badge."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time"

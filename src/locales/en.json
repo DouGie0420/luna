@@ -509,11 +509,11 @@
       "users": "Users",
       "products": "Products",
       "reviewQueue": "Content Moderation",
-      "promotions": "Promotions",
+      "promotions": "Ad Management",
       "community": "Community",
       "orders": "Orders",
       "kycApplications": "KYC Applications",
-      "supportTickets": "Service Tickets",
+      "supportTickets": "Support Tickets",
       "settings": "Settings",
       "logout": "Logout",
       "accessDenied": "Access Denied",
@@ -578,7 +578,7 @@
       "actions": "Actions"
     },
     "supportPage": {
-      "title": "Service Tickets",
+      "title": "Support Tickets",
       "ticketId": "Ticket ID",
       "subject": "Subject",
       "user": "User",
@@ -618,7 +618,8 @@
       "web3Verified": "Web3 Verified",
       "resetPasswordNotImplemented": "For security, password resets must be initiated from the Firebase Console.",
       "viewPassword": "View Password",
-      "viewPasswordNotImplemented": "This action is not available for security reasons."
+      "viewPasswordNotImplemented": "This action is not available for security reasons.",
+      "manualBadges": "Manual Badges"
     }
   }
 }

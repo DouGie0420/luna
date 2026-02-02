@@ -270,6 +270,36 @@ export default function AdminUsersPage() {
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
+                                                    <Separator />
+                                                    <Label className="text-xs text-muted-foreground">{t('admin.usersPage.manualBadges')}</Label>
+                                                    <div className="grid gap-2">
+                                                        <Label>{t('accountPage.badges.influencer_label')}</Label>
+                                                        <Select
+                                                            value={user.isInfluencer ? 'true' : 'false'}
+                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isInfluencer', value === 'true')}
+                                                            disabled={modificationDisabled}
+                                                        >
+                                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
+                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="grid gap-2">
+                                                        <Label>{t('accountPage.badges.contributor_label')}</Label>
+                                                        <Select
+                                                            value={user.isContributor ? 'true' : 'false'}
+                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isContributor', value === 'true')}
+                                                            disabled={modificationDisabled}
+                                                        >
+                                                            <SelectTrigger><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
+                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
                                                 </div>
 
                                                 {/* Column 3: Stats & Actions */}
