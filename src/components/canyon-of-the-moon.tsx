@@ -37,7 +37,7 @@ export function CanyonOfTheMoon() {
     <section className="container mx-auto px-4 py-12 md:py-16">
       <div className="flex justify-between items-center mb-6">
         <h2 className="font-headline text-3xl font-semibold">{t('homePage.canyonOfTheMoon')}</h2>
-        <Button asChild variant="ghost" className="text-primary hover:text-primary/90">
+        <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground font-bold">
             <Link href="/products">
                 进入峡谷 <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
