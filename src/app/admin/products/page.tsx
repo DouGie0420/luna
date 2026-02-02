@@ -221,7 +221,7 @@ export default function AdminProductsPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-2">问题内容审核</h2>
+            <h2 className="text-3xl font-headline mb-2">问题内容管理</h2>
             <p className="text-muted-foreground mb-8">此页面列出了被标记为需要审核的商品和帖子。请检查并进行相应操作。</p>
             
             <div className="mb-12">
