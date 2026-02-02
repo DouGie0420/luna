@@ -13,13 +13,18 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Optimized to return the full resource for one read
     function getUserData(userId) {
-      return get(/databases/$(database)/documents/users/$(userId)).data;
+      return get(/databases/$(database)/documents/users/$(userId));
     }
     
+    // Optimized to use the single read from getUserData
     function getUserRole(userId) {
-      // Use the target userId, not necessarily the requesting user's id
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(userId)) ? getUserData(userId).role : 'guest';
+      let userDoc = getUserData(userId);
+      if (isSignedIn() && userDoc.data != null && 'role' in userDoc.data) {
+        return userDoc.data.role;
+      }
+      return 'guest';
     }
 
     function isRequestingUserAdmin() {
@@ -45,14 +50,28 @@ service cloud.firestore {
       allow get, list: if true;
       allow create: if isOwner(userId);
 
-      // Multiple allow updates for different scenarios
-      allow update: if isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) && resource.data.walletAddress == null && request.resource.data.isWeb3Verified == true;
-      allow update: if isOwner(userId) && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role', 'followersCount', 'followingCount', 'postsCount', 'featuredCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress']);
-      allow update: if isOwner(userId) && resource.data.role == 'guest' && request.resource.data.role == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']);
-      allow update: if isOwner(userId) && (request.resource.data.followingCount == resource.data.followingCount + 1 || request.resource.data.followingCount == resource.data.followingCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']);
-      allow update: if isSignedIn() && (request.resource.data.followersCount == resource.data.followersCount + 1 || request.resource.data.followersCount == resource.data.followersCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']);
-      allow update: if isOwner(userId) && request.resource.data.postsCount == resource.data.postsCount + 1 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']);
-      allow update: if isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']) && (isRequestingUserAdmin() || !(getUserRole(userId) in ['admin', 'ghost']));
+      allow update: if 
+        // Rule 1: Owner linking a wallet for the first time
+        (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['walletAddress', 'isWeb3Verified']) && resource.data.walletAddress == null && request.resource.data.isWeb3Verified == true)
+        ||
+        // Rule 2: Owner editing their own profile (with restrictions)
+        (isOwner(userId) && !isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt', 'creditScore', 'creditLevel', 'lunarSoil', 'rating', 'reviewsCount', 'salesCount', 'purchasesCount', 'role', 'followersCount', 'followingCount', 'postsCount', 'featuredCount', 'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress']))
+        ||
+        // Rule 3: Guest upgrading to user after email verification
+        (isOwner(userId) && resource.data.role == 'guest' && request.resource.data.role == 'user' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'emailVerified', 'lastLogin', 'displayName', 'photoURL']))
+        ||
+        // Rule 4: User following/unfollowing someone
+        (isOwner(userId) && (request.resource.data.followingCount == resource.data.followingCount + 1 || request.resource.data.followingCount == resource.data.followingCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followingCount']))
+        ||
+        // Rule 5: User getting a new follower
+        (isSignedIn() && (request.resource.data.followersCount == resource.data.followersCount + 1 || request.resource.data.followersCount == resource.data.followersCount - 1) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount']))
+        ||
+        // Rule 6: User creating a post, incrementing their count
+        (isOwner(userId) && request.resource.data.postsCount == resource.data.postsCount + 1 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['postsCount']))
+        ||
+        // Rule 7: Staff editing a user profile
+        (isRequestingUserStaff() && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid', 'createdAt']) && (isRequestingUserAdmin() || !(getUserRole(userId) in ['admin', 'ghost'])));
+
 
       match /addresses/{addressId} {
         allow read, write: if isOwner(userId) || isRequestingUserStaff();
@@ -80,9 +99,9 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
           request.resource.data.diff(resource.data).affectedKeys().has('status')) 
         ||
-        // Rule 2: Product owner (who is NOT staff) can edit their product.
+        // Rule 2: Product owner (who is NOT staff) can edit their product details.
         (isOwner(resource.data.sellerId) && !isRequestingUserStaff() &&
-          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']))
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt', 'isWeb3Verified', 'walletAddress']))
         ||
         // Rule 3: Any signed-in user can update interaction counts.
         (isSignedIn() && (
@@ -138,7 +157,7 @@ service cloud.firestore {
             (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
         ))
         ||
-        // Rule 2: Post owner (who is NOT staff) can edit their post.
+        // Rule 2: Post owner (who is NOT staff) can edit their post details.
         (isOwner(resource.data.authorId) && !isRequestingUserStaff() &&
             !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']))
         ||
