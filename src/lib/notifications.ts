@@ -1,6 +1,6 @@
 'use client';
 import { collection, addDoc, serverTimestamp, type Firestore } from "firebase/firestore";
-import type { Notification, UserProfile, BbsPost, Product } from './types';
+import type { Notification, UserProfile, BbsPost, Product, Order } from './types';
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -9,7 +9,8 @@ export type NotificationContext =
     | { type: 'like-product', actor: UserProfile, product: Product }
     | { type: 'comment', actor: UserProfile, post: BbsPost, commentText: string }
     | { type: 'reply', actor: UserProfile, parentCommentAuthorName: string, post: BbsPost, commentText: string }
-    | { type: 'feature', actor: UserProfile, post: BbsPost };
+    | { type: 'feature', actor: UserProfile, post: BbsPost }
+    | { type: 'remind-to-ship', actor: UserProfile, order: Order, product: Product };
 
 export async function createNotification(db: Firestore, recipientId: string, context: NotificationContext) {
     if (recipientId === context.actor.uid) {
@@ -45,6 +46,11 @@ export async function createNotification(db: Firestore, recipientId: string, con
             title = '你的帖子被设为精华！';
             message = `恭喜！你的帖子 "${context.post.title}" 已被设为精华。`;
             notificationType = 'success';
+            break;
+        case 'remind-to-ship':
+            title = '【发货提醒】买家正在等待您发货';
+            message = `买家 ${context.actor.displayName} 正在等待您为订单 #${context.order.id.slice(0, 8)}（${context.product.name}）发货。`;
+            notificationType = 'warning';
             break;
         default:
             return;

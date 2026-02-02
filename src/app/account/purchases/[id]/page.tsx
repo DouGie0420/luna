@@ -5,151 +5,68 @@ import { useParams, notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { getUsers } from '@/lib/data';
-import type { User } from '@/lib/types';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import type { Order, Product, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Truck, Copy, MessageCircle, MoreHorizontal, CheckCircle, Gem, ChevronDown, PackageSearch, CircleDollarSign } from 'lucide-react';
+import { CheckCircle, Truck, Copy, MessageCircle, ExternalLink, PackageSearch, CircleDollarSign, Bell, Edit } from 'lucide-react';
 import { format } from 'date-fns';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-
-// --- Mock Data ---
-// In a real app, this would be fetched from a database
-const mockOrders: any = {
-    "ORD004": {
-        id: "ORD004",
-        product: { id: "vintage-camera", name: "Suno ai v5国际版充值 | 账号 直充一次性到账", image: "https://picsum.photos/seed/purchase1/600/400", imageHint: "glitch art", originalPrice: 80.00, },
-        sellerId: "user10",
-        dealPrice: 76.00,
-        discount: 4.00,
-        shippingFee: 0.00,
-        currency: '¥',
-        status: "Shipped",
-        orderNumber: "5027653261827220635",
-        paymentTransactionId: "2026012222001169911450728666",
-        shippingAddress: "陈先生 18990008909 四川省自贡市 大安区马冲口街道张化厂宿舍4栋",
-        orderTime: "2026-01-22 16:23:42",
-        paymentTime: "2026-01-22 16:23:47",
-        shippingTime: "2026-01-22 16:37:46",
-        autoConfirmTime: new Date(new Date().getTime() + 1.5 * 24 * 60 * 60 * 1000).toISOString()
-    }
-};
-
+import { createNotification } from '@/lib/notifications';
 
 function OrderDetailPageSkeleton() {
     return (
-      <div className="container mx-auto max-w-2xl px-4 py-8">
+      <div className="container mx-auto max-w-4xl px-4 py-8">
         <div className="space-y-6">
-          <Card>
-            <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
-            <CardContent><Skeleton className="h-4 w-1/2" /></CardContent>
+          <Card className="text-center">
+            <CardHeader><Skeleton className="h-8 w-12 mx-auto rounded-full" /></CardHeader>
+            <CardContent className="space-y-2">
+                <Skeleton className="h-7 w-48 mx-auto" />
+                <Skeleton className="h-5 w-64 mx-auto" />
+                <Skeleton className="h-5 w-32 mx-auto" />
+                <Skeleton className="h-10 w-40 mx-auto mt-4" />
+            </CardContent>
           </Card>
           <Card>
-            <CardContent className="pt-6">
+             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
+             <CardContent className="space-y-4">
                 <div className="flex gap-4">
-                    <Skeleton className="h-20 w-20" />
+                    <Skeleton className="h-20 w-20 rounded-md" />
                     <div className="flex-1 space-y-2">
                         <Skeleton className="h-5 w-full" />
                         <Skeleton className="h-5 w-1/4" />
                     </div>
                 </div>
-            </CardContent>
-          </Card>
-          <Card>
-             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
-             <CardContent className="space-y-3">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
              </CardContent>
           </Card>
            <Card>
-             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
-             <CardContent className="space-y-3">
-                {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
-             </CardContent>
+             <CardFooter className="p-4 pt-4 justify-end gap-2">
+                 <Skeleton className="h-10 w-28" />
+                 <Skeleton className="h-10 w-28" />
+                 <Skeleton className="h-10 w-28" />
+             </CardFooter>
           </Card>
         </div>
       </div>
     );
 }
 
-function Countdown({ targetDate }: { targetDate: string }) {
-    const { t } = useTranslation();
-    const calculateTimeLeft = () => {
-        const difference = +new Date(targetDate) - +new Date();
-        let timeLeft: { [key: string]: number } = {};
-
-        if (difference > 0) {
-            timeLeft = {
-                days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                minutes: Math.floor((difference / 1000 / 60) % 60),
-            };
-        }
-        return timeLeft;
-    };
-
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000 * 60); // Update every minute is enough
-
-        return () => clearTimeout(timer);
-    });
-
-    const timerComponents = Object.entries(timeLeft).map(([interval, value]) => {
-        if (value > 0) {
-            return `${value}${t(`orderDetails.time.${interval}` as any)}`;
-        }
-        return null;
-    }).filter(Boolean).join('');
-    
-    if (!timerComponents) {
-        return <span className="text-destructive">{t('orderDetails.autoConfirmed')}</span>;
-    }
-
-    return <span>{t('orderDetails.countdown').replace('{time}', timerComponents)}</span>;
-}
-
-const InfoRow = ({ label, value, copyValue, onCopy, isAction = false, isLink = false, href = '#' }: { label: string; value: React.ReactNode; copyValue?: string; onCopy?: (v: string) => void; isAction?: boolean; isLink?: boolean; href?: string; }) => {
-    const { t } = useTranslation();
-    
-    const handleCopyClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Prevent collapsible trigger if inside another trigger
-        if (onCopy && copyValue) {
-            onCopy(copyValue);
-        }
-    };
-
+const InfoRow = ({ label, value, onCopy }: { label: string; value: React.ReactNode; onCopy?: () => void; }) => {
     return (
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center text-sm">
             <span className="text-muted-foreground">{label}</span>
             <div className="flex items-center gap-2">
-                {isLink ? (
-                    <Link href={href!} className="font-semibold text-foreground hover:underline hover:text-primary transition-colors">{value}</Link>
-                ) : (
-                    <div className="font-medium text-right">{value}</div>
-                )}
-                {onCopy && copyValue && <Button variant="ghost" size="sm" onClick={handleCopyClick}>{t('accountPage.copy')}</Button>}
-                {isAction && <span className="text-muted-foreground text-lg">&gt;</span>}
+                <div className="font-medium text-right">{value}</div>
+                {onCopy && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCopy}><Copy className="h-4 w-4" /></Button>}
             </div>
         </div>
     );
@@ -161,185 +78,171 @@ export default function OrderDetailPage() {
     const router = useRouter();
     const { t } = useTranslation();
     const { toast } = useToast();
+    const { user: currentUser, profile: currentUserProfile, loading: userLoading } = useUser();
+    const firestore = useFirestore();
+
     const orderId = params.id as string;
 
-    const [order, setOrder] = useState<any>(null);
-    const [seller, setSeller] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [isInfoOpen, setIsInfoOpen] = useState(false);
-
-
-    useEffect(() => {
-        setLoading(true);
-        const fetchData = async () => {
-            // In a real app, you'd fetch the order by its ID
-            const fetchedOrder = mockOrders[orderId];
-            if (fetchedOrder) {
-                const allUsers = await getUsers();
-                const foundSeller = allUsers.find(u => u.id === fetchedOrder.sellerId);
-                setOrder(fetchedOrder);
-                setSeller(foundSeller || null);
-            }
-            setLoading(false);
-        };
-        fetchData();
-    }, [orderId]);
+    const orderRef = useMemo(() => firestore && orderId ? doc(firestore, 'orders', orderId) : null, [firestore, orderId]);
+    const { data: order, loading: orderLoading } = useDoc<Order>(orderRef);
     
+    const productRef = useMemo(() => firestore && order?.productId ? doc(firestore, 'products', order.productId) : null, [firestore, order]);
+    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
+
+    const sellerRef = useMemo(() => firestore && order?.sellerId ? doc(firestore, 'users', order.sellerId) : null, [firestore, order]);
+    const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
+
+
+    const isLoading = userLoading || orderLoading || productLoading || sellerLoading;
+
     const handleCopy = (text: string) => {
         navigator.clipboard.writeText(text);
-        toast({
-            title: t('accountPage.copied'),
-        });
+        toast({ title: t('accountPage.copied') });
     };
 
-    const handleConfirmReceipt = () => {
+    const handleRemindSeller = async () => {
+        if (!firestore || !currentUserProfile || !order || !product) return;
+        
+        await createNotification(firestore, order.sellerId, {
+            type: 'remind-to-ship',
+            actor: currentUserProfile,
+            order: order,
+            product: product,
+        });
+
+        toast({ title: "已成功提醒卖家发货！" });
+    };
+    
+    const handleConfirmReceipt = async () => {
+        if (!firestore || !orderRef) return;
+        
+        // As per spec, this should trigger a smart contract.
+        // For prototype, we will just update status and show a toast.
+        await updateDoc(orderRef, {
+            status: 'Completed',
+            completedAt: serverTimestamp()
+        });
+
         toast({
             title: t('orderDetails.receiptConfirmed'),
+            description: "感谢您的购买！"
         });
-        // In a real app, update order status in the backend
-        router.push('/account/purchases');
     };
+    
+    const blockExplorerUrl = useMemo(() => {
+        // This is a placeholder. A real implementation would depend on the chain.
+        // I'll assume Ethereum for now.
+        if (order?.paymentTransactionId) {
+            return `https://etherscan.io/tx/${order.paymentTransactionId}`;
+        }
+        return '#';
+    }, [order]);
 
-    if (loading) {
+    if (isLoading) {
         return <OrderDetailPageSkeleton />;
     }
     
-    if (!order || !seller) {
+    // Authorization check
+    if (!order || !product || !seller) {
         return notFound();
     }
 
+    if (currentUser?.uid !== order.buyerId && currentUserProfile?.role !== 'admin' && currentUserProfile?.role !== 'ghost') {
+        return (
+            <div className="container mx-auto max-w-4xl px-4 py-8">
+                 <h1 className="text-2xl font-headline text-destructive">拒绝访问</h1>
+                 <p className="text-muted-foreground">您没有权限查看此订单。</p>
+            </div>
+        )
+    }
+
+    // Determine status text
+    let statusText = "未知状态";
+    if (order.status === 'Pending' || order.status === 'In Escrow') {
+        statusText = "等待卖家发货";
+    } else if (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') {
+        statusText = "运输中";
+    } else if (order.status === 'Completed') {
+        statusText = "订单已完成";
+    } else {
+        statusText = order.status;
+    }
+
+
     return (
-        <div className="container mx-auto max-w-2xl px-4 py-8">
-            <div className="space-y-4">
+        <div className="container mx-auto max-w-4xl px-4 py-8">
+            <div className="space-y-6">
                 
-                <Card className="overflow-hidden">
-                    <CardHeader className="bg-card">
+                <Card className="text-center overflow-hidden">
+                     <CardHeader>
+                        <CheckCircle className="mx-auto h-12 w-12 text-green-400 animate-pulse" />
+                        <CardTitle className="font-headline text-2xl">支付成功!</CardTitle>
+                        <CardDescription>您的资金已进入安全托管状态。</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <p className="text-4xl font-bold">{order.totalAmount.toLocaleString()} <span className="text-xl text-muted-foreground">{order.currency}</span></p>
+                        {(order as any).paymentTransactionId && (
+                            <Button asChild variant="outline">
+                                <Link href={blockExplorerUrl} target="_blank" rel="noopener noreferrer">
+                                    查看链上凭证 <ExternalLink className="ml-2 h-4 w-4"/>
+                                </Link>
+                            </Button>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
                         <div className="flex justify-between items-center">
-                            <div>
-                                <CardTitle className="flex items-center gap-2 text-xl font-headline">
-                                    {t(`orderDetails.status.${order.status}`)}
-                                </CardTitle>
-                                <CardDescription className="mt-1 text-sm">
-                                    <Countdown targetDate={order.autoConfirmTime} />
-                                </CardDescription>
-                            </div>
-                            <div className="flex items-center justify-center gap-4">
-                                {order.status === 'Shipped' && (
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="outline">
-                                                <PackageSearch className="mr-2 h-4 w-4" />
-                                                {t('orderDetails.viewLogistics')}
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent>
-                                            <DropdownMenuLabel>{t('orderDetails.selectCourier')}</DropdownMenuLabel>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipSF') })}>{t('orderDetails.courierSF')}</DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipYTO') })}>{t('orderDetails.courierYTO')}</DropdownMenuItem>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem onClick={() => toast({ title: t('orderDetails.featureWIP'), description: t('orderDetails.wipOther') })}>{t('orderDetails.courierOther')}</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                )}
-                                <Truck className="h-12 w-12 text-muted-foreground" />
-                            </div>
+                            <CardTitle className="flex items-center gap-2">
+                                <Truck className="h-5 w-5" />
+                                订单详情
+                            </CardTitle>
+                            <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'}>{statusText}</Badge>
                         </div>
                     </CardHeader>
-                </Card>
-
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="flex gap-4">
-                            <Image src={order.product.image} alt={order.product.name} width={80} height={80} className="rounded-md object-cover" data-ai-hint={order.product.imageHint} />
+                    <CardContent className="space-y-4">
+                        <div className="flex gap-4 p-4 bg-secondary/30 rounded-lg">
+                            <div className="w-20 h-20 relative rounded-md overflow-hidden shrink-0">
+                                <Image src={product.images[0]} alt={product.name} fill className="object-cover" data-ai-hint={product.imageHints[0]} />
+                            </div>
                             <div className="flex-1">
-                                <p className="font-semibold leading-tight">{order.product.name}</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-semibold">{order.currency}{order.product.originalPrice.toFixed(2)}</p>
-                            </div>
-                        </div>
-                         <div className="mt-4 border-t pt-4">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">{t('accountPage.creditScore')}</span>
-                                <div className="flex items-center gap-2 font-semibold">
-                                    <Gem className="h-4 w-4 text-primary" />
-                                    <span>{seller.creditScore || 0}</span>
-                                </div>
+                                <p className="font-semibold leading-tight">{product.name}</p>
+                                <p className="text-lg font-bold text-primary mt-1">
+                                    {product.price.toLocaleString()} <span className="text-xs ml-1">{product.currency}</span>
+                                </p>
                             </div>
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="pt-6 text-sm">
-                        <div className="space-y-3">
-                            <div className="flex justify-between">
-                                <span className="font-semibold">{t('orderDetails.dealPrice')}</span>
-                                <span className="font-semibold">{order.currency}{order.dealPrice.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-muted-foreground items-center">
-                                <span>{t('orderDetails.totalPrice')}</span>
-                                <div className="flex items-center gap-2">
-                                     <span className="line-through">{order.currency}{order.product.originalPrice.toFixed(2)}</span>
-                                     <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-400">
-                                        {t('orderDetails.discount').replace('{amount}', `${order.currency}${order.discount.toFixed(2)}`)}
-                                     </Badge>
-                                </div>
-                            </div>
-                            <div className="flex justify-between text-muted-foreground">
-                                <span>{t('orderDetails.shippingFee')}</span>
-                                <span>{order.currency}{order.shippingFee.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
-                <Card>
-                    <Collapsible open={isInfoOpen} onOpenChange={setIsInfoOpen} className="text-sm">
-                        <CollapsibleTrigger asChild>
-                            <div className="flex cursor-pointer items-center justify-between p-6">
-                                <span className="text-muted-foreground">{t('orderDetails.orderNumber')}</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium text-right">{order.orderNumber}</span>
-                                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleCopy(order.orderNumber); }}>{t('accountPage.copy')}</Button>
-                                    <ChevronDown className={cn("h-4 w-4 transition-transform", isInfoOpen && "rotate-180")} />
-                                </div>
-                            </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <div className="px-6 pb-6">
-                                <Separator className="mb-6"/>
-                                <div className="space-y-3">
-                                    <InfoRow label={t('orderDetails.transactionSnapshot')} value={t('orderDetails.snapshotInfo')} isAction />
-                                    <InfoRow label={t('orderDetails.paymentTransactionId')} value={order.paymentTransactionId} copyValue={order.paymentTransactionId} onCopy={handleCopy} />
-                                    <Separator />
-                                    <InfoRow label={t('orderDetails.shippingAddress')} value={order.shippingAddress} copyValue={order.shippingAddress} onCopy={handleCopy} />
-                                    <InfoRow 
-                                        label={t('orderDetails.sellerNickname')} 
-                                        value={
-                                            <Badge variant="outline" className="px-3 py-1 rounded-full font-semibold border-primary/50 text-primary">
-                                                {seller.name}
-                                            </Badge>
-                                        } 
-                                        isLink 
-                                        href={`/user/${seller.id}`} 
-                                    />
-                                    <Separator />
-                                    <InfoRow label={t('orderDetails.orderTime')} value={order.orderTime} />
-                                    <InfoRow label={t('orderDetails.paymentTime')} value={order.paymentTime} />
-                                    <InfoRow label={t('orderDetails.shippingTime')} value={order.shippingTime} />
-                                </div>
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
-                </Card>
-                <Card>
-                    <CardFooter className="p-4 pt-4 justify-end gap-2">
-                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><MessageCircle className="mr-1 h-4 w-4" /> {t('orderDetails.contactSeller')}</Button>
-                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500"><CircleDollarSign className="mr-1 h-4 w-4" /> {t('orderDetails.requestRefund')}</Button>
-                        <Button className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.buyAgain')}</Button>
-                        <Button onClick={handleConfirmReceipt} className="bg-yellow-400 text-black hover:bg-yellow-500">{t('orderDetails.confirmReceipt')}</Button>
+                        <InfoRow label="订单编号" value={order.id} onCopy={() => handleCopy(order.id)} />
+                        
+                        {(currentUserProfile?.role === 'admin' || currentUserProfile?.role === 'ghost') && seller.walletAddress && (
+                             <InfoRow label="卖家钱包" value={`${seller.walletAddress.slice(0, 6)}...${seller.walletAddress.slice(-4)}`} onCopy={() => handleCopy(seller.walletAddress!)} />
+                        )}
+
+                        <InfoRow label="下单时间" value={order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm:ss') : 'N/A'} />
+                        
+                        <Separator />
+
+                        <p className="font-semibold text-sm">收货地址:</p>
+                        <div className="text-sm text-muted-foreground">
+                            <p>{order.shippingAddress.recipientName}, {order.shippingAddress.phone}</p>
+                            <p>{order.shippingAddress.addressLine1}, {order.shippingAddress.city}, {order.shippingAddress.province}, {order.shippingAddress.postalCode}</p>
+                        </div>
+
+                    </CardContent>
+                     <CardFooter className="p-4 pt-0 justify-end gap-2 flex-wrap">
+                        <Button variant="outline"><MessageCircle className="mr-2"/>联系卖家</Button>
+                        {(order.status === 'Pending' || order.status === 'In Escrow') && (
+                            <>
+                                <Button variant="outline" onClick={handleRemindSeller}><Bell className="mr-2"/>提醒发货</Button>
+                                <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}><Edit className="mr-2"/>修改地址</Button>
+                            </>
+                        )}
+                        <Button onClick={() => toast({ title: "功能即将推出" })}><CircleDollarSign className="mr-2"/>申请退款</Button>
+                         {(order.status === 'Shipped' || order.status === 'Awaiting Confirmation') && (
+                            <Button onClick={handleConfirmReceipt}>确认收货</Button>
+                        )}
                     </CardFooter>
                 </Card>
 
