@@ -34,10 +34,10 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     pro: 'text-green-500',
-    nft: 'text-cyan-400',
+    nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-sky-500',
+    admin: 'text-blue-500',
 };
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {

@@ -60,10 +60,10 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     pro: 'text-green-500',
-    nft: 'text-cyan-400',
+    nft: 'text-blue-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-sky-500',
+    admin: 'text-blue-500',
 };
 
 
@@ -490,8 +490,8 @@ export default function AccountProfilePage() {
                                         </div>
                                     )}
                                     {profile?.isNftVerified && (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <EthereumIcon className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <EthereumIcon className="h-4 w-4 stroke-blue-400" />
                                             <span>NFT</span>
                                         </div>
                                     )}

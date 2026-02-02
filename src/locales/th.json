@@ -378,7 +378,6 @@
     "alreadyFollowing": "กำลังติดตาม",
     "followedSuccess": "ติดตามผู้ใช้แล้ว",
     "unfollowedSuccess": "เลิกติดตามผู้ใช้แล้ว",
-    "usersFollowers": "ผู้ติดตามของ {userName}",
     "usersFollowing": "กำลังติดตามของ {userName}",
     "noFollowers": "{userName} ยังไม่มีผู้ติดตาม",
     "notFollowingAnyone": "{userName} ยังไม่ได้ติดตามใคร",

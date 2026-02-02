@@ -251,8 +251,8 @@ export default function UserProfilePage() {
                                         </div>
                                     )}
                                     {user.isNftVerified && (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <EthereumIcon className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <EthereumIcon className="h-4 w-4 stroke-blue-400" />
                                             <span>NFT</span>
                                         </div>
                                     )}
