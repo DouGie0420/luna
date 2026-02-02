@@ -257,6 +257,7 @@ export default function BbsPostPage() {
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
     const isOwner = user?.uid === post?.authorId;
+    const isAdmin = profile?.role === 'admin';
 
     useEffect(() => {
         if(user && authorProfile) {
@@ -650,13 +651,13 @@ export default function BbsPostPage() {
                                     )}
                                 </Button>
                             )}
-                             {isOwner && (
+                             {(isOwner || isAdmin) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onSelect={handleEditPost}><Edit className="mr-2 h-4 w-4" />{t('bbsPage.editPost')}</DropdownMenuItem>
+                                        {isOwner && <DropdownMenuItem onSelect={handleEditPost}><Edit className="mr-2 h-4 w-4" />{t('bbsPage.editPost')}</DropdownMenuItem>}
                                         <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground"><Trash2 className="mr-2 h-4 w-4" />{t('bbsPage.deletePost')}</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>

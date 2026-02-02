@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { notFound, useParams } from 'next/navigation';
+import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getProductById, getProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
@@ -15,13 +16,24 @@ import { SellerProfileCard } from '@/components/seller-profile-card';
 import { ProductPurchaseActions } from '@/components/product-purchase-actions';
 import { ProductCommentSection } from '@/components/product-comment-section';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { ProductEditForm } from '@/components/product-edit-form';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { doc, deleteDoc } from 'firebase/firestore';
 
 
 function ProductPageSkeleton() {
@@ -59,8 +71,10 @@ function ProductPageSkeleton() {
 
 export default function ProductPage() {
     const params = useParams();
+    const router = useRouter();
     const id = params.id as string;
-    const { user } = useUser();
+    const { user, profile } = useUser();
+    const firestore = useFirestore();
     const { toast } = useToast();
     const { t } = useTranslation();
 
@@ -68,6 +82,7 @@ export default function ProductPage() {
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     
     const [isLiked, setIsLiked] = useState(false);
     const [isFavorited, setIsFavorited] = useState(false);
@@ -149,11 +164,35 @@ export default function ProductPage() {
 
 
     const isOwner = user && product && user.uid === product.seller.id;
+    const hasAdminAccess = profile && ['staff', 'ghost', 'admin'].includes(profile.role || '');
 
     const handleProductUpdate = (updatedProduct: Product) => {
         setProduct(updatedProduct);
         setIsEditDialogOpen(false);
     };
+
+    const handleDeleteProduct = async () => {
+        if (!product || !firestore) return;
+
+        const productRef = doc(firestore, "products", product.id);
+        try {
+            await deleteDoc(productRef);
+            toast({
+                title: "商品已删除",
+                description: "该商品已被永久移除。",
+            });
+            router.push('/products');
+        } catch (error) {
+            console.error("Failed to delete product:", error);
+            toast({
+                variant: "destructive",
+                title: "删除失败",
+                description: "无法删除该商品，请检查权限。",
+            });
+        }
+        setIsDeleteDialogOpen(false);
+    };
+
 
     if (loading) {
         return <ProductPageSkeleton />;
@@ -197,14 +236,22 @@ export default function ProductPage() {
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>商品描述</CardTitle>
-                                {isOwner && (
-                                    <DialogTrigger asChild>
-                                        <Button variant="outline" className="rounded-full h-9 px-4">
-                                            <Edit className="mr-2 h-4 w-4" />
-                                            编辑商品
+                                 <div className="flex items-center gap-2">
+                                    {isOwner && (
+                                        <DialogTrigger asChild>
+                                            <Button variant="outline" className="rounded-full h-9 px-4">
+                                                <Edit className="mr-2 h-4 w-4" />
+                                                编辑商品
+                                            </Button>
+                                        </DialogTrigger>
+                                    )}
+                                    {hasAdminAccess && (
+                                        <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)}>
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            删除商品
                                         </Button>
-                                    </DialogTrigger>
-                                )}
+                                    )}
+                                </div>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
@@ -247,6 +294,22 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
+             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>您确定要永久删除吗？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            此操作无法撤销。这将从数据库中永久删除商品 "{product.name}".
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive hover:bg-destructive/90">
+                            确认删除
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </>
     );
 }
