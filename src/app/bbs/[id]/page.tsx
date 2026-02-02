@@ -257,7 +257,7 @@ export default function BbsPostPage() {
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
     const isOwner = user?.uid === post?.authorId;
-    const isAdmin = profile?.role === 'admin';
+    const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
 
     useEffect(() => {
         if(user && authorProfile) {
@@ -432,18 +432,30 @@ export default function BbsPostPage() {
         router.push(`/bbs/edit/${id}`);
     };
 
-    const handleDeletePost = async (e: React.MouseEvent) => {
-        e.preventDefault();
+    const handleDeletePost = () => {
         if (!firestore || !post || !postRef) return;
-        try {
-            await deleteDoc(postRef);
-            toast({ title: t('bbsPage.postDeleted') });
-            router.push('/bbs');
-        } catch (error) {
-            console.error("Failed to delete post:", error);
-            toast({ variant: 'destructive', title: 'Failed to delete post.' });
-        }
-    };
+
+        const updateData = { status: 'under_review' as const };
+        updateDoc(postRef, updateData)
+            .then(() => {
+                toast({
+                    title: "帖子已提交审核",
+                    description: "该帖子现在将在后台等待最终审核。",
+                });
+                router.push('/bbs');
+            })
+            .catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            })
+            .finally(() => {
+                setIsDeleteDialogOpen(false);
+            });
+      };
 
     const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
         if (!canInteract || !firestore || !user || !post) {
@@ -651,14 +663,14 @@ export default function BbsPostPage() {
                                     )}
                                 </Button>
                             )}
-                             {(isOwner || isAdmin) && (
+                             {(isOwner || hasAdminAccess) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon"><MoreHorizontal /></Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         {isOwner && <DropdownMenuItem onSelect={handleEditPost}><Edit className="mr-2 h-4 w-4" />{t('bbsPage.editPost')}</DropdownMenuItem>}
-                                        <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground"><Trash2 className="mr-2 h-4 w-4" />{t('bbsPage.deletePost')}</DropdownMenuItem>
+                                        {(isOwner || hasAdminAccess) && <DropdownMenuItem onSelect={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:bg-destructive focus:text-destructive-foreground"><Trash2 className="mr-2 h-4 w-4" />{t('bbsPage.deletePost')}</DropdownMenuItem>}
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             )}
@@ -792,12 +804,12 @@ export default function BbsPostPage() {
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>{t('bbsPage.deleteConfirmTitle')}</AlertDialogTitle>
-                        <AlertDialogDescription>{t('bbsPage.deleteConfirmDescription')}</AlertDialogDescription>
+                        <AlertDialogTitle>确认提交审核</AlertDialogTitle>
+                        <AlertDialogDescription>此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>{t('bbsPage.deleteCancel')}</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">{t('bbsPage.deleteConfirmAction')}</AlertDialogAction>
+                        <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">确认提交</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

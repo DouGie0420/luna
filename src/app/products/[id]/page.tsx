@@ -35,6 +35,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { doc, updateDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 function ProductPageSkeleton() {
@@ -166,7 +168,7 @@ export default function ProductPage() {
 
 
     const isOwner = user && product && user.uid === product.seller.id;
-    const hasAdminAccess = profile && ['staff', 'ghost', 'admin'].includes(profile.role || '');
+    const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
 
     const handleProductUpdate = (updatedProduct: Product) => {
         setProduct(updatedProduct);
@@ -176,25 +178,30 @@ export default function ProductPage() {
     const handleDeleteProduct = async () => {
         if (!product || !firestore) return;
         setIsSubmittingDelete(true);
-
+    
         const productRef = doc(firestore, "products", product.id);
-        try {
-            await updateDoc(productRef, { status: 'under_review' });
-            toast({
-                title: "商品已提交审核",
-                description: "该商品已从前台隐藏，等待管理员审核。",
+        const updateData = { status: 'under_review' as const };
+    
+        updateDoc(productRef, updateData)
+            .then(() => {
+                toast({
+                    title: "商品已提交审核",
+                    description: "该商品已从前台隐藏，等待管理员审核。",
+                });
+                router.push('/products');
+            })
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: productRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            })
+            .finally(() => {
+                setIsSubmittingDelete(false);
+                setIsDeleteDialogOpen(false);
             });
-            router.push('/products');
-        } catch (error) {
-            console.error("Failed to flag product for review:", error);
-            toast({
-                variant: "destructive",
-                title: "操作失败",
-                description: "无法提交审核，请检查权限。",
-            });
-        }
-        setIsSubmittingDelete(false);
-        setIsDeleteDialogOpen(false);
     };
 
 
