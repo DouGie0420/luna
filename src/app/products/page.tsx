@@ -128,7 +128,7 @@ export default function AllProductsPage() {
 
                 <div className="max-w-2xl mx-auto -mt-24 mb-12 relative z-20">
                     <div className="relative">
-                        <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground pointer-events-none" />
+                        <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 h-6 w-6 text-primary animate-glow pointer-events-none" />
                         <Input 
                             placeholder="Search all items..."
                             value={searchTerm}
