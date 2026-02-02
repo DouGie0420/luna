@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getProducts } from '@/lib/data';
+import { getProductById, getProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -81,8 +81,8 @@ export default function ProductPage() {
     const { toast } = useToast();
     const { t } = useTranslation();
 
-    const productRef = useMemo(() => firestore && id ? doc(firestore, 'products', id) : null, [firestore, id]);
-    const { data: product, loading: productLoading, error: productError } = useDoc<Product>(productRef);
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState(true);
     
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
@@ -90,20 +90,23 @@ export default function ProductPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-
+    
     useEffect(() => {
-        const fetchRecs = async () => {
-            if (!product) return;
-            setLoadingRecs(true);
+      const fetchProductAndRecs = async () => {
+        setLoading(true);
+        const p = await getProductById(id);
+        if (p) {
+            setProduct(p);
             const allProducts = await getProducts(); // Using mock data for recommendations for now
-            const recs = allProducts.filter(p => p.id !== id).slice(0, 5);
+            const recs = allProducts.filter(rec => rec.id !== id).slice(0, 5);
             setRecommendedProducts(recs);
-            setLoadingRecs(false);
-        };
-        fetchRecs();
-    }, [product, id]);
+        }
+        setLoading(false);
+      };
+      fetchProductAndRecs();
+    }, [id]);
 
-    const isOwner = user && product && user.uid === product.sellerId;
+    const isOwner = user && product && user.uid === product.seller.id;
     const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
     
     const isLiked = user && product && product.likedBy?.includes(user.uid);
@@ -142,7 +145,7 @@ export default function ProductPage() {
     };
 
     const handleProductUpdate = (updatedProduct: Product) => {
-        // useDoc provides real-time updates, so we just need to close the dialog.
+        setProduct(updatedProduct);
         setIsEditDialogOpen(false);
     };
 
@@ -152,7 +155,10 @@ export default function ProductPage() {
     
         const productRef = doc(firestore, "products", product.id);
         const updateData = { status: 'under_review' as const };
-    
+        
+        // TODO: checkWeb3Escrow() - If product is linked to a Web3 transaction,
+        // ensure funds can be handled correctly before hiding the product.
+
         updateDoc(productRef, updateData)
             .then(() => {
                 toast({
@@ -176,11 +182,11 @@ export default function ProductPage() {
     };
 
 
-    if (productLoading) {
+    if (loading) {
         return <ProductPageSkeleton />;
     }
 
-    if (!product || productError) {
+    if (!product) {
         notFound();
     }
 

@@ -80,8 +80,7 @@ service cloud.firestore {
                       request.resource.data.diff(resource.data).affectedKeys().has('status');
 
       // Rule 2: Product owner (who is NOT staff) can edit their product.
-      allow update: if isOwner(resource.data.sellerId) &&
-                      !isRequestingUserStaff() &&
+      allow update: if isOwner(resource.data.sellerId) && !isRequestingUserStaff() &&
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']);
 
       // Rule 3: Any signed-in user can update interaction counts.
@@ -138,8 +137,7 @@ service cloud.firestore {
         );
 
       // Rule 2: Post owner (who is NOT staff) can edit their post.
-      allow update: if isOwner(resource.data.authorId) &&
-                      !isRequestingUserStaff() &&
+      allow update: if isOwner(resource.data.authorId) && !isRequestingUserStaff() &&
                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']);
 
       // Rule 3: Any signed-in user can update interaction counts and replies.
