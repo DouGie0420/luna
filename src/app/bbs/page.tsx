@@ -16,7 +16,9 @@ import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { getBbsPosts } from '@/lib/data';
+
 
 function haversineDistance(
   coords1: { lat: number; lng: number },
@@ -82,11 +84,22 @@ export default function BbsPage() {
     [firestore]);
 
     const { data: posts, loading } = useCollection<BbsPost>(postsQuery);
+    const [mockPosts, setMockPosts] = useState<BbsPost[]>([]);
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'featured' | 'nearest'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+    useEffect(() => {
+        const fetchMocks = async () => {
+            if (!posts || posts.length === 0) {
+                const allMockPosts = await getBbsPosts();
+                setMockPosts(allMockPosts);
+            }
+        };
+        fetchMocks();
+    }, [posts]);
 
     const handleNearestFilter = () => {
         setActiveFilter('nearest');
@@ -121,7 +134,8 @@ export default function BbsPage() {
 
 
     const filteredAndSortedPosts = useMemo(() => {
-        let processedPosts = posts ? [...posts] : [];
+        const sourcePosts = (posts && posts.length > 0) ? posts : mockPosts;
+        let processedPosts = sourcePosts ? [...sourcePosts] : [];
 
         // 1. Filter by search term
         if (debouncedSearchTerm) {
@@ -159,7 +173,7 @@ export default function BbsPage() {
 
         return processedPosts;
 
-    }, [debouncedSearchTerm, activeFilter, posts, userLocation]);
+    }, [debouncedSearchTerm, activeFilter, posts, mockPosts, userLocation]);
 
     if (loading) {
         return <BbsPageSkeleton />;

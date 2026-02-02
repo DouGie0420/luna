@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import Link from 'next/link';
 import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
+import { getProducts } from '@/lib/data';
 
 function ProductsPageSkeleton() {
     return (
@@ -63,9 +64,22 @@ export default function AllProductsPage() {
     }, [firestore]);
 
     const { data: products, loading } = useCollection<Product>(productsQuery);
+    const [mockProducts, setMockProducts] = useState<Product[]>([]);
+
+    useEffect(() => {
+        const fetchMocks = async () => {
+            if (!products || products.length === 0) {
+                const allMockProducts = await getProducts();
+                setMockProducts(allMockProducts);
+            }
+        };
+        fetchMocks();
+    }, [products]);
+
 
     const filteredAndSortedProducts = useMemo(() => {
-        let processedProducts = products ? [...products] : [];
+        const sourceProducts = (products && products.length > 0) ? products : mockProducts;
+        let processedProducts = sourceProducts ? [...sourceProducts] : [];
 
         if (debouncedSearchTerm) {
             processedProducts = processedProducts.filter(product => {
@@ -93,7 +107,7 @@ export default function AllProductsPage() {
 
         return processedProducts;
 
-    }, [debouncedSearchTerm, activeFilter, products]);
+    }, [debouncedSearchTerm, activeFilter, products, mockProducts]);
 
     if (loading) {
         return (
