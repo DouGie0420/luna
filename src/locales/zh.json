@@ -378,7 +378,6 @@
     "alreadyFollowing": "已关注",
     "followedSuccess": "已关注用户",
     "unfollowedSuccess": "已取消关注",
-    "usersFollowers": "{userName} 的粉丝",
     "usersFollowing": "{userName} 关注的人",
     "noFollowers": "{userName} 还没有任何粉丝。",
     "notFollowingAnyone": "{userName} 还没有关注任何人。",
