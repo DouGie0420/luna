@@ -65,7 +65,7 @@ service cloud.firestore {
                        resource.data.role == 'guest' &&
                        request.resource.data.role == 'user' &&
                        request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['role', 'lastLogin', 'displayName', 'photoURL', 'emailVerified']);
+                         .hasOnly(['role', 'emailVerified']);
 
       // Allow user to increment/decrement their own following count.
       allow update: if isOwner(userId) &&
@@ -110,23 +110,20 @@ service cloud.firestore {
       allow read, list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid && request.resource.data.location != null;
       
-      // Rule 1: Product owner can edit their product, but not protected fields.
-      allow update: if resource.data.sellerId == request.auth.uid &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']);
-
-      // Rule 2: Staff can ONLY modify the status (for flagging and for admin panel management).
-      allow update: if isRequestingUserStaff() &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+      allow update: if 
+        // Staff can ONLY modify the status (for flagging and for admin panel management).
+        (isRequestingUserStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])) ||
+        // Product owner can edit their product, but not protected fields.
+        (resource.data.sellerId == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt'])) ||
+        // Any signed-in user can update interaction counts.
+        (isSignedIn() && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
+        ));
       
-      // Rule 3: Any signed-in user can update interaction counts.
-      allow update: if isSignedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
-      );
-      
-      // Rule 4: Admin can delete for real from the admin panel.
+      // Admin can delete for real from the admin panel.
       allow delete: if isRequestingUserAdmin();
     }
     
@@ -167,28 +164,25 @@ service cloud.firestore {
                     && request.resource.data.author.id == request.auth.uid
                     && request.resource.data.location != null;
       
-      // Rule 1: Post owner can edit their post, but not protected fields.
-      allow update: if isOwner(resource.data.authorId) &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']);
-      
-      // Rule 2: Staff can ONLY modify the status (for flagging and for admin panel management).
-      allow update: if isRequestingUserStaff() &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
-      
-      // Rule 3: Staff can feature/unfeature a post.
-      allow update: if isRequestingUserStaff() &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured']);
+      allow update: if
+        // Staff can ONLY modify the status (for flagging/featuring).
+        (isRequestingUserStaff() && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isFeatured'])
+        )) ||
+        // Post owner can edit their post, but not protected fields.
+        (isOwner(resource.data.authorId) &&
+                        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt'])) ||
+        // Any signed-in user can update interaction counts and replies.
+        (isSignedIn() && (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
+          ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
+        ));
 
-      // Rule 4: Any signed-in user can update interaction counts and replies.
-      allow update: if isSignedIn() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['favorites', 'favoritedBy']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits']) ||
-        ((request.resource.data.replies == resource.data.replies + 1 || request.resource.data.replies == resource.data.replies - 1) &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['replies']))
-      );
-      
       allow delete: if isRequestingUserAdmin();
 
       // Comments subcollection
