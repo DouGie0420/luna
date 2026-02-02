@@ -23,7 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
-import type { BbsPost, User, UserProfile } from '@/lib/types';
+import type { BbsPost, User } from '@/lib/types';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import {
   Dialog,
@@ -208,11 +208,25 @@ export default function NewBbsPostPage() {
     }
     setIsSubmitting(true);
 
-    const authorData: Partial<User> = {
+    const authorData: User = {
       id: user.uid,
       name: profile.displayName || user.displayName || 'Anonymous',
       avatarUrl: profile.photoURL || user.photoURL || '',
+      rating: profile.rating || 0,
+      reviews: profile.reviewsCount || 0,
+      isPro: profile.isPro || false,
+      isWeb3Verified: profile.isWeb3Verified || false,
+      isNftVerified: profile.isNftVerified || false,
+      kycStatus: profile.kycStatus || 'Not Verified',
+      location: { city: profile.location || 'Bangkok', country: 'Thailand', countryCode: 'TH', lat: 13.7563, lng: 100.5018 },
+      onSaleCount: profile.onSaleCount || 0,
+      itemsSold: profile.salesCount || 0,
+      creditScore: profile.creditScore || 0,
       creditLevel: profile.creditLevel || 'Newcomer',
+      followersCount: profile.followersCount || 0,
+      followingCount: profile.followingCount || 0,
+      postsCount: profile.postsCount || 0,
+      displayedBadge: profile.displayedBadge || 'none',
     };
     
     const postData = {
