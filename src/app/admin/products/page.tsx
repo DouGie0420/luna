@@ -192,7 +192,7 @@ export default function AdminProductsPage() {
         const itemRef = doc(firestore, collectionName, itemId);
         try {
             await updateDoc(itemRef, { status });
-            toast({ title: '状态已更新', description: `项目已设置为 "${status}"。` });
+            toast({ title: '状态已更新', description: `项目已设置为 "${'status'}"。` });
         } catch (error) {
             console.error("Failed to update status:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { status } }));
