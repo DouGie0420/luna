@@ -166,34 +166,34 @@ export default function ProductPage() {
     return (
         <>
             <PageHeaderWithBackAndClose />
-             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <div className="container mx-auto px-4 py-12">
-                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
-                        {/* Left Column: Image Carousel & Actions */}
-                        <div className="lg:col-span-3">
-                             <ProductImageGallery 
-                                product={product} 
-                                isLiked={isLiked}
-                                isFavorited={isFavorited}
-                                onLikeToggle={() => handleInteraction('like')}
-                                onFavoriteToggle={() => handleInteraction('favorite')}
-                            />
-                        </div>
-
-                        {/* Right Column: Product Details & Actions */}
-                        <div className="lg:col-span-2 flex flex-col gap-6">
-                            <div className="relative">
-                                <ProductTitleWithBadge product={product} />
-                            </div>
-                            
-                            <ProductPurchaseActions product={product} />
-
-                            <SellerProfileCard product={product} />
-                        </div>
+            <div className="container mx-auto px-4 py-12">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-8">
+                    {/* Left Column: Image Carousel & Actions */}
+                    <div className="lg:col-span-3">
+                         <ProductImageGallery 
+                            product={product} 
+                            isLiked={isLiked}
+                            isFavorited={isFavorited}
+                            onLikeToggle={() => handleInteraction('like')}
+                            onFavoriteToggle={() => handleInteraction('favorite')}
+                        />
                     </div>
-                    
-                    {/* Description and other sections below */}
-                    <div className="mt-12 flex flex-col gap-8">
+
+                    {/* Right Column: Product Details & Actions */}
+                    <div className="lg:col-span-2 flex flex-col gap-6">
+                        <div className="relative">
+                            <ProductTitleWithBadge product={product} />
+                        </div>
+                        
+                        <ProductPurchaseActions product={product} />
+
+                        <SellerProfileCard product={product} />
+                    </div>
+                </div>
+                
+                {/* Description and other sections below */}
+                <div className="mt-12 flex flex-col gap-8">
+                    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>商品描述</CardTitle>
@@ -210,44 +210,43 @@ export default function ProductPage() {
                                 <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
                             </CardContent>
                         </Card>
-                        
-                        <ProductCommentSection productId={product.id} />
-                    </div>
-
-                    <div className="mt-20">
-                        <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                            {recommendedProducts.map((p) => (
-                                <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
-                                    <Image
-                                    src={p.images[0]}
-                                    alt={p.name}
-                                    fill
-                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                                    data-ai-hint={p.imageHints[0]}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                                    <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
-                                    {p.name}
-                                    </h3>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
+                        {isOwner && (
+                            <DialogContent className="sm:max-w-[625px]">
+                                <DialogHeader>
+                                    <DialogTitle>Edit Product</DialogTitle>
+                                    <DialogDescription>
+                                        Make changes to your product here. Click save when you're done.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <ProductEditForm product={product} onSave={handleProductUpdate} />
+                            </DialogContent>
+                        )}
+                    </Dialog>
                     
-                    {isOwner && (
-                        <DialogContent className="sm:max-w-[625px]">
-                            <DialogHeader>
-                                <DialogTitle>Edit Product</DialogTitle>
-                                <DialogDescription>
-                                    Make changes to your product here. Click save when you're done.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <ProductEditForm product={product} onSave={handleProductUpdate} />
-                        </DialogContent>
-                    )}
+                    <ProductCommentSection productId={product.id} />
                 </div>
-            </Dialog>
+
+                <div className="mt-20">
+                    <h2 className="font-headline text-3xl font-semibold mb-6">为你推荐</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        {recommendedProducts.map((p) => (
+                            <Link href={`/products/${p.id}`} key={p.id} className="group aspect-video relative overflow-hidden border border-border">
+                                <Image
+                                src={p.images[0]}
+                                alt={p.name}
+                                fill
+                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                data-ai-hint={p.imageHints[0]}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                <h3 className="absolute bottom-0 left-0 p-4 font-headline text-lg text-foreground">
+                                {p.name}
+                                </h3>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </>
     );
 }
