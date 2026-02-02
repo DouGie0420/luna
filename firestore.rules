@@ -117,9 +117,10 @@ service cloud.firestore {
         request.resource.data.diff(resource.data).affectedKeys().size() == 1 &&
         request.resource.data.diff(resource.data).affectedKeys().has('status');
 
-      // Scenario 2: Product owner can edit their product, but not protected fields.
+      // Scenario 2: Product owner (who is NOT staff) can edit their product.
       allow update: if
         isOwner(resource.data.sellerId) &&
+        !isRequestingUserStaff() &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'views', 'searchHits', 'likedBy', 'favoritedBy', 'sellerId', 'createdAt']);
 
       // Scenario 3: Any signed-in user can update interaction counts.
@@ -177,9 +178,10 @@ service cloud.firestore {
             (request.resource.data.diff(resource.data).affectedKeys().size() == 1 && request.resource.data.diff(resource.data).affectedKeys().has('isFeatured'))
         );
 
-      // Scenario 2: Post owner can edit their post, but not protected fields.
+      // Scenario 2: Post owner (who is NOT staff) can edit their post.
       allow update: if
         isOwner(resource.data.authorId) &&
+        !isRequestingUserStaff() &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'location', 'likes', 'favorites', 'likedBy', 'favoritedBy', 'replies', 'views', 'searchHits', 'isFeatured', 'authorId', 'createdAt']);
 
       // Scenario 3: Any signed-in user can update interaction counts and replies.
