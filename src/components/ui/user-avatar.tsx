@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Shield, ShieldCheck, CheckCircle, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
+import { Shield, ShieldCheck, CheckCircle2, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -18,14 +18,14 @@ interface UserAvatarProps {
 }
 
 const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
-    email: (props) => <CheckCircle {...props} />,
+    email: (props) => <CheckCircle2 {...props} />,
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
     pro: (props) => <ShieldCheck {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
     contributor: (props) => <Sparkles {...props} />,
-    admin: (props) => <Shield {...props} />,
+    admin: (props) => <CheckCircle2 {...props} />,
 };
 
 const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
@@ -36,7 +36,7 @@ const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     nft: 'text-purple-400',
     influencer: 'text-yellow-400',
     contributor: 'text-pink-500',
-    admin: 'text-destructive',
+    admin: 'text-white',
 };
 
 export function UserAvatar({ profile, className }: UserAvatarProps) {
@@ -47,15 +47,18 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
     return (
         <div className={cn(
             "relative",
-            isAdminBadge && "rounded-full border-2 border-dashed border-destructive p-0.5 animate-pulse",
+            isAdminBadge && "p-0.5 bg-indigo-500 hexagon-clip",
             className
         )}>
-            <Avatar className="h-full w-full">
+            <Avatar className={cn("h-full w-full", isAdminBadge && "hexagon-clip")}>
                 <AvatarImage src={profile?.photoURL || undefined} alt={profile?.displayName || 'User'} />
-                <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarFallback className={cn(isAdminBadge && "hexagon-clip")}>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             {BadgeIcon && (
-                 <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                 <div className={cn(
+                     "absolute -bottom-1 -right-1 z-10 rounded-full p-0.5 backdrop-blur-sm",
+                     isAdminBadge ? 'bg-indigo-500' : 'bg-black/80'
+                 )}>
                     <BadgeIcon className={cn("h-4 w-4", badgeColors[displayedBadge!])} />
                 </div>
             )}

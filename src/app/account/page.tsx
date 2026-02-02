@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, Shield } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, Shield, CheckCircle2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -170,7 +170,7 @@ export default function AccountProfilePage() {
     };
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
-    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle });
+    if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle2 });
     if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: Fingerprint });
     if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: ShieldCheck });
     if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: Globe });
@@ -178,7 +178,7 @@ export default function AccountProfilePage() {
     if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: Award });
     if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: Sparkles });
     if (['admin', 'staff', 'support', 'ghost'].includes(profile?.role || '')) {
-      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: Shield });
+      availableBadges.push({ type: 'admin', label: t('accountPage.badges.admin_label'), icon: CheckCircle2 });
     }
 
     const handleBadgeSelection = async (value: string) => {
@@ -363,7 +363,7 @@ export default function AccountProfilePage() {
                                 {availableBadges.map(({ type, label, icon: Icon }) => (
                                     <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
                                         <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        <Icon className={cn("h-8 w-8", type === 'admin' ? 'text-destructive' : 'text-primary')} />
+                                        <Icon className={cn("h-8 w-8", type === 'admin' ? 'text-indigo-500' : 'text-primary')} />
                                         <span className="font-semibold">{label}</span>
                                     </Label>
                                 ))}
