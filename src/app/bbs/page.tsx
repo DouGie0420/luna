@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 
 function haversineDistance(
   coords1: { lat: number; lng: number },
@@ -71,7 +72,16 @@ export default function BbsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const postsQuery = useMemo(() => firestore ? query(collection(firestore, 'bbs'), orderBy('createdAt', 'desc')) : null, [firestore]);
+    const postsQuery = useMemo(() => 
+        firestore 
+        ? query(
+            collection(firestore, 'bbs'), 
+            where('status', '==', 'active'), 
+            orderBy('createdAt', 'desc')
+          ) 
+        : null, 
+    [firestore]);
+
     const { data: posts, loading } = useCollection<BbsPost>(postsQuery);
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'featured' | 'nearest'>('newest');

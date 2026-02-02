@@ -444,21 +444,22 @@ export default function BbsPostPage() {
     const handleDeletePost = () => {
         if (!firestore || !post || !postRef) return;
     
-        setIsDeleteDialogOpen(false); // Close dialog immediately
+        // Close dialog immediately to prevent UI freeze
+        setIsDeleteDialogOpen(false); 
     
         const updateData = { status: 'under_review' as const };
         updateDoc(postRef, updateData)
             .then(() => {
-                setTimeout(() => { // Defer toast to avoid React state update collision
+                // Defer toast and navigation slightly to allow UI to update
+                setTimeout(() => {
                     toast({
                         title: "帖子已提交审核",
                         description: "该帖子现在将在后台等待最终审核。",
                     });
-                }, 0);
-                router.push('/bbs'); // Navigate away
+                    router.push('/bbs'); // Navigate away
+                }, 50); 
             })
             .catch(serverError => {
-                // The dialog is already closed, so just handle the error.
                 const permissionError = new FirestorePermissionError({
                     path: postRef.path,
                     operation: 'update',
