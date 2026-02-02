@@ -64,11 +64,9 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
 
             {/* Render PRO badge as a label below */}
             {isProBadgeActive && (
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
-                    <Badge variant="default" className="bg-primary border-transparent text-primary-foreground flex items-center gap-1.5 px-3 py-1 shadow-lg shadow-primary/50">
-                        <ShieldCheck className="h-4 w-4" />
-                        <span className="text-sm font-bold tracking-wider">PRO</span>
-                    </Badge>
+                <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-transparent px-1.5 py-0.5">
+                    <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs font-bold tracking-wider text-primary">PRO</span>
                 </div>
             )}
         </div>
