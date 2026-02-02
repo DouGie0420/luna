@@ -76,7 +76,7 @@ export default function AdminPromotionsPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-6">广告管理 (Promotions)</h2>
+            <h2 className="text-3xl font-headline mb-6">首页广告管理</h2>
             <div className="grid gap-8">
                 
                 <Card>
