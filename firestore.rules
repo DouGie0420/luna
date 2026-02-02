@@ -64,11 +64,12 @@ service cloud.firestore {
                          'isPro', 'isWeb3Verified', 'isNftVerified', 'walletAddress'
                        ]);
       
-      // Allow user to change their role from 'guest' to 'user' once.
+      // Allow user to change their role from 'guest' to 'user' upon first verified login.
+      // This also allows updating other profile fields at the same time.
       allow update: if isOwner(userId) &&
                        resource.data.role == 'guest' &&
                        request.resource.data.role == 'user' &&
-                       request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']);
+                       request.resource.data.diff(resource.data).affectedKeys().difference(['role', 'lastLogin', 'displayName', 'photoURL', 'emailVerified']).size() == 0;
 
       // Allow user to increment/decrement their own following count.
       allow update: if isOwner(userId) &&
