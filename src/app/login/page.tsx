@@ -121,15 +121,26 @@ export default function LoginPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error("Social login error:", error);
-      toast({
-        variant: 'destructive',
-        title: t('loginPage.loginFailedTitle'),
-        description: error.message || t('loginPage.loginFailedDescription'),
-        x: e.clientX,
-        y: e.clientY,
-      });
-      setIsLoading(false);
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          variant: 'default',
+          title: t('loginPage.popupClosedTitle'),
+          description: t('loginPage.popupClosed'),
+          x: e.clientX,
+          y: e.clientY,
+        });
+      } else {
+        console.error("Social login error:", error);
+        toast({
+          variant: 'destructive',
+          title: t('loginPage.loginFailedTitle'),
+          description: error.message || t('loginPage.loginFailedDescription'),
+          x: e.clientX,
+          y: e.clientY,
+        });
+      }
+    } finally {
+        setIsLoading(false);
     }
   };
 

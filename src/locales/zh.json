@@ -20,7 +20,9 @@
     "testLoginSuccessTitle": "测试登录成功",
     "loginSuccessTitle": "登录成功",
     "loginFailedTitle": "登录失败",
-    "loginFailedDescription": "无法通过社交账号登录，请稍后再试。"
+    "loginFailedDescription": "无法通过社交账号登录，请稍后再试。",
+    "popupClosedTitle": "登录已取消",
+    "popupClosed": "登录窗口在完成前已关闭。"
   },
   "registerPage": {
     "title": "创建您的 LUNA 账户",
@@ -43,7 +45,9 @@
     "registrationSuccessTitle": "注册成功",
     "registrationFailedTitle": "注册失败",
     "registrationFailedDescription": "无法通过社交账号注册，请稍后再试。",
-    "emailVerificationResent": "验证邮件已重新发送。"
+    "emailVerificationResent": "验证邮件已重新发送。",
+    "popupClosedTitle": "注册已取消",
+    "popupClosed": "注册窗口在完成前已关闭。"
   },
   "verify-email": {
     "title": "验证您的邮箱",

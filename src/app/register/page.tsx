@@ -123,12 +123,20 @@ export default function RegisterPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error("Social login error:", error);
-      toast({
-        variant: 'destructive',
-        title: t('registerPage.registrationFailedTitle'),
-        description: error.message || t('registerPage.registrationFailedDescription'),
-      });
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({
+          variant: 'default',
+          title: t('registerPage.popupClosedTitle'),
+          description: t('registerPage.popupClosed'),
+        });
+      } else {
+        console.error("Social login error:", error);
+        toast({
+          variant: 'destructive',
+          title: t('registerPage.registrationFailedTitle'),
+          description: error.message || t('registerPage.registrationFailedDescription'),
+        });
+      }
     } finally {
       setIsLoading(false);
     }

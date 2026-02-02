@@ -20,7 +20,9 @@
     "testLoginSuccessTitle": "Test Login Successful",
     "loginSuccessTitle": "Login Successful",
     "loginFailedTitle": "Login Failed",
-    "loginFailedDescription": "Could not sign in with social account. Please try again later."
+    "loginFailedDescription": "Could not sign in with social account. Please try again later.",
+    "popupClosedTitle": "Login Cancelled",
+    "popupClosed": "The login window was closed before completion."
   },
   "registerPage": {
     "title": "Create your LUNA account",
@@ -43,7 +45,9 @@
     "registrationSuccessTitle": "Registration Successful",
     "registrationFailedTitle": "Registration Failed",
     "registrationFailedDescription": "Could not register with social account. Please try again later.",
-    "emailVerificationResent": "Verification email has been resent."
+    "emailVerificationResent": "Verification email has been resent.",
+    "popupClosedTitle": "Registration Cancelled",
+    "popupClosed": "The registration window was closed before completion."
   },
   "verify-email": {
     "title": "Verify Your Email",

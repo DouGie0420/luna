@@ -20,7 +20,9 @@
     "testLoginSuccessTitle": "เข้าสู่ระบบทดสอบสำเร็จ",
     "loginSuccessTitle": "เข้าสู่ระบบสำเร็จ",
     "loginFailedTitle": "เข้าสู่ระบบล้มเหลว",
-    "loginFailedDescription": "ไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง"
+    "loginFailedDescription": "ไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง",
+    "popupClosedTitle": "ยกเลิกการเข้าสู่ระบบ",
+    "popupClosed": "หน้าต่างเข้าสู่ระบบถูกปิดก่อนที่จะเสร็จสมบูรณ์"
   },
   "registerPage": {
     "title": "สร้างบัญชี LUNA ของคุณ",
@@ -43,7 +45,9 @@
     "registrationSuccessTitle": "ลงทะเบียนสำเร็จ",
     "registrationFailedTitle": "การลงทะเบียนล้มเหลว",
     "registrationFailedDescription": "ไม่สามารถลงทะเบียนด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง",
-    "emailVerificationResent": "ส่งอีเมลยืนยันอีกครั้งแล้ว"
+    "emailVerificationResent": "ส่งอีเมลยืนยันอีกครั้งแล้ว",
+    "popupClosedTitle": "ยกเลิกการลงทะเบียน",
+    "popupClosed": "หน้าต่างลงทะเบียนถูกปิดก่อนที่จะเสร็จสมบูรณ์"
   },
   "verify-email": {
     "title": "ยืนยันอีเมลของคุณ",
