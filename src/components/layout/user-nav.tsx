@@ -77,11 +77,6 @@ export function UserNav() {
     }
     setIsLinkingWallet(true);
     try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        if (!accounts || accounts.length === 0) {
-          throw new Error('No accounts found. Please connect your wallet.');
-        }
-
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         const address = await signer.getAddress();
