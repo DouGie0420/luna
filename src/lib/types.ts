@@ -22,6 +22,7 @@ export type Product = {
   isConsignment?: boolean;
   shippingMethod?: 'Seller Pays' | 'Buyer Pays';
   status?: 'active' | 'under_review' | 'hidden';
+  reviewReason?: string;
   likes?: number;
   favorites?: number;
   views?: number;
@@ -186,6 +187,7 @@ export type BbsPost = {
   imageHints?: string[];
   isFeatured?: boolean;
   status?: 'active' | 'under_review' | 'hidden';
+  reviewReason?: string;
   favorites?: number;
   likedBy?: string[];
   favoritedBy?: string[];

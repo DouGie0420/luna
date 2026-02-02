@@ -20,15 +20,22 @@ import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation";
 import { useToast } from '@/hooks/use-toast';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { format } from 'date-fns';
@@ -37,7 +44,7 @@ type ProductStatus = NonNullable<Product['status']>;
 type PostStatus = NonNullable<BbsPost['status']>;
 
 
-function ProductTable({ products, loading, onStatusChange, onProductDelete }: { products: Product[] | null, loading: boolean, onStatusChange: (id: string, status: ProductStatus) => void, onProductDelete: (product: Product) => void }) {
+function ProductTable({ products, loading, onStatusChange, onSetReason }: { products: Product[] | null, loading: boolean, onStatusChange: (id: string, status: ProductStatus) => void, onSetReason: (product: Product) => void }) {
     const { t } = useTranslation();
 
     if (loading) {
@@ -56,6 +63,7 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
                     <TableHead>卖家</TableHead>
                     <TableHead>价格</TableHead>
                     <TableHead>提交时间</TableHead>
+                    <TableHead>原因</TableHead>
                     <TableHead className="text-right">操作</TableHead>
                 </TableRow>
             </TableHeader>
@@ -74,6 +82,9 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
                         <TableCell>{product.seller.name}</TableCell>
                         <TableCell>{product.price.toLocaleString()} {product.currency}</TableCell>
                         <TableCell>{product.createdAt ? format(product.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
+                        <TableCell>
+                            <Badge variant={product.reviewReason ? "destructive" : "secondary"}>{product.reviewReason || 'N/A'}</Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -86,9 +97,9 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         <span>批准 (重新发布)</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive" onClick={() => onProductDelete(product)}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>确认删除</span>
+                                    <DropdownMenuItem onClick={() => onSetReason(product)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>添加/更新原因</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -100,7 +111,7 @@ function ProductTable({ products, loading, onStatusChange, onProductDelete }: { 
     )
 }
 
-function PostTable({ posts, loading, onStatusChange, onPostDelete }: { posts: BbsPost[] | null, loading: boolean, onStatusChange: (id: string, status: PostStatus) => void, onPostDelete: (post: BbsPost) => void }) {
+function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: BbsPost[] | null, loading: boolean, onStatusChange: (id: string, status: PostStatus) => void, onSetReason: (post: BbsPost) => void }) {
     if (loading) {
         return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
@@ -116,6 +127,7 @@ function PostTable({ posts, loading, onStatusChange, onPostDelete }: { posts: Bb
                     <TableHead>帖子</TableHead>
                     <TableHead>作者</TableHead>
                     <TableHead>提交时间</TableHead>
+                    <TableHead>原因</TableHead>
                     <TableHead className="text-right">操作</TableHead>
                 </TableRow>
             </TableHeader>
@@ -128,6 +140,9 @@ function PostTable({ posts, loading, onStatusChange, onPostDelete }: { posts: Bb
                         </TableCell>
                         <TableCell>{post.author.name}</TableCell>
                         <TableCell>{post.createdAt ? format(post.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
+                         <TableCell>
+                            <Badge variant={post.reviewReason ? "destructive" : "secondary"}>{post.reviewReason || 'N/A'}</Badge>
+                        </TableCell>
                         <TableCell className="text-right">
                              <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -140,9 +155,9 @@ function PostTable({ posts, loading, onStatusChange, onPostDelete }: { posts: Bb
                                         <CheckCircle className="mr-2 h-4 w-4" />
                                         <span>批准 (恢复显示)</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive" onClick={() => onPostDelete(post)}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>确认删除</span>
+                                    <DropdownMenuItem onClick={() => onSetReason(post)}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        <span>添加/更新原因</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -159,63 +174,52 @@ export default function AdminProductsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     
+    // Review Item State
+    const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
+    const [reviewReason, setReviewReason] = useState('涉黄');
+    const [customReason, setCustomReason] = useState('');
+
     // Product states
-    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
     const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products'), where('status', '==', 'under_review')) : null, [firestore]);
     const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
 
     // Post states
-    const [postToDelete, setPostToDelete] = useState<BbsPost | null>(null);
     const postsQuery = useMemo(() => firestore ? query(collection(firestore, 'bbs'), where('status', '==', 'under_review')) : null, [firestore]);
     const { data: posts, loading: postsLoading } = useCollection<BbsPost>(postsQuery);
 
-    // Product handlers
-    const handleProductStatusChange = async (productId: string, status: ProductStatus) => {
+    const handleStatusChange = async (collectionName: 'products' | 'bbs', itemId: string, status: ProductStatus | PostStatus) => {
         if (!firestore) return;
-        const productRef = doc(firestore, 'products', productId);
+        const itemRef = doc(firestore, collectionName, itemId);
         try {
-            await updateDoc(productRef, { status });
-            toast({ title: '商品状态已更新', description: `商品已设置为 "${status}"。` });
+            await updateDoc(itemRef, { status });
+            toast({ title: '状态已更新', description: `项目已设置为 "${status}"。` });
         } catch (error) {
             console.error("Failed to update status:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: productRef.path, operation: 'update', requestResourceData: { status } }));
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { status } }));
         }
     };
-    const handleProductDelete = async () => {
-        if (!firestore || !productToDelete) return;
-        const productRef = doc(firestore, 'products', productToDelete.id);
-        try {
-            await deleteDoc(productRef);
-            toast({ title: '商品已删除', description: `商品 '${productToDelete.name}' 已被永久删除。` });
-            setProductToDelete(null);
-        } catch (error) {
-            console.error("Failed to delete product:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: productRef.path, operation: 'delete' }));
-        }
-    };
+    
+    const handleConfirmSetReason = async () => {
+        if (!firestore || !itemToReview) return;
 
-    // Post handlers
-    const handlePostStatusChange = async (postId: string, status: PostStatus) => {
-        if (!firestore) return;
-        const postRef = doc(firestore, 'bbs', postId);
-        try {
-            await updateDoc(postRef, { status });
-            toast({ title: '帖子状态已更新', description: `帖子已设置为 "${status}"。` });
-        } catch (error) {
-            console.error("Failed to update status:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: postRef.path, operation: 'update', requestResourceData: { status } }));
+        const finalReason = reviewReason === '其它违规' ? customReason : reviewReason;
+        if (!finalReason || !finalReason.trim()) {
+            toast({ variant: 'destructive', title: '原因不能为空' });
+            return;
         }
-    };
-    const handlePostDelete = async () => {
-        if (!firestore || !postToDelete) return;
-        const postRef = doc(firestore, 'bbs', postToDelete.id);
+
+        const collectionPath = itemToReview.type === 'product' ? 'products' : 'bbs';
+        const itemRef = doc(firestore, collectionPath, itemToReview.item.id);
+
         try {
-            await deleteDoc(postRef);
-            toast({ title: '帖子已删除', description: `帖子 '${postToDelete.title}' 已被永久删除。` });
-            setPostToDelete(null);
+            await updateDoc(itemRef, { reviewReason: finalReason });
+            toast({ title: '原因已记录' });
+            setItemToReview(null);
+            setReviewReason('涉黄');
+            setCustomReason('');
         } catch (error) {
-            console.error("Failed to delete post:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: postRef.path, operation: 'delete' }));
+            console.error("Failed to set review reason:", error);
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
         }
     };
 
@@ -226,47 +230,54 @@ export default function AdminProductsPage() {
             
             <div className="mb-12">
                 <h3 className="text-2xl font-headline mb-4">待审核商品</h3>
-                <ProductTable products={products} loading={productsLoading} onStatusChange={handleProductStatusChange} onProductDelete={setProductToDelete} />
+                <ProductTable 
+                    products={products} 
+                    loading={productsLoading} 
+                    onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
+                    onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
+                />
             </div>
 
             <div>
                 <h3 className="text-2xl font-headline mb-4">待审核帖子</h3>
-                 <PostTable posts={posts} loading={postsLoading} onStatusChange={handlePostStatusChange} onPostDelete={setPostToDelete} />
+                 <PostTable 
+                    posts={posts} 
+                    loading={postsLoading} 
+                    onStatusChange={(id, status) => handleStatusChange('bbs', id, status)}
+                    onSetReason={(post) => setItemToReview({ type: 'post', item: post })} 
+                />
             </div>
 
-            <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>您确定要永久删除此商品吗？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            此操作无法撤销。这将从数据库中永久删除商品 "{productToDelete?.name}".
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleProductDelete} className="bg-destructive hover:bg-destructive/90">
-                            确认删除
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-            
-            <AlertDialog open={!!postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>您确定要永久删除此帖子吗？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                             此操作无法撤销。这将从数据库中永久删除帖子 "{postToDelete?.title}".
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handlePostDelete} className="bg-destructive hover:bg-destructive/90">
-                            确认删除
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <Dialog open={!!itemToReview} onOpenChange={(open) => !open && setItemToReview(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>为 "{('name' in (itemToReview?.item || {})) ? itemToReview?.item.name : itemToReview?.item.title}" 添加审核原因</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <Label htmlFor="reason-select">选择原因</Label>
+                        <Select value={reviewReason} onValueChange={setReviewReason}>
+                            <SelectTrigger id="reason-select">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="涉黄">涉黄 (Pornographic)</SelectItem>
+                                <SelectItem value="涉暴">涉暴 (Violent)</SelectItem>
+                                <SelectItem value="其它违规">其它违规 (Other)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        {reviewReason === '其它违规' && (
+                            <div className="grid gap-2">
+                                <Label htmlFor="custom-reason">请具体说明</Label>
+                                <Input id="custom-reason" value={customReason} onChange={(e) => setCustomReason(e.target.value)} />
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setItemToReview(null)}>取消</Button>
+                        <Button onClick={handleConfirmSetReason}>确认</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

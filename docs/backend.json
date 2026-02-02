@@ -48,6 +48,10 @@
           ],
           "description": "The current status of the product listing."
         },
+        "reviewReason": {
+          "type": "string",
+          "description": "The reason a product is under review."
+        },
         "location": {
           "type": "object",
           "properties": {
@@ -668,6 +672,10 @@
           "type": "string",
           "enum": ["active", "under_review", "hidden"],
           "description": "The current status of the BBS post."
+        },
+        "reviewReason": {
+          "type": "string",
+          "description": "The reason a post is under review."
         },
         "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who liked the post." },
         "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." },
