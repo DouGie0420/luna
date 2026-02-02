@@ -58,8 +58,8 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
                 <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             
-            {displayedBadge === 'pro' ? (
-                 <div className="absolute bottom-0.5 left-0 right-0 z-10 text-center">
+            {displayedBadge === 'pro' || (profile?.isPro && displayedBadge === undefined) ? (
+                 <div className="absolute -bottom-0.5 left-0 right-0 z-10 text-center">
                     <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg whitespace-nowrap">PRO</span>
                 </div>
             ) : OtherBadgeIcon ? (
