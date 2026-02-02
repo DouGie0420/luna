@@ -60,7 +60,7 @@ function ProductTable({ products, loading, onStatusChange, onSetReason }: { prod
             <TableHeader>
                 <TableRow>
                     <TableHead>商品</TableHead>
-                    <TableHead>卖家</TableHead>
+                    <TableHead className="w-[150px]">卖家</TableHead>
                     <TableHead className="w-[120px]">价格</TableHead>
                     <TableHead className="w-[180px]">提交时间</TableHead>
                     <TableHead className="w-[120px]">原因</TableHead>
@@ -125,7 +125,7 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
             <TableHeader>
                 <TableRow>
                     <TableHead>帖子</TableHead>
-                    <TableHead>作者</TableHead>
+                    <TableHead className="w-[150px]">作者</TableHead>
                     <TableHead className="w-[120px]"></TableHead>
                     <TableHead className="w-[180px]">提交时间</TableHead>
                     <TableHead className="w-[120px]">原因</TableHead>
