@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck, Plus, Check } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint } from "lucide-react";
 import { getUsers, getProducts } from "@/lib/data";
 import { notFound, useParams } from "next/navigation";
 import type { User, Product } from "@/lib/types";
@@ -238,25 +238,26 @@ export default function UserProfilePage() {
                                 <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
                                 <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                                     {user.isPro && (
-                                        <div className="flex items-center gap-1.5 text-green-400">
+                                        <div className="flex items-center gap-1.5 text-green-500">
                                             <ShieldCheck className="h-4 w-4" />
                                             <span>{t('userProfile.pro')}</span>
                                         </div>
                                     )}
-                                    {user.isNftVerified ? (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <EthereumIcon className="h-4 w-4" />
-                                            <span>NFT</span>
-                                        </div>
-                                    ) : user.isWeb3Verified && (
+                                    {user.isWeb3Verified && (
                                         <div className="flex items-center gap-1.5 text-blue-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                            <Globe className="h-4 w-4" />
                                             <span>WEB3</span>
                                         </div>
                                     )}
+                                    {user.isNftVerified && (
+                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                            <EthereumIcon className="h-4 w-4" />
+                                            <span>NFT</span>
+                                        </div>
+                                    )}
                                     {user.kycStatus === 'Verified' && (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-yellow-400">
+                                            <Fingerprint className="h-4 w-4" />
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}

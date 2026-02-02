@@ -82,8 +82,8 @@
       "email_label": "Email Verified",
       "kyc_label": "KYC Verified",
       "pro_label": "PRO Merchant",
-      "web3_label": "Web3 Player",
-      "nft_label": "NFT Avatar",
+      "web3_label": "WEB3",
+      "nft_label": "NFT",
       "influencer_label": "Community KOL",
       "contributor_label": "Featured Author",
       "update_success": "Displayed badge updated"

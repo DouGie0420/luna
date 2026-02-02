@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -171,9 +171,9 @@ export default function AccountProfilePage() {
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
     if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle });
-    if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: ShieldCheck });
+    if (profile?.kycStatus === 'Verified') availableBadges.push({ type: 'kyc', label: t('accountPage.badges.kyc_label'), icon: Fingerprint });
     if (profile?.isPro) availableBadges.push({ type: 'pro', label: t('accountPage.badges.pro_label'), icon: ShieldCheck });
-    if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: ShieldCheck });
+    if (profile?.isWeb3Verified) availableBadges.push({ type: 'web3', label: t('accountPage.badges.web3_label'), icon: Globe });
     if (profile?.isNftVerified) availableBadges.push({ type: 'nft', label: t('accountPage.badges.nft_label'), icon: EthereumIcon });
     if ((profile?.followersCount || 0) >= 10000) availableBadges.push({ type: 'influencer', label: t('accountPage.badges.influencer_label'), icon: Award });
     if ((profile?.featuredCount || 0) >= 20) availableBadges.push({ type: 'contributor', label: t('accountPage.badges.contributor_label'), icon: Sparkles });
@@ -447,25 +447,26 @@ export default function AccountProfilePage() {
                                 <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
                                 <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
                                     {profile?.isPro && (
-                                        <div className="flex items-center gap-1.5 text-green-400">
+                                        <div className="flex items-center gap-1.5 text-green-500">
                                             <ShieldCheck className="h-4 w-4" />
                                             <span>{t('userProfile.pro')}</span>
                                         </div>
                                     )}
-                                    {profile?.isNftVerified ? (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <EthereumIcon className="h-4 w-4" />
-                                            <span>NFT</span>
-                                        </div>
-                                    ) : profile?.isWeb3Verified && (
+                                    {profile?.isWeb3Verified && (
                                         <div className="flex items-center gap-1.5 text-blue-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                            <Globe className="h-4 w-4" />
                                             <span>WEB3</span>
                                         </div>
                                     )}
+                                    {profile?.isNftVerified && (
+                                        <div className="flex items-center gap-1.5 text-purple-400">
+                                            <EthereumIcon className="h-4 w-4" />
+                                            <span>NFT</span>
+                                        </div>
+                                    )}
                                     {profile?.kycStatus === 'Verified' && (
-                                        <div className="flex items-center gap-1.5 text-cyan-400">
-                                            <ShieldCheck className="h-4 w-4" />
+                                        <div className="flex items-center gap-1.5 text-yellow-400">
+                                            <Fingerprint className="h-4 w-4" />
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}

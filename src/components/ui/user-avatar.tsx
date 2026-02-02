@@ -4,7 +4,7 @@ import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { UserProfile, BadgeType } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ShieldCheck, CheckCircle, Award, Sparkles } from 'lucide-react';
+import { ShieldCheck, CheckCircle, Award, Sparkles, Fingerprint, Globe } from 'lucide-react';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -19,8 +19,8 @@ interface UserAvatarProps {
 
 const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: string }>> = {
     email: (props) => <CheckCircle {...props} />,
-    kyc: (props) => <ShieldCheck {...props} />,
-    web3: (props) => <ShieldCheck {...props} />,
+    kyc: (props) => <Fingerprint {...props} />,
+    web3: (props) => <Globe {...props} />,
     pro: (props) => <ShieldCheck {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
     influencer: (props) => <Award {...props} />,
@@ -29,7 +29,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none'>, React.FC<{ className?: stri
 
 const badgeColors: Record<Exclude<BadgeType, 'none'>, string> = {
     email: 'text-green-400',
-    kyc: 'text-cyan-400',
+    kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     pro: 'text-green-500',
     nft: 'text-purple-400',
