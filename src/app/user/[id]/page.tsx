@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,7 +117,11 @@ export default function UserProfilePage() {
 
         } catch (error) {
             console.error("Failed to update follow status:", error);
-            toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: `users/${user.uid}`,
+                operation: 'update',
+                requestResourceData: { followers: '...', followersCount: '...' }
+            }));
         }
     };
 

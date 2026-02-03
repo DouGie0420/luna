@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit } from "firebase/firestore";
+import { errorEmitter } from "@/firebase/error-emitter";
+import { FirestorePermissionError } from "@/firebase/errors";
 
 // --- 赛博朋克保留域名界面 ---
 function ReservedDomainUI({ loginId }: { loginId: string }) {
@@ -191,7 +193,11 @@ export default function UserProfilePage() {
 
         } catch (error) {
             console.error("Failed to update follow status:", error);
-            toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: `users/${user.uid}`,
+                operation: 'update',
+                requestResourceData: { followers: '...', followersCount: '...' }
+            }));
         }
     };
 

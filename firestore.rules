@@ -41,9 +41,23 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isSignedIn();
       
-      // 只有 admin 和 ghost 可以修改/删除管理组信息
-      allow update, delete: if isSignedIn() && (
+      allow delete: if isSignedIn() && (
         request.auth.uid == userId || hasRole(['admin', 'ghost'])
+      );
+
+      // New, more flexible update rule
+      allow update: if isSignedIn() && (
+        // Admins and ghosts have broad update powers
+        hasRole(['admin', 'ghost']) ||
+        // All other users can update, BUT...
+        (
+          // ...they cannot change these protected fields on any document.
+          !('role' in request.resource.data && request.resource.data.role != resource.data.role) &&
+          !('kycStatus' in request.resource.data && request.resource.data.kycStatus != resource.data.kycStatus) &&
+          !('isPro' in request.resource.data && request.resource.data.isPro != resource.data.isPro) &&
+          !('creditScore' in request.resource.data && request.resource.data.creditScore != resource.data.creditScore) &&
+          !('creditLevel' in request.resource.data && request.resource.data.creditLevel != resource.data.creditLevel)
+        )
       );
 
       match /notifications/{notifId} {
