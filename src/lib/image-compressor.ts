@@ -1,3 +1,4 @@
+
 'use client';
 
 const MAX_WIDTH = 1920;
