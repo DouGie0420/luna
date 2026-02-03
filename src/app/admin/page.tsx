@@ -107,7 +107,7 @@ export default function AdminDashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold"><Loader2 className="h-6 w-6 animate-spin" /></div>
-                            <p className="text-xs text-muted-foreground"><Skeleton className="h-3 w-40" /></p>
+                            <div className="text-xs text-muted-foreground"><Skeleton className="h-3 w-40" /></div>
                         </CardContent>
                     </Card>
                 ))}
