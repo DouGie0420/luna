@@ -180,6 +180,7 @@ export default function AdminProductsPage() {
     const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
     const [reviewReason, setReviewReason] = useState('涉黄');
     const [customReason, setCustomReason] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Product states
     const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products'), where('status', '==', 'under_review')) : null, [firestore]);
@@ -213,6 +214,7 @@ export default function AdminProductsPage() {
         const collectionPath = itemToReview.type === 'product' ? 'products' : 'bbs';
         const itemRef = doc(firestore, collectionPath, itemToReview.item.id);
 
+        setIsSubmitting(true);
         try {
             await updateDoc(itemRef, { reviewReason: finalReason });
             toast({ title: '原因已记录' });
@@ -222,6 +224,8 @@ export default function AdminProductsPage() {
         } catch (error) {
             console.error("Failed to set review reason:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -275,8 +279,11 @@ export default function AdminProductsPage() {
                         )}
                     </div>
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setItemToReview(null)}>取消</Button>
-                        <Button onClick={handleConfirmSetReason}>确认</Button>
+                        <Button variant="outline" onClick={() => setItemToReview(null)} disabled={isSubmitting}>取消</Button>
+                        <Button onClick={handleConfirmSetReason} disabled={isSubmitting}>
+                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            确认
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -1,20 +1,16 @@
 'use server';
 
-/**
- * @fileOverview Generates trending search keywords for the e-commerce platform.
- *
- * - getTrendingKeywords - Fetches a list of trending keywords.
- * - TrendingKeywordsOutput - The return type for the getTrendingKeywords function.
- */
-
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+// 1. 关键：直接导入模型对象
+import { gemini15Flash } from '@genkit-ai/googleai';
 
 const TrendingKeywordsOutputSchema = z.object({
   keywords: z
     .array(z.string())
     .describe('A list of trending search keywords.'),
 });
+
 export type TrendingKeywordsOutput = z.infer<
   typeof TrendingKeywordsOutputSchema
 >;
@@ -25,24 +21,16 @@ export async function getTrendingKeywords(
   return trendingKeywordsFlow({ count });
 }
 
+/**
+ * 定义 Prompt
+ */
 const prompt = ai.definePrompt({
   name: 'trendingKeywordsPrompt',
-  model: 'googleai/gemini-pro',
+  // 2. 关键：将字符串改为导入的对象引用
+  model: gemini15Flash, 
   input: { schema: z.object({ count: z.number() }) },
   output: { schema: TrendingKeywordsOutputSchema },
-  prompt: `You are an e-commerce platform's AI assistant. Generate a list of {{{count}}} trending search keywords.
-
-The keywords should be related to the following themes:
-- Cyberpunk
-- Futuristic technology
-- Retro-futuristic fashion
-- Neon aesthetics
-- Glitch art
-- High-tech gadgets
-
-The keywords should be in English.
-
-Respond with only a JSON formatted output.`,
+  prompt: `You are an e-commerce platform's AI assistant. Generate a list of {{count}} trending search keywords related to Cyberpunk, Futuristic technology, and Neon aesthetics. Respond with only a JSON formatted output.`,
 });
 
 const trendingKeywordsFlow = ai.defineFlow(
@@ -52,7 +40,13 @@ const trendingKeywordsFlow = ai.defineFlow(
     outputSchema: TrendingKeywordsOutputSchema,
   },
   async ({ count }) => {
-    const {output} = await prompt({ count });
-    return output!;
+    try {
+      const { output } = await prompt({ count });
+      return output || { keywords: ['Cyberpunk', 'Neon', 'High-tech'] };
+    } catch (error) {
+      // 3. 增加容错：如果 AI 接口彻底挂了，返回硬编码数据保证首页不崩溃
+      console.error("AI Flow Error:", error);
+      return { keywords: ['Cyberpunk', 'Futuristic', 'Neon'] };
+    }
   }
 );
