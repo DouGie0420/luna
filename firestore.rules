@@ -1,129 +1,100 @@
-
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // 【基础函数】判断是否登录
+    // --- 辅助函数 ---
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // 【核心函数】检查用户角色
-    function hasRole(roles) {
-      // 1. 必须登录
-      // 2. 必须在 /users 集合中存在该用户的文档
-      // 3. 用户文档中的 role 字段必须是 `roles` 数组中的一员
-      return isSignedIn() &&
-             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in roles;
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
-    
-    // ===============================================
-    //               用户集合规则
-    // ===============================================
-    match /users/{userId} {
-      allow get: if true; // 允许任何人读取公开的用户资料
-      
-      // 用户只能修改自己的资料
-      // admin 可以修改任何人的资料
-      // ghost 可以修改任何人，但不能修改 admin
-      allow write: if (isSignedIn() && request.auth.uid == userId) || 
-                     (hasRole(['admin'])) || 
-                     (hasRole(['ghost']) && resource.data.role != 'admin');
 
-      // 通知子集合：用户只能读写自己的通知
-      match /notifications/{notiId} {
-        allow read, write, list: if isSignedIn() && request.auth.uid == userId;
-      }
+    function hasRole(roles) {
+      return isSignedIn() && getRole() in roles;
+    }
+
+    // 判断是否属于你的四级管理组
+    function isAdminGroup() {
+      return hasRole(['admin', 'ghost', 'staff', 'support']);
+    }
+
+    // --- 订单集合 (orders) 修复逻辑 ---
+    match /orders/{orderId} {
       
-      // 地址子集合：用户只能读写自己的地址
+      // 1. 列表查询 (list)：必须与前端 array-contains 查询完全对应
+      // 解决了“我买到的”页面报错
+      allow list: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      
+      // 2. 单文档读取 (get)：允许参与者或管理组查看
+      allow get: if isSignedIn() && (
+        request.auth.uid in resource.data.participants || isAdminGroup()
+      );
+
+      // 3. 写入权限
+      allow create: if isSignedIn();
+      allow update, delete: if isAdminGroup();
+    }
+
+    // --- 用户集合 (users) ---
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdminGroup());
+      
+      // 只有 admin 和 ghost 可以修改/删除管理组信息
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid == userId || hasRole(['admin', 'ghost'])
+      );
+
+      match /notifications/{notifId} {
+        allow read, list: if isSignedIn() && request.auth.uid == userId;
+        allow write: if isAdminGroup();
+      }
+
       match /addresses/{addressId} {
         allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
     }
 
-    // ===============================================
-    //               社区内容规则 (BBS)
-    // ===============================================
-    match /bbs/{postId} {
-      allow read, list: if true; // 所有人可读
-      allow create: if isSignedIn(); // 登录用户可发帖
-      // 作者或管理员/员工可修改/删除
-      allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+    // --- 其他后台管理模块 (KYC, 收款, 工单) ---
+    // 你的定义：staff 和 support 拥有这些模块的全部权限
+    match /kyc_applications/{appId} { allow read, write: if isAdminGroup(); }
+    match /paymentChangeRequests/{reqId} { allow read, write: if isAdminGroup(); }
+    match /supportTickets/{ticketId} { allow read, write: if isAdminGroup(); }
 
-      match /comments/{commentId} {
+    // --- 内容管理 (社区, 广告, 问题) ---
+    // 你的定义：staff 有权限，support 无权限
+    match /bbs/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+    }
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+    }
+    match /ads/{adId} {
+      allow read: if true;
+      allow write: if hasRole(['admin', 'ghost', 'staff']);
+    }
+
+    // --- 评论子集合规则 ---
+    match /bbs/{postId}/comments/{commentId} {
         allow read, list: if true;
         allow create: if isSignedIn();
         allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
-      }
+    }
+     match /products/{productId}/comments/{commentId} {
+        allow read, list: if true;
+        allow create: if isSignedIn();
+        allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
     }
 
-    // ===============================================
-    //               商品规则
-    // ===============================================
-    match /products/{productId} {
-      allow read, list: if true; // 所有人可读
-      // 登录用户可创建商品，且卖家ID必须是自己
-      allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-      // 卖家或管理员/员工可修改/删除
-      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
-      
-      match /comments/{commentId} {
-          allow read, list: if true;
-          allow create: if isSignedIn();
-          allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
-      }
-    }
-
-    // ===============================================
-    //               订单规则 (最终修复版)
-    // ===============================================
-    match /orders/{orderId} {
-       // 列表查询(list): 规则必须与客户端查询完全匹配。
-       // 这条规则仅允许用户查询 `participants` 数组包含自身ID的订单列表。
-       allow list: if isSignedIn() && request.auth.uid in resource.data.participants;
-
-       // 单文档读取(get): 允许参与者或任何管理组成员查看。
-       // 这保证了订单详情页对用户和管理员都可用。
-       allow get: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
-
-       // 订单创建: 只允许已登录用户以自己的名义下单。
-       allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
-
-       // 订单更新: 允许参与者或管理组更新订单状态等信息。
-       allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
-    }
-    
-    // ===============================================
-    //               评价规则
-    // ===============================================
-    match /reviews/{reviewId} {
-       allow get, list: if true; // 任何人都可以查看评价
-       allow create: if isSignedIn() && request.resource.data.reviewerId == request.auth.uid; // 评价者必须是自己
-    }
-
-    // ===============================================
-    //            支付方式修改申请规则
-    // ===============================================
-    match /paymentChangeRequests/{requestId} {
-      // 用户只能创建自己的申请
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // 用户可以查看自己的申请，管理员/客服也可以
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
-      // 用户可以列出自己的申请，管理员/客服可以列出所有待处理的申请
-      allow list: if isSignedIn() && (request.query.get("userId") == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
-      // 只有管理员/员工/客服可以批准/拒绝申请
-      allow update: if hasRole(['admin', 'ghost', 'staff', 'support']);
-    }
-    
-    // ===============================================
-    //               客服工单规则
-    // ===============================================
-    match /supportTickets/{ticketId} {
-        allow create: if isSignedIn(); // 登录用户可以创建工单
-        // 只有管理员/员工/客服可以读写工单
-        allow read, list, update: if hasRole(['admin', 'ghost', 'staff', 'support']);
+    // --- 默认兜底 ---
+    match /{document=**} {
+      allow read: if isSignedIn();
+      allow write: if hasRole(['admin']);
     }
   }
 }
