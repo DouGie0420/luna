@@ -21,6 +21,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard } from 'lucide-react';
 import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -164,6 +166,7 @@ export default function OrderDetailPage() {
     const statusKey = getStatusTranslationKey(order.status);
     const canConfirmReceipt = isBuyer && (order.status === 'Shipped' || order.status === 'Awaiting Confirmation');
     const canReview = isBuyer && order.status === 'Completed' && !order.buyerReviewId;
+    const canTrack = order.status === 'Shipped' || order.status === 'Awaiting Confirmation' || order.status === 'Completed';
 
     return (
         <div className="container mx-auto px-4 py-12 max-w-4xl">
@@ -183,12 +186,29 @@ export default function OrderDetailPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardFooter className="border-t pt-6 flex flex-col sm:flex-row items-center justify-end gap-4">
-                       {isBuyer && order.status === 'Pending' && (
-                           <Button onClick={handleSimulatePayment} disabled={isProcessing}>
-                               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                               <CreditCard className="mr-2 h-4 w-4" />
-                               {t('orderDetails.simulatePayment')}
-                           </Button>
+                       {canTrack && (
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline">{t('orderDetails.trackShipment')}</Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>{t('orderDetails.trackingInfo')}</DialogTitle>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div>
+                                        <Label htmlFor="provider">{t('orderDetails.trackingProvider')}</Label>
+                                        <p id="provider" className="font-semibold">{order.shippingProvider || 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="trackingNo">{t('orderDetails.trackingNumber')}</Label>
+                                        <p id="trackingNo" className="font-semibold font-mono">{order.trackingNumber || 'N/A'}</p>
+                                    </div>
+                                    <Separator />
+                                    <p className="text-sm text-muted-foreground">{t('orderDetails.trackingPlaceholder')}</p>
+                                </div>
+                            </DialogContent>
+                        </Dialog>
                        )}
                        {isBuyer && order.status === 'In Escrow' && (
                             <Button onClick={handleRemindSeller} disabled={isProcessing} variant="outline">
@@ -196,6 +216,13 @@ export default function OrderDetailPage() {
                                 <BellRing className="mr-2 h-4 w-4" />
                                 {t('orderDetails.remindSeller')}
                             </Button>
+                       )}
+                       {isBuyer && order.status === 'Pending' && (
+                           <Button onClick={handleSimulatePayment} disabled={isProcessing}>
+                               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                               <CreditCard className="mr-2 h-4 w-4" />
+                               {t('orderDetails.simulatePayment')}
+                           </Button>
                        )}
                        {canConfirmReceipt && (
                             <Button onClick={handleConfirmReceipt} disabled={isProcessing}>
@@ -210,6 +237,9 @@ export default function OrderDetailPage() {
                                 </Link>
                             </Button>
                         )}
+                         {isBuyer && order.status === 'Completed' && order.buyerReviewId && (
+                            <Button disabled variant="outline">{t('orderDetails.reviewed')}</Button>
+                         )}
                     </CardFooter>
                 </Card>
 

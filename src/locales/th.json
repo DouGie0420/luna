@@ -480,7 +480,12 @@
     "simulatePayment": "จำลองการชำระเงิน",
     "paymentSuccess": "การชำระเงินสำเร็จ!",
     "remindSeller": "แจ้งเตือนให้จัดส่ง",
-    "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว"
+    "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว",
+    "trackShipment": "ติดตามการจัดส่ง",
+    "trackingInfo": "ข้อมูลการติดตาม",
+    "trackingProvider": "ผู้ให้บริการจัดส่ง",
+    "trackingNumber": "หมายเลขติดตาม",
+    "trackingPlaceholder": "API สำหรับการติดตามสดจะถูกรวมเข้าไว้ที่นี่ในอนาคต"
   },
   "reviewPage": {
     "title": "เขียนรีวิว",

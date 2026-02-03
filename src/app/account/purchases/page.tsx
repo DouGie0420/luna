@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { useUser, useCollection, useFirestore } from "@/firebase";
 import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
@@ -87,7 +87,7 @@ export default function PurchasesPage() {
                                         <CardTitle className="text-lg mt-1 group-hover:underline">{order.productName || '数字资产'}</CardTitle>
                                     </div>
                                     <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' || order.status === 'Cancelled' ? 'destructive' : 'secondary')}>
-                                        {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any) || order.status}
+                                        {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}
                                     </Badge>
                                 </CardHeader>
                                 <CardContent className="pt-6">
@@ -101,27 +101,25 @@ export default function PurchasesPage() {
                                     </div>
                                 </CardContent>
                             </Link>
-                             <CardContent className="pb-4">
-                                <div className="flex justify-end gap-2">
-                                     {order.status === 'Shipped' && (
-                                        <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
-                                            <CheckCircle2 className="h-4 w-4 mr-1" /> {t('orderDetails.confirmReceipt')}
-                                        </Button>
-                                    )}
-                                    {order.status === 'Completed' && !order.buyerReviewId && (
-                                            <Button size="sm" variant="outline" asChild>
-                                            <Link href={`/account/purchases/${order.id}/review`}>
-                                                {t('orderDetails.leaveReview')}
-                                            </Link>
-                                        </Button>
-                                    )}
-                                        {order.status === 'Completed' && order.buyerReviewId && (
-                                            <Button size="sm" variant="ghost" disabled>
-                                            {t('orderDetails.reviewed')}
-                                        </Button>
-                                    )}
-                                </div>
-                            </CardContent>
+                             <CardFooter className="pb-4 flex justify-end gap-2">
+                                 {order.status === 'Shipped' && (
+                                    <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
+                                        <CheckCircle2 className="h-4 w-4 mr-1" /> {t('orderDetails.confirmReceipt')}
+                                    </Button>
+                                )}
+                                {order.status === 'Completed' && !order.buyerReviewId && (
+                                        <Button size="sm" variant="outline" asChild>
+                                        <Link href={`/account/purchases/${order.id}/review`}>
+                                            {t('orderDetails.leaveReview')}
+                                        </Link>
+                                    </Button>
+                                )}
+                                    {order.status === 'Completed' && order.buyerReviewId && (
+                                        <Button size="sm" variant="ghost" disabled>
+                                        {t('orderDetails.reviewed')}
+                                    </Button>
+                                )}
+                            </CardFooter>
                         </Card>
                     ))}
                 </div>

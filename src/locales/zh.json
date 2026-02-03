@@ -1,4 +1,3 @@
-
 {
   "common": {
     "login": "登录",
@@ -232,7 +231,7 @@
     "status": {
       "pending": "待付款",
       "inEscrow": "待发货",
-      "shipped": "待收货",
+      "shipped": "已发货",
       "awaitingConfirmation": "等待确认",
       "completed": "已完成",
       "disputed": "争议中",
@@ -447,7 +446,7 @@
     "status": {
       "pending": "待付款",
       "inEscrow": "待发货",
-      "shipped": "待收货",
+      "shipped": "已发货",
       "awaitingConfirmation": "等待确认",
       "completed": "已完成",
       "disputed": "争议中",
@@ -480,7 +479,12 @@
     "simulatePayment": "模拟付款",
     "paymentSuccess": "付款成功！",
     "remindSeller": "提醒发货",
-    "reminderSent": "已提醒卖家"
+    "reminderSent": "已提醒卖家",
+    "trackShipment": "物流查询",
+    "trackingInfo": "物流信息",
+    "trackingProvider": "承运公司",
+    "trackingNumber": "运单号",
+    "trackingPlaceholder": "未来将在此处集成实时物流查询API。"
   },
   "reviewPage": {
     "title": "评价订单",

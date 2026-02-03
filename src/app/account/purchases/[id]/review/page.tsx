@@ -9,7 +9,7 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { Order, Product, UserProfile, Rating } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, addDoc, collection, serverTimestamp, increment, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, addDoc, collection, serverTimestamp, increment, getDoc, writeBatch } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -94,10 +94,14 @@ export default function LeaveReviewPage() {
             toast({ variant: 'destructive', title: t('reviewPage.ratingRequired') });
             return;
         }
-        if (!firestore || !currentUser || !order || !seller) return;
+        if (!firestore || !currentUser || !order || !seller || !sellerRef) return;
 
         setIsSubmitting(true);
+        
+        const batch = writeBatch(firestore);
+        
         try {
+            // 1. Create the review document
             const reviewData = {
                 orderId: order.id,
                 reviewerId: currentUser.uid,
@@ -107,17 +111,14 @@ export default function LeaveReviewPage() {
                 comment: comment,
                 createdAt: serverTimestamp(),
             };
+            const newReviewRef = doc(collection(firestore, 'reviews'));
+            batch.set(newReviewRef, reviewData);
 
-            const reviewRef = await addDoc(collection(firestore, 'reviews'), reviewData);
+            // 2. Link the review to the order
+            batch.update(orderRef, { buyerReviewId: newReviewRef.id });
 
-            await updateDoc(doc(firestore, 'orders', order.id), {
-                buyerReviewId: reviewRef.id
-            });
-
-            // Note: In a production app, updating aggregated data like user ratings
-            // should ideally be handled by a secure backend function (e.g., Cloud Function)
-            // to prevent race conditions and ensure data integrity.
-            // This client-side update is for prototype demonstration.
+            // 3. Update seller's aggregate rating
+            // Note: In a production app, this should be a Cloud Function for atomicity.
             const sellerDoc = await getDoc(sellerRef);
             if (sellerDoc.exists()) {
                 const sellerData = sellerDoc.data() as UserProfile;
@@ -128,12 +129,15 @@ export default function LeaveReviewPage() {
                 const newTotalRating = (currentRating * currentReviews) + ratingValue;
                 const newReviewsCount = currentReviews + 1;
                 const newAverageRating = newTotalRating / newReviewsCount;
-
-                await updateDoc(sellerRef, {
+                
+                batch.update(sellerRef, {
                     reviewsCount: increment(1),
                     rating: newAverageRating
                 });
             }
+
+            // Commit all changes at once
+            await batch.commit();
 
             toast({ title: t('reviewPage.submitSuccess') });
             router.back();
@@ -193,7 +197,7 @@ export default function LeaveReviewPage() {
                         <div className="flex items-center gap-4">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={seller.photoURL} alt={seller.displayName} />
-                                <AvatarFallback>{seller.displayName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{seller.displayName?.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <p className="font-semibold">{t('reviewPage.seller').replace('{sellerName}', seller.displayName)}</p>
