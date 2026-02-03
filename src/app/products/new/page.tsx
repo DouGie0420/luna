@@ -32,7 +32,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
-import type { User } from '@/lib/types';
+import type { User, PaymentMethod } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -49,7 +49,7 @@ export default function NewProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState<'THB' | 'USDT' | 'RMB-alipay' | 'RMB-wechat'>('THB');
+  const [currency, setCurrency] = useState<'THB' | 'USDT' | 'RMB'>('THB');
   const [category, setCategory] = useState('');
   const [shippingMethod, setShippingMethod] = useState<'Seller Pays' | 'Buyer Pays'>('Buyer Pays');
   const [shippingCarrier, setShippingCarrier] = useState<'SF' | 'YTO' | null>('SF');
@@ -59,6 +59,7 @@ export default function NewProductPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
 
 
   useEffect(() => {
@@ -124,6 +125,16 @@ export default function NewProductPage() {
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
+  const handleAcceptedMethodsChange = (checked: boolean | string, method: PaymentMethod) => {
+    setAcceptedMethods(prev => {
+        if (checked) {
+            return [...prev, method];
+        } else {
+            return prev.filter(m => m !== method);
+        }
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile || !firestore) {
@@ -157,7 +168,8 @@ export default function NewProductPage() {
       name,
       description,
       price: Number(price),
-      currency: currency.startsWith('RMB') ? 'RMB' : (currency as 'THB' | 'USDT'),
+      currency: currency,
+      acceptedPaymentMethods: acceptedMethods,
       images: imagePreviews.length > 0 ? imagePreviews : ['https://picsum.photos/seed/default-product/600/400'],
       imageHints: ['user uploaded'],
       seller: sellerData,
@@ -302,14 +314,14 @@ export default function NewProductPage() {
                 <div className="grid gap-2">
                   <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
                   <div className="relative">
-                    <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} />
+                    <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
                      {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
                   <div className="relative">
-                    <Textarea id="description" placeholder={t('newProductPage.descriptionPlaceholder')} value={description} onChange={(e) => setDescription(e.target.value)} disabled={isAiLoading} />
+                    <Textarea id="description" placeholder={t('newProductPage.descriptionPlaceholder')} value={description} onChange={(e) => setDescription(e.target.value)} required disabled={isAiLoading} />
                     {isAiLoading && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />}
                   </div>
                 </div>
@@ -356,7 +368,7 @@ export default function NewProductPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="price">{t('newProductPage.price')}</Label>
-                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} />
+                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
                     </div>
                     <div className="grid gap-2">
                         <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
@@ -367,12 +379,51 @@ export default function NewProductPage() {
                             <SelectContent>
                                 <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
                                 <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
-                                <SelectItem value="RMB-alipay">{t('newProductPage.alipay')}</SelectItem>
-                                <SelectItem value="RMB-wechat">{t('newProductPage.wechat')}</SelectItem>
+                                <SelectItem value="RMB">RMB (人民币)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                 </div>
+
+                <div className="grid gap-2">
+                  <Label>接受的付款方式</Label>
+                  <p className="text-sm text-muted-foreground">选择您为此商品接受的付款方式。此处仅显示您在钱包中已配置的方式。</p>
+                  <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                    {(!profile?.paymentInfo && !profile?.walletAddress) && <p className="text-muted-foreground col-span-2 text-center">请先在您的钱包中配置付款方式。</p>}
+                    
+                    {profile?.paymentInfo?.bankAccount?.accountNumber && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="accept-thb" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'THB')} />
+                            <Label htmlFor="accept-thb" className="font-normal">银行转账 (THB)</Label>
+                        </div>
+                    )}
+                    {profile?.walletAddress && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="accept-usdt" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'USDT')} />
+                            <Label htmlFor="accept-usdt" className="font-normal">USDT</Label>
+                        </div>
+                    )}
+                    {profile?.paymentInfo?.alipayQrUrl && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="accept-alipay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'Alipay')} />
+                            <Label htmlFor="accept-alipay" className="font-normal">支付宝 (Alipay)</Label>
+                        </div>
+                    )}
+                    {profile?.paymentInfo?.wechatPayQrUrl && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="accept-wechat" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'WeChat')} />
+                            <Label htmlFor="accept-wechat" className="font-normal">微信支付 (WeChat Pay)</Label>
+                        </div>
+                    )}
+                    {profile?.paymentInfo?.promptPayQrUrl && (
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="accept-promptpay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'PromptPay')} />
+                            <Label htmlFor="accept-promptpay" className="font-normal">PromptPay</Label>
+                        </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid gap-2">
                     <Label htmlFor="category">{t('newProductPage.category')}</Label>
                     <Select value={category} onValueChange={(v: any) => setCategory(v)}>

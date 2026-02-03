@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Banknote } from 'lucide-react';
 
 const AlipayLogo = () => (
     <div className="w-6 h-6 rounded-full bg-[#00A1E9] flex items-center justify-center p-0.5">
@@ -32,15 +33,15 @@ const PromptPayLogo = () => (
     </div>
 );
 
-
 const logos = {
     USDT: <USDTLogo />,
     Alipay: <AlipayLogo />,
     WeChat: <WeChatLogo />,
-    PromptPay: <PromptPayLogo />
+    PromptPay: <PromptPayLogo />,
+    THB: <Banknote className="h-6 w-6 text-green-500" />
 };
 
-type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
+type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay' | 'THB';
 
 interface PaymentMethodButtonProps extends ButtonProps {
     method: PaymentMethod;

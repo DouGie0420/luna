@@ -2,6 +2,8 @@
 
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
+export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
+
 export type Product = {
   id: string;
   name: string;
@@ -31,6 +33,7 @@ export type Product = {
   favoritedBy?: string[];
   createdAt?: any;
   sellerId?: string;
+  acceptedPaymentMethods?: PaymentMethod[];
 };
 
 export type User = {

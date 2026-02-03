@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
-import type { Product, UserAddress, UserProfile, PaymentInfo } from '@/lib/types';
+import type { Product, UserAddress, UserProfile, PaymentMethod } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { collection, doc } from 'firebase/firestore';
 
@@ -34,8 +34,6 @@ const SHIPPING_FEES = {
 
 type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
 type ShippingMethodOption = 'Buyer Pays' | 'In-person';
-type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay' | 'THB';
-const VALID_PAYMENT_METHODS: PaymentMethod[] = ['USDT', 'Alipay', 'WeChat', 'PromptPay', 'THB'];
 
 function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, method: PaymentMethod | null }) {
     const { t } = useTranslation();
@@ -131,10 +129,7 @@ export default function CheckoutPage() {
   
   const initialPaymentMethod = useMemo(() => {
     const pm = searchParams.get('paymentMethod') as PaymentMethod | null;
-    if (pm && VALID_PAYMENT_METHODS.includes(pm)) {
-      return pm;
-    }
-    return null; 
+    return pm; 
   }, [searchParams]);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(initialPaymentMethod);
@@ -198,16 +193,9 @@ export default function CheckoutPage() {
   const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
   const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
   
-  const availablePaymentMethods = useMemo(() => {
-    if (!sellerProfile?.paymentInfo) return [];
-    const methods: PaymentMethod[] = [];
-    if (sellerProfile.walletAddress) methods.push('USDT');
-    if (sellerProfile.paymentInfo.alipayQrUrl) methods.push('Alipay');
-    if (sellerProfile.paymentInfo.wechatPayQrUrl) methods.push('WeChat');
-    if (sellerProfile.paymentInfo.promptPayQrUrl) methods.push('PromptPay');
-    if (sellerProfile.paymentInfo.bankAccount?.accountNumber) methods.push('THB');
-    return methods;
-  }, [sellerProfile]);
+  const availablePaymentMethods = useMemo((): PaymentMethod[] => {
+    return product?.acceptedPaymentMethods || [];
+  }, [product]);
 
   const isLoading = loadingProduct || userLoading || addressesLoading || loadingSeller;
 
