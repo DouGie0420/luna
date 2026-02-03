@@ -77,14 +77,22 @@ service cloud.firestore {
     }
 
     // ===============================================
-    //               订单规则
+    //               订单规则 (最终修复版)
     // ===============================================
     match /orders/{orderId} {
-       // 关键修复：简化规则，只允许参与者读写。这修复了用户的列表查询问题。
-       // 这会导致管理员无法直接查询列表，我们将在下一步修复。
-       allow read, update: if isSignedIn() && request.auth.uid in resource.data.participants;
-       // 订单创建规则
+       // 列表查询(list): 规则必须与客户端查询完全匹配。
+       // 这条规则仅允许用户查询 `participants` 数组包含自身ID的订单列表。
+       allow list: if isSignedIn() && request.auth.uid in resource.data.participants;
+
+       // 单文档读取(get): 允许参与者或任何管理组成员查看。
+       // 这保证了订单详情页对用户和管理员都可用。
+       allow get: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
+
+       // 订单创建: 只允许已登录用户以自己的名义下单。
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
+
+       // 订单更新: 允许参与者或管理组更新订单状态等信息。
+       allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
     }
     
     // ===============================================
