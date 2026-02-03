@@ -504,7 +504,8 @@ export default function AccountProfilePage() {
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}
-                                    {!profile?.isPro && !profile?.isWeb3Verified && !profile.isNftVerified && profile?.kycStatus !== 'Verified' && (
+                                    {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
+                                    {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
                                         <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                                     )}
                                 </div>
