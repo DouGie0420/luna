@@ -80,15 +80,11 @@ service cloud.firestore {
     //               订单规则
     // ===============================================
     match /orders/{orderId} {
-       // 读权限: 只有参与者（买家/卖家）或特定角色的管理员才能读取。
-       // 这条规则会强制要求list查询必须包含 participants 字段的 array-contains 过滤
-       allow read: if isSignedIn() && 
-                      (request.auth.uid in resource.data.participants || 
-                       hasRole(['admin', 'ghost', 'staff', 'support']));
-
-       // 写权限
+       // 关键修复：简化规则，只允许参与者读写。这修复了用户的列表查询问题。
+       // 这会导致管理员无法直接查询列表，我们将在下一步修复。
+       allow read, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+       // 订单创建规则
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
-       allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
     }
     
     // ===============================================
