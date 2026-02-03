@@ -36,15 +36,29 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserProfile } from '@/lib/types'
 import { useTranslation } from '@/hooks/use-translation'
 
-const hasAdminAccess = (role?: UserProfile['role']) => {
-    return role === 'admin' || role === 'staff' || role === 'support' || role === 'ghost';
+type Role = UserProfile['role'];
+
+// Centralized permission check function
+const hasRole = (userRole: Role, allowedRoles: Array<Role>) => {
+    if (!userRole) return false;
+    // Admin has access to everything
+    if (userRole === 'admin') return true;
+    return allowedRoles.includes(userRole);
 }
 
-const hasRole = (role: UserProfile['role'] | undefined, targetRoles: Array<UserProfile['role']>) => {
-    if (!role) return false;
-    if (role === 'admin') return true; // Admins can see everything
-    return targetRoles.includes(role);
-}
+// Page-specific permissions
+const pagePermissions: Record<string, Array<Role>> = {
+    '/admin': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/users': ['admin', 'ghost', 'staff'],
+    '/admin/products': ['admin', 'ghost', 'staff'],
+    '/admin/promotions': ['admin', 'ghost', 'staff'],
+    '/admin/community': ['admin', 'ghost', 'staff'],
+    '/admin/orders': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/kyc-list': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/payment-requests': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/support': ['admin', 'ghost', 'staff', 'support'],
+};
+
 
 export default function AdminLayout({
   children,
@@ -56,12 +70,14 @@ export default function AdminLayout({
   const { t } = useTranslation()
   
   const isActive = (path: string) => pathname.startsWith(path);
+  const userRole = profile?.role;
 
   if (loading) {
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
-
-  if (!user || !hasAdminAccess(profile?.role)) {
+  
+  // 1. Central Guard: Check if user can access the admin panel at all
+  if (!user || !hasRole(userRole, ['admin', 'ghost', 'staff', 'support'])) {
       return (
         <div className="flex h-screen w-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
@@ -77,9 +93,8 @@ export default function AdminLayout({
         </div>
       )
   }
-
-  // Check for email verification if user signed up with email/password
-  // Allow access if either Auth state OR Firestore profile shows email is verified.
+  
+  // 2. Email verification check
   if (user.providerData[0]?.providerId === 'password' && !user.emailVerified && !profile?.emailVerified) {
     return (
        <div className="flex h-screen w-full items-center justify-center p-4">
@@ -97,6 +112,23 @@ export default function AdminLayout({
     )
   }
 
+  // 3. Central Guard: Check if user has permission for the SPECIFIC page
+  const canAccessPage = Object.entries(pagePermissions).some(([page, roles]) => 
+      pathname.startsWith(page) && hasRole(userRole, roles)
+  );
+
+  const mainContent = canAccessPage ? children : (
+     <div className="flex h-full w-full items-center justify-center p-4">
+        <Alert variant="destructive" className="max-w-lg">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>{t('admin.layout.accessDenied')}</AlertTitle>
+            <AlertDescription>
+                您的角色 (<strong>{userRole}</strong>) 没有权限访问此页面。
+            </AlertDescription>
+        </Alert>
+    </div>
+  );
+
   return (
     <SidebarProvider>
       <Sidebar>
@@ -107,16 +139,18 @@ export default function AdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname === '/admin'}>
-                <Link href="/admin">
-                  <LayoutDashboard />
-                  {t('admin.layout.dashboard')}
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname === '/admin'}>
+                  <Link href="/admin">
+                    <LayoutDashboard />
+                    {t('admin.layout.dashboard')}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             
-            {hasRole(profile?.role, ['admin', 'ghost']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -127,7 +161,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {hasRole(profile?.role, ['admin', 'ghost', 'staff']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff']) && (
               <>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
@@ -156,7 +190,7 @@ export default function AdminLayout({
               </>
             )}
 
-            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
                   <Link href="/admin/orders">
@@ -167,7 +201,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
             
-            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                     <Link href="/admin/kyc-list">
@@ -178,7 +212,7 @@ export default function AdminLayout({
                 </SidebarMenuItem>
             )}
 
-            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/payment-requests')}>
                     <Link href="/admin/payment-requests">
@@ -189,7 +223,7 @@ export default function AdminLayout({
                 </SidebarMenuItem>
             )}
 
-            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">
@@ -205,7 +239,7 @@ export default function AdminLayout({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
+              <SidebarMenuButton disabled>
                 <Settings />
                 {t('admin.layout.settings')}
               </SidebarMenuButton>
@@ -225,7 +259,7 @@ export default function AdminLayout({
             <h1 className="font-headline text-2xl font-bold">{t('admin.dashboardTitle')}</h1>
         </header>
         <div className="p-6">
-            {children}
+            {mainContent}
         </div>
       </SidebarInset>
     </SidebarProvider>

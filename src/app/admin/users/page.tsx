@@ -115,12 +115,10 @@ export default function AdminUsersPage() {
                             const isRequesterGhost = currentUserProfile?.role === 'ghost';
                             const isRequesterStaff = currentUserProfile?.role === 'staff';
 
-                            // Disable modification if:
-                            // 1. User is trying to edit themselves.
-                            // 2. A 'ghost' user is trying to edit an 'admin'.
-                            // 3. A 'staff' user is trying to edit anyone.
-                            const modificationDisabled = isSelf || (isRequesterGhost && isTargetAdmin) || isRequesterStaff;
-
+                            // Centralized modification disable logic
+                            const modificationDisabled = isSelf || 
+                                                       (isRequesterGhost && isTargetAdmin) || 
+                                                       isRequesterStaff;
 
                             return (
                             <React.Fragment key={user.uid}>
@@ -177,7 +175,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             defaultValue={user.role || 'guest'} 
                                             onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
-                                            disabled={modificationDisabled || user.role === 'admin'}
+                                            disabled={modificationDisabled || isTargetAdmin} // Also disable editing admin role itself
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue placeholder={t('admin.usersPage.setRole')} />

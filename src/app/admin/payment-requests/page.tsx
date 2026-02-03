@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, CheckCircle2, XCircle, ShieldAlert, ArrowRight, Banknote, QrCode } from "lucide-react";
-import type { PaymentChangeRequest } from '@/lib/types';
+import type { PaymentChangeRequest, UserProfile } from '@/lib/types';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import {
@@ -22,6 +22,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { createNotification } from '@/lib/notifications';
+import { Alert, AlertTitle } from '@/components/ui/alert';
 
 const InfoRow = ({ label, value }: { label: string, value: string | null | undefined }) => (
     <div className="text-sm">
@@ -50,19 +51,18 @@ const QrCodeDiff = ({ label, oldUrl, newUrl }: { label: string, oldUrl?: string,
 }
 
 export default function PaymentRequestsPage() {
-  const { user, profile, loading: userLoading } = useUser();
+  const { profile, loading: userLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const isManager = ['admin', 'ghost', 'staff', 'support'].includes(profile?.role || '');
-
+  
   const [rejectionTarget, setRejectionTarget] = useState<PaymentChangeRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const q = useMemo(() => {
-    if (!firestore || !isManager) return null;
+    if (!firestore) return null;
     return query(collection(firestore, 'paymentChangeRequests'), where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
-  }, [firestore, isManager]);
+  }, [firestore]);
 
   const { data: reqs, loading: dataLoading } = useCollection<PaymentChangeRequest>(q);
 
@@ -98,17 +98,8 @@ export default function PaymentRequestsPage() {
     }
   };
 
-  if (userLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto"/></div>;
+  if (userLoading || dataLoading) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto"/></div>;
   
-  if (!isManager) return (
-    <div className="p-20 text-center bg-card rounded-lg">
-      <ShieldAlert className="mx-auto h-12 w-12 text-red-500 mb-4" />
-      <h2 className="text-xl font-bold">权限不足: [{profile?.role || 'null'}]</h2>
-      <p className="text-muted-foreground text-sm mt-2">您没有权限访问此页面。</p>
-      <p className="text-muted-foreground text-xs mt-1">UID: {user?.uid}</p>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
         <AlertDialog open={!!rejectionTarget} onOpenChange={(open) => !open && setRejectionTarget(null)}>
@@ -139,7 +130,6 @@ export default function PaymentRequestsPage() {
         </AlertDialog>
 
         <h1 className="text-3xl font-headline">收款申请审核</h1>
-        {dataLoading && <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto"/></div>}
         
         {reqs && reqs.length > 0 ? (
             reqs.map(r => (
@@ -180,7 +170,7 @@ export default function PaymentRequestsPage() {
             </Card>
             ))
         ) : (
-            !dataLoading && <p className="text-center text-muted-foreground py-10">暂无待处理项</p>
+            <p className="text-center text-muted-foreground py-10">暂无待处理项</p>
         )}
     </div>
   );
