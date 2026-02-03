@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import { useFirebaseAuth, useUser } from "@/firebase/auth/use-user"
+import { useAuth, useUser } from "@/firebase"
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
@@ -38,7 +38,7 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
-  const auth = useFirebaseAuth();
+  const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
