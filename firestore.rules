@@ -81,11 +81,14 @@ service cloud.firestore {
     match /orders/{orderId} {
        // 订单的买家、卖家或有权限的管理人员可以读取单个订单
        allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
-       // 买家只能列出自己的订单
+       
+       // 买家或卖家可以列出自己的订单
        // 管理员/员工/客服可以列出所有订单（通过后台查询实现）
-       allow list: if isSignedIn() && (request.query.get("buyerId") == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+       allow list: if isSignedIn() && (request.query.get("buyerId") == request.auth.uid || request.query.get("sellerId") == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+
        // 登录买家可创建订单
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
+       
        // 订单的买卖双方或管理员可更新订单状态
        allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
     }
