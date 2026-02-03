@@ -14,6 +14,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Stats = {
     totalUsers: number;
