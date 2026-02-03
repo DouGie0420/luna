@@ -56,7 +56,7 @@ export default function AdminOrdersPage() {
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
 
-    const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
+    const hasAccess = !!(profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || ''));
 
     const ordersQuery = useMemo(() => {
         if (!firestore || !hasAccess) return null;
@@ -73,7 +73,7 @@ export default function AdminOrdersPage() {
         return orders.filter(order => order.status === filterStatus);
     }, [orders, filterStatus]);
 
-    const loading = userLoading || (!!ordersQuery && ordersLoading);
+    const loading = userLoading || (hasAccess && ordersLoading);
 
     const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
         if (!firestore) return;
@@ -101,7 +101,7 @@ export default function AdminOrdersPage() {
     };
 
     if (loading) {
-        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+        return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
     if (!hasAccess) {
