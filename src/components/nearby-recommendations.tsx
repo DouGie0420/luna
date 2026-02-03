@@ -26,21 +26,12 @@ export function NearbyRecommendations() {
     return query(
       collection(firestore, 'products'), 
       where('status', '==', 'active'),
-      // OrderBy is removed to prevent needing a composite index.
-      // We will fetch more and sort on the client.
-      limit(30)
+      orderBy('likes', 'desc'),
+      limit(10)
     );
   }, [firestore]);
 
-  const { data, loading: isLoading } = useCollection<Product>(recsQuery);
-
-  const recommendations = useMemo(() => {
-    if (!data) return [];
-    // Sort on the client-side by likes and take the first 10
-    return data
-      .sort((a, b) => (b.likes || 0) - (a.likes || 0))
-      .slice(0, 10);
-  }, [data]);
+  const { data: recommendations, loading: isLoading } = useCollection<Product>(recsQuery);
 
   return (
     <section>

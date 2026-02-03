@@ -20,21 +20,12 @@ export function CanyonOfTheMoon() {
     return query(
       collection(firestore, 'products'),
       where('status', '==', 'active'),
-      // OrderBy is removed to prevent needing a composite index.
-      // We will fetch more and sort on the client.
-      limit(20)
+      orderBy('createdAt', 'desc'),
+      limit(8)
     );
   }, [firestore]);
 
-  const { data, loading: isLoading } = useCollection<Product>(productsQuery);
-
-  const products = useMemo(() => {
-    if (!data) return [];
-    // Sort on the client-side and take the first 8
-    return data
-      .sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0))
-      .slice(0, 8);
-  }, [data]);
+  const { data: products, loading: isLoading } = useCollection<Product>(productsQuery);
 
 
   return (
