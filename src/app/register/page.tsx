@@ -16,7 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
 import { useAuth, useUser } from "@/firebase"
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
 import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
@@ -136,18 +136,31 @@ export default function RegisterPage() {
   };
 
 
-  const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
+  const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     if (!auth || !firestore) return;
-
     setIsLoading(true);
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     if (providerName === 'facebook') {
       provider.addScope('email');
     }
-    await signInWithRedirect(auth, provider);
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      await upsertUserProfile(firestore, result.user);
+      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
+      router.push('/');
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+         toast({ variant: "destructive", title: t('registerPage.popupClosedTitle'), description: t('registerPage.popupClosed') });
+      } else {
+        toast({ variant: "destructive", title: t('registerPage.registrationFailedTitle'), description: error.message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  if (userLoading || user) {
+  if (userLoading || isLoading || user) {
     return (
       <div className="flex h-[calc(100vh-16rem)] items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -237,11 +250,11 @@ export default function RegisterPage() {
             </div>
 
             <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)} disabled={isLoading}>
+                <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={isLoading}>
                   <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                   <span>Google</span>
                 </Button>
-                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)} disabled={isLoading}>
+                <Button variant="outline" onClick={() => handleSocialLogin('facebook')} disabled={isLoading}>
                   <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
                   <span>Facebook</span>
                 </Button>

@@ -14,8 +14,8 @@ import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/firebase/auth/use-user";
-import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail, getRedirectResult } from "firebase/auth";
-import { useFirestore } from "@/firebase";
+import { GoogleAuthProvider, FacebookAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { useFirestore, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
 import { useToast } from "@/hooks/use-toast";
@@ -38,41 +38,18 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  // 直接通过 getAuth 获取实例，避免导入错误
-  const auth = getAuth();
+  const auth = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
-
+  
   useEffect(() => {
-    if (!auth || !firestore) {
-      setIsProcessingRedirect(false);
-      return;
-    }
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result) {
-          toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
-          await upsertUserProfile(firestore, result.user);
-          router.push('/');
-        } else {
-          setIsProcessingRedirect(false);
-        }
-      })
-      .catch((error) => {
-        toast({ variant: "destructive", title: t('loginPage.loginFailedTitle'), description: error.message });
-        setIsProcessingRedirect(false);
-      });
-  }, [auth, firestore, router, t, toast]);
-
-  useEffect(() => {
-    if (!isProcessingRedirect && !userLoading && user) {
+    if (!userLoading && user) {
       router.push('/');
     }
-  }, [user, userLoading, router, isProcessingRedirect]);
-
+  }, [user, userLoading, router]);
+  
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) return;
@@ -90,15 +67,30 @@ export default function LoginPage() {
   };
 
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
+    setIsLoading(true);
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     if (providerName === 'facebook') {
       provider.addScope('email');
     }
-    await signInWithRedirect(auth, provider);
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      await upsertUserProfile(firestore, result.user);
+      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
+      router.push('/');
+    } catch (error: any) {
+      if (error.code === 'auth/popup-closed-by-user') {
+         toast({ variant: "destructive", title: t('loginPage.popupClosedTitle'), description: t('loginPage.popupClosed') });
+      } else {
+        toast({ variant: "destructive", title: t('loginPage.loginFailedTitle'), description: error.message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  if (userLoading || isProcessingRedirect || user) {
+  if (userLoading || isLoading || user) {
     return (
       <div className="flex h-screen items-center justify-center bg-black">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
