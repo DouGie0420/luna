@@ -25,6 +25,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const orderStatuses: OrderStatus[] = [
     "Pending",
@@ -53,6 +54,7 @@ export default function AdminOrdersPage() {
     const { toast } = useToast();
     const { profile, loading: userLoading } = useUser();
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [filterStatus, setFilterStatus] = useState<OrderStatus | 'All'>('All');
 
     const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
 
@@ -62,6 +64,14 @@ export default function AdminOrdersPage() {
     }, [firestore, hasAccess]);
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
+
+    const filteredOrders = useMemo(() => {
+        if (!orders) return [];
+        if (filterStatus === 'All') {
+            return orders;
+        }
+        return orders.filter(order => order.status === filterStatus);
+    }, [orders, filterStatus]);
 
     const loading = userLoading || (!!ordersQuery && ordersLoading);
 
@@ -112,6 +122,17 @@ export default function AdminOrdersPage() {
     return (
         <div>
             <h2 className="text-3xl font-headline mb-6">{t('admin.ordersPage.title')}</h2>
+
+            <Tabs defaultValue="All" className="mb-4" onValueChange={(value) => setFilterStatus(value as OrderStatus | 'All')}>
+                <TabsList>
+                    <TabsTrigger value="All">{t('accountPurchases.tabs.all')}</TabsTrigger>
+                    <TabsTrigger value="In Escrow">{t('accountPurchases.tabs.toShip')}</TabsTrigger>
+                    <TabsTrigger value="Shipped">{t('accountPurchases.tabs.toReceive')}</TabsTrigger>
+                    <TabsTrigger value="Completed">{t('accountPurchases.tabs.completed')}</TabsTrigger>
+                    <TabsTrigger value="Disputed">{t('accountPurchases.tabs.disputed')}</TabsTrigger>
+                </TabsList>
+            </Tabs>
+
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -124,8 +145,8 @@ export default function AdminOrdersPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {orders && orders.length > 0 ? (
-                        orders.map(order => (
+                    {filteredOrders && filteredOrders.length > 0 ? (
+                        filteredOrders.map(order => (
                         <TableRow key={order.id}>
                             <TableCell className="font-medium font-mono text-xs">{order.id}</TableCell>
                              <TableCell>
@@ -158,7 +179,7 @@ export default function AdminOrdersPage() {
                     ))) : (
                         <TableRow>
                             <TableCell colSpan={6} className="h-24 text-center">
-                                {t('admin.ordersPage.noOrders')}
+                                {t('accountPurchases.noOrdersTitle')}
                             </TableCell>
                         </TableRow>
                     )}
