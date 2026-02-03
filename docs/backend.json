@@ -743,6 +743,12 @@
       },
       "description": "Stores individual product listings."
     },
+    "/products/{productId}/comments/{commentId}": {
+      "schema": {
+        "$ref": "#/entities/Comment"
+      },
+      "description": "Stores comments for a specific product."
+    },
     "/users/{userId}": {
       "schema": {
         "$ref": "#/entities/UserProfile"

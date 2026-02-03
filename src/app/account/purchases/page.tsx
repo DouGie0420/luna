@@ -1,191 +1,101 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { useUser, useCollection, useFirestore, useDoc } from "@/firebase";
-import { query, collection, where, orderBy, doc } from "firebase/firestore";
-import type { Order, Product } from '@/lib/types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useUser, useCollection, useFirestore } from "@/firebase";
+import { query, collection, where, orderBy } from "firebase/firestore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle, Package } from "lucide-react";
+import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { useTranslation } from "@/hooks/use-translation";
-import Link from 'next/link';
-import Image from 'next/image';
-import { Skeleton } from '@/components/ui/skeleton';
-
-function OrderCard({ order }: { order: Order }) {
-    const { t } = useTranslation();
-    const db = useFirestore();
-
-    const productRef = useMemo(() => {
-        if (!db || !order.productId) return null;
-        return doc(db, 'products', order.productId);
-    }, [db, order.productId]);
-
-    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
-
-    const handleConfirmReceipt = async () => {
-        // WEB3: 99% 卖家, 1% 平台 (0x2fa2aa...)。
-        alert("Web3 settlement logic placeholder.");
-    };
-
-    if (productLoading) {
-        return (
-            <Card className="overflow-hidden">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-6 w-20" />
-                </CardHeader>
-                <CardContent className="p-4">
-                    <div className="flex gap-4">
-                        <Skeleton className="h-16 w-16 rounded-md" />
-                        <div className="flex-1 space-y-2">
-                            <Skeleton className="h-5 w-3/4" />
-                            <Skeleton className="h-4 w-1/4" />
-                        </div>
-                    </div>
-                </CardContent>
-                 <CardFooter className="bg-muted/30 p-4 flex justify-end gap-2">
-                    <Skeleton className="h-8 w-24" />
-                </CardFooter>
-            </Card>
-        )
-    }
-
-    return (
-        <Card key={order.id} className="overflow-hidden hover:ring-1 hover:ring-primary/20 transition-all">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
-                <div>
-                    <p className="text-[10px] text-muted-foreground font-mono uppercase">Order: {order.id.slice(0, 8)}</p>
-                    <p className="text-xs text-muted-foreground">
-                        {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
-                    </p>
-                </div>
-                <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'}>
-                    {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}
-                </Badge>
-            </CardHeader>
-            <CardContent className="p-4">
-                 <Link href={`/products/${order.productId}`} className="flex items-start gap-4 group">
-                    {product?.images?.[0] && (
-                        <Image src={product.images[0]} alt={product.name || 'Product Image'} width={80} height={80} className="rounded-md object-cover border" data-ai-hint={product.imageHints?.[0]}/>
-                    )}
-                    <div className="flex-1">
-                        <p className="font-semibold group-hover:underline">{product?.name || 'Loading product...'}</p>
-                        <p className="text-sm font-bold text-primary mt-1">
-                            {order.totalAmount.toLocaleString()} {order.currency}
-                        </p>
-                    </div>
-                </Link>
-            </CardContent>
-            <CardFooter className="bg-muted/30 p-4 flex justify-end gap-2">
-                <Button variant="outline" size="sm" asChild>
-                    <Link href={`/account/purchases/${order.id}`}>
-                        <Package className="h-4 w-4 mr-1" /> 查看详情
-                    </Link>
-                </Button>
-                {order.status === 'Shipped' && (
-                    <Button size="sm" onClick={handleConfirmReceipt}>
-                        <CheckCircle2 className="h-4 w-4 mr-1" /> {t('accountPurchases.orderCard.confirmReceipt')}
-                    </Button>
-                )}
-                 {order.status === 'Completed' && !order.buyerReviewId && (
-                    <Button size="sm" asChild>
-                        <Link href={`/account/purchases/${order.id}/review`}>
-                             {t('accountPurchases.orderCard.leaveReview')}
-                        </Link>
-                    </Button>
-                )}
-            </CardFooter>
-        </Card>
-    )
-}
-
-function PurchasesList({ user }: { user: NonNullable<ReturnType<typeof useUser>['user']>}) {
-    const db = useFirestore();
-    const { t } = useTranslation();
-    
-    // This query is now safe because this component only renders when user and db are available.
-    const ordersQuery = useMemo(() => {
-        if (!db) return null; // Still good practice to have this check
-        return query(
-            collection(db, "orders"),
-            where("buyerId", "==", user.uid),
-            orderBy("createdAt", "desc")
-        );
-    }, [user.uid, db]);
-
-    const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
-
-    if (dataLoading) {
-        return (
-            <div className="grid gap-4">
-                {[...Array(3)].map((_, i) => <OrderCard key={i} order={{} as Order} />)}
-            </div>
-        );
-    }
-    
-    if (error) {
-        return (
-            <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/10 m-6 text-center">
-                <XCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
-                <h2 className="text-destructive font-bold text-lg">权限或索引异常</h2>
-                <p className="text-sm mt-2 text-muted-foreground">
-                    Firestore 安全规则拒绝了此请求。请确保复合索引已正确配置。
-                </p>
-            </div>
-        );
-    }
-
-    return (
-        <>
-            {!orders || orders.length === 0 ? (
-                <Card className="bg-secondary/10 border-dashed">
-                    <CardContent className="py-20 text-center text-muted-foreground">
-                        暂无已完成或进行中的订单。
-                    </CardContent>
-                </Card>
-            ) : (
-                <div className="grid gap-4">
-                    {orders.map((order) => (
-                       <OrderCard key={order.id} order={order} />
-                    ))}
-                </div>
-            )}
-        </>
-    );
-}
-
 
 export default function PurchasesPage() {
     const { user, loading: authLoading } = useUser();
-    const { t } = useTranslation();
+    const db = useFirestore();
 
-    if (authLoading) {
+    // 🛡️ 严格保护：只有在 user.uid 确定存在时才发起查询
+    const ordersQuery = useMemo(() => {
+        if (!user?.uid || !db) return null;
+    // 简化版：删掉 orderBy，只保留最基础的 buyerId 匹配
+    // 这样可以排除因为没有 createdAt 字段或没有索引导致的“结果为空”
+    return query(
+        collection(db, "orders"), 
+        where("buyerId", "==", user.uid)
+    );
+}, [user?.uid, db]);
+
+    const { data: orders, loading: dataLoading, error } = useCollection(ordersQuery);
+
+    // Web3 确认收货分账逻辑 (预留)
+    const handleConfirmReceipt = async (orderId: string) => {
+        const platformAddress = "0x2fa2aa671077755331B96B96D7617bE5B84B2aa6"; // 平台地址
+        alert(`启动分账程序：\n99% 归卖家\n1% 归平台 (${platformAddress.slice(0, 6)}...)`);
+    };
+
+    if (authLoading || (user && dataLoading)) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-muted-foreground italic">正在安全检索您的账户信息...</p>
+                <p className="text-muted-foreground animate-pulse">正在从区块链同步您的购买记录...</p>
             </div>
         );
     }
 
     if (!user) {
-        return (
-            <div className="p-20 text-center">
-                <p className="text-muted-foreground">请先登录以查看您的购买记录。</p>
-            </div>
-        );
+        return <div className="p-20 text-center text-muted-foreground">请登录后查看您的订单。</div>;
     }
 
     return (
-        <div className="p-6 md:p-8 lg:p-12 max-w-4xl mx-auto">
+        <div className="p-6 md:p-12 max-w-6xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
                 <ShoppingBag className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-headline">{t('accountPurchases.title')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">我的购买</h1>
             </div>
-            <PurchasesList user={user} />
+
+            {error ? (
+                <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/5 text-center">
+                    <XCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
+                    <h2 className="text-destructive font-bold">连接被拦截</h2>
+                    <p className="text-sm mt-2 text-muted-foreground">请检查 Firebase 控制台的 Rules 是否已点击 Publish。</p>
+                </div>
+            ) : !orders || orders.length === 0 ? (
+                <div className="py-24 text-center border-2 border-dashed rounded-2xl opacity-40">
+                    <p className="text-xl italic">空空如也，去商城看看吧</p>
+                </div>
+            ) : (
+                <div className="grid gap-4">
+                    {orders.map((order: any) => (
+                        <Card key={order.id || Math.random()} className="overflow-hidden hover:shadow-lg transition-shadow">
+                            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
+                                <div>
+                                    <p className="text-[10px] text-muted-foreground font-mono">ORDER ID: {order.id?.slice(0, 10) || 'N/A'}</p>
+                                    <CardTitle className="text-lg mt-1">{order.productName || '数字资产'}</CardTitle>
+                                </div>
+                                <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>
+                                    {order.status}
+                                </Badge>
+                            </CardHeader>
+                            <CardContent className="pt-6">
+                                <div className="flex justify-between items-end">
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-muted-foreground">
+                                            下单时间: {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
+                                        </p>
+                                        <p className="font-bold text-2xl text-primary">{order.amount} <span className="text-sm">USDT</span></p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        {order.status === 'paid' && (
+                                            <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
+                                                <CheckCircle2 className="h-4 w-4 mr-1" /> 确认收货 (结算)
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

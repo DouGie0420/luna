@@ -1,333 +1,62 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useParams, notFound, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useFirestore, useUser } from "@/firebase";
+// 修正后的引入路径
+import { collection, addDoc, serverTimestamp } from "firebase/firestore"; 
+import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useMemo } from "react";
 
-import { useUser, useFirestore, useDoc } from '@/firebase';
-import type { Order, Product, UserProfile } from '@/lib/types';
-import { useTranslation } from '@/hooks/use-translation';
-import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+export default function ProductDetailPage({ product }: { product: any }) {
+  const { user } = useUser();
+  const db = useFirestore();
+  const router = useRouter();
+  const [isBuying, setIsBuying] = useState(false);
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Truck, Copy, MessageCircle, ExternalLink, Package, CircleDollarSign, Bell, Edit, Star } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { createNotification } from '@/lib/notifications';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { getMockOrderById } from '@/lib/data';
+  const handleBuy = async () => {
+    if (!user) return alert("请先登录");
+    if (isBuying) return;
 
-
-function OrderDetailPageSkeleton() {
-    return (
-      <div className="container mx-auto max-w-4xl px-4 py-8">
-        <div className="space-y-6">
-          <Card className="text-center">
-            <CardHeader><Skeleton className="h-8 w-12 mx-auto rounded-full" /></CardHeader>
-            <CardContent className="space-y-2">
-                <Skeleton className="h-7 w-48 mx-auto" />
-                <Skeleton className="h-5 w-64 mx-auto" />
-                <Skeleton className="h-5 w-32 mx-auto" />
-                <Skeleton className="h-10 w-40 mx-auto mt-4" />
-            </CardContent>
-          </Card>
-          <Card>
-             <CardHeader><Skeleton className="h-5 w-24" /></CardHeader>
-             <CardContent className="space-y-4">
-                <div className="flex gap-4">
-                    <Skeleton className="h-20 w-20 rounded-md" />
-                    <div className="flex-1 space-y-2">
-                        <Skeleton className="h-5 w-full" />
-                        <Skeleton className="h-5 w-1/4" />
-                    </div>
-                </div>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-             </CardContent>
-          </Card>
-           <Card>
-             <CardFooter className="p-4 pt-4 justify-between flex-wrap gap-2">
-                 <Skeleton className="h-10 w-28" />
-                 <div className="flex-grow" />
-                 <Skeleton className="h-10 w-28" />
-                 <Skeleton className="h-10 w-28" />
-             </CardFooter>
-          </Card>
-        </div>
-      </div>
-    );
-}
-
-const InfoRow = ({ label, value, onCopy }: { label: string; value: React.ReactNode; onCopy?: () => void; }) => {
-    return (
-        <div className="flex justify-between items-center text-sm">
-            <span className="text-muted-foreground">{label}</span>
-            <div className="flex items-center gap-2">
-                <div className="font-medium text-right">{value}</div>
-                {onCopy && <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCopy}><Copy className="h-4 w-4" /></Button>}
-            </div>
-        </div>
-    );
-};
-
-
-export default function OrderDetailPage() {
-    const params = useParams();
-    const router = useRouter();
-    const { t } = useTranslation();
-    const { toast } = useToast();
-    const { user: currentUser, profile: currentUserProfile } = useUser();
-    const firestore = useFirestore();
-
-    const orderId = params.id as string;
-
-    const [order, setOrder] = useState<Order | null>(null);
-    const [isOrderLoading, setIsOrderLoading] = useState(true);
-    
-    const orderRef = useMemo(() => (firestore && orderId ? doc(firestore, 'orders', orderId) : null), [firestore, orderId]);
-    const { data: orderFromDb, loading: orderDbLoading } = useDoc<Order>(orderRef);
-
-    useEffect(() => {
-      const loadOrder = async () => {
-        if (!orderDbLoading) {
-          if (orderFromDb) {
-            setOrder(orderFromDb);
-          } else {
-            // Fallback to mock data if not found in Firestore
-            const mockOrder = await getMockOrderById(orderId);
-            setOrder(mockOrder || null);
-          }
-          setIsOrderLoading(false);
-        }
+    setIsBuying(true);
+    try {
+      // 1. 构建订单数据
+      const orderData = {
+        productName: product.name || "LUNA 测试商品", // 对应你截图中的商品名
+        amount: product.price || 100,               // 对应你截图中的 100 USDT
+        buyerId: user.uid,                          // 对应你的 UID: BOs5...
+        sellerId: product.ownerId || "nalrrk...",    // 对应截图中的卖家 ID
+        
+        // 【核心】必须存入这个，结算时才能分账给卖家
+        sellerAddress: product.sellerAddress || "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", 
+        
+        status: "paid",                             // 初始状态为已支付
+        createdAt: serverTimestamp(),               // 对应截图中的时间戳
+        productId: product.id || "test-id"
       };
-      loadOrder();
-    }, [orderFromDb, orderDbLoading, orderId]);
 
-    const productRef = useMemo(() => (firestore && order ? doc(firestore, 'products', order.productId) : null), [firestore, order]);
-    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
-
-    const sellerRef = useMemo(() => (firestore && order ? doc(firestore, 'users', order.sellerId) : null), [firestore, order]);
-    const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
-    
-    const [isLogisticsOpen, setIsLogisticsOpen] = useState(false);
-    
-    const isLoading = isOrderLoading || productLoading || sellerLoading;
-
-    const handleCopy = (text: string) => {
-        if (!text) return;
-        navigator.clipboard.writeText(text);
-        toast({ title: t('accountPage.copied') });
-    };
-
-    const handleRemindSeller = async () => {
-        if (!firestore || !currentUserProfile || !order || !product) return;
-        
-        await createNotification(firestore, order.sellerId, {
-            type: 'remind-to-ship',
-            actor: currentUserProfile,
-            order: order,
-            product: product,
-        });
-
-        toast({ title: "已成功提醒卖家发货！" });
-    };
-    
-    const handleConfirmReceipt = async () => {
-        if (!firestore || !order) return;
-        
-        // 此处调用合约：99% 给卖家，1% 给平台 0x2fa2aa...
-        const orderRef = doc(firestore, 'orders', order.id);
-        const updateData = {
-            status: 'Completed' as const,
-            completedAt: serverTimestamp()
-        };
-        
-        updateDoc(orderRef, updateData)
-            .then(() => {
-                toast({
-                    title: t('orderDetails.receiptConfirmed'),
-                    description: "感谢您的购买！"
-                });
-            })
-            .catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: orderRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-    };
-    
-    const blockExplorerUrl = useMemo(() => {
-        try {
-            if (order?.paymentTransactionId) {
-                return `https://etherscan.io/tx/${order.paymentTransactionId}`;
-            }
-        } catch (e) {
-            // Silently fail if Web3/ethers logic fails
-            console.error("Error creating block explorer URL:", e);
-        }
-        return '#';
-    }, [order]);
-
-    if (isLoading) {
-        return <OrderDetailPageSkeleton />;
+      // 2. 写入数据库
+      if (db) {
+        await addDoc(collection(db, "orders"), orderData);
+        // 3. 跳转到“我的购买”列表
+        router.push('/account/purchases');
+      }
+    } catch (error) {
+      console.error("购买过程出错:", error);
+      alert("创建订单失败，请检查控制台");
+    } finally {
+      setIsBuying(false);
     }
-    
-    // Authorization check
-    if (!order || !product || !seller) {
-        return notFound();
-    }
+  };
 
-    if (currentUser?.uid !== order.buyerId && currentUserProfile?.role !== 'admin' && currentUserProfile?.role !== 'ghost') {
-        return (
-            <div className="container mx-auto max-w-4xl px-4 py-8">
-                 <h1 className="text-2xl font-headline text-destructive">拒绝访问</h1>
-                 <p className="text-muted-foreground">您没有权限查看此订单。</p>
-            </div>
-        )
-    }
-
-    // Determine status text
-    let statusText = "未知状态";
-    if (order.status === 'Pending' || order.status === 'In Escrow') {
-        statusText = "等待卖家发货";
-    } else if (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') {
-        statusText = "运输中";
-    } else if (order.status === 'Completed') {
-        statusText = "订单已完成";
-    } else {
-        statusText = order.status;
-    }
-
-
-    return (
-        <>
-        <div className="container mx-auto max-w-4xl px-4 py-8">
-            <div className="space-y-6">
-                
-                <Card className="text-center overflow-hidden">
-                     <CardHeader>
-                        <CheckCircle className="mx-auto h-12 w-12 text-green-400 animate-pulse" />
-                        <CardTitle className="font-headline text-2xl">支付成功!</CardTitle>
-                        <CardDescription>您的资金已进入安全托管状态。</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <p className="text-4xl font-bold">{order.totalAmount.toLocaleString()} <span className="text-xl text-muted-foreground">{order.currency}</span></p>
-                        {order.paymentTransactionId && (
-                            <Button asChild variant="outline">
-                                <Link href={blockExplorerUrl} target="_blank" rel="noopener noreferrer">
-                                    查看链上凭证 <ExternalLink className="ml-2 h-4 w-4"/>
-                                </Link>
-                            </Button>
-                        )}
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <div className="flex justify-between items-center">
-                            <CardTitle className="flex items-center gap-2">
-                                <Truck className="h-5 w-5" />
-                                订单详情
-                            </CardTitle>
-                            <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'}>{statusText}</Badge>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex gap-4 p-4 bg-secondary/30 rounded-lg">
-                            <div className="w-20 h-20 relative rounded-md overflow-hidden shrink-0">
-                                <Image src={product.images[0]} alt={product.name} fill className="object-cover" data-ai-hint={product.imageHints[0]} />
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-semibold leading-tight">{product.name}</p>
-                                <p className="text-lg font-bold text-primary mt-1">
-                                    {product.price.toLocaleString()} <span className="text-xs ml-1">{product.currency}</span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <InfoRow label="订单编号" value={order.id} onCopy={() => handleCopy(order.id)} />
-                        
-                        {(currentUserProfile?.role === 'admin' || currentUserProfile?.role === 'ghost') && seller.walletAddress && (
-                             <InfoRow label="卖家钱包" value={`${seller.walletAddress.slice(0, 6)}...${seller.walletAddress.slice(-4)}`} onCopy={() => handleCopy(seller.walletAddress!)} />
-                        )}
-
-                        <InfoRow label="下单时间" value={order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm:ss') : 'N/A'} />
-                        
-                        <Separator />
-
-                        <p className="font-semibold text-sm">收货地址:</p>
-                        <div className="text-sm text-muted-foreground">
-                            <p>{order.shippingAddress.recipientName}, {order.shippingAddress.phone}</p>
-                            <p>{order.shippingAddress.addressLine1}, {order.shippingAddress.city}, {order.shippingAddress.province}, {order.shippingAddress.postalCode}</p>
-                        </div>
-
-                    </CardContent>
-                     <CardFooter className="p-4 pt-0 flex justify-between items-center flex-wrap gap-2">
-                        <div>
-                            <Button variant="outline" onClick={() => setIsLogisticsOpen(true)} disabled={!order.trackingNumber}>
-                                <Package className="mr-2 h-4 w-4"/>
-                                {t('orderDetails.viewLogistics')}
-                            </Button>
-                        </div>
-                        <div className="flex gap-2 flex-wrap justify-end">
-                            <Button variant="outline"><MessageCircle className="mr-2"/>{t('orderDetails.contactSeller')}</Button>
-                            {(order.status === 'Pending' || order.status === 'In Escrow') && (
-                                <>
-                                    <Button variant="outline" onClick={handleRemindSeller}><Bell className="mr-2"/>提醒发货</Button>
-                                    <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}><Edit className="mr-2"/>修改地址</Button>
-                                </>
-                            )}
-                            <Button variant="outline" onClick={() => toast({ title: "功能即将推出" })}>
-                                <CircleDollarSign className="mr-2"/>{t('orderDetails.refund')}
-                            </Button>
-                            
-                            {order.status === 'Completed' ? (
-                                order.buyerReviewId ? (
-                                    <Button disabled variant="outline">
-                                        <CheckCircle className="mr-2"/>{t('orderDetails.reviewed')}
-                                    </Button>
-                                ) : (
-                                    <Button asChild>
-                                        <Link href={`/account/purchases/${order.id}/review`}>
-                                            <Star className="mr-2"/>{t('orderDetails.leaveReview')}
-                                        </Link>
-                                    </Button>
-                                )
-                            ) : (order.status === 'Shipped' || order.status === 'Awaiting Confirmation') ? (
-                                <Button onClick={handleConfirmReceipt}>{t('orderDetails.confirmReceipt')}</Button>
-                            ) : null}
-                        </div>
-                    </CardFooter>
-                </Card>
-
-            </div>
-        </div>
-        <Dialog open={isLogisticsOpen} onOpenChange={setIsLogisticsOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{t('orderDetails.logisticsInfo')}</DialogTitle>
-                    <DialogDescription>
-                        {t('orderDetails.snapshotInfo')}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <InfoRow label={t('orderDetails.courier')} value={order.shippingProvider || 'N/A'} />
-                    <InfoRow label={t('orderDetails.trackingNumber')} value={order.trackingNumber || 'N/A'} onCopy={() => handleCopy(order.trackingNumber || '')} />
-                    <Button className="w-full mt-4" disabled>{t('orderDetails.trackPackage')}</Button>
-                </div>
-            </DialogContent>
-        </Dialog>
-        </>
-    );
+  return (
+    <div className="p-4">
+        {/* 这里是你原来的 UI，确保按钮绑定了 handleBuy */}
+        <button 
+            className="bg-primary p-4 rounded text-white"
+            onClick={handleBuy} 
+            disabled={isBuying}
+        >
+            {isBuying ? "正在处理订单..." : "立即购买 (100 USDT)"}
+        </button>
+    </div>
+  );
 }

@@ -1,9 +1,7 @@
-
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore, useCollection } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,8 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChevronDown, Loader2, MessageSquare, Reply, X, ThumbsDown, Trash2, Heart } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
-import { getUsers } from '@/lib/data';
-import type { User } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
@@ -29,31 +25,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove, doc } from 'firebase/firestore';
+import type { Comment as CommentType, UserProfile } from '@/lib/types';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
-type Comment = {
-  id: string;
-  authorId: string;
-  text: string;
-  date: Date;
-  parentId?: string;
-};
-
-type NestedComment = Comment & {
+type NestedComment = CommentType & {
+    authorProfile?: UserProfile;
     replies: NestedComment[];
 };
-
-const allMockComments: Comment[] = [
-    { id: 'c7', authorId: 'user4', text: 'Looks great but how is the battery life?', date: new Date(Date.now() - 2 * 60 * 1000) },
-    { id: 'c6', authorId: 'user5', text: 'Just ordered one, can\'t wait!', date: new Date(Date.now() - 30 * 60 * 1000) },
-    { id: 'c5', authorId: 'user6', text: 'This would be perfect for my setup.', date: new Date(Date.now() - 45 * 60 * 1000) },
-    { id: 'c4', authorId: 'user1', text: 'Does it come with international warranty?', date: new Date(Date.now() - 55 * 60 * 1000) },
-    { id: 'c9', authorId: 'user3', text: 'Great question, I was wondering the same.', date: new Date(Date.now() - 50 * 60 * 1000), parentId: 'c4' },
-    { id: 'c3', authorId: 'user2', text: 'Awesome! I have a similar one and I love it.', date: new Date(Date.now() - 1 * 60 * 60 * 1000) },
-    { id: 'c2', authorId: 'user3', text: 'Is the price negotiable?', date: new Date(Date.now() - 2 * 60 * 60 * 1000) },
-    { id: 'c1', authorId: 'user10', text: 'Is this item still available?', date: new Date(Date.now() - 5 * 60 * 60 * 1000) },
-    { id: 'c8', authorId: 'user1', text: 'Yes, it is!', date: new Date(Date.now() - 4 * 60 * 60 * 1000), parentId: 'c1' },
-];
-
 
 const COMMENTS_INITIAL_LOAD = 5;
 const COMMENTS_LOAD_MORE = 10;
@@ -102,10 +82,17 @@ const CommentForm = ({
 export function ProductCommentSection({ productId }: { productId: string }) {
     const { t, language } = useTranslation();
     const { user, profile } = useUser();
+    const firestore = useFirestore();
     const { toast } = useToast();
     
-    const [users, setUsers] = useState<User[]>([]);
-    const [comments, setComments] = useState<Comment[]>(allMockComments);
+    const commentsQuery = useMemo(() => 
+        firestore && productId
+        ? query(collection(firestore, 'products', productId, 'comments'), orderBy('createdAt', 'desc'))
+        : null
+    , [firestore, productId]);
+
+    const { data: comments, loading: commentsLoading } = useCollection<CommentType>(commentsQuery);
+    
     const [newComment, setNewComment] = useState('');
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,30 +100,14 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     
-    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-    const [commentInteractions, setCommentInteractions] = useState<Record<string, 'liked' | 'disliked' | null>>({});
-
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
 
-    useEffect(() => {
-        getUsers().then(setUsers);
-    }, []);
-
-    useEffect(() => {
-        if (permissionErrorToast) {
-            setTimeout(() => {
-                toast({
-                    variant: 'destructive',
-                    title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
-                });
-                setPermissionErrorToast(false);
-            }, 0);
-        }
-    }, [permissionErrorToast, isGuest, t, toast]);
-    
     const handleInteractionNotAllowed = () => {
-        setPermissionErrorToast(true);
+        toast({
+            variant: 'destructive',
+            title: isGuest ? t('common.loginToInteract') : t('common.verifyToInteract'),
+        });
     }
     
     const handleConfirmCancelReply = () => {
@@ -145,8 +116,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         setIsCancelDialogOpen(false);
     };
 
-    const handlePostComment = () => {
-        if (!newComment.trim()) return;
+    const handlePostComment = async () => {
+        if (!newComment.trim() || !firestore || !user) return;
 
         if (!canInteract) {
             handleInteractionNotAllowed();
@@ -154,58 +125,94 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         }
 
         setIsSubmitting(true);
-        setTimeout(() => {
-            const newCommentObject: Comment = {
-                id: `c${Date.now()}`,
-                authorId: user.uid,
-                text: newComment,
-                date: new Date(),
-                parentId: replyingTo?.id === 'root' ? undefined : replyingTo?.id,
-            };
-            setComments(prev => [newCommentObject, ...prev]);
+        
+        const commentData = {
+            authorId: user.uid,
+            text: newComment,
+            createdAt: serverTimestamp(),
+            parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
+            likes: 0,
+            dislikes: 0,
+            likedBy: [],
+            dislikedBy: [],
+        };
+        const commentsRef = collection(firestore, 'products', productId, 'comments');
+        
+        try {
+            await addDoc(commentsRef, commentData);
             setNewComment('');
             setReplyingTo(null);
-            setIsSubmitting(false);
             toast({
                 title: t('productComments.commentPosted'),
-                description: t('productComments.replyNotification'),
             });
-            if(visibleCommentsCount < COMMENTS_INITIAL_LOAD) setVisibleCommentsCount(COMMENTS_INITIAL_LOAD);
-
-        }, 500);
+        } catch(e) {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: commentsRef.path,
+                operation: 'create',
+                requestResourceData: commentData
+            }));
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    const handleDeleteComment = () => {
-        if (!commentToDelete) return;
-        setComments(prev => prev.filter(c => c.id !== commentToDelete && c.parentId !== commentToDelete));
-        setCommentToDelete(null);
-        toast({ title: t('productComments.commentDeleted') });
+    const handleDeleteComment = async () => {
+        if (!commentToDelete || !firestore) return;
+        
+        const commentRef = doc(firestore, 'products', productId, 'comments', commentToDelete);
+        try {
+            await deleteDoc(commentRef);
+            setCommentToDelete(null);
+            toast({ title: t('productComments.commentDeleted') });
+        } catch (e) {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: commentRef.path, operation: 'delete' }));
+        }
     };
 
     const handleLoadMore = () => {
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
 
-    const handleLikeDislike = (commentId: string, type: 'like' | 'dislike') => {
-        if (!canInteract) {
+    const handleLikeDislike = async (commentId: string, type: 'like' | 'dislike') => {
+        if (!canInteract || !firestore || !user) {
             handleInteractionNotAllowed();
             return;
         }
-        setCommentInteractions(prev => {
-            const currentStatus = prev[commentId];
-            let newStatus;
-    
-            if (type === 'like') {
-                newStatus = currentStatus === 'liked' ? null : 'liked';
-            } else { // dislike
-                newStatus = currentStatus === 'disliked' ? null : 'disliked';
+
+        const commentRef = doc(firestore, 'products', productId, 'comments', commentId);
+        const comment = comments?.find(c => c.id === commentId);
+        if (!comment) return;
+
+        const isLiked = comment.likedBy?.includes(user.uid);
+        const isDisliked = comment.dislikedBy?.includes(user.uid);
+
+        let updateData: any = {};
+        
+        if (type === 'like') {
+            updateData.likedBy = isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid);
+            updateData.likes = increment(isLiked ? -1 : 1);
+            if (isDisliked) {
+                updateData.dislikedBy = arrayRemove(user.uid);
+                updateData.dislikes = increment(-1);
             }
-    
-            return { ...prev, [commentId]: newStatus };
-        });
+        } else { // dislike
+            updateData.dislikedBy = isDisliked ? arrayRemove(user.uid) : arrayUnion(user.uid);
+            updateData.dislikes = increment(isDisliked ? -1 : 1);
+            if (isLiked) {
+                updateData.likedBy = arrayRemove(user.uid);
+                updateData.likes = increment(-1);
+            }
+        }
+
+        try {
+            await updateDoc(commentRef, updateData);
+        } catch (e) {
+             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: commentRef.path, operation: 'update', requestResourceData: updateData }));
+        }
     };
 
     const nestedComments = useMemo(() => {
+        if (!comments) return [];
         const commentMap: { [key: string]: NestedComment } = {};
         comments.forEach(comment => {
             commentMap[comment.id] = { ...comment, replies: [] };
@@ -220,47 +227,36 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             }
         });
         
-        topLevelComments.sort((a, b) => b.date.getTime() - a.date.getTime());
         topLevelComments.forEach(comment => {
-            comment.replies.sort((a, b) => a.date.getTime() - b.date.getTime());
+            if (comment.replies) {
+              comment.replies.sort((a, b) => a.createdAt.toDate().getTime() - b.createdAt.toDate().getTime());
+            }
         });
     
         return topLevelComments;
     }, [comments]);
     
-    const getUserById = (userId: string) => {
-        if (userId === user?.uid) {
-            const fullProfile = users.find(u => u.id === 'user1'); // mock a full profile
-            return {
-                id: user.uid,
-                name: profile?.displayName || user.displayName,
-                avatarUrl: profile?.photoURL || user.photoURL,
-                ...fullProfile
-            };
-        }
-        return users.find(u => u.id === userId);
-    };
-
     const renderComment = (comment: NestedComment, isReply: boolean = false) => {
-        const author = getUserById(comment.authorId);
-        const timeAgo = formatDistanceToNow(comment.date, { addSuffix: true, locale: locales[language] });
-        const isLiked = commentInteractions[comment.id] === 'liked';
-        const isDisliked = commentInteractions[comment.id] === 'disliked';
-
+        const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
+        const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
+        const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
+        // In a real app, you might fetch author profiles separately. For now, we'll just show the ID if no profile is passed.
+        const authorName = comment.authorProfile?.displayName || comment.authorId.slice(0, 6);
+        const authorAvatar = comment.authorProfile?.photoURL;
+        
         return (
              <div key={comment.id}>
                 <div className="flex items-start gap-3">
-                    <Link href={`/user/${author?.id || comment.authorId}`}>
+                    <Link href={`/user/${comment.authorId}`}>
                         <Avatar className="h-10 w-10">
-                            {author?.avatarUrl && <AvatarImage src={author.avatarUrl} alt={author.name} />}
-                            <AvatarFallback>{author?.name?.charAt(0) || '?'}</AvatarFallback>
+                            {authorAvatar && <AvatarImage src={authorAvatar} alt={authorName} />}
+                            <AvatarFallback>{authorName.charAt(0) || '?'}</AvatarFallback>
                         </Avatar>
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center justify-between">
                             <div>
-                                <span className="font-semibold text-foreground">{author?.name}</span>
-                                {author?.location && <p className="text-xs text-muted-foreground inline ml-2">{author.location.city}, {author.location.countryCode}</p>}
+                                <span className="font-semibold text-foreground">{authorName}</span>
                             </div>
                             <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                                 <Button
@@ -269,7 +265,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                     className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
                                 >
                                     <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                                    <span>{(author?.goodReviews ?? 0) + (isLiked ? 1 : 0)}</span>
+                                    <span>{comment.likes || 0}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -277,7 +273,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                     className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
                                 >
                                     <ThumbsDown className="h-4 w-4" />
-                                    <span>{(author?.badReviews ?? 0) + (isDisliked ? 1 : 0)}</span>
+                                    <span>{comment.dislikes || 0}</span>
                                 </Button>
                                 <span>{timeAgo}</span>
                             </div>
@@ -288,7 +284,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.name || 'User' }) : handleInteractionNotAllowed()}
+                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: authorName }) : handleInteractionNotAllowed()}
                             >
                                 <Reply className="mr-1 h-3 w-3 -scale-x-100" />
                                 {t('productComments.reply')}
@@ -330,7 +326,6 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     <CardTitle>{t('productComments.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                     {/* Comment Form Trigger / Area */}
                     {canInteract ? (
                         (!replyingTo || replyingTo.id !== 'root') && (
                             <TooltipProvider>
@@ -370,8 +365,9 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     
                     {nestedComments.length > 0 && <Separator />}
 
-                    {/* Comments List */}
-                    {nestedComments.length > 0 ? (
+                    {commentsLoading ? (
+                        <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                    ) : nestedComments.length > 0 ? (
                         <div className="space-y-6">
                             {nestedComments.slice(0, visibleCommentsCount).map(comment => (
                                 <div key={comment.id}>
@@ -392,9 +388,9 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         </div>
                     )}
                     
-                    {nestedComments.length > visibleCommentsCount && (
+                    {comments && comments.length > visibleCommentsCount && (
                         <div className="text-center mt-6">
-                            <Button variant="outline" onClick={handleLoadMore} disabled={!canInteract}>
+                            <Button variant="outline" onClick={handleLoadMore}>
                                 {t('bbsPage.loadMoreComments')}
                                 <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
@@ -439,5 +435,3 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         </>
     );
 }
-
-    

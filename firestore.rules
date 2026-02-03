@@ -88,6 +88,13 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']) ||
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['searchHits'])
         ));
+
+      match /comments/{commentId} {
+        allow read, list: if true;
+        allow create: if isSignedIn() && request.resource.data.authorId == request.auth.uid;
+        allow update: if isSignedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'dislikes', 'likedBy', 'dislikedBy']);
+        allow delete: if isOwner(resource.data.authorId) || isRequestingUserAdmin();
+      }
     }
     
     // PROMOS (Managed by Staff/Admins/Ghosts)
