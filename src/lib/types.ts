@@ -111,6 +111,8 @@ export type UserProfile = {
     purchasesCount?: number;
     followersCount?: number;
     followingCount?: number;
+    followers?: string[];
+    following?: string[];
     featuredCount?: number;
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';

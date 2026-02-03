@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import type { Product, UserAddress, UserProfile, PaymentMethod } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { collection, doc } from 'firebase/firestore';
+import { collection, doc, addDoc, serverTimestamp } from 'firebase/firestore';
 
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,14 +16,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Banknote, Edit, CheckCircle2, QrCode, Wallet, Info } from 'lucide-react';
+import { Banknote, Edit, CheckCircle2, QrCode, Wallet, Info, Loader2 } from 'lucide-react';
 import { MapPin, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaymentMethodButton } from '@/components/payment-method-button';
 import { Progress } from "@/components/ui/progress";
-import { RotatingQuote } from '@/components/rotating-quote';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddressForm } from '@/components/address-form';
+import { useToast } from '@/hooks/use-toast';
 
 
 const SHIPPING_FEES = {
@@ -116,6 +116,7 @@ export default function CheckoutPage() {
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   
   const id = params.id as string;
   const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
@@ -137,6 +138,8 @@ export default function CheckoutPage() {
 
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const addressesCollectionQuery = useMemo(() => {
     if (!firestore || !user) return null;
@@ -163,9 +166,70 @@ export default function CheckoutPage() {
     }
   }, [progress]);
 
-  const handleConfirmPurchase = () => {
-    const mockOrderId = "ORD004"; 
-    router.push(`/order/success?orderId=${mockOrderId}`);
+  const shippingMethod: ShippingMethod = useMemo(() => {
+    if (product?.shippingMethod === 'Seller Pays') {
+      return 'Seller Pays';
+    }
+    return selectedShippingOption;
+  }, [product, selectedShippingOption]);
+
+  const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
+  const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
+  
+  const availablePaymentMethods = useMemo((): PaymentMethod[] => {
+    return product?.acceptedPaymentMethods || [];
+  }, [product]);
+
+  const handleConfirmPurchase = async () => {
+    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please select a shipping address and payment method.",
+        });
+        return;
+    }
+    setIsProcessing(true);
+
+    const address = addresses?.find(a => a.id === selectedAddressId);
+    if (!address) {
+        toast({ variant: "destructive", title: "Address not found" });
+        setIsProcessing(false);
+        return;
+    }
+    const { id: addrId, isDefault, ...shippingAddress } = address;
+
+    const orderData = {
+        productId: product.id,
+        productName: product.name,
+        buyerId: user.uid,
+        sellerId: product.seller.id,
+        price: product.price,
+        shippingFee: shippingFee,
+        totalAmount: totalAmount,
+        currency: product.currency,
+        status: 'In Escrow' as const,
+        createdAt: serverTimestamp(),
+        shippingAddress: shippingAddress,
+        shippingMethod: shippingMethod,
+    };
+    
+    try {
+        const docRef = await addDoc(collection(firestore, 'orders'), orderData);
+        toast({
+            title: "Order Placed!",
+            description: "Your order has been successfully created.",
+        });
+        router.push(`/account/purchases/${docRef.id}`);
+    } catch(e) {
+        console.error(e);
+        toast({
+            variant: "destructive",
+            title: "Order Failed",
+            description: "There was an error creating your order. Please try again.",
+        });
+        setIsProcessing(false);
+    }
   };
 
   const handleEditAddress = (addressId: string) => {
@@ -182,20 +246,6 @@ export default function CheckoutPage() {
     setIsAddressDialogOpen(false);
     setEditingAddressId(null);
   };
-
-  const shippingMethod: ShippingMethod = useMemo(() => {
-    if (product?.shippingMethod === 'Seller Pays') {
-      return 'Seller Pays';
-    }
-    return selectedShippingOption;
-  }, [product, selectedShippingOption]);
-
-  const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
-  const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
-  
-  const availablePaymentMethods = useMemo((): PaymentMethod[] => {
-    return product?.acceptedPaymentMethods || [];
-  }, [product]);
 
   const isLoading = loadingProduct || userLoading || addressesLoading || loadingSeller;
 
@@ -366,7 +416,10 @@ export default function CheckoutPage() {
                     <span>{t('checkoutPage.total')}</span>
                     <span className="text-primary">{totalAmount.toLocaleString()} {product.currency}</span>
                   </div>
-                   <Button size="lg" className="w-full h-12 text-lg" onClick={handleConfirmPurchase}>{t('checkoutPage.confirmPurchase')}</Button>
+                   <Button size="lg" className="w-full h-12 text-lg" onClick={handleConfirmPurchase} disabled={isProcessing}>
+                       {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                       {t('checkoutPage.confirmPurchase')}
+                    </Button>
                    <div className="w-full space-y-2 pt-2">
                       <div className="relative h-4 w-full overflow-hidden rounded-full animate-breathing-glow bg-secondary">
                           <Progress value={progress} className="w-full h-4 bg-transparent" />

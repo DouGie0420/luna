@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { useUser, useCollection, useFirestore } from "@/firebase";
-import { query, collection, where, orderBy } from "firebase/firestore";
+import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,14 @@ import { format } from "date-fns";
 import { useTranslation } from '@/hooks/use-translation';
 import Link from 'next/link';
 import type { Order } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function PurchasesPage() {
     const { t } = useTranslation();
     const { user, loading: authLoading } = useUser();
     const db = useFirestore();
+    const { toast } = useToast();
 
     const ordersQuery = useMemo(() => {
         if (!user?.uid || !db) return null;
@@ -30,9 +32,18 @@ export default function PurchasesPage() {
     const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
     const handleConfirmReceipt = async (orderId: string) => {
-        // Web3 结算：99% 卖家, 1% 平台 (0x2fa2aa...)
-        const platformAddress = "0x2fa2aa671077755331B96B96D7617bE5B84B2aa6"; 
-        alert(`启动分账程序：\n99% 归卖家\n1% 归平台 (${platformAddress.slice(0, 6)}...)`);
+        if (!db) return;
+        const orderRef = doc(db, 'orders', orderId);
+        try {
+            await updateDoc(orderRef, {
+                status: 'Completed',
+                completedAt: serverTimestamp()
+            });
+            toast({ title: t('orderDetails.receiptConfirmed') });
+        } catch (error) {
+            console.error("Failed to confirm receipt:", error);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
+        }
     };
 
     if (authLoading || (user && dataLoading)) {
@@ -67,46 +78,48 @@ export default function PurchasesPage() {
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {orders.map((order: any) => (
-                        <Card key={order.id || Math.random()} className="overflow-hidden hover:shadow-lg transition-shadow">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
-                                <div>
-                                    <p className="text-[10px] text-muted-foreground font-mono">ORDER ID: {order.id?.slice(0, 10) || 'N/A'}</p>
-                                     <Link href={`/products/${order.productId}`} className="hover:underline">
-                                        <CardTitle className="text-lg mt-1">{order.productName || '数字资产'}</CardTitle>
-                                    </Link>
-                                </div>
-                                <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' ? 'destructive' : 'secondary')}>
-                                    {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any) || order.status}
-                                </Badge>
-                            </CardHeader>
-                            <CardContent className="pt-6">
-                                <div className="flex justify-between items-end">
-                                    <div className="space-y-1">
-                                        <p className="text-xs text-muted-foreground">
-                                            下单时间: {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
-                                        </p>
-                                        <p className="font-bold text-2xl text-primary">{order.totalAmount.toLocaleString()} <span className="text-sm">{order.currency}</span></p>
+                    {orders.map((order: Order) => (
+                        <Card key={order.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                             <Link href={`/account/purchases/${order.id}`} className="block">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
+                                    <div>
+                                        <p className="text-[10px] text-muted-foreground font-mono">ORDER ID: {order.id?.slice(0, 10) || 'N/A'}</p>
+                                        <CardTitle className="text-lg mt-1 group-hover:underline">{order.productName || '数字资产'}</CardTitle>
                                     </div>
-                                    <div className="flex gap-2">
-                                        {order.status === 'Shipped' && (
-                                            <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
-                                                <CheckCircle2 className="h-4 w-4 mr-1" /> {t('orderDetails.confirmReceipt')}
-                                            </Button>
-                                        )}
-                                        {order.status === 'Completed' && !order.buyerReviewId && (
-                                             <Button size="sm" variant="outline" asChild>
-                                                <Link href={`/account/purchases/${order.id}/review`}>
-                                                    {t('orderDetails.leaveReview')}
-                                                </Link>
-                                            </Button>
-                                        )}
-                                         {order.status === 'Completed' && order.buyerReviewId && (
-                                             <Button size="sm" variant="ghost" disabled>
-                                                {t('orderDetails.reviewed')}
-                                            </Button>
-                                        )}
+                                    <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' || order.status === 'Cancelled' ? 'destructive' : 'secondary')}>
+                                        {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any) || order.status}
+                                    </Badge>
+                                </CardHeader>
+                                <CardContent className="pt-6">
+                                    <div className="flex justify-between items-end">
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                下单时间: {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
+                                            </p>
+                                            <p className="font-bold text-2xl text-primary">{order.totalAmount.toLocaleString()} <span className="text-sm">{order.currency}</span></p>
+                                        </div>
                                     </div>
+                                </CardContent>
+                            </Link>
+                             <CardContent className="pb-4">
+                                <div className="flex justify-end gap-2">
+                                     {order.status === 'Shipped' && (
+                                        <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
+                                            <CheckCircle2 className="h-4 w-4 mr-1" /> {t('orderDetails.confirmReceipt')}
+                                        </Button>
+                                    )}
+                                    {order.status === 'Completed' && !order.buyerReviewId && (
+                                            <Button size="sm" variant="outline" asChild>
+                                            <Link href={`/account/purchases/${order.id}/review`}>
+                                                {t('orderDetails.leaveReview')}
+                                            </Link>
+                                        </Button>
+                                    )}
+                                        {order.status === 'Completed' && order.buyerReviewId && (
+                                            <Button size="sm" variant="ghost" disabled>
+                                            {t('orderDetails.reviewed')}
+                                        </Button>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

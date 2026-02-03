@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { getProducts } from '@/lib/data';
+import { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from './product-card';
 import { Skeleton } from './ui/skeleton';
 import type { Product } from '@/lib/types';
@@ -14,47 +13,28 @@ import {
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from '@/hooks/use-translation';
+import { useFirestore, useCollection } from '@/firebase';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
 
 
 export function NearbyRecommendations() {
   const { t } = useTranslation();
-  const [recommendations, setRecommendations] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const firestore = useFirestore();
 
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      setIsLoading(true);
-      try {
-        const allProducts = await getProducts();
-        
-        // Read recommended product IDs from localStorage
-        const recommendedIds: string[] = JSON.parse(localStorage.getItem('recommended_products') || '[]');
+  const recsQuery = useMemo(() => {
+    if (!firestore) return null;
+    // For now, "Recommended" means most liked products.
+    // A real recommendation engine would be much more complex.
+    return query(collection(firestore, 'products'), orderBy('likes', 'desc'), limit(10));
+  }, [firestore]);
 
-        if (recommendedIds.length > 0) {
-            const recommendedProducts = allProducts.filter(p => recommendedIds.includes(p.id));
-            // Sort the fetched products to match the order in localStorage (newest recommendations first)
-            recommendedProducts.sort((a, b) => recommendedIds.indexOf(a.id) - recommendedIds.indexOf(b.id));
-            setRecommendations(recommendedProducts);
-        } else {
-            // Fallback: If no products are manually recommended, show a default set of popular items.
-            setRecommendations(allProducts.slice(0, 10));
-        }
-      } catch (err) {
-        console.error("Failed to fetch recommendations.", err);
-        setRecommendations([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRecommendations();
-  }, []);
+  const { data: recommendations, loading: isLoading } = useCollection<Product>(recsQuery);
 
   return (
     <section>
       <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.recommendedForYou')}</h2>
       <div className="p-6">
-        {isLoading || recommendations.length === 0 ? (
+        {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex flex-col space-y-3">
@@ -66,7 +46,7 @@ export function NearbyRecommendations() {
                 </div>
             ))}
           </div>
-        ) : (
+        ) : recommendations && recommendations.length > 0 ? (
           <Carousel
             opts={{
               align: "start",
@@ -92,6 +72,8 @@ export function NearbyRecommendations() {
             <CarouselPrevious className="hidden lg:flex" />
             <CarouselNext className="hidden lg:flex" />
           </Carousel>
+        ) : (
+          <div className="text-center py-10 text-muted-foreground">No recommendations available.</div>
         )}
         </div>
     </section>
