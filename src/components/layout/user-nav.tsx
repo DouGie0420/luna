@@ -1,6 +1,5 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,11 +10,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, ShieldCheck, Loader2 } from "lucide-react";
+import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import { ethers } from 'ethers';
@@ -34,6 +33,7 @@ export function UserNav() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
+  
   const isLoggedIn = !!user;
   const isTestUser = user?.uid === 'test-user-uid';
 
@@ -43,300 +43,137 @@ export function UserNav() {
   const [isLinkingWallet, setIsLinkingWallet] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
 
+  // 严格匹配四级管理权限
   const hasAdminAccess = profile && ['staff', 'support', 'ghost', 'admin'].includes(profile.role || '');
 
   const handleLogout = async () => {
-    if (isTestUser) {
-      localStorage.removeItem('isTestUser');
-    }
-    // Also clear wallet user
-    if (localStorage.getItem('walletUser')) {
-      localStorage.removeItem('walletUser');
-    }
-    
-    if (auth && auth.currentUser) {
-      await auth.signOut();
-    }
-
-    toast({
-      title: t('userNav.logout'),
-      description: t('userNav.logoutSuccess'),
-    });
+    if (isTestUser) localStorage.removeItem('isTestUser');
+    if (localStorage.getItem('walletUser')) localStorage.removeItem('walletUser');
+    if (auth?.currentUser) await auth.signOut();
+    toast({ title: t('userNav.logout'), description: t('userNav.logoutSuccess') });
     window.location.href = '/';
   };
   
   const handleLinkWallet = async () => {
     if (!firestore || !user || !auth) return;
     if (typeof window.ethereum === 'undefined') {
-        toast({
-            variant: "destructive",
-            title: "MetaMask Not Found",
-            description: "Please install MetaMask to use this feature.",
-        });
-        return;
+      toast({ variant: "destructive", title: "MetaMask Not Found", description: "Please install MetaMask." });
+      return;
     }
     setIsLinkingWallet(true);
     try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const address = await signer.getAddress();
-        const lowerCaseAddress = address.toLowerCase();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const address = (await signer.getAddress()).toLowerCase();
 
-        // Check for wallet address uniqueness
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where("walletAddress", "==", lowerCaseAddress));
-        const querySnapshot = await getDocs(q);
-        
-        let isWalletInUseByAnother = false;
-        if (!querySnapshot.empty) {
-            querySnapshot.forEach(doc => {
-                if (doc.id !== user.uid) {
-                    isWalletInUseByAnother = true;
-                }
-            });
-        }
+      const q = query(collection(firestore, 'users'), where("walletAddress", "==", address));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
+        toast({ variant: "destructive", title: t('userNav.walletAlreadyLinkedTitle') });
+        return;
+      }
 
-        if (isWalletInUseByAnother) {
-             toast({
-                variant: "destructive",
-                title: t('userNav.walletAlreadyLinkedTitle'),
-                description: t('userNav.walletAlreadyLinkedDesc'),
-            });
-            setIsLinkingWallet(false);
-            return;
-        }
-
-        // Force refresh the token before making a Firestore write
-        if (auth.currentUser) {
-            await auth.currentUser.getIdToken(true);
-        }
-
-        await updateUserProfile(firestore, user.uid, {
-            walletAddress: lowerCaseAddress,
-            isWeb3Verified: true,
-        });
-
-        toast({
-            title: "Wallet Linked!",
-            description: `Your wallet ${address.slice(0, 6)}...${address.slice(-4)} is now linked.`,
-        });
+      await updateUserProfile(firestore, user.uid, { walletAddress: address, isWeb3Verified: true });
+      toast({ title: "Wallet Linked!" });
     } catch (error: any) {
-        let message = "An unknown error occurred.";
-        if (error.code === 4001) { // MetaMask user rejection
-          message = "You rejected the connection request. Please try again.";
-        } else if (error.message) {
-          message = error.message;
-        }
-        
-        toast({
-            variant: "destructive",
-            title: "Wallet Link Failed",
-            description: message,
-        });
+      toast({ variant: "destructive", title: "Wallet Link Failed", description: error.message });
     } finally {
-        setIsLinkingWallet(false);
+      setIsLinkingWallet(false);
     }
-  }
+  };
 
   const handleSyncNfts = async () => {
     const walletAddr = profile?.walletAddress;
-    if (!walletAddr) {
-        // This case might happen for old users who are web3 verified but don't have the address stored.
-        // We can prompt them to re-link.
-        toast({ variant: 'destructive', title: 'Wallet Address Not Found', description: 'Please re-link your wallet from your account page.' });
-        return;
-    }
-
+    if (!walletAddr) return toast({ variant: 'destructive', title: 'Link wallet first' });
     setIsSyncingNfts(true);
     try {
-        const ownerNfts = await getNftsForOwner(walletAddr);
-        setNfts(ownerNfts);
-        if (ownerNfts.length > 0) {
-            setIsNftDialogOpen(true);
-        } else {
-            toast({ title: 'No NFTs Found', description: 'We couldn\'t find any NFTs in your connected wallet.' });
-        }
+      const ownerNfts = await getNftsForOwner(walletAddr);
+      setNfts(ownerNfts);
+      if (ownerNfts.length > 0) setIsNftDialogOpen(true);
+      else toast({ title: 'No NFTs Found' });
     } catch (error) {
-        console.error("Error syncing NFTs:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Failed to Sync NFTs',
-            description: 'Could not fetch NFT data. Please check your wallet connection or Alchemy setup.'
-        });
-    } finally {
-        setIsSyncingNfts(false);
-    }
+      console.error(error);
+    } finally { setIsSyncingNfts(false); }
   };
 
   const handleSetNftAvatar = async (nft: SimplifiedNft) => {
     if (!firestore || !user) return;
     setIsUpdatingAvatar(true);
-    const dataToUpdate = {
-        photoURL: nft.imageUrl,
-        isNftVerified: true,
-        displayedBadge: 'nft' as const,
-    };
     try {
-        await updateUserProfile(firestore, user.uid, dataToUpdate);
-        toast({
-            title: 'Avatar Updated!',
-            description: 'Your profile picture is now your NFT.'
-        });
-        setIsNftDialogOpen(false);
-    } catch (error) {
-        console.error(error);
-        toast({
-            variant: 'destructive',
-            title: 'Update Failed',
-            description: 'Could not set NFT as avatar.'
-        });
-    } finally {
-        setIsUpdatingAvatar(false);
-    }
+      await updateUserProfile(firestore, user.uid, { photoURL: nft.imageUrl, isNftVerified: true, displayedBadge: 'nft' });
+      setIsNftDialogOpen(false);
+    } finally { setIsUpdatingAvatar(false); }
   };
   
-  const handleWalletAction = async () => {
-    if (!isLoggedIn) {
-        toast({
-            title: '请先登录 LUNA 账号以关联钱包',
-            variant: 'destructive'
-        });
-        return;
-    }
-
-    if (profile?.isWeb3Verified) {
-        await handleSyncNfts();
-    } else {
-        await handleLinkWallet();
-    }
-  };
-
+  const handleWalletAction = () => profile?.isWeb3Verified ? handleSyncNfts() : handleLinkWallet();
 
   const handleListProductClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (profile?.kycStatus !== 'Verified') {
-        e.preventDefault();
-        toast({
-            variant: 'destructive',
-            title: '需要认证',
-            description: '您需要完成KYC认证后才能发布商品。',
-        });
+      e.preventDefault();
+      toast({ variant: 'destructive', title: 'KYC Required' });
     }
   };
   
-  const isLoading = isLinkingWallet || isSyncingNfts || loading;
-  
-  if (loading) {
-    return (
-      <div className="flex items-center gap-4">
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-8 w-20" />
-        <Skeleton className="h-8 w-20" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center gap-2">
+      <Skeleton className="h-9 w-9 rounded-full" />
+      <Skeleton className="h-10 w-24 rounded-full" />
+    </div>
+  );
 
-  if (!isLoggedIn) {
-    return (
-      <>
-        <div className="flex items-center gap-2">
-             <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
-                <Link href="/login">{t('common.login')}</Link>
-            </Button>
-            <Button size="sm" asChild variant="outline" className="rounded-full animate-glow border-primary text-primary hover:bg-primary/10 hover:text-primary">
-                <Link href="/register">{t('common.register')}</Link>
-            </Button>
-        </div>
-      </>
-    )
-  }
+  if (!isLoggedIn || !user) return (
+    <div className="flex items-center gap-2">
+      <Button size="sm" asChild variant="outline" className="rounded-full border-primary text-primary">
+        <Link href="/login">{t('common.login')}</Link>
+      </Button>
+    </div>
+  );
 
   return (
     <>
       <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
       <div className="flex items-center gap-2">
-          {hasAdminAccess && (
-            <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-              <Button asChild variant="ghost" size="icon" title="Admin Dashboard" className="h-full w-full rounded-full bg-background hover:bg-transparent">
-                  <Link href="/admin">
-                      <LayoutDashboard className="h-5 w-5" />
-                  </Link>
-              </Button>
-            </div>
-          )}
-          <NotificationBell />
-          <div className={cn(
-            "relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate",
-            profile?.isNftVerified && 'animate-glow-pink-neon'
-          )}>
-              <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-full w-full rounded-full bg-background hover:bg-transparent"
-                  onClick={handleWalletAction}
-                  disabled={isLoading}
-                  title={t('userNav.web3Wallet')}
-              >
-                  {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
-                  <span className="sr-only">{t('userNav.web3Wallet')}</span>
-              </Button>
+        {hasAdminAccess && (
+          <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+            <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+              <Link href="/admin"><LayoutDashboard className="h-5 w-5" /></Link>
+            </Button>
           </div>
-          <LanguageSwitcher />
-          <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-              <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-                  <UserAvatar profile={profile || user} className="h-8 w-8" />
-              </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-              <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{profile?.displayName || user.displayName || "User"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {profile?.email || user.email}
-                  </p>
-              </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-              <DropdownMenuItem asChild>
-                  <Link href="/account">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>{t('userNav.myAccount')}</span>
-                  </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                  <Link href="/account/listings">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>{t('userNav.myListings')}</span>
-                  </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                  <Link href="/account/purchases">
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      <span>{t('userNav.orders')}</span>
-                  </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                  <Link href="/messages">
-                      <MessageSquare className="mr-2 h-4 w-4" />
-                      <span>{t('userNav.messages')}</span>
-                  </Link>
-              </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>{t('userNav.logout')}</span>
-              </DropdownMenuItem>
-          </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground h-10 px-4 font-bold">
-              <Link href="/products/new" onClick={handleListProductClick}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  {t('userNav.listAnItem')}
-              </Link>
+        )}
+        <NotificationBell />
+        <div className={cn("relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500", profile?.isNftVerified && 'animate-glow-pink-neon')}>
+          <Button variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent" onClick={handleWalletAction} disabled={isSyncingNfts || isLinkingWallet}>
+            {(isSyncingNfts || isLinkingWallet) ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
           </Button>
+        </div>
+        <LanguageSwitcher />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate outline-none">
+              <UserAvatar profile={profile || user} className="h-8 w-8" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end">
+            <DropdownMenuLabel>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium">{profile?.displayName || user.displayName || "User"}</span>
+                <span className="text-xs text-muted-foreground uppercase">{profile?.role || 'user'}</span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild><Link href="/account"><User className="mr-2 h-4 w-4" /><span>{t('userNav.myAccount')}</span></Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/account/purchases"><ShoppingCart className="mr-2 h-4 w-4" /><span>{t('userNav.orders')}</span></Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/messages"><MessageSquare className="mr-2 h-4 w-4" /><span>{t('userNav.messages')}</span></Link></DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10"><LogOut className="mr-2 h-4 w-4" /><span>{t('userNav.logout')}</span></DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 text-primary-foreground h-10 px-4 font-bold">
+          <Link href="/products/new" onClick={handleListProductClick}><PlusCircle className="mr-2 h-4 w-4" />{t('userNav.listAnItem')}</Link>
+        </Button>
       </div>
     </>
   );

@@ -1,9 +1,19 @@
 'use client';
 
-import { useCollection, useFirestore, useUser } from "@/firebase";
-import React, { useMemo, useState } from 'react';
-import { collection, query, doc, updateDoc } from "firebase/firestore";
-import type { UserProfile, KycStatus } from "@/lib/types";
+import { useEffect, useState } from "react";
+import { useUser, useFirestore } from "@/firebase";
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  orderBy, 
+  doc, 
+  updateDoc, 
+  where,
+  getDoc,
+  increment,
+  writeBatch
+} from "firebase/firestore";
 import {
   Table,
   TableBody,
@@ -11,344 +21,216 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, MoreHorizontal, Gem, Users, UserPlus, ShoppingCart, ShoppingBag } from "lucide-react"
-import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslation } from "@/hooks/use-translation";
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import { Loader2, CheckCircle2, XCircle, Clock, Wallet } from "lucide-react";
+import { format } from "date-fns";
 
-type UserRole = NonNullable<UserProfile['role']>;
-type CreditLevel = NonNullable<UserProfile['creditLevel']>;
+export default function AdminPaymentRequestsPage() {
+  const { profile, loading: authLoading } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const router = useRouter();
 
-export default function AdminUsersPage() {
-    const { profile: currentUserProfile } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    const { t } = useTranslation();
-    const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
-    const { data: users, loading } = useCollection<UserProfile>(usersQuery);
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
-    const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  // 权限拦截：根据你的定义，这四个级别都有权进入此页面
+  const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
 
-    const toggleRow = (uid: string) => {
-        setExpandedIds(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(uid)) {
-                newSet.delete(uid);
-            } else {
-                newSet.add(uid);
-            }
-            return newSet;
-        });
-    };
-
-    const handleFieldUpdate = async (uid: string, field: string, value: any) => {
-        if (!firestore || currentUserProfile?.uid === uid) return;
-
-        let processedValue = value;
-        if (field === 'creditScore' || field === 'lunarSoil') {
-            processedValue = Number(value);
-            if (isNaN(processedValue)) {
-                toast({ variant: "destructive", title: 'Invalid Input', description: 'Please enter a valid number.' });
-                return;
-            }
-        }
-
-        const userRef = doc(firestore, "users", uid);
-        try {
-            await updateDoc(userRef, { [field]: processedValue });
-            toast({ 
-                title: `${field.charAt(0).toUpperCase() + field.slice(1)} Updated`, 
-                description: `User ${uid.slice(0, 6)}... ${field} set to ${processedValue}.` 
-            });
-        } catch (error) {
-            console.error(`Failed to update ${field}:`, error);
-            toast({ 
-                variant: "destructive", 
-                title: 'Update Failed', 
-                description: `Could not update ${field}. Check console for details.`
-            });
-        }
-    };
-    
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-12 w-12 text-primary animate-spin" />
-            </div>
-        );
+  useEffect(() => {
+    if (!authLoading && !hasAccess) {
+      toast({
+        variant: "destructive",
+        title: "访问被拒绝",
+        description: "您没有权限访问收款申请管理页面。",
+      });
+      router.push("/admin");
     }
+  }, [profile, authLoading, hasAccess, router]);
+
+  const fetchRequests = async () => {
+    if (!firestore) return;
+    setLoading(true);
+    try {
+      const q = query(
+        collection(firestore, "payment_requests"),
+        orderBy("createdAt", "desc")
+      );
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRequests(data);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast({ variant: "destructive", title: "加载失败", description: "无法获取收款申请列表" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (hasAccess) {
+      fetchRequests();
+    }
+  }, [firestore, hasAccess]);
+
+  const handleAction = async (requestId: string, userId: string, amount: number, action: 'approve' | 'reject') => {
+    if (!firestore || !profile) return;
     
+    setProcessingId(requestId);
+    try {
+      const batch = writeBatch(firestore);
+      const requestRef = doc(firestore, "payment_requests", requestId);
+      const userRef = doc(firestore, "users", userId);
+
+      if (action === 'approve') {
+        // 更新申请状态
+        batch.update(requestRef, {
+          status: 'Completed',
+          processedAt: new Date(),
+          processedBy: profile.uid
+        });
+        // 这里的业务逻辑示例：如果是提现申请，扣除余额；如果是充值/收款，增加记录
+        // 假设这是收款/提现审核：
+        batch.update(userRef, {
+          updatedAt: new Date()
+        });
+      } else {
+        batch.update(requestRef, {
+          status: 'Rejected',
+          processedAt: new Date(),
+          processedBy: profile.uid
+        });
+      }
+
+      await batch.commit();
+      
+      toast({
+        title: action === 'approve' ? "申请已批准" : "申请已拒绝",
+        description: `操作员: ${profile.displayName || profile.role}`,
+      });
+      fetchRequests();
+    } catch (error) {
+      console.error("Action error:", error);
+      toast({ variant: "destructive", title: "操作失败" });
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  if (authLoading || loading) {
     return (
-        <div>
-            <h2 className="text-3xl font-headline mb-6">{t('admin.usersPage.title')}</h2>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>{t('admin.usersPage.user')}</TableHead>
-                        <TableHead>{t('admin.usersPage.email')}</TableHead>
-                        <TableHead>{t('admin.usersPage.kycStatus')}</TableHead>
-                        <TableHead>{t('admin.usersPage.joined')}</TableHead>
-                        <TableHead>{t('admin.usersPage.role')}</TableHead>
-                        <TableHead className="text-right">{t('admin.usersPage.actions')}</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {users && users.length > 0 ? (
-                        users.map(user => {
-                            const isSelf = currentUserProfile?.uid === user.uid;
-                            const isTargetAdminOrGhost = user.role === 'admin' || user.role === 'ghost';
-                            const isRequesterGhost = currentUserProfile?.role === 'ghost';
-                            const modificationDisabled = isSelf || (isRequesterGhost && isTargetAdminOrGhost);
+      <div className="flex h-96 items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-                            return (
-                            <React.Fragment key={user.uid}>
-                                <TableRow>
-                                    <TableCell className="font-medium">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={user.photoURL} alt={user.displayName} />
-                                                <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                                            </Avatar>
-                                            <p>{user.displayName}</p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium">{user.email}</div>
-                                        <Select 
-                                            value={user.emailVerified ? 'true' : 'false'}
-                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'emailVerified', value === 'true')}
-                                            disabled={modificationDisabled}
-                                        >
-                                            <SelectTrigger className="w-[120px] mt-1 h-8">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="true">
-                                                    <Badge variant="default" className="border-green-500/50 bg-green-500/20 text-green-300">Verified</Badge>
-                                                </SelectItem>
-                                                <SelectItem value="false">
-                                                    <Badge variant="destructive" className="border-red-500/50 bg-red-500/20 text-red-300">Not Verified</Badge>
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Select
-                                            value={user.kycStatus}
-                                            onValueChange={(value: KycStatus) => handleFieldUpdate(user.uid, 'kycStatus', value)}
-                                            disabled={modificationDisabled}
-                                        >
-                                            <SelectTrigger className="w-[120px] h-10">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Verified">Verified</SelectItem>
-                                                <SelectItem value="Not Verified">Not Verified</SelectItem>
-                                                <SelectItem value="Pending">Pending</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </TableCell>
-                                    <TableCell>
-                                        {user.createdAt?.toDate ? format(user.createdAt.toDate(), 'yyyy/MM/dd') : 'N/A'}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Select 
-                                            defaultValue={user.role || 'guest'} 
-                                            onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
-                                            disabled={modificationDisabled}
-                                        >
-                                            <SelectTrigger className="w-[120px] h-10">
-                                                <SelectValue placeholder={t('admin.usersPage.setRole')} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="guest">guest</SelectItem>
-                                                <SelectItem value="user">user</SelectItem>
-                                                <SelectItem value="support">support</SelectItem>
-                                                <SelectItem value="staff">staff</SelectItem>
-                                                <SelectItem value="ghost">ghost</SelectItem>
-                                                <SelectItem value="admin">admin</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="icon" onClick={() => toggleRow(user.uid)}>
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                                {expandedIds.has(user.uid) && (
-                                    <TableRow className="bg-secondary/20 hover:bg-secondary/30">
-                                        <TableCell colSpan={6} className="p-0">
-                                            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                                                
-                                                {/* Column 1: Credit */}
-                                                <div className="space-y-4">
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('accountPage.creditLevel')}</Label>
-                                                        <Select
-                                                            value={user.creditLevel || 'Newcomer'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'creditLevel', value as CreditLevel)}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="Newcomer">Newcomer</SelectItem>
-                                                                <SelectItem value="Bronze">Bronze</SelectItem>
-                                                                <SelectItem value="Silver">Silver</SelectItem>
-                                                                <SelectItem value="Gold">Gold</SelectItem>
-                                                                <SelectItem value="Platinum">Platinum</SelectItem>
-                                                                <SelectItem value="Diamond">Diamond</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label htmlFor={`score-${user.uid}`}>{t('accountPage.creditScore')}</Label>
-                                                        <Input id={`score-${user.uid}`} type="number" defaultValue={user.creditScore || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'creditScore', e.target.value)} disabled={modificationDisabled} />
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label htmlFor={`soil-${user.uid}`}>月壤 (积分)</Label>
-                                                        <Input id={`soil-${user.uid}`} type="number" defaultValue={user.lunarSoil || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'lunarSoil', e.target.value)} disabled={modificationDisabled} />
-                                                    </div>
-                                                </div>
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">收款申请管理</h1>
+        <Badge variant="outline" className="px-3 py-1">
+          当前权限: {profile?.role?.toUpperCase()}
+        </Badge>
+      </div>
 
-                                                {/* Column 2: Verifications */}
-                                                <div className="space-y-4">
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('admin.usersPage.proStatus')}</Label>
-                                                        <Select 
-                                                            value={user.isPro ? 'true' : 'false'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isPro', value === 'true')}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
-                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('admin.usersPage.web3Verified')}</Label>
-                                                        <Select 
-                                                            value={user.isWeb3Verified ? 'true' : 'false'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isWeb3Verified', value === 'true')}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
-                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('admin.usersPage.nftVerified')}</Label>
-                                                        <Select 
-                                                            value={user.isNftVerified ? 'true' : 'false'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isNftVerified', value === 'true')}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
-                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <Separator />
-                                                    <Label className="text-xs text-muted-foreground">{t('admin.usersPage.manualBadges')}</Label>
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('accountPage.badges.influencer_label')}</Label>
-                                                        <Select
-                                                            value={user.isInfluencer ? 'true' : 'false'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isInfluencer', value === 'true')}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
-                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="grid gap-2">
-                                                        <Label>{t('accountPage.badges.contributor_label')}</Label>
-                                                        <Select
-                                                            value={user.isContributor ? 'true' : 'false'}
-                                                            onValueChange={(value) => handleFieldUpdate(user.uid, 'isContributor', value === 'true')}
-                                                            disabled={modificationDisabled}
-                                                        >
-                                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="true">{t('admin.usersPage.proStatusYes')}</SelectItem>
-                                                                <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Wallet className="h-5 w-5" />
+            待处理申请
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>用户 ID</TableHead>
+                <TableHead>金额</TableHead>
+                <TableHead>类型</TableHead>
+                <TableHead>申请时间</TableHead>
+                <TableHead>状态</TableHead>
+                <TableHead className="text-right">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                    暂无收款申请记录
+                  </TableCell>
+                </TableRow>
+              ) : (
+                requests.map((req) => (
+                  <TableRow key={req.id}>
+                    <TableCell className="font-mono text-xs">{req.userId}</TableCell>
+                    <TableCell className="font-bold">
+                      {req.currency || '$'} {req.amount?.toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{req.type || 'Withdraw'}</Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {req.createdAt?.seconds 
+                        ? format(new Date(req.createdAt.seconds * 1000), 'yyyy-MM-dd HH:mm')
+                        : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={req.status} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {req.status === 'Pending' ? (
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-destructive hover:bg-destructive/10"
+                            onClick={() => handleAction(req.id, req.userId, req.amount, 'reject')}
+                            disabled={!!processingId}
+                          >
+                            {processingId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-1" />}
+                            拒绝
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAction(req.id, req.userId, req.amount, 'approve')}
+                            disabled={!!processingId}
+                          >
+                            {processingId === req.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                            批准
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">已处理</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
-                                                {/* Column 3: Stats & Actions */}
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <Label className="text-xs text-muted-foreground">Stats</Label>
-                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mt-2">
-                                                            <div className="flex items-center gap-2 text-muted-foreground"><ShoppingBag className="h-4 w-4 text-primary" /> {t('accountPage.sales')}: <span className="font-bold text-foreground">{user.salesCount || 0}</span></div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground"><ShoppingCart className="h-4 w-4 text-primary" /> {t('accountPage.purchases')}: <span className="font-bold text-foreground">{user.purchasesCount || 0}</span></div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground"><Users className="h-4 w-4 text-primary" /> {t('userProfile.followers')}: <span className="font-bold text-foreground">{user.followersCount || 0}</span></div>
-                                                            <div className="flex items-center gap-2 text-muted-foreground"><UserPlus className="h-4 w-4 text-primary" /> {t('userProfile.following')}: <span className="font-bold text-foreground">{user.followingCount || 0}</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <Separator />
-                                                    <div>
-                                                        <div className="flex gap-2">
-                                                            <Button variant="outline" disabled>{t('admin.usersPage.resetPassword')}</Button>
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger asChild>
-                                                                        <span tabIndex={0}>
-                                                                            <Button variant="outline" disabled>{t('admin.usersPage.viewPassword')}</Button>
-                                                                        </span>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        <p>{t('admin.usersPage.viewPasswordNotImplemented')}</p>
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                        </div>
-                                                        <p className="text-xs text-muted-foreground mt-2">{t('admin.usersPage.resetPasswordNotImplemented')}</p>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </React.Fragment>
-                        )})
-                    ) : (
-                         <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
-                                {t('admin.usersPage.noUsers')}
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
-        </div>
-    )
+function StatusBadge({ status }: { status: string }) {
+  switch (status) {
+    case 'Pending':
+      return <Badge variant="outline" className="text-yellow-500 border-yellow-500 gap-1"><Clock className="h-3 w-3" /> 待审核</Badge>;
+    case 'Completed':
+      return <Badge variant="outline" className="text-green-500 border-green-500 gap-1"><CheckCircle2 className="h-3 w-3" /> 已完成</Badge>;
+    case 'Rejected':
+      return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> 已拒绝</Badge>;
+    default:
+      return <Badge variant="secondary">{status}</Badge>;
+  }
 }

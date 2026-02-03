@@ -80,7 +80,7 @@ export default function AdminOrdersPage() {
                             </TableCell>
                             <TableCell className="font-mono text-xs">{order.buyerId}</TableCell>
                             <TableCell className="font-mono text-xs">{order.sellerId}</TableCell>
-                            <TableCell>{order.totalAmount.toLocaleString()} {order.currency}</TableCell>
+                            <TableCell>{typeof order.totalAmount === 'number' ? order.totalAmount.toLocaleString() : (order.totalAmount || 'N/A')} {order.currency || ''}</TableCell>
                             <TableCell>
                                 <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' ? 'destructive' : 'secondary')}>{order.status}</Badge>
                             </TableCell>

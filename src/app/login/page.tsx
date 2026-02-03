@@ -13,8 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator";
-import { useFirebaseAuth, useUser } from "@/firebase/auth/use-user";
-import { GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail, getRedirectResult } from "firebase/auth";
+import { useUser } from "@/firebase/auth/use-user";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider, signInWithRedirect, signInWithEmailAndPassword, fetchSignInMethodsForEmail, getRedirectResult } from "firebase/auth";
 import { useFirestore } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { upsertUserProfile } from "@/lib/user";
@@ -34,17 +34,18 @@ const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
 export default function LoginPage() {
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
-  const auth = useFirebaseAuth();
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  
+  // 直接通过 getAuth 获取实例，避免导入错误
+  const auth = getAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessingRedirect, setIsProcessingRedirect] = useState(true);
 
-  // Effect to handle social login redirects
   useEffect(() => {
     if (!auth || !firestore) {
       setIsProcessingRedirect(false);
@@ -53,168 +54,92 @@ export default function LoginPage() {
     getRedirectResult(auth)
       .then(async (result) => {
         if (result) {
-          // User signed in via redirect. The page will show a loader.
-          toast({
-            title: t('loginPage.loginSuccessTitle'),
-            duration: 3000,
-            variant: 'success',
-          });
+          toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
           await upsertUserProfile(firestore, result.user);
           router.push('/');
         } else {
-          // No redirect result, this is a normal page load.
           setIsProcessingRedirect(false);
         }
       })
       .catch((error) => {
-        console.error("Firebase redirect login error:", error);
-        toast({
-          variant: "destructive",
-          title: t('loginPage.loginFailedTitle'),
-          description: error.message || t('loginPage.loginFailedDescription'),
-        });
+        toast({ variant: "destructive", title: t('loginPage.loginFailedTitle'), description: error.message });
         setIsProcessingRedirect(false);
       });
   }, [auth, firestore, router, t, toast]);
 
-  // Effect to redirect already logged-in users
   useEffect(() => {
     if (!isProcessingRedirect && !userLoading && user) {
       router.push('/');
     }
   }, [user, userLoading, router, isProcessingRedirect]);
 
-  const handleEmailLogin = async (e: React.MouseEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth || !firestore) {
-      toast({ variant: 'destructive', title: 'Firebase not ready' });
-      return;
-    }
-    if (!email || !password) {
-      toast({ variant: 'destructive', title: 'Missing fields', description: 'Please enter both email and password.' });
-      return;
-    }
-
+    if (!auth || !firestore) return;
     setIsLoading(true);
     try {
-      // Check if the user has signed up with a social provider
-      const signInMethods = await fetchSignInMethodsForEmail(auth, email);
-      if (signInMethods.length > 0 && !signInMethods.includes('password')) {
-          toast({
-              variant: 'destructive',
-              title: 'Sign-in method mismatch',
-              description: `This email is linked to ${signInMethods.join(', ')}. Please use the social login option.`,
-          });
-          setIsLoading(false);
-          return;
-      }
-
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
-      // Don't await the profile update to navigate faster.
-      upsertUserProfile(firestore, userCredential.user);
-      
-      toast({
-        title: t('loginPage.loginSuccessTitle'),
-        duration: 3000,
-        variant: 'success',
-      });
+      await upsertUserProfile(firestore, userCredential.user);
+      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
       router.push('/');
-
     } catch (error: any) {
-      let description = "An unknown error occurred.";
-       switch (error.code) {
-        case 'auth/invalid-credential':
-          description = 'Invalid email or password.';
-          break;
-        case 'auth/invalid-email':
-          description = 'The email address is not valid.';
-          break;
-        default:
-          description = error.message;
-      }
-      toast({
-        variant: 'destructive',
-        title: t('loginPage.loginFailedTitle'),
-        description,
-      });
+      toast({ variant: 'destructive', title: t('loginPage.loginFailedTitle'), description: error.message });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (providerName: 'google' | 'facebook', e: React.MouseEvent) => {
-    if (!auth || !firestore) return;
-    setIsLoading(true);
+  const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
+    if (!auth) return;
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
     await signInWithRedirect(auth, provider);
-    // The page will redirect away. The result is handled by the useEffect hook on return.
   };
 
-  // Show a loading screen while checking auth state or processing a redirect
   if (userLoading || isProcessingRedirect || user) {
     return (
-      <div className="flex h-[calc(100vh-16rem)] items-center justify-center">
+      <div className="flex h-screen items-center justify-center bg-black">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
-        <Card className="w-full max-w-sm mx-auto relative">
-           <Button asChild variant="ghost" size="icon" className="absolute right-2 top-2 z-10 h-9 w-9 rounded-full p-1 text-primary ring-offset-background transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none animate-glow">
-            <Link href="/">
-              <X className="h-5 w-5" />
-              <span className="sr-only">{t('common.close')}</span>
-            </Link>
-          </Button>
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline">{t('loginPage.title')}</CardTitle>
-            <CardDescription>
-              {t('loginPage.description')}
-            </CardDescription>
-          </CardHeader>
+    <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-screen">
+      <Card className="w-full max-w-sm relative bg-zinc-950 border-zinc-800 text-white">
+        <Button asChild variant="ghost" className="absolute right-2 top-2 rounded-full h-8 w-8 p-0 text-zinc-500">
+          <Link href="/"><X className="h-4 w-4" /></Link>
+        </Button>
+        <CardHeader>
+          <CardTitle className="text-2xl">{t('loginPage.title')}</CardTitle>
+          <CardDescription className="text-zinc-500">{t('loginPage.description')}</CardDescription>
+        </CardHeader>
+        <form onSubmit={handleEmailLogin}>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">{t('loginPage.emailLabel')}</Label>
-              <Input id="email" type="email" placeholder={t('loginPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
+              <Input id="email" type="email" className="bg-zinc-900 border-zinc-800" required value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">{t('loginPage.passwordLabel')}</Label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading}/>
+              <Input id="password" type="password" className="bg-zinc-900 border-zinc-800" required value={password} onChange={(e) => setPassword(e.target.value)} />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" onClick={handleEmailLogin} disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <span>{t('common.login')}</span>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('common.login')}
             </Button>
-            
-            <div className="relative w-full">
-              <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
-              <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('loginPage.orContinueWith')}</span>
+            <div className="relative w-full text-center">
+              <Separator className="bg-zinc-800" />
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-950 px-2 text-[10px] text-zinc-500 uppercase">{t('loginPage.orContinueWith')}</span>
             </div>
-
-            <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={(e) => handleSocialLogin('google', e)} disabled={isLoading}>
-                  <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
-                  <span>Google</span>
-                </Button>
-                <Button variant="outline" onClick={(e) => handleSocialLogin('facebook', e)} disabled={isLoading}>
-                  <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                  <span>Facebook</span>
-                </Button>
-            </div>
-
-            <div className="text-center text-sm">
-              {t('loginPage.noAccount')}{" "}
-              <Link href="/register" className="underline">
-                {t('common.register')}
-              </Link>
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button type="button" variant="outline" className="border-zinc-800 hover:bg-zinc-900" onClick={() => handleSocialLogin('google')}><GoogleIcon className="mr-2 h-4 w-4" /> Google</Button>
+              <Button type="button" variant="outline" className="border-zinc-800 hover:bg-zinc-900" onClick={() => handleSocialLogin('facebook')}><FacebookIcon className="mr-2 h-4 w-4" /> Facebook</Button>
             </div>
           </CardFooter>
-        </Card>
+        </form>
+      </Card>
     </div>
-  )
+  );
 }
