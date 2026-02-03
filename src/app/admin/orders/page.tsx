@@ -70,13 +70,13 @@ export default function AdminOrdersPage() {
         if (filterStatus === 'All') {
             return orders;
         }
-        return orders.filter(order => order.status === filterStatus);
+        return orders.filter(order => order?.status === filterStatus);
     }, [orders, filterStatus]);
 
     const loading = userLoading || (hasAccess && ordersLoading);
 
     const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
-        if (!firestore) return;
+        if (!firestore || !orderId) return;
         setProcessingId(orderId);
         try {
             const orderRef = doc(firestore, 'orders', orderId);
@@ -147,19 +147,19 @@ export default function AdminOrdersPage() {
                 <TableBody>
                     {filteredOrders && filteredOrders.length > 0 ? (
                         filteredOrders.map(order => (
-                        <TableRow key={order.id}>
-                            <TableCell className="font-medium font-mono text-xs">{order.id}</TableCell>
+                        <TableRow key={order?.id || Math.random()}>
+                            <TableCell className="font-medium font-mono text-xs">{order?.id || 'N/A'}</TableCell>
                              <TableCell>
-                                {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
+                                {order?.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
                             </TableCell>
-                            <TableCell className="font-mono text-xs">{order.buyerId}</TableCell>
-                            <TableCell className="font-mono text-xs">{order.sellerId}</TableCell>
-                            <TableCell>{typeof order.totalAmount === 'number' ? order.totalAmount.toLocaleString() : (order.totalAmount || 'N/A')} {order.currency || ''}</TableCell>
+                            <TableCell className="font-mono text-xs">{order?.buyerId || 'N/A'}</TableCell>
+                            <TableCell className="font-mono text-xs">{order?.sellerId || 'N/A'}</TableCell>
+                            <TableCell>{order?.totalAmount?.toLocaleString() ?? '0'} {order?.currency || ''}</TableCell>
                             <TableCell>
                                <Select
-                                    value={order.status}
+                                    value={order?.status || ''}
                                     onValueChange={(newStatus) => handleStatusChange(order.id, newStatus as OrderStatus)}
-                                    disabled={processingId === order.id}
+                                    disabled={!order?.id || processingId === order.id}
                                 >
                                     <SelectTrigger className="w-[180px]">
                                         <SelectValue placeholder={t('admin.ordersPage.set_status')} />
