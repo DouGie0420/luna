@@ -24,6 +24,11 @@ import { enUS, zhCN, th } from 'date-fns/locale';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
+// Correctly format status for translation key
+const getStatusTranslationKey = (status: Order['status']) => {
+    const camelCaseStatus = status.charAt(0).toLowerCase() + status.slice(1).replace(/\s/g, '');
+    return `accountPurchases.status.${camelCaseStatus}`;
+}
 
 function OrderDetailPageSkeleton() {
     return (
@@ -102,26 +107,27 @@ export default function OrderDetailPage() {
         return (
             <div className="container mx-auto px-4 py-12 max-w-4xl text-center">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
-                <h1 className="mt-4 text-2xl font-bold">Order Not Found</h1>
-                <p className="mt-2 text-muted-foreground">{orderError ? orderError.message : "The order you are looking for does not exist or you don't have permission to view it."}</p>
-                <Button onClick={() => router.back()} className="mt-6">Go Back</Button>
+                <h1 className="mt-4 text-2xl font-bold">{t('orderDetails.notFoundTitle')}</h1>
+                <p className="mt-2 text-muted-foreground">{orderError ? orderError.message : t('orderDetails.notFoundDesc')}</p>
+                <Button onClick={() => router.back()} className="mt-6">{t('orderDetails.goBack')}</Button>
             </div>
         )
     }
 
     // Security Check
-    if (user && user.uid !== order.buyerId && user.uid !== order.sellerId && profile?.role !== 'admin') {
+    if (user && user.uid !== order.buyerId && user.uid !== order.sellerId && (!profile || !['admin', 'support', 'staff', 'ghost'].includes(profile.role))) {
          return (
             <div className="container mx-auto px-4 py-12 max-w-4xl text-center">
                 <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
-                <h1 className="mt-4 text-2xl font-bold">Access Denied</h1>
-                 <p className="mt-2 text-muted-foreground">You do not have permission to view this order.</p>
-                <Button onClick={() => router.back()} className="mt-6">Go Back</Button>
+                <h1 className="mt-4 text-2xl font-bold">{t('orderDetails.accessDenied')}</h1>
+                 <p className="mt-2 text-muted-foreground">{t('orderDetails.accessDeniedDesc')}</p>
+                <Button onClick={() => router.back()} className="mt-6">{t('orderDetails.goBack')}</Button>
             </div>
         )
     }
 
     const isBuyer = user?.uid === order.buyerId;
+    const statusKey = getStatusTranslationKey(order.status);
     const canConfirmReceipt = isBuyer && (order.status === 'Shipped' || order.status === 'Awaiting Confirmation');
     const canReview = isBuyer && order.status === 'Completed' && !order.buyerReviewId;
 
@@ -133,19 +139,19 @@ export default function OrderDetailPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex justify-between items-center">
-                            <span>{t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}</span>
+                            <span>{t(statusKey, order.status)}</span>
                              <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' || order.status === 'Cancelled' ? 'destructive' : 'secondary')}>
-                                {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}
+                                {t(statusKey, order.status)}
                              </Badge>
                         </CardTitle>
                         <CardDescription>
-                            {order.status === 'Shipped' ? 'Your item is on its way.' : 'Thank you for your purchase.'}
+                            {order.status === 'Shipped' ? t('orderDetails.itemOnWay') : t('orderDetails.thankYou')}
                         </CardDescription>
                     </CardHeader>
                     {canConfirmReceipt && (
                         <CardFooter className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <p className="text-sm text-muted-foreground text-center sm:text-left">
-                                Please confirm receipt after you have received and inspected the item.
+                                {t('orderDetails.confirmReceiptPrompt')}
                             </p>
                             <Button onClick={handleConfirmReceipt} disabled={isConfirming}>
                                 {isConfirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -167,12 +173,12 @@ export default function OrderDetailPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Package className="h-5 w-5" /> Product Details
+                           <Package className="h-5 w-5" /> {t('orderDetails.productDetails')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {product && (
-                            <Link href={`/products/${product.id}`} className="flex items-start gap-4 p-4 rounded-lg hover:bg-accent transition-colors">
+                        {product ? (
+                            <Link href={`/products/${product.id}`} className="flex items-start gap-4 p-4 rounded-lg hover:bg-accent transition-colors -m-4">
                                 <Image src={product.images[0]} alt={product.name} width={80} height={80} className="rounded-md object-cover aspect-square" />
                                 <div className="flex-1">
                                     <p className="font-semibold">{product.name}</p>
@@ -180,12 +186,14 @@ export default function OrderDetailPage() {
                                     <p className="font-bold text-primary mt-1">{order.totalAmount.toLocaleString()} {order.currency}</p>
                                 </div>
                             </Link>
+                        ) : (
+                            <p>{t('orderDetails.productLoading')}</p>
                         )}
                         <Separator className="my-4" />
-                        <div className="text-xs text-muted-foreground space-y-1 font-mono">
-                            <div className="flex justify-between"><p>Order ID:</p><p>{order.id}</p></div>
-                             <div className="flex justify-between"><p>Order Time:</p><p>{format(order.createdAt.toDate(), 'Pp')}</p></div>
-                             {order.completedAt && <div className="flex justify-between"><p>Completed Time:</p><p>{format(order.completedAt.toDate(), 'Pp')}</p></div>}
+                        <div className="text-sm text-muted-foreground space-y-2 font-mono">
+                            <div className="flex justify-between items-center"><p>{t('orderDetails.orderId')}</p><p>{order.id}</p></div>
+                             <div className="flex justify-between items-center"><p>{t('orderDetails.orderTime')}</p><p>{order.createdAt?.toDate ? format(order.createdAt.toDate(), 'Pp', { locale: locales[language] }) : 'N/A'}</p></div>
+                             {order.completedAt && <div className="flex justify-between items-center"><p>{t('orderDetails.completedTime')}</p><p>{format(order.completedAt.toDate(), 'Pp', { locale: locales[language] })}</p></div>}
                         </div>
                     </CardContent>
                 </Card>
@@ -193,13 +201,13 @@ export default function OrderDetailPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           <Truck className="h-5 w-5" /> Shipping Details
+                           <Truck className="h-5 w-5" /> {t('orderDetails.shippingDetails')}
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
                             <div>
-                                <p className="font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> Ship to</p>
+                                <p className="font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> {t('orderDetails.shipTo')}</p>
                                 <div className="text-sm text-muted-foreground mt-1 pl-6">
                                     <p>{order.shippingAddress.recipientName}, {order.shippingAddress.phone}</p>
                                     <p>{order.shippingAddress.addressLine1}</p>
@@ -210,7 +218,7 @@ export default function OrderDetailPage() {
                             </div>
                             {order.trackingNumber && (
                                 <div>
-                                    <p className="font-semibold">Tracking</p>
+                                    <p className="font-semibold">{t('orderDetails.tracking')}</p>
                                     <div className="text-sm text-muted-foreground mt-1 pl-6">
                                         <p>{order.shippingProvider}: {order.trackingNumber}</p>
                                     </div>
@@ -223,16 +231,16 @@ export default function OrderDetailPage() {
                  <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
-                           Seller Information
+                           {t('orderDetails.sellerInfo')}
                         </CardTitle>
                     </CardHeader>
                      <CardContent>
-                        {seller && (
+                        {seller ? (
                              <div className="flex items-center gap-4">
                                 <Link href={`/user/${seller.uid}`}>
                                     <Avatar className="h-12 w-12">
                                         <AvatarImage src={seller.photoURL} alt={seller.displayName} />
-                                        <AvatarFallback>{seller.displayName.charAt(0)}</AvatarFallback>
+                                        <AvatarFallback>{seller.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 </Link>
                                 <div className="flex-1">
@@ -240,9 +248,11 @@ export default function OrderDetailPage() {
                                     <p className="text-xs text-muted-foreground">{seller.email}</p>
                                 </div>
                                 <Button asChild variant="outline">
-                                    <Link href={`/messages?to=${seller.uid}`}>Contact Seller</Link>
+                                    <Link href={`/messages?to=${seller.uid}`}>{t('orderDetails.contactSeller')}</Link>
                                 </Button>
                             </div>
+                        ) : (
+                            <p>{t('orderDetails.sellerLoading')}</p>
                         )}
                     </CardContent>
                 </Card>
