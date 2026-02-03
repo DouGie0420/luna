@@ -36,10 +36,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { UserProfile } from '@/lib/types'
 import { useTranslation } from '@/hooks/use-translation'
 
-type Role = UserProfile['role'];
+type Role = NonNullable<UserProfile['role']>;
 
 // Centralized permission check function
-const hasRole = (userRole: Role, allowedRoles: Array<Role>) => {
+const hasRole = (userRole: Role | undefined, allowedRoles: Array<Role>): boolean => {
     if (!userRole) return false;
     // Admin has access to everything
     if (userRole === 'admin') return true;
