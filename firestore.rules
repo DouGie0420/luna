@@ -71,8 +71,14 @@ service cloud.firestore {
       // A user can create a request for themselves
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
-      // Admins/staff can see all requests and update their status
-      allow list, get, update: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
+      // A user can read their own request, and admins can read any.
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost']);
+
+      // A user can list their own requests, and admins can list all.
+      allow list: if isSignedIn() && (request.query.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost']);
+
+      // Admins/staff can update any request
+      allow update: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
     }
   }
 }
