@@ -21,7 +21,6 @@ type Stats = {
     pendingKyc: number;
     pendingPaymentRequests: number;
     totalGmv: number;
-    todayGmv: number;
 };
 
 const chartData = [
@@ -72,17 +71,11 @@ export default function AdminDashboardPage() {
                 const completedOrdersSnapshot = await getDocs(completedOrdersQuery);
                 const totalGmv = completedOrdersSnapshot.docs.reduce((sum, doc) => sum + (doc.data().totalAmount || 0), 0);
 
-                const twentyFourHoursAgo = Timestamp.fromMillis(Date.now() - 24 * 60 * 60 * 1000);
-                const todayOrdersQuery = query(ordersCollection, where('status', '==', 'Completed'), where('completedAt', '>=', twentyFourHoursAgo));
-                const todayOrdersSnapshot = await getDocs(todayOrdersQuery);
-                const todayGmv = todayOrdersSnapshot.docs.reduce((sum, doc) => sum + (doc.data().totalAmount || 0), 0);
-
                 setStats({
                     totalUsers: totalUsersSnapshot.size,
                     pendingKyc: pendingKycSnapshot.size,
                     pendingPaymentRequests: pendingPaymentSnapshot.size,
                     totalGmv,
-                    todayGmv,
                 });
             } catch (error) {
                 console.error("Failed to fetch dashboard stats:", error);
@@ -128,16 +121,6 @@ export default function AdminDashboardPage() {
                         <p className="text-xs text-muted-foreground">所有已完成订单的总金额</p>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">今日流水</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">¥{stats.todayGmv.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">最近24小时内完成的订单总额</p>
-                    </CardContent>
-                </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">手续费总收入 (Coming Soon)</CardTitle>
@@ -148,14 +131,14 @@ export default function AdminDashboardPage() {
                         <p className="text-xs text-muted-foreground">需要更新订单结构以追踪费用</p>
                     </CardContent>
                 </Card>
-                <Card>
+                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">总用户数</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                         <p className="text-xs text-muted-foreground">&nbsp;</p>
+                         <div className="text-xs text-muted-foreground">&nbsp;</div>
                     </CardContent>
                 </Card>
             </div>
