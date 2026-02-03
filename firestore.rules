@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -79,17 +80,15 @@ service cloud.firestore {
     //               订单规则
     // ===============================================
     match /orders/{orderId} {
-       // 【最终修复】统一读权限：合并 get 和 list
-       // 只有订单的买家、卖家，或特定角色的管理员才能读取。
-       // 这条规则会强制要求 list 查询必须包含 buyerId 或 sellerId 的过滤条件。
+       // 读权限: 只有参与者（买家/卖家）或特定角色的管理员才能读取。
+       // 这条规则会强制要求list查询必须包含 participants 字段的 array-contains 过滤
        allow read: if isSignedIn() && 
-                      (resource.data.buyerId == request.auth.uid || 
-                       resource.data.sellerId == request.auth.uid || 
+                      (request.auth.uid in resource.data.participants || 
                        hasRole(['admin', 'ghost', 'staff', 'support']));
 
        // 写权限
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
-       allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+       allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole(['admin', 'ghost', 'staff', 'support']));
     }
     
     // ===============================================

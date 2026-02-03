@@ -20,16 +20,23 @@ export default function PurchasesPage() {
     const db = useFirestore();
     const { toast } = useToast();
 
+    // Query for all orders where the user is a participant
     const ordersQuery = useMemo(() => {
         if (!user?.uid || !db) return null;
         return query(
             collection(db, "orders"),
-            where("buyerId", "==", user.uid),
+            where("participants", "array-contains", user.uid),
             orderBy("createdAt", "desc")
         );
     }, [user?.uid, db]);
 
-    const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+    const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+
+    // Client-side filter for purchases
+    const purchaseOrders = useMemo(() => {
+        if (!allUserOrders || !user) return [];
+        return allUserOrders.filter(order => order.buyerId === user.uid);
+    }, [allUserOrders, user]);
 
     const handleConfirmReceipt = async (orderId: string) => {
         if (!db) return;
@@ -72,13 +79,13 @@ export default function PurchasesPage() {
                     <h2 className="text-destructive font-bold">连接被拦截</h2>
                     <p className="text-sm mt-2 text-muted-foreground">请检查 Firebase 控制台的 Rules 是否已点击 Publish。</p>
                 </div>
-            ) : !orders || orders.length === 0 ? (
+            ) : !purchaseOrders || purchaseOrders.length === 0 ? (
                 <div className="py-24 text-center border-2 border-dashed rounded-2xl opacity-40">
                     <p className="text-xl italic">空空如也，去商城看看吧</p>
                 </div>
             ) : (
                 <div className="grid gap-4">
-                    {orders.map((order: Order) => (
+                    {purchaseOrders.map((order: Order) => (
                         <Card key={order.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                              <Link href={`/account/purchases/${order.id}`} className="block">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">

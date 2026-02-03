@@ -29,16 +29,23 @@ export default function SalesPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Query for all orders where the user is a participant
     const ordersQuery = useMemo(() => {
         if (!user?.uid || !db) return null;
         return query(
             collection(db, "orders"),
-            where("sellerId", "==", user.uid),
+            where("participants", "array-contains", user.uid),
             orderBy("createdAt", "desc")
         );
     }, [user?.uid, db]);
 
-    const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+    const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+
+    // Client-side filter for sales
+    const salesOrders = useMemo(() => {
+        if (!allUserOrders || !user) return [];
+        return allUserOrders.filter(order => order.sellerId === user.uid);
+    }, [allUserOrders, user]);
 
     const handleMarkAsShipped = (order: Order) => {
         setSelectedOrder(order);
@@ -121,7 +128,7 @@ export default function SalesPage() {
                         <p className="text-sm mt-2 text-muted-foreground">请检查 Firebase 控制台的 Rules 是否已点击 Publish。</p>
                     </div>
                 )}
-                {!error && (!orders || orders.length === 0) ? (
+                {!error && (!salesOrders || salesOrders.length === 0) ? (
                     <div className="text-center p-20 border-2 border-dashed rounded-xl">
                         <PackageCheck className="mx-auto h-12 w-12 opacity-20 mb-4" />
                         <h3 className="text-lg font-semibold">{t('accountSales.noSales')}</h3>
@@ -129,7 +136,7 @@ export default function SalesPage() {
                     </div>
                 ) : (
                     <div className="grid gap-4">
-                        {orders?.map((order: Order) => (
+                        {salesOrders?.map((order: Order) => (
                             <Card key={order.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
                                     <div>

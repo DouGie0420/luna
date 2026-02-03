@@ -379,6 +379,11 @@
         "sellerId": {
           "type": "string"
         },
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array containing the buyerId and sellerId for rules."
+        },
         "price": {
           "type": "number",
           "description": "The original price of the product."
@@ -480,6 +485,7 @@
         "productId",
         "buyerId",
         "sellerId",
+        "participants",
         "price",
         "shippingFee",
         "totalAmount",

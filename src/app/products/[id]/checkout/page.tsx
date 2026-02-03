@@ -204,6 +204,7 @@ export default function CheckoutPage() {
         productName: product.name,
         buyerId: user.uid,
         sellerId: product.seller.id,
+        participants: [user.uid, product.seller.id],
         price: product.price,
         shippingFee: shippingFee,
         totalAmount: totalAmount,
@@ -284,11 +285,12 @@ export default function CheckoutPage() {
           </DialogHeader>
           <AddressForm userId={user.uid} addressId={editingAddressId} onSave={onAddressSave} />
         </DialogContent>
+      </Dialog>
+      <PageHeaderWithBackAndClose />
+      <div className="container mx-auto max-w-5xl px-4 py-12">
+        <h1 className="text-3xl font-headline mb-8">{t('checkoutPage.title')}</h1>
 
-        <div className="container mx-auto max-w-5xl px-4 py-12">
-          <h1 className="text-3xl font-headline mb-8">{t('checkoutPage.title')}</h1>
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
             
             <div className="lg:col-span-3 space-y-6">
               
@@ -448,7 +450,6 @@ export default function CheckoutPage() {
 
           </div>
         </div>
-      </Dialog>
     </>
   );
 }
