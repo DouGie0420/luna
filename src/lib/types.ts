@@ -1,4 +1,5 @@
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type Product = {
@@ -66,6 +67,18 @@ export type User = {
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
 
+export type PaymentInfo = {
+    bankAccount?: {
+        accountName?: string;
+        accountNumber?: string;
+        bankName?: string;
+    };
+    usdtAddress?: string;
+    alipayQrUrl?: string;
+    wechatPayQrUrl?: string;
+    promptPayQrUrl?: string;
+};
+
 export type UserProfile = {
     uid: string;
     loginId?: string;
@@ -102,18 +115,21 @@ export type UserProfile = {
     role?: 'guest' | 'admin' | 'staff' | 'support' | 'user' | 'ghost';
     postsCount?: number;
     displayedBadge?: BadgeType;
-    paymentInfo?: {
-        bankAccount?: {
-            accountName?: string;
-            accountNumber?: string;
-            bankName?: string;
-        };
-        usdtAddress?: string;
-        alipayQrUrl?: string;
-        wechatPayQrUrl?: string;
-        promptPayQrUrl?: string;
-    };
+    paymentInfo?: PaymentInfo;
 }
+
+export type PaymentChangeRequest = {
+    id: string;
+    userId: string;
+    userName: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: any;
+    reviewedAt?: any;
+    reviewerId?: string;
+    rejectionReason?: string;
+    requestedPaymentInfo: PaymentInfo;
+    currentPaymentInfo?: PaymentInfo;
+};
 
 export type Promo = {
   id: string;

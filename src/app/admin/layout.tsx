@@ -13,7 +13,8 @@ import {
   ShieldAlert,
   Loader2,
   Megaphone,
-  MessageSquare
+  MessageSquare,
+  Banknote
 } from 'lucide-react'
 
 import {
@@ -167,14 +168,24 @@ export default function AdminLayout({
             )}
 
             {hasRole(profile?.role, ['admin', 'staff']) && (
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
-                  <Link href="/admin/kyc-list">
-                    <ShieldAlert />
-                    {t('admin.layout.kycApplications')}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
+                    <Link href="/admin/kyc-list">
+                      <ShieldAlert />
+                      {t('admin.layout.kycApplications')}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/payment-requests')}>
+                    <Link href="/admin/payment-requests">
+                      <Banknote />
+                      {t('admin.layout.paymentRequests')}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </>
             )}
 
             {(hasRole(profile?.role, ['admin', 'support', 'ghost'])) && (

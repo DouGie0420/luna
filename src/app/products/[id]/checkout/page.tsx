@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
-import type { Product, UserAddress, UserProfile } from '@/lib/types';
+import type { Product, UserAddress, UserProfile, PaymentInfo } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { collection, doc } from 'firebase/firestore';
 
@@ -62,6 +62,7 @@ function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, 
             break;
         case 'USDT':
             title = 'USDT (TRC20) 收款地址';
+            // USDT address is now the walletAddress on the user's profile
             content = seller.walletAddress ? <p className="font-mono text-sm break-all">{seller.walletAddress}</p> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
             break;
         case 'THB':
@@ -196,6 +197,17 @@ export default function CheckoutPage() {
 
   const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
   const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
+  
+  const availablePaymentMethods = useMemo(() => {
+    if (!sellerProfile?.paymentInfo) return [];
+    const methods: PaymentMethod[] = [];
+    if (sellerProfile.walletAddress) methods.push('USDT');
+    if (sellerProfile.paymentInfo.alipayQrUrl) methods.push('Alipay');
+    if (sellerProfile.paymentInfo.wechatPayQrUrl) methods.push('WeChat');
+    if (sellerProfile.paymentInfo.promptPayQrUrl) methods.push('PromptPay');
+    if (sellerProfile.paymentInfo.bankAccount?.accountNumber) methods.push('THB');
+    return methods;
+  }, [sellerProfile]);
 
   const isLoading = loadingProduct || userLoading || addressesLoading || loadingSeller;
 
@@ -347,11 +359,17 @@ export default function CheckoutPage() {
                    <div>
                       <h3 className="text-base font-semibold mb-3">{t('checkoutPage.paymentMethod')}</h3>
                       <div className="grid grid-cols-1 gap-2">
-                          <PaymentMethodButton method="USDT" label="USDT" variant={paymentMethod === 'USDT' ? 'default' : 'outline'} onClick={() => setPaymentMethod('USDT')} />
-                          <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
-                          <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
-                          <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
-                           <PaymentMethodButton method="THB" label="银行转账 (THB)" variant={paymentMethod === 'THB' ? 'default' : 'outline'} onClick={() => setPaymentMethod('THB')} />
+                          {availablePaymentMethods.length > 0 ? availablePaymentMethods.map(method => (
+                            <PaymentMethodButton 
+                                key={method}
+                                method={method} 
+                                label={method === 'THB' ? '银行转账 (THB)' : method}
+                                variant={paymentMethod === method ? 'default' : 'outline'} 
+                                onClick={() => setPaymentMethod(method)} 
+                            />
+                          )) : (
+                            <p className='text-sm text-muted-foreground text-center'>卖家未设置任何收款方式</p>
+                          )}
                       </div>
                    </div>
                 </CardContent>

@@ -541,7 +541,8 @@
       "accessDeniedDescription": "您没有权限查看此页面。此区域仅供管理员使用。",
       "goHome": "返回首页",
       "verifyEmailPrompt": "请先验证邮箱以激活管理权限",
-      "verifyEmailCTA": "一封验证链接已发送至您的邮箱，请检查收件箱（以及垃圾邮件文件夹）。"
+      "verifyEmailCTA": "一封验证链接已发送至您的邮箱，请检查收件箱（以及垃圾邮件文件夹）。",
+      "paymentRequests": "收款申请"
     },
     "dashboardPage": {
       "totalUsers": "总用户数",
@@ -641,6 +642,9 @@
       "viewPassword": "查看密码",
       "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。",
       "manualBadges": "手动授予徽章"
+    },
+    "paymentRequestsPage": {
+      "title": "收款方式变更申请"
     }
   }
 }

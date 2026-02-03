@@ -9,12 +9,14 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, list: if true;
+      // Public profile data is readable by anyone
+      allow get: if true;
+      // Users can only write to their own profile
       allow write: if isSignedIn() && request.auth.uid == userId;
 
       match /notifications/{notiId} {
         allow read, list: if isSignedIn() && request.auth.uid == userId;
-        allow write: if isSignedIn(); 
+        allow write: if isSignedIn(); // Allow writing for functions/admins
       }
       
       match /addresses/{addressId} {
@@ -35,19 +37,16 @@ service cloud.firestore {
 
     match /orders/{orderId} {
        // Allow a user to get their own order, either as a buyer or seller.
-       allow get: if isSignedIn() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId);
+       allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
 
        // Allow a user to create an order for themselves.
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
        
        // Allow buyer or seller to update an order.
-       allow update: if isSignedIn() && (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId);
-    }
-
-    // This is the crucial fix for the "My Purchases" page error.
-    // It allows a user to LIST orders only if they are querying by their own buyerId.
-    match /orders/{orderId} {
-      allow list: if isSignedIn() && request.query.where.buyerId == request.auth.uid;
+       allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
+       
+       // This rule allows a user to LIST orders only if they are querying by their own buyerId.
+       allow list: if isSignedIn() && request.query.buyerId == request.auth.uid;
     }
 
     // Contextual comment rules
@@ -66,6 +65,14 @@ service cloud.firestore {
     match /reviews/{reviewId} {
        allow get, list: if true;
        allow create: if isSignedIn() && request.resource.data.reviewerId == request.auth.uid;
+    }
+
+    match /paymentChangeRequests/{requestId} {
+      // A user can create a request for themselves
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      
+      // Admins/staff can see all requests and update their status
+      allow list, get, update: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
     }
   }
 }

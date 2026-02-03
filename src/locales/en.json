@@ -541,7 +541,8 @@
       "accessDeniedDescription": "You do not have permission to view this page. This area is for administrators only.",
       "goHome": "Go back to Home",
       "verifyEmailPrompt": "Please verify your email to activate admin privileges.",
-      "verifyEmailCTA": "A verification link has been sent to your email. Please check your inbox (and spam folder)."
+      "verifyEmailCTA": "A verification link has been sent to your email. Please check your inbox (and spam folder).",
+      "paymentRequests": "Payment Requests"
     },
     "dashboardPage": {
       "totalUsers": "Total Users",
@@ -641,6 +642,9 @@
       "viewPassword": "View Password",
       "viewPasswordNotImplemented": "This action is not available for security reasons.",
       "manualBadges": "Manual Badges"
+    },
+    "paymentRequestsPage": {
+      "title": "Payment Method Change Requests"
     }
   }
 }

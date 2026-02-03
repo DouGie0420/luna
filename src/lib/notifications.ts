@@ -1,6 +1,6 @@
 'use client';
 import { collection, addDoc, serverTimestamp, type Firestore } from "firebase/firestore";
-import type { Notification, UserProfile, BbsPost, Product, Order } from './types';
+import type { Notification, UserProfile, BbsPost, Product, Order, PaymentChangeRequest } from './types';
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -10,6 +10,8 @@ export type NotificationContext =
     | { type: 'comment', actor: UserProfile, post: BbsPost, commentText: string }
     | { type: 'reply', actor: UserProfile, parentCommentAuthorName: string, post: BbsPost, commentText: string }
     | { type: 'feature', actor: UserProfile, post: BbsPost }
+    | { type: 'paymentRequestApproved', actor: UserProfile, requestId: string }
+    | { type: 'paymentRequestRejected', actor: UserProfile, requestId: string, reason?: string }
     | { type: 'remind-to-ship', actor: UserProfile, order: Order, product: Product };
 
 export async function createNotification(db: Firestore, recipientId: string, context: NotificationContext) {
@@ -46,6 +48,16 @@ export async function createNotification(db: Firestore, recipientId: string, con
             title = '你的帖子被设为精华！';
             message = `恭喜！你的帖子 "${context.post.title}" 已被设为精华。`;
             notificationType = 'success';
+            break;
+        case 'paymentRequestApproved':
+            title = '收款信息修改已批准';
+            message = `管理员 ${context.actor.displayName} 已批准您的收款信息修改请求。`;
+            notificationType = 'success';
+            break;
+        case 'paymentRequestRejected':
+            title = '收款信息修改被拒绝';
+            message = `您的收款信息修改请求已被拒绝。${context.reason ? `原因: ${context.reason}` : ''}`;
+            notificationType = 'error';
             break;
         case 'remind-to-ship':
             title = '【发货提醒】买家正在等待您发货';
