@@ -59,7 +59,7 @@ export default function RegisterPage() {
   }, [user, userLoading, router]);
 
   const handleLoginIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers
     setLoginId(value);
   }
 
@@ -77,8 +77,8 @@ export default function RegisterPage() {
       toast({ variant: 'destructive', title: 'Agreement Required', description: t('registerPage.termsRequirement') });
       return;
     }
-    if (!loginId.match(/^[a-z0-9_-]{3,20}$/)) {
-      toast({ variant: 'destructive', title: 'Invalid Login ID', description: 'Login ID must be 3-20 characters long, and can only contain lowercase letters, numbers, underscores, and hyphens.' });
+    if (!loginId.match(/^[0-9]{3,}$/)) {
+      toast({ variant: 'destructive', title: 'Invalid Login ID', description: '专属ID必须是3位或更长的纯数字。' });
       return;
     }
 
@@ -89,7 +89,7 @@ export default function RegisterPage() {
       const loginIdQuery = query(collection(firestore, 'users'), where('loginId', '==', loginId));
       const querySnapshot = await getDocs(loginIdQuery);
       if (!querySnapshot.empty) {
-        toast({ variant: 'destructive', title: 'Login ID Taken', description: 'This Login ID is already in use. Please choose another one.' });
+        toast({ variant: 'destructive', title: 'Login ID Taken', description: '此专属ID已被使用，请选择其他ID。' });
         setIsLoading(false);
         return;
       }
@@ -171,9 +171,9 @@ export default function RegisterPage() {
           <CardContent className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="loginId">自定义ID (Login ID)</Label>
-                <Input id="loginId" placeholder="唯一的、自定义的短域名" required value={loginId} onChange={handleLoginIdChange} />
-                 <p className="text-xs text-muted-foreground">这将是您的专属网址: /u/{loginId || 'your-id'}</p>
+                <Label htmlFor="loginId">自定义专属ID (纯数字)</Label>
+                <Input id="loginId" placeholder="一个独特的数字ID" required value={loginId} onChange={handleLoginIdChange} />
+                 <p className="text-xs text-muted-foreground">这将是您的专属网址: /u/{loginId || '420'}</p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="displayName">{t('registerPage.usernameLabel')}</Label>
