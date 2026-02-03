@@ -202,7 +202,7 @@
   "accountLayout": {
     "profile": "我的页面",
     "myListings": "我发布的",
-    "myPurchases": "我的购买",
+    "myPurchases": "我买到的",
     "wallet": "我的钱包",
     "kycVerification": "KYC认证",
     "settings": "设置",
@@ -220,7 +220,7 @@
     "favorites": "收藏"
   },
   "accountPurchases": {
-    "title": "我的购买",
+    "title": "我买到的",
     "tabs": {
       "all": "全部",
       "toShip": "待发货",

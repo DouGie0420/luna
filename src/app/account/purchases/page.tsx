@@ -8,27 +8,27 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from '@/hooks/use-translation';
 
 export default function PurchasesPage() {
+    const { t } = useTranslation();
     const { user, loading: authLoading } = useUser();
     const db = useFirestore();
 
-    // 🛡️ 严格保护：只有在 user.uid 确定存在时才发起查询
     const ordersQuery = useMemo(() => {
         if (!user?.uid || !db) return null;
-    // 简化版：删掉 orderBy，只保留最基础的 buyerId 匹配
-    // 这样可以排除因为没有 createdAt 字段或没有索引导致的“结果为空”
-    return query(
-        collection(db, "orders"), 
-        where("buyerId", "==", user.uid)
-    );
-}, [user?.uid, db]);
+        return query(
+            collection(db, "orders"),
+            where("buyerId", "==", user.uid),
+            orderBy("createdAt", "desc")
+        );
+    }, [user?.uid, db]);
 
     const { data: orders, loading: dataLoading, error } = useCollection(ordersQuery);
 
-    // Web3 确认收货分账逻辑 (预留)
     const handleConfirmReceipt = async (orderId: string) => {
-        const platformAddress = "0x2fa2aa671077755331B96B96D7617bE5B84B2aa6"; // 平台地址
+        // Web3 结算：99% 卖家, 1% 平台 (0x2fa2aa...)
+        const platformAddress = "0x2fa2aa671077755331B96B96D7617bE5B84B2aa6"; 
         alert(`启动分账程序：\n99% 归卖家\n1% 归平台 (${platformAddress.slice(0, 6)}...)`);
     };
 
@@ -36,7 +36,7 @@ export default function PurchasesPage() {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-muted-foreground animate-pulse">正在从区块链同步您的购买记录...</p>
+                <p className="text-muted-foreground animate-pulse">正在同步您的购买记录...</p>
             </div>
         );
     }
@@ -49,7 +49,7 @@ export default function PurchasesPage() {
         <div className="p-6 md:p-12 max-w-6xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
                 <ShoppingBag className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold tracking-tight">我的购买</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('accountLayout.myPurchases')}</h1>
             </div>
 
             {error ? (

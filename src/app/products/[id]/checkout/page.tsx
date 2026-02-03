@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
-import type { Product, UserAddress } from '@/lib/types';
+import type { Product, UserAddress, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { collection, doc } from 'firebase/firestore';
 
@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Edit, CheckCircle2 } from 'lucide-react';
+import { Banknote, Edit, CheckCircle2, QrCode, Wallet, Info } from 'lucide-react';
 import { MapPin, Truck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { PaymentMethodButton } from '@/components/payment-method-button';
@@ -34,8 +34,63 @@ const SHIPPING_FEES = {
 
 type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
 type ShippingMethodOption = 'Buyer Pays' | 'In-person';
-type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
-const VALID_PAYMENT_METHODS: PaymentMethod[] = ['USDT', 'Alipay', 'WeChat', 'PromptPay'];
+type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay' | 'THB';
+const VALID_PAYMENT_METHODS: PaymentMethod[] = ['USDT', 'Alipay', 'WeChat', 'PromptPay', 'THB'];
+
+function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, method: PaymentMethod | null }) {
+    const { t } = useTranslation();
+
+    if (!seller || !method || !seller.paymentInfo) {
+        return null;
+    }
+
+    let content = null;
+    let title = '';
+
+    switch (method) {
+        case 'Alipay':
+            title = '支付宝收款码';
+            content = seller.paymentInfo.alipayQrUrl ? <Image src={seller.paymentInfo.alipayQrUrl} alt="Alipay QR Code" width={200} height={200} className="rounded-md" /> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
+            break;
+        case 'WeChat':
+            title = '微信收款码';
+            content = seller.paymentInfo.wechatPayQrUrl ? <Image src={seller.paymentInfo.wechatPayQrUrl} alt="WeChat Pay QR Code" width={200} height={200} className="rounded-md" /> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
+            break;
+        case 'PromptPay':
+             title = 'PromptPay 收款码';
+            content = seller.paymentInfo.promptPayQrUrl ? <Image src={seller.paymentInfo.promptPayQrUrl} alt="PromptPay QR Code" width={200} height={200} className="rounded-md" /> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
+            break;
+        case 'USDT':
+            title = 'USDT (TRC20) 收款地址';
+            content = seller.walletAddress ? <p className="font-mono text-sm break-all">{seller.walletAddress}</p> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
+            break;
+        case 'THB':
+            title = '银行转账 (THB)';
+            content = seller.paymentInfo.bankAccount?.accountNumber ? (
+                <div className="space-y-1 text-sm">
+                    <p><span className="font-semibold">银行:</span> {seller.paymentInfo.bankAccount.bankName}</p>
+                    <p><span className="font-semibold">账号:</span> {seller.paymentInfo.bankAccount.accountNumber}</p>
+                    <p><span className="font-semibold">户名:</span> {seller.paymentInfo.bankAccount.accountName}</p>
+                </div>
+            ) : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
+            break;
+    }
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    {method === 'USDT' ? <Wallet /> : method.includes('Pay') ? <QrCode/> : <Banknote />}
+                    {title}
+                </CardTitle>
+                <CardDescription>请使用此信息向卖家付款</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+                {content}
+            </CardContent>
+        </Card>
+    );
+}
 
 
 function CheckoutPageSkeleton() {
@@ -66,6 +121,10 @@ export default function CheckoutPage() {
   const id = params.id as string;
   const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
   const { data: product, loading: loadingProduct } = useDoc<Product>(productRef);
+  
+  const { data: sellerProfile, loading: loadingSeller } = useDoc<UserProfile>(
+    firestore && product ? doc(firestore, 'users', product.seller.id) : null
+  );
 
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
   
@@ -74,10 +133,10 @@ export default function CheckoutPage() {
     if (pm && VALID_PAYMENT_METHODS.includes(pm)) {
       return pm;
     }
-    return 'USDT'; // Default fallback
+    return null; 
   }, [searchParams]);
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(initialPaymentMethod);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(initialPaymentMethod);
   const [progress, setProgress] = useState(0);
 
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
@@ -109,9 +168,7 @@ export default function CheckoutPage() {
   }, [progress]);
 
   const handleConfirmPurchase = () => {
-    // In a real app, this would create an order in the database.
-    // For now, we'll just navigate to a success page.
-    const mockOrderId = "ORD004"; // Using a known mock order ID
+    const mockOrderId = "ORD004"; 
     router.push(`/order/success?orderId=${mockOrderId}`);
   };
 
@@ -128,7 +185,6 @@ export default function CheckoutPage() {
   const onAddressSave = () => {
     setIsAddressDialogOpen(false);
     setEditingAddressId(null);
-    // Data will refresh automatically due to the useCollection hook
   };
 
   const shippingMethod: ShippingMethod = useMemo(() => {
@@ -141,7 +197,7 @@ export default function CheckoutPage() {
   const shippingFee = useMemo(() => SHIPPING_FEES[shippingMethod], [shippingMethod]);
   const totalAmount = useMemo(() => (product?.price || 0) + shippingFee, [product, shippingFee]);
 
-  const isLoading = loadingProduct || userLoading || addressesLoading;
+  const isLoading = loadingProduct || userLoading || addressesLoading || loadingSeller;
 
   if (isLoading) {
     return (
@@ -175,10 +231,8 @@ export default function CheckoutPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
             
-            {/* Left/Main Column */}
             <div className="lg:col-span-3 space-y-6">
               
-              {/* Shipping Address */}
               <Card>
                 <CardHeader className="flex flex-row justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
@@ -226,7 +280,7 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <RotatingQuote />
+              <SellerPaymentDetails seller={sellerProfile} method={paymentMethod} />
               
               <div className="pt-2">
                 <Card>
@@ -264,7 +318,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Right/Sidebar Column */}
             <div className="lg:col-span-2">
               <Card className="sticky top-24">
                 <CardHeader>
@@ -298,6 +351,7 @@ export default function CheckoutPage() {
                           <PaymentMethodButton method="Alipay" label="支付宝" variant={paymentMethod === 'Alipay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('Alipay')} />
                           <PaymentMethodButton method="WeChat" label="微信支付" variant={paymentMethod === 'WeChat' ? 'default' : 'outline'} onClick={() => setPaymentMethod('WeChat')} />
                           <PaymentMethodButton method="PromptPay" label="PromptPay" variant={paymentMethod === 'PromptPay' ? 'default' : 'outline'} onClick={() => setPaymentMethod('PromptPay')} />
+                           <PaymentMethodButton method="THB" label="银行转账 (THB)" variant={paymentMethod === 'THB' ? 'default' : 'outline'} onClick={() => setPaymentMethod('THB')} />
                       </div>
                    </div>
                 </CardContent>

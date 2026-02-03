@@ -4,6 +4,7 @@
 
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type Product = {
@@ -116,6 +117,7 @@ export type UserProfile = {
         usdtAddress?: string;
         alipayQrUrl?: string;
         wechatPayQrUrl?: string;
+        promptPayQrUrl?: string;
     };
 }
 

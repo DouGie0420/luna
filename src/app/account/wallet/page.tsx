@@ -11,7 +11,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from '@/lib/user';
 import type { UserProfile } from '@/lib/types';
-import { Loader2, Banknote, QrCode, UploadCloud, X, Save } from "lucide-react";
+import { Loader2, Banknote, QrCode, UploadCloud, X, Save, Wallet } from "lucide-react";
 import Image from 'next/image';
 import { compressImage } from '@/lib/image-compressor';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -73,19 +73,28 @@ export default function WalletPage() {
     const [usdtAddress, setUsdtAddress] = useState('');
     const [alipayQrUrl, setAlipayQrUrl] = useState<string | null>(null);
     const [wechatPayQrUrl, setWechatPayQrUrl] = useState<string | null>(null);
+    const [promptPayQrUrl, setPromptPayQrUrl] = useState<string | null>(null);
     
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (profile?.paymentInfo) {
-            setBankAccount(profile.paymentInfo.bankAccount || { accountName: '', accountNumber: '', bankName: '' });
-            setUsdtAddress(profile.paymentInfo.usdtAddress || '');
-            setAlipayQrUrl(profile.paymentInfo.alipayQrUrl || null);
-            setWechatPayQrUrl(profile.paymentInfo.wechatPayQrUrl || null);
+        if (profile) {
+            if(profile.paymentInfo) {
+                setBankAccount(profile.paymentInfo.bankAccount || { accountName: '', accountNumber: '', bankName: '' });
+                setAlipayQrUrl(profile.paymentInfo.alipayQrUrl || null);
+                setWechatPayQrUrl(profile.paymentInfo.wechatPayQrUrl || null);
+                setPromptPayQrUrl(profile.paymentInfo.promptPayQrUrl || null);
+            }
+            // Prioritize linked wallet address
+            if (profile.walletAddress) {
+                setUsdtAddress(profile.walletAddress);
+            } else if (profile.paymentInfo?.usdtAddress) {
+                setUsdtAddress(profile.paymentInfo.usdtAddress);
+            }
         }
     }, [profile]);
 
-    const handleQrCodeChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'alipay' | 'wechat') => {
+    const handleQrCodeChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'alipay' | 'wechat' | 'promptpay') => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -94,8 +103,10 @@ export default function WalletPage() {
             const compressedDataUrl = await compressImage(file);
             if (type === 'alipay') {
                 setAlipayQrUrl(compressedDataUrl);
-            } else {
+            } else if (type === 'wechat') {
                 setWechatPayQrUrl(compressedDataUrl);
+            } else if (type === 'promptpay') {
+                setPromptPayQrUrl(compressedDataUrl);
             }
         } catch (error) {
             console.error("QR Code compression error:", error);
@@ -111,9 +122,10 @@ export default function WalletPage() {
         
         const paymentInfo: UserProfile['paymentInfo'] = {
             bankAccount: bankAccount.accountName ? bankAccount : undefined,
-            usdtAddress: usdtAddress || undefined,
+            usdtAddress: profile?.walletAddress ? undefined : (usdtAddress || undefined), // Only save if not linked to wallet
             alipayQrUrl: alipayQrUrl || undefined,
             wechatPayQrUrl: wechatPayQrUrl || undefined,
+            promptPayQrUrl: promptPayQrUrl || undefined,
         };
 
         try {
@@ -183,7 +195,22 @@ export default function WalletPage() {
                     <CardContent>
                          <div className="grid gap-2">
                             <Label htmlFor="usdtAddress">USDT 地址 (TRC20)</Label>
-                            <Input id="usdtAddress" placeholder="T..." value={usdtAddress} onChange={e => setUsdtAddress(e.target.value)} />
+                            <div className="relative">
+                                <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    id="usdtAddress" 
+                                    placeholder="T..." 
+                                    value={usdtAddress} 
+                                    onChange={e => setUsdtAddress(e.target.value)} 
+                                    disabled={!!profile?.walletAddress}
+                                    className="pl-10"
+                                />
+                            </div>
+                            {profile?.walletAddress && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    此地址已与您绑定的Metamask钱包关联。如需更改，请在右上角用户菜单中重新绑定新钱包。
+                                </p>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -192,7 +219,7 @@ export default function WalletPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2"><QrCode /> 收款二维码</CardTitle>
-                        <CardDescription>上传您的支付宝和微信收款码，方便买家扫码支付。</CardDescription>
+                        <CardDescription>上传您的支付宝、微信和PromptPay收款码，方便买家扫码支付。</CardDescription>
                     </CardHeader>
                     <CardContent className="flex flex-wrap gap-8">
                         <QrUploader
@@ -209,6 +236,14 @@ export default function WalletPage() {
                             preview={wechatPayQrUrl}
                             onFileChange={(e) => handleQrCodeChange(e, 'wechat')}
                             onRemove={() => setWechatPayQrUrl(null)}
+                            disabled={isSubmitting}
+                        />
+                        <QrUploader
+                            id="promptpay-qr"
+                            title="PromptPay收款码"
+                            preview={promptPayQrUrl}
+                            onFileChange={(e) => handleQrCodeChange(e, 'promptpay')}
+                            onRemove={() => setPromptPayQrUrl(null)}
                             disabled={isSubmitting}
                         />
                     </CardContent>
