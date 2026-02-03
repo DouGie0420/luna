@@ -61,6 +61,7 @@ import Image from 'next/image';
 import { createNotification } from '@/lib/notifications';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
