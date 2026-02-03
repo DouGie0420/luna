@@ -123,7 +123,7 @@ export default function CheckoutPage() {
   const { data: product, loading: loadingProduct } = useDoc<Product>(productRef);
   
   const { data: sellerProfile, loading: loadingSeller } = useDoc<UserProfile>(
-    firestore && product ? doc(firestore, 'users', product.seller.id) : null
+    firestore && product?.sellerId ? doc(firestore, 'users', product.sellerId) : null
   );
 
   const [selectedShippingOption, setSelectedShippingOption] = useState<ShippingMethodOption>('Buyer Pays');
@@ -181,7 +181,7 @@ export default function CheckoutPage() {
   }, [product]);
 
   const handleConfirmPurchase = async () => {
-    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod) {
+    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod || !product.sellerId) {
         toast({
             variant: "destructive",
             title: "Missing Information",
@@ -203,8 +203,8 @@ export default function CheckoutPage() {
         productId: product.id,
         productName: product.name,
         buyerId: user.uid,
-        sellerId: product.seller.id,
-        participants: [user.uid, product.seller.id],
+        sellerId: product.sellerId,
+        participants: [user.uid, product.sellerId],
         price: product.price,
         shippingFee: shippingFee,
         totalAmount: totalAmount,

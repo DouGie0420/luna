@@ -248,7 +248,7 @@ export default function ProductPage() {
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <CardTitle>商品描述</CardTitle>
                                  <div className="flex items-center gap-2">
-                                    {isOwner && (
+                                    {(isOwner || hasAdminAccess) && (
                                         <DialogTrigger asChild>
                                             <Button variant="outline" className="rounded-full h-9 px-4">
                                                 <Edit className="mr-2 h-4 w-4" />
@@ -256,7 +256,7 @@ export default function ProductPage() {
                                             </Button>
                                         </DialogTrigger>
                                     )}
-                                    {hasAdminAccess && (
+                                    {hasAdminAccess && !isOwner && (
                                         <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmittingDelete}>
                                             {isSubmittingDelete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
                                             删除商品
