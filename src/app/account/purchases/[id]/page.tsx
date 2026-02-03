@@ -1,6 +1,6 @@
 'use client';
 
-import React, 'useMemo'
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link'
 import { useParams, notFound, useRouter } from 'next/navigation'
