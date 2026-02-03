@@ -181,7 +181,7 @@ export default function CheckoutPage() {
   }, [product]);
 
   const handleConfirmPurchase = async () => {
-    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod || !product.seller?.id) {
+    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod || !product.seller.id) {
         toast({
             variant: "destructive",
             title: "Missing Information",
@@ -299,11 +299,9 @@ export default function CheckoutPage() {
                   <CardTitle className="flex items-center gap-2">
                     <MapPin className="h-5 w-5" /> {t('checkoutPage.shippingAddress')}
                   </CardTitle>
-                   <DialogTrigger asChild>
-                     <Button variant="secondary" size="sm" onClick={handleAddNewAddress}>
-                        {t('checkoutPage.addNewAddress')}
-                     </Button>
-                   </DialogTrigger>
+                   <Button variant="secondary" size="sm" onClick={handleAddNewAddress}>
+                      {t('checkoutPage.addNewAddress')}
+                   </Button>
                 </CardHeader>
                 <CardContent>
                   <RadioGroup value={selectedAddressId} onValueChange={setSelectedAddressId} className="space-y-4">
@@ -326,12 +324,10 @@ export default function CheckoutPage() {
                               </p>
                             </div>
                           </div>
-                          <DialogTrigger asChild>
-                            <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); handleEditAddress(address.id); }}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                {t('checkoutPage.edit')}
-                            </Button>
-                          </DialogTrigger>
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.preventDefault(); handleEditAddress(address.id); }}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              {t('checkoutPage.edit')}
+                          </Button>
                         </div>
                       </Label>
                     )) : (
