@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -19,8 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge"
-import { Loader2, ShieldAlert } from "lucide-react"
+import { Badge } from "@/components/ui/badge";
+import { Loader2, ShieldAlert } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
