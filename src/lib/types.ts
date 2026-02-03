@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type Product = {
@@ -151,6 +145,7 @@ export type UserAddress = {
 export type Order = {
   id: string;
   productId: string;
+  productName: string;
   buyerId: string;
   sellerId: string;
   price: number;
@@ -257,5 +252,3 @@ export type SupportTicket = {
     updatedAt?: any;
     assignedTo?: string;
 };
-
-    
