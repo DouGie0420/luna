@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -634,7 +633,7 @@ export default function AccountProfilePage() {
                                     <p className="font-bold">{profile?.purchasesCount || 0}</p>
                                 </div>
                             </div>
-                            <Link href={`/u/${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
@@ -643,7 +642,7 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/u/${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>

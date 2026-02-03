@@ -292,4 +292,3 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
         </div>
     );
 }
-
