@@ -14,7 +14,7 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from '@/hooks/use-translation';
 import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 
 
 export function NearbyRecommendations() {
@@ -25,7 +25,12 @@ export function NearbyRecommendations() {
     if (!firestore) return null;
     // For now, "Recommended" means most liked products.
     // A real recommendation engine would be much more complex.
-    return query(collection(firestore, 'products'), orderBy('likes', 'desc'), limit(10));
+    return query(
+      collection(firestore, 'products'), 
+      where('status', '==', 'active'),
+      orderBy('likes', 'desc'), 
+      limit(10)
+    );
   }, [firestore]);
 
   const { data: recommendations, loading: isLoading } = useCollection<Product>(recsQuery);

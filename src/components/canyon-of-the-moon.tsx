@@ -9,7 +9,7 @@ import { Button } from './ui/button';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 
 export function CanyonOfTheMoon() {
   const { t } = useTranslation();
@@ -17,7 +17,12 @@ export function CanyonOfTheMoon() {
 
   const productsQuery = useMemo(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'products'), orderBy('createdAt', 'desc'), limit(8));
+    return query(
+      collection(firestore, 'products'),
+      where('status', '==', 'active'),
+      orderBy('createdAt', 'desc'),
+      limit(8)
+    );
   }, [firestore]);
 
   const { data: products, loading: isLoading } = useCollection<Product>(productsQuery);
