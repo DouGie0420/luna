@@ -39,7 +39,7 @@ service cloud.firestore {
 
     // --- 用户集合 (users) ---
     match /users/{userId} {
-      allow read: if isSignedIn() && (request.auth.uid == userId || isAdminGroup());
+      allow read: if isSignedIn();
       
       // 只有 admin 和 ghost 可以修改/删除管理组信息
       allow update, delete: if isSignedIn() && (
