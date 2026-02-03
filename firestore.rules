@@ -8,20 +8,24 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Helper function to check for admin roles safely
-    function isManager() {
-      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
+    // Helper to check for multiple roles safely.
+    function hasRole(roles) {
+      return isSignedIn() && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN roles;
     }
 
     match /users/{userId} {
-      // Public profile data is readable by anyone
       allow get: if true;
-      // Users can only write to their own profile
-      allow write: if isSignedIn() && request.auth.uid == userId;
+      // User can edit self. Admin can edit anyone. Ghost can edit anyone but Admin.
+      // Staff cannot edit user profiles from the admin panel, as per user instruction.
+      allow write: if (isSignedIn() && request.auth.uid == userId) || 
+                     hasRole(['admin']) || 
+                     (hasRole(['ghost']) && resource.data.role != 'admin');
 
       match /notifications/{notiId} {
         allow read, list: if isSignedIn() && request.auth.uid == userId;
-        allow write: if isSignedIn(); // Allow writing for functions/admins
+        allow write: if isSignedIn(); // For server-side functions
       }
       
       match /addresses/{addressId} {
@@ -29,29 +33,24 @@ service cloud.firestore {
       }
     }
 
-    match /bbs/{docId} {
+    match /bbs/{postId} {
       allow read, list: if true;
-      allow write: if isSignedIn();
+      allow create: if isSignedIn();
+      // Author can update/delete. staff, ghost, admin can too.
+      allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }
 
     match /products/{productId} {
       allow read, list: if true;
       allow create: if isSignedIn() && request.resource.data.sellerId == request.auth.uid;
-      allow update, delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
+      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }
 
     match /orders/{orderId} {
-       // Allow a user to get their own order, either as a buyer or seller.
-       allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
-
-       // Allow a user to create an order for themselves.
+       allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'support']));
+       allow list: if isSignedIn() && (request.query.buyerId == request.auth.uid || hasRole(['admin', 'support']));
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
-       
-       // Allow buyer or seller to update an order.
-       allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid);
-       
-       // This rule allows a user to LIST orders only if they are querying by their own buyerId.
-       allow list: if isSignedIn() && request.query.buyerId == request.auth.uid;
+       allow update: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'support']));
     }
 
     // Contextual comment rules
@@ -73,18 +72,15 @@ service cloud.firestore {
     }
 
     match /paymentChangeRequests/{requestId} {
-      // A user can create a request for themselves
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      
-      // A user can read their own request, and admins can read any.
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isManager());
-
-      // A user can list their own requests, and admins can list all.
-      // This is the key fix.
-      allow list: if isSignedIn() && (request.query.userId == request.auth.uid || isManager());
-
-      // Admins/staff can update any request
-      allow update: if isManager();
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+      allow list: if isSignedIn() && (request.query.userId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+      allow update: if hasRole(['admin', 'ghost', 'staff', 'support']);
+    }
+    
+    match /supportTickets/{ticketId} {
+        allow create: if isSignedIn();
+        allow read, list, update: if hasRole(['admin', 'ghost', 'support']);
     }
   }
 }
