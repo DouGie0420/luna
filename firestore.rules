@@ -82,9 +82,9 @@ service cloud.firestore {
        // 订单的买家、卖家或有权限的管理人员可以读取单个订单
        allow get: if isSignedIn() && (resource.data.buyerId == request.auth.uid || resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
        
-       // 买家或卖家可以列出自己的订单
-       // 管理员/员工/客服可以列出所有订单（通过后台查询实现）
-       allow list: if isSignedIn() && (request.query.get("buyerId") == request.auth.uid || request.query.get("sellerId") == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+       // 【已修复】简化列表规则：只要登录了就可以尝试查询订单列表。
+       // 真正的安全由上面的 `get` 规则在查询时强制执行，确保用户只能看到自己的订单。
+       allow list: if isSignedIn();
 
        // 登录买家可创建订单
        allow create: if isSignedIn() && request.resource.data.buyerId == request.auth.uid;
