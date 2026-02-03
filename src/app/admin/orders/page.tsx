@@ -134,6 +134,10 @@ export default function AdminOrdersPage() {
       </div>
     );
   }
+  
+  const getStatusTranslationKey = (status: OrderStatus) => {
+    return `accountPurchases.status.${status.charAt(0).toLowerCase() + status.slice(1).replace(/\s/g, '')}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -151,7 +155,7 @@ export default function AdminOrdersPage() {
                 <TabsTrigger value="all">All</TabsTrigger>
                 {statusMap.map(status => (
                   <TabsTrigger key={status} value={status}>
-                    {t(`accountPurchases.status.${status.toLowerCase().replace(/\s/g, '')}` as any, status)}
+                    {t(getStatusTranslationKey(status), status)}
                   </TabsTrigger>
                 ))}
             </TabsList>
@@ -161,7 +165,7 @@ export default function AdminOrdersPage() {
                     <ShoppingCart className="h-5 w-5 text-primary" /> 
                     订单列表 ({filteredOrders.length})
                   </CardTitle>
-                  <CardDescription>当前筛选: {activeTab === 'all' ? '全部' : t(`accountPurchases.status.${activeTab.toLowerCase().replace(/\s/g, '')}` as any, activeTab)}</CardDescription>
+                  <CardDescription>当前筛选: {activeTab === 'all' ? '全部' : t(getStatusTranslationKey(activeTab), activeTab)}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="rounded-md border">
@@ -210,7 +214,7 @@ export default function AdminOrdersPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {statusMap.map(status => (
-                                          <SelectItem key={status} value={status}>{t(`accountPurchases.status.${status.toLowerCase().replace(/\s/g, '')}` as any, status)}</SelectItem>
+                                          <SelectItem key={status} value={status}>{t(getStatusTranslationKey(status), status)}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
