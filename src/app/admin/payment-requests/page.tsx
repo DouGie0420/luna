@@ -9,6 +9,7 @@ import {
   doc,
   updateDoc,
   writeBatch,
+  where,
 } from 'firebase/firestore';
 import {
   Table,
@@ -100,21 +101,14 @@ export default function AdminPaymentRequestsPage() {
 
   const requestsQuery = useMemo(() => {
     if (!firestore || !hasAccess) return null;
-    // This query requires a composite index on (status, createdAt). 
-    // To avoid manual index creation for the user, we fetch all and filter client-side.
     return query(
       collection(firestore, 'paymentChangeRequests'),
+      where('status', '==', 'pending'),
       orderBy('createdAt', 'desc')
     );
   }, [firestore, hasAccess]);
 
-  const { data: allRequests, loading: dataLoading } = useCollection<PaymentChangeRequest>(requestsQuery);
-
-  const requests = useMemo(() => {
-      if (!allRequests) return [];
-      // Filter for pending requests on the client
-      return allRequests.filter(req => req.status === 'pending');
-  }, [allRequests]);
+  const { data: requests, loading: dataLoading } = useCollection<PaymentChangeRequest>(requestsQuery);
 
   const handleApprove = async (request: PaymentChangeRequest) => {
     if (!firestore || !profile) return;
