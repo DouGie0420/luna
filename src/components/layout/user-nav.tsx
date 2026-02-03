@@ -124,8 +124,11 @@ export function UserNav() {
 
   if (!isLoggedIn || !user) return (
     <div className="flex items-center gap-2">
-      <Button size="sm" asChild variant="outline" className="rounded-full border-primary text-primary">
+      <Button size="sm" asChild variant="outline" className="rounded-full">
         <Link href="/login">{t('common.login')}</Link>
+      </Button>
+      <Button size="sm" asChild>
+        <Link href="/register">{t('common.register')}</Link>
       </Button>
     </div>
   );

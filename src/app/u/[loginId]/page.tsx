@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -11,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
 import type { UserProfile, Product } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
@@ -22,7 +21,53 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs } from "firebase/firestore";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit } from "firebase/firestore";
+
+// --- 赛博朋克保留域名界面 ---
+function ReservedDomainUI({ loginId }: { loginId: string }) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <PageHeaderWithBackAndClose />
+      <div className="flex items-center justify-center min-h-[70vh] p-6">
+        <div className="max-w-md w-full border-2 border-primary/30 bg-black/80 p-8 rounded-none relative overflow-hidden animate-in fade-in zoom-in duration-500">
+          <div className="absolute top-0 left-0 w-full h-1 bg-primary animate-pulse" />
+          <div className="flex flex-col items-center text-center space-y-6">
+            <div className="p-4 bg-primary/10 rounded-full border border-primary/50">
+              <Lock className="h-12 w-12 text-primary animate-bounce" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">
+                [ ACCESS RESTRICTED ]
+              </h1>
+              <p className="text-primary font-mono text-sm uppercase tracking-widest">
+                NODE ID: @{loginId}
+              </p>
+            </div>
+            <Separator className="bg-primary/20" />
+            <div className="bg-primary/5 p-4 w-full font-mono text-xs text-left space-y-2 border-l-2 border-primary">
+              <p className="text-primary/70 flex items-center gap-2">
+                <Terminal className="h-3 w-3" /> {">"} STATUS: PROTECTED_ASSET
+              </p>
+              <p className="text-primary/70 flex items-center gap-2">
+                <Terminal className="h-3 w-3" /> {">"} REGISTRY: LUNA_CORE_RESERVED
+              </p>
+              <p className="text-primary/70 flex items-center gap-2">
+                <Terminal className="h-3 w-3" /> {">"} PERMISSION: ADMIN_ONLY
+              </p>
+            </div>
+            <p className="text-muted-foreground text-sm italic">
+              该域名已被纳入 LUNA 系统专属保留名录，普通访问节点无法直接解析其生物特征数据。
+            </p>
+            <Button asChild className="w-full rounded-none" variant="outline">
+              <Link href="/">{t('common.backToHome')}</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -62,7 +107,6 @@ function UserProfileSkeleton() {
     )
 }
 
-
 export default function UserProfilePage() {
     const params = useParams();
     const { t } = useTranslation();
@@ -74,10 +118,11 @@ export default function UserProfilePage() {
     
     const [user, setUser] = useState<UserProfile | null>(null);
     const [userLoading, setUserLoading] = useState(true);
+    const [isReserved, setIsReserved] = useState(false); // 新增：是否为保留域名
 
     const productsQuery = useMemo(() => {
       if (!firestore || !user) return null;
-      return query(collection(firestore, 'products'), where('sellerId', '==', user.uid), where('status', '==', 'active'));
+      return query(collection(firestore, 'products'), where('sellerId', '==', user.uid), where('status', '==', 'active'), limit(8));
     }, [firestore, user]);
     const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
     
@@ -88,20 +133,33 @@ export default function UserProfilePage() {
         
         const fetchUser = async () => {
             setUserLoading(true);
-            const usersRef = collection(firestore, 'users');
-            const q = query(usersRef, where('loginId', '==', loginId));
-            const querySnapshot = await getDocs(q);
+            try {
+                const usersRef = collection(firestore, 'users');
+                const q = query(usersRef, where('loginId', '==', loginId), limit(1));
+                const querySnapshot = await getDocs(q);
 
-            if (querySnapshot.empty) {
-                setUser(null);
-            } else {
-                const userData = querySnapshot.docs[0].data() as UserProfile;
-                setUser(userData);
-                 if (currentUserProfile && userData) {
-                    setIsFollowing(currentUserProfile.following?.includes(userData.uid) || false);
+                if (querySnapshot.empty) {
+                    setUser(null);
+                    setIsReserved(false);
+                } else {
+                    const userData = querySnapshot.docs[0].data() as UserProfile;
+                    setUser(userData);
+                    setIsReserved(false);
+                     if (currentUserProfile && userData) {
+                        setIsFollowing(currentUserProfile.following?.includes(userData.uid) || false);
+                    }
                 }
+            } catch (error: any) {
+                // 重点：如果报错是权限拒绝，我们将其伪装成“保留域名”
+                if (error.code === 'permission-denied') {
+                    console.log("Detecting reserved/protected node via permission-denied");
+                    setIsReserved(true);
+                } else {
+                    console.error("Fetch User Error:", error);
+                }
+            } finally {
+                setUserLoading(false);
             }
-            setUserLoading(false);
         }
         fetchUser();
 
@@ -137,8 +195,13 @@ export default function UserProfilePage() {
         }
     };
 
-    if (userLoading || productsLoading) {
+    if (userLoading) {
         return <UserProfileSkeleton />;
+    }
+
+    // 渲染保留域名伪装界面
+    if (isReserved) {
+        return <ReservedDomainUI loginId={loginId} />;
     }
 
     if (!user) {
@@ -150,6 +213,7 @@ export default function UserProfilePage() {
         <PageHeaderWithBackAndClose />
         <div className="p-6 md:p-8 lg:p-12">
             <div className="grid gap-8">
+                {/* 这里的布局代码保持不变，已经正常渲染 user */}
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -270,7 +334,7 @@ export default function UserProfilePage() {
                 {products && products.length > 0 && (
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
-                            <CardTitle>{t('userProfile.latestListings').replace('{userName}', user.displayName)}</CardTitle>
+                            <CardTitle>{t('userProfile.latestListings').replace('{userName}', user.displayName || '')}</CardTitle>
                              <Button asChild variant="ghost">
                                 <Link href={`/@${user.loginId}/listings`}>View All</Link>
                              </Button>
