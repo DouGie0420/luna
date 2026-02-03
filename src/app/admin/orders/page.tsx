@@ -12,18 +12,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { Loader2, ShoppingCart, Eye, AlertCircle } from "lucide-react";
+import { Loader2, ShoppingCart, AlertCircle, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
 import { useTranslation } from "@/hooks/use-translation";
@@ -40,6 +39,15 @@ const statusMap: OrderStatus[] = [
   'Cancelled'
 ];
 
+const getStatusBadgeVariant = (status: OrderStatus) => {
+    switch (status) {
+        case 'Completed': return 'default';
+        case 'Disputed':
+        case 'Cancelled': return 'destructive';
+        default: return 'secondary';
+    }
+};
+
 export default function AdminOrdersPage() {
   const { profile, loading: authLoading } = useUser();
   const firestore = useFirestore();
@@ -51,6 +59,7 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
 
@@ -94,12 +103,11 @@ export default function AdminOrdersPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore || !hasAccess) return;
-    
+    setProcessingId(orderId);
     try {
         const docRef = doc(firestore, "orders", orderId);
         await updateDoc(docRef, { status: newStatus });
-        toast({ title: t('admin.ordersPage.statusUpdated'), description: t('admin.ordersPage.statusUpdatedDesc', { orderId: orderId.slice(0,6), status: newStatus }) });
-        // Optimistically update UI
+        toast({ title: t('admin.ordersPage.statusUpdated'), description: t('admin.ordersPage.statusUpdatedDesc', { orderId: orderId.slice(0,6), status: t(getStatusTranslationKey(newStatus), newStatus) }) });
         setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
     } catch (error) {
         toast({ 
@@ -107,6 +115,8 @@ export default function AdminOrdersPage() {
             title: t('admin.ordersPage.updateFailed'), 
             description: t('admin.ordersPage.updateFailedDesc') 
         });
+    } finally {
+        setProcessingId(null);
     }
   };
 
@@ -136,7 +146,8 @@ export default function AdminOrdersPage() {
   }
   
   const getStatusTranslationKey = (status: OrderStatus) => {
-    return `accountPurchases.status.${status.charAt(0).toLowerCase() + status.slice(1).replace(/\s/g, '')}`;
+    const key = status.charAt(0).toLowerCase() + status.slice(1).replace(/\s/g, '');
+    return `accountPurchases.status.${key}`;
   }
 
   return (
@@ -172,16 +183,17 @@ export default function AdminOrdersPage() {
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
-                          <TableHead>订单 ID / 时间</TableHead>
+                          <TableHead>订单信息</TableHead>
                           <TableHead>买家 / 卖家</TableHead>
                           <TableHead>金额</TableHead>
                           <TableHead>状态</TableHead>
+                          <TableHead className="text-right">操作</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {filteredOrders.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={4} className="text-center py-20 text-muted-foreground">
+                            <TableCell colSpan={5} className="text-center py-20 text-muted-foreground">
                               该状态下暂无订单记录
                             </TableCell>
                           </TableRow>
@@ -189,7 +201,10 @@ export default function AdminOrdersPage() {
                           filteredOrders.map((order) => (
                             <TableRow key={order.id} className="hover:bg-muted/30 transition-colors">
                               <TableCell>
-                                <p className="font-mono text-xs">{order.id.slice(0, 8)}...</p>
+                                <p className="font-semibold">{order.productName}</p>
+                                <p className="text-[10px] text-muted-foreground font-mono">
+                                  ID: {order.id.slice(0, 8)}...
+                                </p>
                                 <p className="text-[10px] text-muted-foreground">
                                     {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
                                 </p>
@@ -205,19 +220,30 @@ export default function AdminOrdersPage() {
                                 <span className="text-[10px] text-muted-foreground">{order.currency || 'USD'}</span>
                               </TableCell>
                               <TableCell>
-                                <Select 
-                                    defaultValue={order.status} 
-                                    onValueChange={(val: OrderStatus) => handleStatusUpdate(order.id, val)}
-                                >
-                                    <SelectTrigger className="w-[130px]">
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {statusMap.map(status => (
-                                          <SelectItem key={status} value={status}>{t(getStatusTranslationKey(status), status)}</SelectItem>
+                                 <Badge variant={getStatusBadgeVariant(order.status)}>
+                                    {t(getStatusTranslationKey(order.status), order.status)}
+                                 </Badge>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" disabled={processingId === order.id}>
+                                        {processingId === order.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel>{t('admin.ordersPage.set_status')}</DropdownMenuLabel>
+                                     {statusMap.map(status => (
+                                          <DropdownMenuItem 
+                                            key={status} 
+                                            onSelect={() => handleStatusUpdate(order.id, status)}
+                                            disabled={order.status === status}
+                                          >
+                                            {t(getStatusTranslationKey(status), status)}
+                                          </DropdownMenuItem>
                                         ))}
-                                    </SelectContent>
-                                </Select>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
                             </TableRow>
                           ))
