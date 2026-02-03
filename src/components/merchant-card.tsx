@@ -23,11 +23,11 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
       <Card className={cn("overflow-hidden h-full transition-all duration-200 border-primary/20 hover:border-primary", className)}>
         <div className="relative h-24 w-full">
             <Image 
-                src="https://picsum.photos/seed/merchant-bg/1080/432"
+                src={user.bannerUrl || "https://picsum.photos/seed/merchant-bg/1080/432"}
                 alt={`${user.displayName}'s shop background`}
                 fill
                 className="object-cover"
-                data-ai-hint="neon abstract"
+                data-ai-hint={user.bannerUrl ? "custom banner" : "neon abstract"}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-transparent" />
         </div>

@@ -66,6 +66,7 @@ export type User = {
   postsCount?: number;
   onSaleCount?: number;
   displayedBadge?: BadgeType;
+  bannerUrl?: string;
 };
 
 export type KycStatus = 'Not Verified' | 'Pending' | 'Verified';
@@ -121,6 +122,7 @@ export type UserProfile = {
     postsCount?: number;
     displayedBadge?: BadgeType;
     paymentInfo?: PaymentInfo;
+    bannerUrl?: string;
 }
 
 export type PaymentChangeRequest = {

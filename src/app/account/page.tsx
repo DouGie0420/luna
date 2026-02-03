@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -37,6 +37,8 @@ import { cn } from "@/lib/utils";
 import { type BadgeType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
+import { compressImage } from "@/lib/image-compressor";
+import Image from "next/image";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,6 +74,8 @@ export default function AccountProfilePage() {
     const [gender, setGender] = useState('保密');
     const [location, setLocation] = useState('');
     const [bio, setBio] = useState('');
+    const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+    const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
     const [isSyncingNfts, setIsSyncingNfts] = useState(false);
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
@@ -87,6 +91,7 @@ export default function AccountProfilePage() {
             setGender(profile.gender || '保密');
             setLocation(profile.location || '');
             setBio(profile.bio || '');
+            setBannerPreview(profile.bannerUrl || null);
         }
     }, [profile]);
     
@@ -118,6 +123,47 @@ export default function AccountProfilePage() {
                 title: 'Error',
                 description: 'Failed to update profile.'
             })
+        }
+    };
+
+    const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingBanner(true);
+        try {
+            const compressedDataUrl = await compressImage(file);
+            setBannerPreview(compressedDataUrl);
+        } catch (error) {
+            console.error('Banner compression error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Image Error',
+                description: 'Failed to process image. Please try another file.',
+            });
+        } finally {
+            setIsUploadingBanner(false);
+        }
+    };
+
+    const handleSaveBanner = async () => {
+        if (!firestore || !user || !bannerPreview) return;
+        setIsUploadingBanner(true);
+        try {
+            await updateUserProfile(firestore, user.uid, { bannerUrl: bannerPreview });
+            toast({
+                title: "横幅已更新",
+                description: "您的自定义商户横幅已保存。",
+            });
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update banner.'
+            });
+        } finally {
+            setIsUploadingBanner(false);
         }
     };
     
@@ -399,6 +445,53 @@ export default function AccountProfilePage() {
                         )}
                     </CardContent>
                 </Card>
+                
+                {profile?.isPro && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>自定义商户横幅</CardTitle>
+                            <CardDescription>
+                                作为认证商户，您可以上传自定义横幅，该横幅将展示在首页的“认证商户”区域。
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="banner-upload">横幅图片 (推荐尺寸: 1080x432)</Label>
+                                {bannerPreview ? (
+                                    <div className="relative aspect-[1080/432] w-full max-w-lg">
+                                        <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-md border bg-muted/20" />
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
+                                            onClick={() => setBannerPreview(null)}
+                                            disabled={isUploadingBanner}
+                                        >
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
+                                        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
+                                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽文件到此</p>
+                                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
+                                        </div>
+                                        <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
+                                    </label>
+                                )}
+                                {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
+                            </div>
+                        </CardContent>
+                        <CardFooter className="border-t px-6 py-4">
+                            <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview}>
+                                {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                保存横幅
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                )}
 
 
                 <Card>
