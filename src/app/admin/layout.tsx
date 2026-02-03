@@ -116,7 +116,7 @@ export default function AdminLayout({
               </SidebarMenuButton>
             </SidebarMenuItem>
             
-            {hasRole(profile?.role, ['admin', 'staff', 'support', 'ghost']) && (
+            {hasRole(profile?.role, ['admin', 'ghost']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -127,7 +127,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {(hasRole(profile?.role, ['admin', 'staff'])) && (
+            {hasRole(profile?.role, ['admin', 'ghost', 'staff']) && (
               <>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
@@ -156,7 +156,7 @@ export default function AdminLayout({
               </>
             )}
 
-            {hasRole(profile?.role, ['admin']) && (
+            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
                   <Link href="/admin/orders">
@@ -166,9 +166,8 @@ export default function AdminLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
-
-            {hasRole(profile?.role, ['admin', 'staff']) && (
-              <>
+            
+            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                     <Link href="/admin/kyc-list">
@@ -177,6 +176,9 @@ export default function AdminLayout({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+            )}
+
+            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/payment-requests')}>
                     <Link href="/admin/payment-requests">
@@ -185,10 +187,9 @@ export default function AdminLayout({
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-              </>
             )}
 
-            {(hasRole(profile?.role, ['admin', 'support', 'ghost'])) && (
+            {hasRole(profile?.role, ['admin', 'ghost', 'staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">

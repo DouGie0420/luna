@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState } from 'react';
-import { useFirestore, useCollection, useUser } from "@/firebase"; // Changed useAuth to useUser
-import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useFirestore, useCollection, useUser } from "@/firebase";
+import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { createNotification } from '@/lib/notifications';
 
 const InfoRow = ({ label, value }: { label: string, value: string | null | undefined }) => (
     <div className="text-sm">
@@ -49,7 +50,7 @@ const QrCodeDiff = ({ label, oldUrl, newUrl }: { label: string, oldUrl?: string,
 }
 
 export default function PaymentRequestsPage() {
-  const { user, profile, loading: userLoading } = useUser(); // Corrected hook
+  const { user, profile, loading: userLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const isManager = ['admin', 'ghost', 'staff', 'support'].includes(profile?.role || '');
@@ -74,6 +75,9 @@ export default function PaymentRequestsPage() {
     try {
       if (newStatus === 'approved') {
         await updateDoc(doc(firestore, 'users', userId), { paymentInfo: requestedPaymentInfo });
+        await createNotification(firestore, userId, { type: 'paymentRequestApproved', actor: profile, requestId: id });
+      } else {
+        await createNotification(firestore, userId, { type: 'paymentRequestRejected', actor: profile, requestId: id, reason: rejectionReason });
       }
       
       await updateDoc(doc(firestore, 'paymentChangeRequests', id), { 
@@ -100,7 +104,7 @@ export default function PaymentRequestsPage() {
     <div className="p-20 text-center bg-card rounded-lg">
       <ShieldAlert className="mx-auto h-12 w-12 text-red-500 mb-4" />
       <h2 className="text-xl font-bold">权限不足: [{profile?.role || 'null'}]</h2>
-      <p className="text-muted-foreground text-sm mt-2">只有管理员, Staff, Support 或 Ghost 角色可以访问此页面。</p>
+      <p className="text-muted-foreground text-sm mt-2">您没有权限访问此页面。</p>
       <p className="text-muted-foreground text-xs mt-1">UID: {user?.uid}</p>
     </div>
   );
@@ -132,7 +136,7 @@ export default function PaymentRequestsPage() {
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
-
+        </AlertDialog>
 
         <h1 className="text-3xl font-headline">收款申请审核</h1>
         {dataLoading && <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto"/></div>}

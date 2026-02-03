@@ -1,5 +1,3 @@
-
-      
 'use client';
 
 import { useCollection, useFirestore, useUser } from "@/firebase";
@@ -113,9 +111,16 @@ export default function AdminUsersPage() {
                     {users && users.length > 0 ? (
                         users.map(user => {
                             const isSelf = currentUserProfile?.uid === user.uid;
-                            const isTargetAdminOrGhost = user.role === 'admin' || user.role === 'ghost';
+                            const isTargetAdmin = user.role === 'admin';
                             const isRequesterGhost = currentUserProfile?.role === 'ghost';
-                            const modificationDisabled = isSelf || (isRequesterGhost && isTargetAdminOrGhost);
+                            const isRequesterStaff = currentUserProfile?.role === 'staff';
+
+                            // Disable modification if:
+                            // 1. User is trying to edit themselves.
+                            // 2. A 'ghost' user is trying to edit an 'admin'.
+                            // 3. A 'staff' user is trying to edit anyone.
+                            const modificationDisabled = isSelf || (isRequesterGhost && isTargetAdmin) || isRequesterStaff;
+
 
                             return (
                             <React.Fragment key={user.uid}>
@@ -172,7 +177,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             defaultValue={user.role || 'guest'} 
                                             onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
-                                            disabled={modificationDisabled}
+                                            disabled={modificationDisabled || user.role === 'admin'}
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue placeholder={t('admin.usersPage.setRole')} />
@@ -183,7 +188,7 @@ export default function AdminUsersPage() {
                                                 <SelectItem value="support">support</SelectItem>
                                                 <SelectItem value="staff">staff</SelectItem>
                                                 <SelectItem value="ghost">ghost</SelectItem>
-                                                <SelectItem value="admin">admin</SelectItem>
+                                                <SelectItem value="admin" disabled>{/* Admin role cannot be assigned from UI */}admin</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </TableCell>
@@ -228,9 +233,9 @@ export default function AdminUsersPage() {
                                                     </div>
                                                 </div>
 
-                                                {/* Column 2: Verifications & Badges */}
+                                                {/* Column 2: Verifications */}
                                                 <div className="space-y-4">
-                                                     <div className="grid gap-2">
+                                                    <div className="grid gap-2">
                                                         <Label>{t('admin.usersPage.proStatus')}</Label>
                                                         <Select 
                                                             value={user.isPro ? 'true' : 'false'}
@@ -354,5 +359,3 @@ export default function AdminUsersPage() {
         </div>
     )
 }
-
-    

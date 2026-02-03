@@ -26,9 +26,7 @@ export default function AdminOrdersPage() {
 
     const ordersQuery = useMemo(() => {
         if (!firestore || !profile) return null;
-        // IMPORTANT: Only allow 'admin' or 'ghost' roles to view all orders.
-        // This prevents users with lesser roles (like 'staff') from triggering permission errors.
-        if (profile.role === 'admin' || profile.role === 'ghost') {
+        if (['admin', 'ghost', 'staff', 'support'].includes(profile.role || '')) {
             return query(collection(firestore, 'orders'), orderBy('createdAt', 'desc'));
         }
         return null; // Return null for unauthorized roles, which is handled below.
@@ -36,16 +34,12 @@ export default function AdminOrdersPage() {
 
     const { data: orders, loading: ordersLoading } = useCollection<Order>(ordersQuery);
 
-    // The component is loading if the user profile is loading,
-    // OR if a query is supposed to run and that query is loading.
     const loading = userLoading || (!!ordersQuery && ordersLoading);
 
     if (loading) {
         return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
 
-    // If the query is null, it means the user doesn't have permission.
-    // Display an explicit access denied message.
     if (!ordersQuery) {
         return (
              <div>
@@ -54,7 +48,7 @@ export default function AdminOrdersPage() {
                     <ShieldAlert className="h-4 w-4" />
                     <AlertTitle>{t('admin.layout.accessDenied')}</AlertTitle>
                     <AlertDescription>
-                        Only users with 'Admin' or 'Ghost' roles can view all orders.
+                        You do not have permission to view all orders.
                     </AlertDescription>
                 </Alert>
             </div>
