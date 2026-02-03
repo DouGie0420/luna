@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X } from "lucide-react";
 import Image from 'next/image';
 import { updateUserProfile } from '@/lib/user';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
     <div className="flex justify-between items-center text-sm">
@@ -245,6 +247,7 @@ export default function WalletPage() {
         if (!user || !profile || !firestore) return;
         
         const isInfoEmpty = !newPaymentInfo.bankAccount?.accountNumber &&
+                            !newPaymentInfo.usdtAddress &&
                             !newPaymentInfo.alipayQrUrl &&
                             !newPaymentInfo.wechatPayQrUrl &&
                             !newPaymentInfo.promptPayQrUrl;
@@ -255,22 +258,26 @@ export default function WalletPage() {
         }
         
         setIsSubmittingRequest(true);
+        const requestData = {
+            userId: user.uid,
+            userName: profile.displayName || '匿名用户',
+            status: 'pending' as const,
+            createdAt: serverTimestamp(),
+            requestedPaymentInfo: newPaymentInfo,
+            currentPaymentInfo: profile.paymentInfo || {}
+        };
         try {
-            const requestData = {
-                userId: user.uid,
-                userName: profile.displayName || '匿名用户',
-                status: 'pending' as const,
-                createdAt: serverTimestamp(),
-                requestedPaymentInfo: newPaymentInfo,
-                currentPaymentInfo: profile.paymentInfo || {}
-            };
             await addDoc(collection(firestore, 'paymentChangeRequests'), requestData);
             toast({ title: '修改申请已提交', description: '管理员审核通过后将会生效。' });
             setIsRequestDialogOpen(false);
             resetRequestForm();
         } catch (error) {
             console.error("Error submitting request:", error);
-            toast({ variant: 'destructive', title: '提交失败', description: '请检查数据库权限设置。' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: collection(firestore, 'paymentChangeRequests').path,
+                operation: 'create',
+                requestResourceData: requestData
+            }));
         } finally {
             setIsSubmittingRequest(false);
         }
@@ -319,13 +326,15 @@ export default function WalletPage() {
                         <CardContent className="space-y-4">
                             <div className="p-4 bg-secondary/30 rounded-lg border flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm font-bold">USDT收款地址</p>
+                                    <p className="text-sm font-bold">USDT收款地址 (TRC20)</p>
                                     <p className="font-mono text-sm opacity-70 break-all">{profile?.walletAddress || '未连接'}</p>
                                 </div>
-                                <Button variant="outline" onClick={connectWeb3} disabled={isConnecting}>
-                                    {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                    {profile?.walletAddress ? "更换钱包" : "连接钱包"}
-                                </Button>
+                                {!profile?.isWeb3Verified && (
+                                    <Button variant="outline" onClick={connectWeb3} disabled={isConnecting}>
+                                        {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                        {profile?.walletAddress ? "更换钱包" : "连接钱包"}
+                                    </Button>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -395,6 +404,13 @@ export default function WalletPage() {
                                     <Label htmlFor="new-accountNumber">账号</Label>
                                     <Input id="new-accountNumber" name="bankAccount.accountNumber" onChange={handleNewInfoChange} placeholder="请输入银行卡号" />
                                 </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-sm mb-2">USDT (TRC20) 地址</h4>
+                            <div className="grid gap-2">
+                                <Label htmlFor="new-usdtAddress" className="sr-only">USDT Address</Label>
+                                <Input id="new-usdtAddress" name="usdtAddress" onChange={handleNewInfoChange} placeholder="请输入您的TRC20收款地址" />
                             </div>
                         </div>
                         <div>
