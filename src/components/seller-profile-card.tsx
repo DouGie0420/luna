@@ -38,6 +38,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
     const displayUser = sellerProfile || seller;
     const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
     const displayName = displayUser.displayName || displayUser.name;
+    const profileUrl = `/u/${displayUser.loginId || displayUser.id}`;
 
 
     return (
@@ -114,7 +115,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                        <Link href={`/user/${seller.id}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                        <Link href={`${profileUrl}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <ShoppingBag className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
@@ -123,7 +124,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 </p>
                             </div>
                         </Link>
-                        <Link href={`/user/${seller.id}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                        <Link href={`${profileUrl}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <ShoppingCart className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
@@ -132,14 +133,14 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 </p>
                             </div>
                         </Link>
-                        <Link href={`/user/${seller.id}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                        <Link href={`${profileUrl}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <Users className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
                                 <p className="font-bold hover:underline">{displayUser.followersCount || 0}</p>
                             </div>
                         </Link>
-                        <Link href={`/user/${seller.id}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                        <Link href={`${profileUrl}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
                             <UserPlus className="h-6 w-6 text-primary" />
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
@@ -184,19 +185,19 @@ export function SellerProfileCard({ product }: { product: Product }) {
                     <div>
                         <h4 className="font-semibold mb-2">{t('sellerProfile.reviewDetails')}</h4>
                         <div className="space-y-1">
-                             <Link href={`/user/${seller.id}/reviews?type=good`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                             <Link href={`${profileUrl}/reviews?type=good`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
                                     <span className="font-medium hover:underline">{displayUser.goodReviews ?? 0}</span>
                                 </div>
                              </Link>
-                             <Link href={`/user/${seller.id}/reviews?type=neutral`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                             <Link href={`${profileUrl}/reviews?type=neutral`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
                                     <span className="font-medium hover:underline">{displayUser.neutralReviews ?? 0}</span>
                                 </div>
                              </Link>
-                             <Link href={`/user/${seller.id}/reviews?type=bad`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
+                             <Link href={`${profileUrl}/reviews?type=bad`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
                                 <div className="flex justify-between items-center text-sm">
                                     <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
                                     <span className="font-medium hover:underline">{displayUser.badReviews ?? 0}</span>

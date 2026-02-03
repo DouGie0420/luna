@@ -161,10 +161,11 @@ const CommentItem = ({
   const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
   const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
   const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
+  const profileUrl = `/u/${author?.loginId || author?.uid}`;
 
   return (
     <div className="flex items-start gap-3">
-        <Link href={`/user/${author?.uid || comment.authorId}`}>
+        <Link href={profileUrl}>
             <Avatar className="h-10 w-10">
                 {author?.photoURL && <AvatarImage src={author.photoURL} alt={author.displayName} />}
                 <AvatarFallback>{author?.displayName?.charAt(0) || '?'}</AvatarFallback>
@@ -577,6 +578,7 @@ export default function BbsPostPage() {
     }
     
     const postDate = post.createdAt?.toDate();
+    const authorProfileUrl = `/u/${authorProfile?.loginId || post.authorId}`;
     
     const renderComments = (commentList: NestedComment[]) => {
       return commentList.map(comment => (
@@ -635,7 +637,7 @@ export default function BbsPostPage() {
                             </Dialog>
                             <div className="flex flex-col gap-1 pt-1">
                                 <div className="flex items-baseline gap-4">
-                                     <Link href={`/user/${post.authorId}`} className="hover:underline">
+                                     <Link href={authorProfileUrl} className="hover:underline">
                                         <h2 className="font-bold text-xl">{authorProfile?.displayName}</h2>
                                     </Link>
                                     <p className="text-sm font-semibold text-red-400">
@@ -649,15 +651,15 @@ export default function BbsPostPage() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                    <Link href={`/user/${post.authorId}/followers`} className="hover:underline">
+                                    <Link href={`${authorProfileUrl}/followers`} className="hover:underline">
                                         {t('userProfile.followers')} <span className="font-bold text-foreground">{authorProfile?.followersCount || 0}</span>
                                     </Link>
                                     <span>&middot;</span>
-                                    <Link href={`/user/${post.authorId}/following`} className="hover:underline">
+                                    <Link href={`${authorProfileUrl}/following`} className="hover:underline">
                                         {t('userProfile.following')} <span className="font-bold text-foreground">{authorProfile?.followingCount || 0}</span>
                                     </Link>
                                     <span>&middot;</span>
-                                    <Link href={`/user/${post.authorId}/listings`} className="hover:underline">
+                                    <Link href={`${authorProfileUrl}/listings`} className="hover:underline">
                                         {t('userProfile.posts')} <span className="font-bold text-foreground">{authorProfile?.postsCount || 0}</span>
                                     </Link>
                                 </div>

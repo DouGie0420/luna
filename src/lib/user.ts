@@ -21,6 +21,7 @@ export async function upsertUserProfile(
             lastLogin: serverTimestamp(),
             photoURL: user.photoURL || userProfile.photoURL,
             displayName: userProfile.displayName || user.displayName || 'User',
+            ...additionalData,
         };
 
         if (userProfile.emailVerified !== true) {
@@ -38,6 +39,7 @@ export async function upsertUserProfile(
     } else {
         const newUserProfile: Omit<UserProfile, 'uid'> & { createdAt: any, lastLogin: any } = {
             email: additionalData.email || user.email || '',
+            loginId: additionalData.loginId || user.uid, // Use provided loginId or fallback to uid
             displayName: additionalData.displayName || user.displayName || 'New User',
             photoURL: user.photoURL || `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
             emailVerified: user.emailVerified,
@@ -101,6 +103,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
         const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
         const newUserProfile: Omit<UserProfile, 'uid'> & { createdAt: any, lastLogin: any } = {
             displayName: shortAddress,
+            loginId: shortAddress,
             photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${address}`,
             emailVerified: true,
             kycStatus: 'Not Verified',

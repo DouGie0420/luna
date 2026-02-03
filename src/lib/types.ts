@@ -38,6 +38,7 @@ export type Product = {
 
 export type User = {
   id: string;
+  loginId?: string;
   name: string;
   avatarUrl: string;
   rating: number;
@@ -85,7 +86,7 @@ export type PaymentInfo = {
 
 export type UserProfile = {
     uid: string;
-    loginId?: string;
+    loginId: string;
     phone?: string;
     email?: string;
     emailVerified?: boolean;

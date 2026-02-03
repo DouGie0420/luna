@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast"
 import { X, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
 import type { UserProfile } from "@/lib/types";
+import { collection, getDocs, query, where } from "firebase/firestore";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -42,7 +43,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [username, setUsername] = useState('');
+  const [loginId, setLoginId] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -56,6 +58,10 @@ export default function RegisterPage() {
     }
   }, [user, userLoading, router]);
 
+  const handleLoginIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    setLoginId(value);
+  }
 
   const handleEmailRegister = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -71,14 +77,29 @@ export default function RegisterPage() {
       toast({ variant: 'destructive', title: 'Agreement Required', description: t('registerPage.termsRequirement') });
       return;
     }
+    if (!loginId.match(/^[a-z0-9_-]{3,20}$/)) {
+      toast({ variant: 'destructive', title: 'Invalid Login ID', description: 'Login ID must be 3-20 characters long, and can only contain lowercase letters, numbers, underscores, and hyphens.' });
+      return;
+    }
+
 
     setIsLoading(true);
     try {
+      // Check if loginId is unique
+      const loginIdQuery = query(collection(firestore, 'users'), where('loginId', '==', loginId));
+      const querySnapshot = await getDocs(loginIdQuery);
+      if (!querySnapshot.empty) {
+        toast({ variant: 'destructive', title: 'Login ID Taken', description: 'This Login ID is already in use. Please choose another one.' });
+        setIsLoading(false);
+        return;
+      }
+
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       const additionalData: Partial<UserProfile> = {
-        displayName: username,
+        loginId,
+        displayName,
         phone,
         email,
       };
@@ -150,14 +171,19 @@ export default function RegisterPage() {
           <CardContent className="grid gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="grid gap-2">
+                <Label htmlFor="loginId">自定义ID (Login ID)</Label>
+                <Input id="loginId" placeholder="唯一的、自定义的短域名" required value={loginId} onChange={handleLoginIdChange} />
+                 <p className="text-xs text-muted-foreground">这将是您的专属网址: /u/{loginId || 'your-id'}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="displayName">{t('registerPage.usernameLabel')}</Label>
+                <Input id="displayName" placeholder={t('registerPage.usernamePlaceholder')} required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+              </div>
+            </div>
+             <div className="grid gap-2">
                 <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
                 <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="username">{t('registerPage.usernameLabel')}</Label>
-                <Input id="username" placeholder={t('registerPage.usernamePlaceholder')} required value={username} onChange={(e) => setUsername(e.target.value)} />
-              </div>
-            </div>
             
             <div className="grid gap-2">
                 <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>

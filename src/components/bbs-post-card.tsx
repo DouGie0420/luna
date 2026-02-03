@@ -211,6 +211,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
     const isLiked = user && post.likedBy?.includes(user.uid);
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
+    const authorProfileUrl = `/u/${post.author.loginId || post.author.id}`;
 
     return (
         <>
@@ -295,25 +296,27 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
                     <CardFooter className="p-4 flex justify-between items-end">
                         <div className="flex items-center gap-3">
-                            <div className="relative">
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                {post.author.isNftVerified ? (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <EthereumIcon className="h-3 w-3 text-cyan-400" />
-                                    </div>
-                                ) : post.author.isWeb3Verified ? (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <ShieldCheck className="h-3 w-3 text-blue-400" />
-                                    </div>
-                                ) : post.author.kycStatus === 'Verified' && (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <ShieldCheck className="h-3 w-3 text-cyan-400" />
-                                    </div>
-                                )}
-                            </div>
+                             <Link href={authorProfileUrl} onClick={(e) => e.stopPropagation()}>
+                                <div className="relative">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
+                                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    {post.author.isNftVerified ? (
+                                        <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                            <EthereumIcon className="h-3 w-3 text-cyan-400" />
+                                        </div>
+                                    ) : post.author.isWeb3Verified ? (
+                                        <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                            <ShieldCheck className="h-3 w-3 text-blue-400" />
+                                        </div>
+                                    ) : post.author.kycStatus === 'Verified' && (
+                                        <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
+                                            <ShieldCheck className="h-3 w-3 text-cyan-400" />
+                                        </div>
+                                    )}
+                                </div>
+                             </Link>
                             <div>
                                 <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
                                 <p className="text-xs text-muted-foreground">
