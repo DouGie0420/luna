@@ -2,6 +2,7 @@
 
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type Product = {
@@ -105,6 +106,16 @@ export type UserProfile = {
     role?: 'guest' | 'admin' | 'staff' | 'support' | 'user' | 'ghost';
     postsCount?: number;
     displayedBadge?: BadgeType;
+    paymentInfo?: {
+        bankAccount?: {
+            accountName?: string;
+            accountNumber?: string;
+            bankName?: string;
+        };
+        usdtAddress?: string;
+        alipayQrUrl?: string;
+        wechatPayQrUrl?: string;
+    };
 }
 
 export type Promo = {
