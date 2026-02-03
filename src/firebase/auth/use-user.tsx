@@ -49,6 +49,17 @@ const testProfile: UserProfile = {
   email: 'test@example.com',
   displayName: '测试用户',
   photoURL: 'https://picsum.photos/seed/test-user/100/100',
+  walletAddress: '0x1234567890123456789012345678901234567890',
+  paymentInfo: {
+    bankAccount: {
+        bankName: 'Kasikorn Bank',
+        accountName: 'TEST USER',
+        accountNumber: '123-4-56789-0',
+    },
+    alipayQrUrl: 'https://picsum.photos/seed/alipay/200/200',
+    wechatPayQrUrl: 'https://picsum.photos/seed/wechat/200/200',
+    promptPayQrUrl: 'https://picsum.photos/seed/promptpay/200/200',
+  },
   kycStatus: 'Verified',
   emailVerified: true,
   isPro: true,
