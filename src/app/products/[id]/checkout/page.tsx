@@ -181,7 +181,7 @@ export default function CheckoutPage() {
   }, [product]);
 
   const handleConfirmPurchase = async () => {
-    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod || !product.sellerId) {
+    if (!firestore || !user || !product || !selectedAddressId || !paymentMethod || !product.seller?.id) {
         toast({
             variant: "destructive",
             title: "Missing Information",
@@ -203,8 +203,8 @@ export default function CheckoutPage() {
         productId: product.id,
         productName: product.name,
         buyerId: user.uid,
-        sellerId: product.sellerId,
-        participants: [user.uid, product.sellerId],
+        sellerId: product.seller.id,
+        participants: [user.uid, product.seller.id],
         price: product.price,
         shippingFee: shippingFee,
         totalAmount: totalAmount,
