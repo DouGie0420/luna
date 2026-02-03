@@ -33,7 +33,8 @@ export async function analyzeProductImage(
 
 const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
-  model: 'googleai/gemini-pro-vision',
+  // 核心修复：将已失效的 gemini-pro-vision 更改为 gemini-1.5-flash
+  model: 'googleai/gemini-1.5-flash',
   input: {schema: AnalyzeProductImageInputSchema},
   output: {schema: AnalyzeProductImageOutputSchema},
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
@@ -54,6 +55,12 @@ const analyzeProductImageFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    
+    // 增加一个简单的错误防御逻辑
+    if (!output) {
+      throw new Error("AI 无法识别该图片内容，请重试。");
+    }
+    
+    return output;
   }
 );
