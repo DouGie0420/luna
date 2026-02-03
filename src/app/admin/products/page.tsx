@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Loader2, Edit, Trash2, ShieldCheck, CheckCircle } from "lucide-react"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation";
@@ -27,6 +27,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -44,7 +54,13 @@ type ProductStatus = NonNullable<Product['status']>;
 type PostStatus = NonNullable<BbsPost['status']>;
 
 
-function ProductTable({ products, loading, onStatusChange, onSetReason }: { products: Product[] | null, loading: boolean, onStatusChange: (id: string, status: ProductStatus) => void, onSetReason: (product: Product) => void }) {
+function ProductTable({ products, loading, onStatusChange, onSetReason, onHardDelete }: { 
+    products: Product[] | null, 
+    loading: boolean, 
+    onStatusChange: (id: string, status: ProductStatus) => void, 
+    onSetReason: (product: Product) => void,
+    onHardDelete: (id: string) => void
+}) {
     const { t } = useTranslation();
 
     if (loading) {
@@ -101,6 +117,14 @@ function ProductTable({ products, loading, onStatusChange, onSetReason }: { prod
                                         <Edit className="mr-2 h-4 w-4" />
                                         <span>添加/更新原因</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                        className="text-destructive focus:bg-destructive/10"
+                                        onClick={() => onHardDelete(product.id)}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>彻底删除</span>
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -111,7 +135,13 @@ function ProductTable({ products, loading, onStatusChange, onSetReason }: { prod
     )
 }
 
-function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: BbsPost[] | null, loading: boolean, onStatusChange: (id: string, status: PostStatus) => void, onSetReason: (post: BbsPost) => void }) {
+function PostTable({ posts, loading, onStatusChange, onSetReason, onHardDelete }: { 
+    posts: BbsPost[] | null, 
+    loading: boolean, 
+    onStatusChange: (id: string, status: PostStatus) => void, 
+    onSetReason: (post: BbsPost) => void,
+    onHardDelete: (id: string) => void
+}) {
     if (loading) {
         return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
     }
@@ -161,6 +191,14 @@ function PostTable({ posts, loading, onStatusChange, onSetReason }: { posts: Bbs
                                         <Edit className="mr-2 h-4 w-4" />
                                         <span>添加/更新原因</span>
                                     </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                        className="text-destructive focus:bg-destructive/10"
+                                        onClick={() => onHardDelete(post.id)}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        <span>彻底删除</span>
+                                    </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </TableCell>
@@ -181,6 +219,9 @@ export default function AdminProductsPage() {
     const [reviewReason, setReviewReason] = useState('涉黄');
     const [customReason, setCustomReason] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // Hard delete state
+    const [itemToHardDelete, setItemToHardDelete] = useState<{ type: 'product' | 'post'; id: string } | null>(null);
 
     // Product states
     const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products'), where('status', '==', 'under_review')) : null, [firestore]);
@@ -194,7 +235,7 @@ export default function AdminProductsPage() {
         if (!firestore) return;
         const itemRef = doc(firestore, collectionName, itemId);
         try {
-            await updateDoc(itemRef, { status });
+            await updateDoc(itemRef, { status, reviewReason: null }); // Also clear the reason when approving
             toast({ title: '状态已更新', description: `项目已设置为 "${'status'}"。` });
         } catch (error) {
             console.error("Failed to update status:", error);
@@ -228,6 +269,27 @@ export default function AdminProductsPage() {
             setIsSubmitting(false);
         }
     };
+    
+    const handleConfirmHardDelete = async () => {
+        if (!firestore || !itemToHardDelete) return;
+
+        setIsSubmitting(true);
+        const { type, id } = itemToHardDelete;
+        const collectionPath = type === 'product' ? 'products' : 'bbs';
+        const itemRef = doc(firestore, collectionPath, id);
+
+        try {
+            await deleteDoc(itemRef);
+            toast({ title: '项目已彻底删除' });
+            setItemToHardDelete(null);
+        } catch (error) {
+            console.error("Failed to hard delete item:", error);
+            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'delete' }));
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
 
     return (
         <div>
@@ -241,6 +303,7 @@ export default function AdminProductsPage() {
                     loading={productsLoading} 
                     onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
                     onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
+                    onHardDelete={(id) => setItemToHardDelete({ type: 'product', id })}
                 />
             </div>
 
@@ -251,6 +314,7 @@ export default function AdminProductsPage() {
                     loading={postsLoading} 
                     onStatusChange={(id, status) => handleStatusChange('bbs', id, status)}
                     onSetReason={(post) => setItemToReview({ type: 'post', item: post })} 
+                    onHardDelete={(id) => setItemToHardDelete({ type: 'post', id })}
                 />
             </div>
 
@@ -287,6 +351,24 @@ export default function AdminProductsPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+            
+            <AlertDialog open={!!itemToHardDelete} onOpenChange={(open) => !open && setItemToHardDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>您确定要彻底删除吗？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            此操作将从数据库中永久删除该项目，且无法恢复。这与将商品状态设置为“隐藏”不同。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setItemToHardDelete(null)} disabled={isSubmitting}>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleConfirmHardDelete} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90">
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            确认彻底删除
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }
