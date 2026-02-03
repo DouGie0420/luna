@@ -34,17 +34,20 @@ export default function SalesPage() {
         if (!user?.uid || !db) return null;
         return query(
             collection(db, "orders"),
-            where("participants", "array-contains", user.uid),
-            orderBy("createdAt", "desc")
+            where("participants", "array-contains", user.uid)
+            // orderBy is removed to avoid needing a composite index
         );
     }, [user?.uid, db]);
 
     const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
-    // Client-side filter for sales
+    // Client-side filter and sort for sales
     const salesOrders = useMemo(() => {
         if (!allUserOrders || !user) return [];
-        return allUserOrders.filter(order => order.sellerId === user.uid);
+        const filtered = allUserOrders.filter(order => order.sellerId === user.uid);
+        // Sort client-side
+        filtered.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+        return filtered;
     }, [allUserOrders, user]);
 
     const handleMarkAsShipped = (order: Order) => {

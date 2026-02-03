@@ -25,17 +25,20 @@ export default function PurchasesPage() {
         if (!user?.uid || !db) return null;
         return query(
             collection(db, "orders"),
-            where("participants", "array-contains", user.uid),
-            orderBy("createdAt", "desc")
+            where("participants", "array-contains", user.uid)
+            // orderBy is removed to avoid needing a composite index
         );
     }, [user?.uid, db]);
 
     const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
-    // Client-side filter for purchases
+    // Client-side filter and sort for purchases
     const purchaseOrders = useMemo(() => {
         if (!allUserOrders || !user) return [];
-        return allUserOrders.filter(order => order.buyerId === user.uid);
+        const filtered = allUserOrders.filter(order => order.buyerId === user.uid);
+        // Sort client-side
+        filtered.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+        return filtered;
     }, [allUserOrders, user]);
 
     const handleConfirmReceipt = async (orderId: string) => {
