@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, getRedirectResult, type Auth, type User as FirebaseUser, type UserInfo, type UserMetadata, type IdTokenResult, Unsubscribe } from 'firebase/auth';
-import { doc, onSnapshot, type Firestore } from 'firebase/firestore';
+import { onAuthStateChanged, type Auth, type User as FirebaseUser, Unsubscribe } from 'firebase/auth';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { FirebaseContext } from '@/firebase/provider';
 import type { UserProfile } from '@/lib/types';
-import { updateUserProfile, upsertUserProfile } from '@/lib/user';
-import { useToast } from '@/hooks/use-toast';
+import { updateUserProfile } from '@/lib/user';
 
 interface UserState {
   user: FirebaseUser | null;
@@ -14,94 +13,6 @@ interface UserState {
   loading: boolean;
   error: Error | null;
 }
-
-const testUser: FirebaseUser = {
-  uid: 'test-user-uid',
-  email: 'test@example.com',
-  displayName: '测试用户',
-  photoURL: 'https://picsum.photos/seed/test-user/100/100',
-  providerId: 'test',
-  emailVerified: true,
-  isAnonymous: false,
-  metadata: {
-    creationTime: new Date().toUTCString(),
-    lastSignInTime: new Date().toUTCString(),
-  } as UserMetadata,
-  providerData: [{
-    providerId: 'password',
-    uid: 'test@example.com',
-    displayName: '测试用户',
-    email: 'test@example.com',
-    photoURL: 'https://picsum.photos/seed/test-user/100/100',
-    phoneNumber: null,
-  } as UserInfo],
-  refreshToken: 'test-refresh-token',
-  tenantId: null,
-  delete: async () => { console.log('delete called'); },
-  getIdToken: async () => 'test-id-token',
-  getIdTokenResult: async () => ({ token: 'test-id-token' } as IdTokenResult),
-  reload: async () => { console.log('reload called'); },
-  toJSON: () => ({ uid: 'test-user-uid', email: 'test@example.com', displayName: '测试用户' }),
-};
-
-const testProfile: UserProfile = {
-  uid: 'test-user-uid',
-  email: 'test@example.com',
-  displayName: '测试用户',
-  photoURL: 'https://picsum.photos/seed/test-user/100/100',
-  walletAddress: '0x1234567890123456789012345678901234567890',
-  paymentInfo: {
-    bankAccount: {
-        bankName: 'Kasikorn Bank',
-        accountName: 'TEST USER',
-        accountNumber: '123-4-56789-0',
-    },
-    alipayQrUrl: 'https://picsum.photos/seed/alipay/200/200',
-    wechatPayQrUrl: 'https://picsum.photos/seed/wechat/200/200',
-    promptPayQrUrl: 'https://picsum.photos/seed/promptpay/200/200',
-  },
-  kycStatus: 'Verified',
-  emailVerified: true,
-  isPro: true,
-  isWeb3Verified: true,
-  isNftVerified: true,
-  createdAt: new Date(),
-  lastLogin: new Date(),
-  rating: 4.9,
-  reviewsCount: 150,
-  salesCount: 88,
-  purchasesCount: 120,
-  followersCount: 123,
-  followingCount: 45,
-  creditScore: 985,
-  creditLevel: 'Gold',
-};
-
-function createMockFirebaseUser(userInfo: { uid: string, displayName: string, photoURL: string }): FirebaseUser {
-    return {
-        uid: userInfo.uid,
-        email: null,
-        displayName: userInfo.displayName,
-        photoURL: userInfo.photoURL,
-        providerId: 'web3',
-        emailVerified: false,
-        isAnonymous: false,
-        metadata: { creationTime: new Date().toUTCString(), lastSignInTime: new Date().toUTCString() } as UserMetadata,
-        providerData: [],
-        refreshToken: 'mock-refresh-token',
-        tenantId: null,
-        delete: async () => {},
-        getIdToken: async () => 'mock-id-token',
-        getIdTokenResult: async () => ({ token: 'mock-id-token' } as IdTokenResult),
-        reload: async () => {},
-        toJSON: () => ({ ...userInfo, email: null }),
-    };
-}
-
-export const useFirebaseAuth = (): Auth | null => {
-  const firebase = useContext(FirebaseContext);
-  return firebase?.auth ?? null;
-};
 
 export const useUser = (): UserState => {
   const [userState, setUserState] = useState<UserState>({
@@ -111,9 +22,9 @@ export const useUser = (): UserState => {
     error: null,
   });
 
-  const auth = useFirebaseAuth();
-  const firestore = useContext(FirebaseContext)?.firestore;
-  const { toast } = useToast();
+  const firebase = useContext(FirebaseContext);
+  const auth = firebase?.auth;
+  const firestore = firebase?.firestore;
 
   useEffect(() => {
     if (!auth || !firestore) {
@@ -121,79 +32,50 @@ export const useUser = (): UserState => {
       return;
     }
 
-    let unsubscribe: Unsubscribe = () => {};
+    let unsubscribeProfile: Unsubscribe = () => {};
 
-    const authUnsubscribe = onAuthStateChanged(auth, (authUser) => {
-      unsubscribe(); // Unsubscribe from previous profile listener
+    // 监听 Auth 状态
+    const authUnsubscribe = onAuthStateChanged(auth, async (authUser) => {
+      // 每次 Auth 改变，先清理之前的 Profile 监听
+      unsubscribeProfile();
 
-      if (typeof window !== 'undefined' && localStorage.getItem('isTestUser') === 'true') {
-        setUserState({ user: testUser, profile: testProfile, loading: false, error: null });
+      if (!authUser) {
+        setUserState({ user: null, profile: null, loading: false, error: null });
         return;
       }
-      
-      const walletUserString = typeof window !== 'undefined' ? localStorage.getItem('walletUser') : null;
-      if (walletUserString) {
-          const walletUser = JSON.parse(walletUserString);
-          const mockUser = createMockFirebaseUser(walletUser);
-          const profileRef = doc(firestore, 'users', mockUser.uid);
-          unsubscribe = onSnapshot(profileRef, 
-              (docSnapshot) => {
-                  setUserState({
-                      user: mockUser,
-                      profile: docSnapshot.exists() ? (docSnapshot.data() as UserProfile) : null,
-                      loading: false,
-                      error: null,
-                  });
-              },
-              (error) => {
-                  console.error("Wallet user profile snapshot error:", error);
-                  setUserState({ user: mockUser, profile: null, loading: false, error });
-              }
-          );
-          return;
-      }
-      
-      if (authUser) {
-        // Reload user to get fresh emailVerified status
-        authUser.reload().then(() => {
-          const profileRef = doc(firestore, 'users', authUser.uid);
-          unsubscribe = onSnapshot(profileRef,
-            (profileDoc) => {
-              const profileData = profileDoc.exists() ? (profileDoc.data() as UserProfile) : null;
 
-              if (profileData) {
-                  const updates: Partial<UserProfile> = {};
-                  // Use fresh user from auth after reload
-                  if (auth.currentUser?.emailVerified && !profileData.emailVerified) {
-                      updates.emailVerified = true;
-                  }
-                  if (auth.currentUser?.emailVerified && profileData.role === 'guest') {
-                      updates.role = 'user';
-                  }
-                  if (Object.keys(updates).length > 0) {
-                      updateUserProfile(firestore, authUser.uid, updates);
-                  }
-              }
-              
-              setUserState({ user: auth.currentUser, profile: profileData, loading: false, error: null });
-            },
-            (error) => {
-              console.error('Profile snapshot error:', error);
-              setUserState({ user: auth.currentUser, profile: null, loading: false, error });
+      // 【关键逻辑】：建立 Firestore 实时监听
+      const profileRef = doc(firestore, 'users', authUser.uid);
+      
+      unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
+        const profileData = docSnap.exists() ? (docSnap.data() as UserProfile) : null;
+        
+        // 自动修正 role 的逻辑（保留你原有的业务逻辑）
+        if (profileData && authUser.emailVerified) {
+            if (profileData.role === 'guest' || !profileData.emailVerified) {
+                updateUserProfile(firestore, authUser.uid, { 
+                    emailVerified: true, 
+                    role: profileData.role === 'guest' ? 'user' : profileData.role 
+                });
             }
-          );
-        }).catch(err => {
-            console.error("Failed to reload user", err);
-            setUserState({ user: null, profile: null, loading: false, error: err as Error });
-        })
-      } else {
-        setUserState({ user: null, profile: null, loading: false, error: null });
-      }
+        }
+
+        setUserState({
+          user: authUser,
+          profile: profileData,
+          loading: false,
+          error: null
+        });
+      }, (error) => {
+        console.error("Profile 监听失败:", error);
+        setUserState(s => ({ ...s, error: error as Error, loading: false }));
+      });
+
     });
 
     return () => {
       authUnsubscribe();
-      unsubscribe();
+      unsubscribeProfile();
     };
   }, [auth, firestore]);
 

@@ -1,214 +1,243 @@
-
 'use client';
-
-import { useState, useMemo } from 'react';
-import { useUser, useFirestore, useCollection } from '@/firebase';
-import { collection, query, where, doc, updateDoc, writeBatch } from 'firebase/firestore';
-import type { PaymentChangeRequest, UserProfile } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { CheckCircle, XCircle, Loader2, Eye } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatDistanceToNow } from 'date-fns';
-import Image from 'next/image';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-  DialogClose,
-} from "@/components/ui/dialog";
+import React, { useMemo, useState } from 'react';
+import { useFirestore, useCollection, useUser } from "@/firebase";
+import { collection, query, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2, CheckCircle2, XCircle, User, ShieldAlert, FileText, Building } from "lucide-react";
 import { createNotification } from '@/lib/notifications';
-import { Textarea } from '@/components/ui/textarea';
+import type { PaymentChangeRequest, PaymentInfo } from '@/lib/types';
+import { useTranslation } from '@/hooks/use-translation';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import Image from 'next/image';
 
-function PaymentInfoDisplay({ title, info }: { title: string, info: UserProfile['paymentInfo'] }) {
-    if (!info || Object.keys(info).length === 0) {
-        return (
-            <div>
-                <h4 className="font-semibold mb-2">{title}</h4>
-                <p className="text-sm text-muted-foreground">无信息</p>
+const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
+    <div className="flex justify-between items-center text-sm">
+        <p className="text-muted-foreground">{label}</p>
+        {value ? (
+            <p className={`font-semibold ${isMono ? 'font-mono' : ''} break-all text-right`}>{value}</p>
+        ) : (
+            <p className="text-sm text-muted-foreground/70">未提供</p>
+        )}
+    </div>
+);
+
+const QrCodeDisplay = ({ label, qrUrl, className }: { label: string, qrUrl: string | null | undefined, className?: string }) => (
+     <div className={className}>
+        <p className="text-center font-medium text-xs mb-1">{label}</p>
+        {qrUrl ? (
+            <div className="relative aspect-square w-full bg-muted/20 rounded-md">
+                <Image src={qrUrl} alt={`${label} QR Code`} fill className="object-contain" />
             </div>
-        );
-    }
-    return (
-        <div className="space-y-4">
-            <h4 className="font-semibold">{title}</h4>
-            {info.bankAccount?.accountNumber && (
-                <div>
-                    <p className="text-xs text-muted-foreground">银行账户</p>
-                    <p className="text-sm">{info.bankAccount.bankName}: {info.bankAccount.accountNumber} ({info.bankAccount.accountName})</p>
-                </div>
-            )}
-            {info.alipayQrUrl && (
-                <div>
-                    <p className="text-xs text-muted-foreground">支付宝</p>
-                    <Image src={info.alipayQrUrl} alt="Alipay QR" width={100} height={100} className="rounded-md" />
-                </div>
-            )}
-            {info.wechatPayQrUrl && (
-                <div>
-                    <p className="text-xs text-muted-foreground">微信支付</p>
-                    <Image src={info.wechatPayQrUrl} alt="WeChat Pay QR" width={100} height={100} className="rounded-md" />
-                </div>
-            )}
-            {info.promptPayQrUrl && (
-                <div>
-                    <p className="text-xs text-muted-foreground">PromptPay</p>
-                    <Image src={info.promptPayQrUrl} alt="PromptPay QR" width={100} height={100} className="rounded-md" />
-                </div>
-            )}
-        </div>
-    )
-}
+        ) : (
+             <div className="aspect-square w-full bg-muted/20 rounded-md flex items-center justify-center">
+                <p className="text-xs text-muted-foreground/70">未提供</p>
+            </div>
+        )}
+    </div>
+);
 
+const PaymentInfoDisplay = ({ title, info }: { title: string, info: PaymentInfo }) => (
+    <Card className='bg-background/30'>
+        <CardHeader className='p-3 border-b'>
+            <h4 className="text-sm font-semibold">{title}</h4>
+        </CardHeader>
+        <CardContent className='p-3 space-y-4'>
+            <div className="space-y-2">
+                <h5 className="text-xs font-bold flex items-center gap-2"><Building className="h-3 w-3" /> 银行账户</h5>
+                <InfoRow label="银行" value={info.bankAccount?.bankName} />
+                <InfoRow label="户名" value={info.bankAccount?.accountName} />
+                <InfoRow label="账号" value={info.bankAccount?.accountNumber} isMono />
+            </div>
+             <div className="grid grid-cols-3 gap-2">
+                <QrCodeDisplay label="支付宝" qrUrl={info.alipayQrUrl} />
+                <QrCodeDisplay label="微信支付" qrUrl={info.wechatPayQrUrl} />
+                <QrCodeDisplay label="PromptPay" qrUrl={info.promptPayQrUrl} />
+            </div>
+        </CardContent>
+    </Card>
+);
 
 export default function PaymentRequestsPage() {
-    const { user: adminUser, profile: adminProfile } = useUser();
-    const firestore = useFirestore();
-    const { toast } = useToast();
+  const firestore = useFirestore();
+  const { profile, loading: authLoading } = useUser();
+  const { toast } = useToast();
+  const { t } = useTranslation();
 
-    const requestsQuery = useMemo(() => 
-        firestore ? query(collection(firestore, 'paymentChangeRequests'), where('status', '==', 'pending'), orderBy('createdAt', 'desc')) : null
-    , [firestore]);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [rejectionTarget, setRejectionTarget] = useState<PaymentChangeRequest | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
-    const { data: requests, loading } = useCollection<PaymentChangeRequest>(requestsQuery);
+  const MANAGER_ROLES = ['admin', 'ghost', 'staff'];
+  const currentRole = profile?.role;
+  const isManager = currentRole && MANAGER_ROLES.includes(currentRole);
 
-    const [selectedRequest, setSelectedRequest] = useState<PaymentChangeRequest | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [rejectionReason, setRejectionReason] = useState('');
+  const q = useMemo(() => {
+    if (!firestore || !isManager) return null;
+    return query(collection(firestore, 'paymentChangeRequests'), where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+  }, [firestore, isManager]);
 
-    const handleAction = async (action: 'approve' | 'reject') => {
-        if (!firestore || !selectedRequest || !adminProfile) return;
-        
-        if (action === 'reject' && !rejectionReason) {
-            toast({ variant: 'destructive', title: '请输入拒绝理由' });
-            return;
-        }
+  const { data: requests, loading: dLoading } = useCollection<PaymentChangeRequest>(q);
 
-        setIsProcessing(true);
+  const handleApprove = async (request: PaymentChangeRequest) => {
+    if (!firestore || !profile) return;
+    setProcessingId(request.id);
+    try {
+      // 1. Update the user's main profile with the new payment info
+      await updateDoc(doc(firestore, 'users', request.userId), { paymentInfo: request.requestedPaymentInfo });
 
-        const requestRef = doc(firestore, 'paymentChangeRequests', selectedRequest.id);
-        const userRef = doc(firestore, 'users', selectedRequest.userId);
+      // 2. Update the request status
+      await updateDoc(doc(firestore, 'paymentChangeRequests', request.id), { 
+        status: 'approved', 
+        processedAt: serverTimestamp(),
+        reviewerId: profile.uid,
+        reviewerName: profile.displayName
+      });
+      
+      // 3. Send notification
+      await createNotification(firestore, request.userId, {
+        type: 'paymentRequestApproved',
+        actor: profile,
+        requestId: request.id,
+      });
 
-        const batch = writeBatch(firestore);
-
-        if (action === 'approve') {
-            batch.update(userRef, { paymentInfo: selectedRequest.requestedPaymentInfo });
-            batch.update(requestRef, { status: 'approved', reviewedAt: new Date(), reviewerId: adminUser?.uid });
-        } else {
-            batch.update(requestRef, { status: 'rejected', rejectionReason, reviewedAt: new Date(), reviewerId: adminUser?.uid });
-        }
-
-        try {
-            await batch.commit();
-            toast({ title: `申请已${action === 'approve' ? '批准' : '拒绝'}` });
-
-            // Send notification
-            if (action === 'approve') {
-                await createNotification(firestore, selectedRequest.userId, { type: 'paymentRequestApproved', actor: adminProfile, requestId: selectedRequest.id });
-            } else {
-                await createNotification(firestore, selectedRequest.userId, { type: 'paymentRequestRejected', actor: adminProfile, requestId: selectedRequest.id, reason: rejectionReason });
-            }
-            
-            setSelectedRequest(null);
-            setRejectionReason('');
-        } catch (error) {
-            console.error("Error processing payment request:", error);
-            toast({ variant: 'destructive', title: '操作失败', description: '更新文档时出错' });
-        } finally {
-            setIsProcessing(false);
-        }
-    };
-
-    if (loading) {
-        return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
+      toast({ title: "申请已批准" });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "批准失败", description: err.message });
+    } finally {
+      setProcessingId(null);
     }
+  };
 
-    return (
-        <div>
-            <h2 className="text-3xl font-headline mb-6">收款方式变更申请</h2>
-            
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>用户</TableHead>
-                        <TableHead>申请时间</TableHead>
-                        <TableHead className="text-right">操作</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {requests && requests.length > 0 ? (
-                        requests.map(req => (
-                            <TableRow key={req.id}>
-                                <TableCell className="font-medium flex items-center gap-3">
-                                    {req.userName}
-                                    <span className='text-xs text-muted-foreground font-mono'>{req.userId}</span>
-                                </TableCell>
-                                <TableCell>
-                                    {req.createdAt?.toDate ? formatDistanceToNow(req.createdAt.toDate(), { addSuffix: true }) : 'N/A'}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="outline" size="sm" onClick={() => setSelectedRequest(req)}>
-                                        <Eye className="mr-2 h-4 w-4" /> 查看
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                            <TableCell colSpan={3} className="h-24 text-center">
-                                没有待处理的申请。
-                            </TableCell>
-                        </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+  const handleReject = async () => {
+    if (!rejectionTarget || !rejectionReason.trim() || !firestore || !profile) return;
 
-             <Dialog open={!!selectedRequest} onOpenChange={(open) => !open && setSelectedRequest(null)}>
-                <DialogContent className="max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle>审核收款信息变更</DialogTitle>
-                        <DialogDescription>
-                            用户: {selectedRequest?.userName} ({selectedRequest?.userId.slice(0, 8)}...)
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid grid-cols-2 gap-6 mt-4 max-h-[60vh] overflow-y-auto p-1">
-                       <PaymentInfoDisplay title="当前信息" info={selectedRequest?.currentPaymentInfo} />
-                       <PaymentInfoDisplay title="申请的新信息" info={selectedRequest?.requestedPaymentInfo} />
+    setProcessingId(rejectionTarget.id);
+    try {
+      await updateDoc(doc(firestore, 'paymentChangeRequests', rejectionTarget.id), { 
+        status: 'rejected', 
+        rejectionReason: rejectionReason,
+        processedAt: serverTimestamp(),
+        reviewerId: profile.uid,
+        reviewerName: profile.displayName
+      });
+
+      await createNotification(firestore, rejectionTarget.userId, {
+        type: 'paymentRequestRejected',
+        actor: profile,
+        requestId: rejectionTarget.id,
+        reason: rejectionReason,
+      });
+      
+      toast({ title: "申请已拒绝" });
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "操作失败", description: err.message });
+    } finally {
+      setProcessingId(null);
+      setRejectionTarget(null);
+      setRejectionReason('');
+    }
+  };
+
+  if (authLoading || (isManager && dLoading)) return <div className="p-20 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
+  
+  if (!isManager) return (
+    <div>
+      <h2 className="text-3xl font-headline mb-6">{t('admin.paymentRequestsPage.title')}</h2>
+      <div className="p-20 text-center border-2 border-dashed rounded-lg">
+        <ShieldAlert className="mx-auto h-12 w-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold">权限不足</h2>
+        <p className="text-muted-foreground mt-2">检测到您的角色为: [{currentRole || 'null'}]。此页面仅限管理员访问。</p>
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+        <h1 className="text-3xl font-headline mb-6">{t('admin.paymentRequestsPage.title')}</h1>
+        <div className="grid gap-6">
+            {requests && requests.length > 0 ? requests.map((req: PaymentChangeRequest) => (
+            <Card key={req.id} className="bg-card/50">
+                <CardHeader className="p-4 border-b flex-row justify-between items-center space-y-0">
+                    <div className="text-sm flex items-center gap-3">
+                        <User size={16}/> 
+                        <div>
+                            <span className='font-semibold'>{req.userName}</span>
+                            <p className='font-mono text-xs text-muted-foreground'>{req.userId}</p>
+                        </div>
                     </div>
-                     <div className="grid gap-2 mt-4">
-                        <Label htmlFor="rejection-reason">拒绝理由 (如果拒绝请填写)</Label>
-                        <Textarea id="rejection-reason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="outline">取消</Button>
-                        </DialogClose>
-                        <Button variant="destructive" onClick={() => handleAction('reject')} disabled={isProcessing}>
-                            {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            拒绝
-                        </Button>
-                        <Button onClick={() => handleAction('approve')} disabled={isProcessing}>
-                            {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            批准
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
+                    <div className="text-xs text-muted-foreground">{req.createdAt?.toDate?.().toLocaleString()}</div>
+                </CardHeader>
+                <CardContent className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <PaymentInfoDisplay title="当前信息" info={req.currentPaymentInfo || {}} />
+                    <PaymentInfoDisplay title="申请变更为" info={req.requestedPaymentInfo} />
+                </CardContent>
+                <div className="p-4 border-t flex justify-end gap-2">
+                    <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => setRejectionTarget(req)}
+                        disabled={processingId === req.id}
+                    >
+                        {processingId === req.id ? <Loader2 className='h-4 w-4 animate-spin' /> : <XCircle size={16}/>}
+                        拒绝
+                    </Button>
+                     <Button 
+                        size="sm" 
+                        onClick={() => handleApprove(req)}
+                        disabled={processingId === req.id}
+                    >
+                        {processingId === req.id ? <Loader2 className='h-4 w-4 animate-spin' /> : <CheckCircle2 size={16}/>}
+                        批准
+                    </Button>
+                </div>
+            </Card>
+            )) : (
+              <div className="text-center py-20 border-2 border-dashed rounded-lg">
+                <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+                <p className="mt-4 text-muted-foreground">暂无待处理的收款信息修改申请</p>
+            </div>
+            )}
         </div>
-    )
+
+        <AlertDialog open={!!rejectionTarget} onOpenChange={(open) => !open && setRejectionTarget(null)}>
+            <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>确认拒绝该申请？</AlertDialogTitle>
+                <AlertDialogDescription>
+                请提供拒绝的理由，用户将会收到通知。
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="grid gap-2 py-4">
+                <Label htmlFor="rejection-reason">拒绝理由</Label>
+                <Textarea
+                id="rejection-reason"
+                placeholder="例如：支付宝收款码无法识别..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                />
+            </div>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setRejectionTarget(null)}>取消</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReject} disabled={!rejectionReason.trim() || !!processingId}>
+                {processingId === rejectionTarget?.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                确认拒绝
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 }
