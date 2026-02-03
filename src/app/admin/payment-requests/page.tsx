@@ -101,6 +101,7 @@ export default function AdminPaymentRequestsPage() {
 
   const requestsQuery = useMemo(() => {
     if (!firestore || !hasAccess) return null;
+    // THIS IS THE EFFICIENT QUERY THAT REQUIRES THE INDEX
     return query(
       collection(firestore, 'paymentChangeRequests'),
       where('status', '==', 'pending'),
@@ -108,7 +109,7 @@ export default function AdminPaymentRequestsPage() {
     );
   }, [firestore, hasAccess]);
 
-  const { data: requests, loading: dataLoading } = useCollection<PaymentChangeRequest>(requestsQuery);
+  const { data: requests, loading: dataLoading, error } = useCollection<PaymentChangeRequest>(requestsQuery);
 
   const handleApprove = async (request: PaymentChangeRequest) => {
     if (!firestore || !profile) return;
@@ -177,6 +178,20 @@ export default function AdminPaymentRequestsPage() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
+  }
+
+  if(error) {
+    return (
+         <div className="flex h-[60vh] items-center justify-center">
+             <div className="text-center">
+                <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
+                <h2 className="mt-4 text-lg font-semibold text-destructive">数据库查询失败</h2>
+                <p className="mt-2 text-sm text-muted-foreground">无法加载收款申请。这很可能是因为缺少数据库索引。</p>
+                <p className="mt-1 text-xs text-muted-foreground">请检查Firebase控制台以创建所需的复合索引。</p>
+                <pre className="mt-4 p-4 text-xs bg-muted rounded-md text-left overflow-auto">{error.message}</pre>
+             </div>
+        </div>
+    )
   }
 
   return (
