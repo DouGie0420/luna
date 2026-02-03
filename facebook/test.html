@@ -1,0 +1,52 @@
+<script>
+    window.fbAsyncInit = function() {
+      FB.init({
+        appId      : '1463508518899487', // 这里我已经帮你填好了你的 App ID
+        cookie     : true,
+        xfbml      : true,
+        version    : 'v18.0'           // 目前常用的 API 版本
+      });
+        
+      FB.AppEvents.logPageView();   
+    };
+  
+    (function(d, s, id){
+       var js, fjs = d.getElementsByTagName(s)[0];
+       if (d.getElementById(id)) {return;}
+       js = d.createElement(s); js.id = id;
+       js.src = "https://connect.facebook.net/zh_CN/sdk.js";
+       fjs.parentNode.insertBefore(js, fjs);
+     }(document, 'script', 'facebook-jssdk'));
+  
+    // 2. 处理登录的回调函数
+    function checkLoginState() {
+      FB.getLoginStatus(function(response) {
+        statusChangeCallback(response);
+      });
+    }
+  
+    function statusChangeCallback(response) {
+      if (response.status === 'connected') {
+        // 登录成功，获取用户信息
+        FB.api('/me', {fields: 'name,email'}, function(userData) {
+          console.log('成功获取用户信息: ', userData);
+          // 【关键步骤】：在这里把 userData.email 发送给你的后端，
+          // 后端根据这个 Email 判断它是 admin 还是 staff。
+          alert('欢迎你，' + userData.name + '！你的邮箱是：' + userData.email);
+        });
+      } else {
+        console.log('用户未授权 Facebook 登录');
+      }
+    }
+  </script>
+  
+  <div class="fb-login-button" 
+       data-width="" 
+       data-size="large" 
+       data-button-type="login_with" 
+       data-layout="default" 
+       data-auto-logout-link="false" 
+       data-use-continue-as="false"
+       data-scope="public_profile,email"
+       onlogin="checkLoginState();">
+  </div>

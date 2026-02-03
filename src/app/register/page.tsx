@@ -141,6 +141,9 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
+    if (providerName === 'facebook') {
+      provider.addScope('email');
+    }
     await signInWithRedirect(auth, provider);
   };
   

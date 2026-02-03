@@ -92,6 +92,9 @@ export default function LoginPage() {
   const handleSocialLogin = async (providerName: 'google' | 'facebook') => {
     if (!auth) return;
     const provider = providerName === 'google' ? new GoogleAuthProvider() : new FacebookAuthProvider();
+    if (providerName === 'facebook') {
+      provider.addScope('email');
+    }
     await signInWithRedirect(auth, provider);
   };
 
