@@ -10,7 +10,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem, Users, UserPlus, Globe, Fingerprint } from 'lucide-react';
-import type { Product, User, UserProfile } from '@/lib/types';
+import type { Product, UserProfile } from '@/lib/types';
 import { useTranslation } from "@/hooks/use-translation";
 import Link from 'next/link';
 import React, { useMemo } from 'react';
@@ -51,7 +51,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                 <p className="font-bold text-lg">{displayName}</p>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 fill-primary text-primary" />
-                                    <span>{displayUser.rating.toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
+                                    <span>{(displayUser.rating || 0).toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
                                 </div>
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                     <MapPin className="h-4 w-4" />
@@ -96,7 +96,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <p className="text-xl font-bold">{displayName}</p>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span>{displayUser.rating.toFixed(1)} ({displayUser.reviews} {t('sellerProfile.reviews')})</span>
+                                <span>{(displayUser.rating || 0).toFixed(1)} ({displayUser.reviewsCount || 0} {t('sellerProfile.reviews')})</span>
                             </div>
                         </div>
                     </DialogTitle>
@@ -128,7 +128,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
                                 <p className="font-bold hover:underline">
-                                    {displayUser.itemsSold ?? 0}
+                                    {displayUser.salesCount ?? 0}
                                 </p>
                             </div>
                         </Link>

@@ -8,23 +8,22 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, MapPin, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint } from "lucide-react";
-import { getUsers, getProducts } from "@/lib/data";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint } from "lucide-react";
 import { notFound, useParams } from "next/navigation";
-import type { User, Product } from "@/lib/types";
+import type { UserProfile, Product } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { ProductCard } from "@/components/product-card";
 import Link from 'next/link';
-import { useUser } from "@/firebase";
+import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove } from "firebase/firestore";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -33,89 +32,9 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
-export default function UserProfilePage() {
-    const params = useParams();
-    const { t } = useTranslation();
-    const userId = params.id as string;
-    
-    const [user, setUser] = useState<User | null>(null);
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    const { user: currentUser, profile: currentUserProfile } = useUser();
-    const [isFollowing, setIsFollowing] = useState(false);
-    const { toast } = useToast();
-    const canInteract = currentUser && currentUserProfile?.kycStatus === 'Verified';
-    
-    const [followToast, setFollowToast] = useState<'followed' | 'unfollowed' | null>(null);
-    const [permissionErrorToast, setPermissionErrorToast] = useState(false);
-
-    useEffect(() => {
-        if (!userId) return;
-
-        const fetchData = async () => {
-            setLoading(true);
-            const [allUsers, allProducts] = await Promise.all([getUsers(), getProducts()]);
-            const foundUser = allUsers.find(u => u.id === userId);
-            
-            if (foundUser) {
-                setUser(foundUser);
-                const userProducts = allProducts.filter(p => p.seller.id === userId).slice(0, 4);
-                setProducts(userProducts);
-            }
-            setLoading(false);
-        };
-        fetchData();
-
-    }, [userId]);
-
-    // Mock initial follow state
-    useEffect(() => {
-        if (currentUser && user) {
-            // In a real app, check DB. Mocking it here.
-            setIsFollowing(Math.random() > 0.5);
-        }
-    }, [currentUser, user]);
-    
-    useEffect(() => {
-        if (permissionErrorToast) {
-            setTimeout(() => {
-                toast({
-                    variant: 'destructive',
-                    title: !currentUser ? t('common.loginToInteract') : t('common.verifyToInteract'),
-                });
-                setPermissionErrorToast(false);
-            }, 0);
-        }
-    }, [permissionErrorToast, currentUser, t, toast]);
-
-    useEffect(() => {
-        if (followToast) {
-            setTimeout(() => {
-                toast({
-                    title: followToast === 'followed' ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess'),
-                });
-                setFollowToast(null);
-            }, 0);
-        }
-    }, [followToast, t, toast]);
-
-
-    const handleFollowToggle = () => {
-        if (!canInteract) {
-            setPermissionErrorToast(true);
-            return;
-        }
-        setIsFollowing(prev => {
-            setFollowToast(!prev ? 'followed' : 'unfollowed');
-            return !prev;
-        });
-    };
-
-    if (loading) {
-        return (
-            <>
+function UserProfileSkeleton() {
+    return (
+        <>
             <PageHeaderWithBackAndClose />
             <div className="p-6 md:p-8 lg:p-12">
                 <div className="grid gap-8">
@@ -130,18 +49,78 @@ export default function UserProfilePage() {
                             </div>
                         </CardHeader>
                         <CardContent className="grid gap-6">
-                            <Skeleton className="h-16 w-full" />
+                            <Skeleton className="h-24 w-full" />
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <Skeleton className="h-16 w-full" />
-                                <Skeleton className="h-16 w-full" />
-                                <Skeleton className="h-16 w-full" />
+                                <Skeleton className="h-20 w-full" />
+                                <Skeleton className="h-20 w-full" />
+                                <Skeleton className="h-20 w-full" />
                             </div>
                         </CardContent>
                     </Card>
                 </div>
             </div>
-            </>
-        )
+        </>
+    )
+}
+
+
+export default function UserProfilePage() {
+    const params = useParams();
+    const { t } = useTranslation();
+    const userId = params.id as string;
+    
+    const { user: currentUser, profile: currentUserProfile } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const userRef = useMemo(() => firestore ? doc(firestore, 'users', userId) : null, [firestore, userId]);
+    const { data: user, loading: userLoading } = useDoc<UserProfile>(userRef);
+
+    const productsQuery = useMemo(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'products'), where('sellerId', '==', userId), where('status', '==', 'active'));
+    }, [firestore, userId]);
+    const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
+    
+    const [isFollowing, setIsFollowing] = useState(false);
+    
+    useEffect(() => {
+        if (currentUserProfile && user) {
+            setIsFollowing(currentUserProfile.following?.includes(user.uid) || false);
+        }
+    }, [currentUserProfile, user]);
+
+    const handleFollowToggle = async () => {
+        if (!currentUser || !currentUserProfile || !user || !firestore) {
+            toast({ variant: 'destructive', title: t('common.loginToInteract') });
+            return;
+        }
+
+        const currentUserRef = doc(firestore, 'users', currentUser.uid);
+        const targetUserRef = doc(firestore, 'users', user.uid);
+        const newFollowingState = !isFollowing;
+
+        try {
+            await updateDoc(currentUserRef, {
+                following: newFollowingState ? arrayUnion(user.uid) : arrayRemove(user.uid),
+                followingCount: increment(newFollowingState ? 1 : -1)
+            });
+            await updateDoc(targetUserRef, {
+                followers: newFollowingState ? arrayUnion(currentUser.uid) : arrayRemove(currentUser.uid),
+                followersCount: increment(newFollowingState ? 1 : -1)
+            });
+            
+            setIsFollowing(newFollowingState);
+            toast({ title: newFollowingState ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess') });
+
+        } catch (error) {
+            console.error("Failed to update follow status:", error);
+            toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
+        }
+    };
+
+    if (userLoading || productsLoading) {
+        return <UserProfileSkeleton />;
     }
 
     if (!user) {
@@ -160,19 +139,19 @@ export default function UserProfilePage() {
                                 <UserAvatar profile={user} className="h-20 w-20" />
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
-                                        <CardTitle>{user.name}</CardTitle>
+                                        <CardTitle>{user.displayName}</CardTitle>
                                     </div>
                                     <Separator className="my-1.5" />
                                     <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                        <Link href={`/user/${user.id}/followers`} className="hover:underline">
+                                        <Link href={`/user/${user.uid}/followers`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/user/${user.id}/following`} className="hover:underline">
+                                        <Link href={`/user/${user.uid}/following`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/user/${user.id}/listings`} className="hover:underline">
+                                        <Link href={`/user/${user.uid}/listings`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
                                         </Link>
                                     </div>
@@ -181,7 +160,6 @@ export default function UserProfilePage() {
                              {currentUser && currentUser.uid !== userId && (
                                 <Button 
                                     onClick={handleFollowToggle} 
-                                    disabled={!canInteract} 
                                     variant={'default'}
                                     className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
                                 >
@@ -212,12 +190,12 @@ export default function UserProfilePage() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">{t('accountPage.rating')}</p>
                                     <p className="font-bold">
-                                        {user.rating.toFixed(1) || '0.0'} 
-                                        <span className="text-xs text-muted-foreground font-normal"> ({user.reviews || 0} {t('accountPage.reviews')})</span>
+                                        {(user.rating || 0).toFixed(1)} 
+                                        <span className="text-xs text-muted-foreground font-normal"> ({user.reviewsCount || 0} {t('accountPage.reviews')})</span>
                                     </p>
                                 </div>
                             </div>
-                            <Link href={`/user/${user.id}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                            <Link href={`/user/${user.uid}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
@@ -226,12 +204,12 @@ export default function UserProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/user/${user.id}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                            <Link href={`/user/${user.uid}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                        <p className="font-bold group-hover:underline">{user.itemsSold || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.salesCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -271,10 +249,13 @@ export default function UserProfilePage() {
                     </CardContent>
                 </Card>
 
-                {products.length > 0 && (
+                {products && products.length > 0 && (
                     <Card>
-                        <CardHeader>
-                            <CardTitle>{t('userProfile.latestListings').replace('{userName}', user.name)}</CardTitle>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>{t('userProfile.latestListings').replace('{userName}', user.displayName)}</CardTitle>
+                             <Button asChild variant="ghost">
+                                <Link href={`/user/${user.uid}/listings`}>View All</Link>
+                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

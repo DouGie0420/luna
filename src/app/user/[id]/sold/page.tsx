@@ -1,37 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getUsers } from "@/lib/data";
+import { useEffect, useMemo, useState } from 'react';
 import { notFound, useParams } from "next/navigation";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
-import type { User } from '@/lib/types';
+import type { UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { ShoppingCart } from 'lucide-react';
+import { useFirestore, useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
 
 export default function UserSoldPage() {
     const params = useParams();
     const { t } = useTranslation();
     const userId = params.id as string;
+    const firestore = useFirestore();
     
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        if (!userId) return;
-
-        const fetchData = async () => {
-            setLoading(true);
-            const allUsers = await getUsers();
-            const foundUser = allUsers.find(u => u.id === userId);
-            setUser(foundUser || null);
-            setLoading(false);
-        };
-        fetchData();
-
-    }, [userId]);
-
+    const userRef = useMemo(() => firestore ? doc(firestore, 'users', userId) : null, [firestore, userId]);
+    const { data: user, loading } = useDoc<UserProfile>(userRef);
 
     if (loading) {
         return (
@@ -61,10 +48,10 @@ export default function UserSoldPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col items-center mb-8">
             <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={user.avatarUrl} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user.photoURL} alt={user.displayName} />
+                <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <h1 className="text-3xl font-headline">{t('userProfile.usersSoldItems').replace('{userName}', user.name)}</h1>
+            <h1 className="text-3xl font-headline">{t('userProfile.usersSoldItems').replace('{userName}', user.displayName)}</h1>
         </div>
 
         <div className="text-center py-20 border-2 border-dashed rounded-lg">

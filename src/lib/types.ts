@@ -114,6 +114,9 @@ export type UserProfile = {
     followingCount?: number;
     followers?: string[];
     following?: string[];
+    goodReviews?: number;
+    neutralReviews?: number;
+    badReviews?: number;
     featuredCount?: number;
     creditScore?: number;
     creditLevel?: 'Newcomer' | 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';

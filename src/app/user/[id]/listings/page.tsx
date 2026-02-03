@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { getProducts, getUsers } from "@/lib/data";
+import { useEffect, useState, useMemo } from 'react';
 import { notFound, useParams } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Product, User } from '@/lib/types';
+import type { Product, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
+import { useFirestore, useDoc, useCollection } from '@/firebase';
+import { doc, collection, query, where } from 'firebase/firestore';
+
 
 function UserListingsPageSkeleton() {
     return (
@@ -36,30 +38,18 @@ export default function UserListingsPage() {
     const params = useParams();
     const { t } = useTranslation();
     const userId = params.id as string;
+    const firestore = useFirestore();
     
-    const [user, setUser] = useState<User | null>(null);
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+    const userRef = useMemo(() => firestore ? doc(firestore, 'users', userId) : null, [firestore, userId]);
+    const { data: user, loading: userLoading } = useDoc<UserProfile>(userRef);
 
-    useEffect(() => {
-        if (!userId) return;
+    const productsQuery = useMemo(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'products'), where('sellerId', '==', userId), where('status', '==', 'active'));
+    }, [firestore, userId]);
+    const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
 
-        const fetchData = async () => {
-            setLoading(true);
-            const [allProducts, allUsers] = await Promise.all([getProducts(), getUsers()]);
-            const foundUser = allUsers.find(u => u.id === userId);
-            
-            if (foundUser) {
-                setUser(foundUser);
-                const userProducts = allProducts.filter(p => p.seller.id === userId);
-                setProducts(userProducts);
-            }
-            setLoading(false);
-        };
-        fetchData();
-
-    }, [userId]);
-
+    const loading = userLoading || productsLoading;
 
     if (loading) {
         return (
@@ -80,13 +70,13 @@ export default function UserListingsPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col items-center mb-8">
             <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={user.avatarUrl} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user.photoURL} alt={user.displayName} />
+                <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <h1 className="text-3xl font-headline">{t('userProfile.usersListings').replace('{userName}', user.name)}</h1>
+            <h1 className="text-3xl font-headline">{t('userProfile.usersListings').replace('{userName}', user.displayName)}</h1>
         </div>
 
-        {products.length > 0 ? (
+        {products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
@@ -94,7 +84,7 @@ export default function UserListingsPage() {
           </div>
         ) : (
           <div className="text-center py-20 border-2 border-dashed rounded-lg">
-            <h2 className="text-xl font-semibold">{t('userProfile.noListings').replace('{userName}', user.name)}</h2>
+            <h2 className="text-xl font-semibold">{t('userProfile.noListings').replace('{userName}', user.displayName)}</h2>
             <p className="text-muted-foreground mt-2">{t('userProfile.noListingsDescription')}</p>
           </div>
         )}
