@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState, useCallback } from "react";
-import { useUser, useFirestore } from "@/firebase";
-import { collection, getDocs, query, orderBy, doc, updateDoc } from "firebase/firestore";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useUser, useFirestore, useCollection } from "@/firebase";
+import { collection, getDocs, query, orderBy, doc, updateDoc, where } from "firebase/firestore";
 import {
   Table,
   TableBody,
@@ -56,51 +56,26 @@ export default function AdminOrdersPage() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<OrderStatus | 'all'>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
+  
+  const ordersQuery = useMemo(() => {
+      if (!firestore || !hasAccess) return null;
 
-  const fetchOrders = useCallback(async () => {
-    if (!firestore || !hasAccess) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const q = query(collection(firestore, "orders"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ 
-        id: doc.id, 
-        ...doc.data() 
-      } as Order));
-      setOrders(data);
-    } catch (err: any) {
-      console.error("Fetch orders error:", err);
-      setError(err.message || "无法加载订单数据");
-      toast({ 
-        variant: "destructive", 
-        title: "同步失败", 
-        description: "请检查数据库连接或权限设置" 
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [firestore, hasAccess, toast]);
+      const baseQuery = collection(firestore, 'orders');
 
-  useEffect(() => {
-    if (!authLoading) {
-      if (!hasAccess) {
-        toast({ variant: "destructive", title: "访问受限" });
-        router.push("/admin");
+      if (activeTab === 'all') {
+          return query(baseQuery, orderBy('createdAt', 'desc'));
       } else {
-        fetchOrders();
+          // This requires a composite index (status ASC, createdAt DESC)
+          // Firestore will generate an error with a link to create it if it doesn't exist.
+          return query(baseQuery, where('status', '==', activeTab), orderBy('createdAt', 'desc'));
       }
-    }
-  }, [authLoading, hasAccess, fetchOrders, router, toast]);
+  }, [firestore, hasAccess, activeTab]);
+
+  const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore || !hasAccess) return;
@@ -109,7 +84,6 @@ export default function AdminOrdersPage() {
         const docRef = doc(firestore, "orders", orderId);
         await updateDoc(docRef, { status: newStatus });
         toast({ title: t('admin.ordersPage.statusUpdated'), description: t('admin.ordersPage.statusUpdatedDesc', { orderId: orderId.slice(0,6), status: t(getStatusTranslationKey(newStatus), newStatus) }) });
-        setOrders(prev => prev.map(o => o.id === orderId ? {...o, status: newStatus} : o));
     } catch (error) {
         toast({ 
             variant: "destructive", 
@@ -121,12 +95,7 @@ export default function AdminOrdersPage() {
     }
   };
 
-  const filteredOrders = activeTab === 'all' 
-    ? orders 
-    : orders.filter(order => order.status === activeTab);
-
-
-  if (authLoading || loading) {
+  if (authLoading || dataLoading) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4">
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -139,9 +108,11 @@ export default function AdminOrdersPage() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-4 p-6 text-center">
         <AlertCircle className="h-12 w-12 text-destructive" />
-        <h2 className="text-xl font-bold">加载出错</h2>
-        <p className="text-muted-foreground max-w-md">{error}</p>
-        <Button onClick={() => fetchOrders()}>重试一次</Button>
+        <h2 className="text-xl font-bold text-destructive">数据库查询失败</h2>
+        <p className="text-muted-foreground max-w-md">无法按状态筛选订单。这很可能是因为缺少数据库索引。</p>
+        <p className="mt-2 text-xs text-muted-foreground">请打开浏览器开发者控制台（通常是F12），找到包含 `https://console.firebase.google.com/...` 的错误信息，点击链接即可一键创建所需的索引。</p>
+        <pre className="mt-4 p-4 text-xs bg-muted rounded-md text-left overflow-auto">{error.message}</pre>
+        <Button onClick={() => setActiveTab('all')}>显示全部订单</Button>
       </div>
     );
   }
@@ -175,7 +146,7 @@ export default function AdminOrdersPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5 text-primary" /> 
-                    订单列表 ({filteredOrders.length})
+                    订单列表 ({orders?.length || 0})
                   </CardTitle>
                   <CardDescription>当前筛选: {activeTab === 'all' ? '全部' : t(getStatusTranslationKey(activeTab), activeTab)}</CardDescription>
                 </CardHeader>
@@ -192,14 +163,14 @@ export default function AdminOrdersPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredOrders.length === 0 ? (
+                        {!orders || orders.length === 0 ? (
                           <TableRow>
                             <TableCell colSpan={5} className="text-center py-20 text-muted-foreground">
                               该状态下暂无订单记录
                             </TableCell>
                           </TableRow>
                         ) : (
-                          filteredOrders.map((order) => (
+                          orders.map((order) => (
                             <TableRow key={order.id} className="hover:bg-muted/30 transition-colors">
                               <TableCell>
                                 <p className="font-semibold">{order.productName}</p>
