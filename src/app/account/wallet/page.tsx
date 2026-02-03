@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection } from "@/firebase";
-import { collection, query, where, addDoc, doc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, addDoc, doc, serverTimestamp, writeBatch } from "firebase/firestore";
 import { ethers } from 'ethers';
-import type { PaymentChangeRequest, PaymentInfo } from '@/lib/types';
+import type { PaymentChangeRequest, PaymentInfo, UserProfile } from '@/lib/types';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,10 +18,10 @@ import { updateUserProfile } from '@/lib/user';
 import { Separator } from '@/components/ui/separator';
 
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
-    <div className="flex justify-between items-center py-2">
-        <p className="text-sm text-muted-foreground">{label}</p>
+    <div className="flex justify-between items-center text-sm">
+        <p className="text-muted-foreground">{label}</p>
         {value ? (
-            <p className={`text-sm font-semibold ${isMono ? 'font-mono' : ''}`}>{value}</p>
+            <p className={`font-semibold ${isMono ? 'font-mono' : ''} break-all text-right`}>{value}</p>
         ) : (
             <p className="text-sm text-muted-foreground/70">未设置</p>
         )}
@@ -29,12 +29,12 @@ const InfoRow = ({ label, value, isMono = false }: { label: string, value: strin
 );
 
 const QrCodeDisplay = ({ label, qrUrl }: { label: string, qrUrl: string | null | undefined }) => (
-     <div className="flex justify-between items-center py-2">
-        <p className="text-sm text-muted-foreground">{label}</p>
+     <div className="flex justify-between items-center">
+        <p className="font-medium">{label}</p>
         {qrUrl ? (
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button variant="ghost" size="sm">查看二维码</Button>
+                    <Button variant="secondary" size="sm">查看二维码</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-xs">
                     <DialogHeader>
@@ -76,6 +76,8 @@ export default function WalletPage() {
     
     const { data: pendingRequests } = useCollection<PaymentChangeRequest>(pendingRequestQuery);
     const hasPendingRequest = pendingRequests && pendingRequests.length > 0;
+    const hasExistingPaymentInfo = profile?.paymentInfo && Object.values(profile.paymentInfo).some(v => v);
+
 
     // --- Web3 Logic ---
     const connectWeb3 = async () => {
@@ -124,6 +126,17 @@ export default function WalletPage() {
     const handleSubmitRequest = async () => {
         if (!user || !profile || !firestore) return;
         
+        // Check if at least one field is filled
+        const isInfoEmpty = !newPaymentInfo.bankAccount?.accountNumber &&
+                            !newPaymentInfo.alipayQrUrl &&
+                            !newPaymentInfo.wechatPayQrUrl &&
+                            !newPaymentInfo.promptPayQrUrl;
+
+        if (isInfoEmpty) {
+            toast({ variant: 'destructive', title: '信息不完整', description: '请至少填写一项收款信息。' });
+            return;
+        }
+        
         setIsSubmittingRequest(true);
         try {
             const requestData: Omit<PaymentChangeRequest, 'id'> = {
@@ -161,10 +174,10 @@ export default function WalletPage() {
                         <DialogHeader>
                             <DialogTitle>申请修改收款信息</DialogTitle>
                             <DialogDescription>
-                                请在此处填写您希望更新的收款信息。提交后，管理员将进行审核。
+                                请在此处填写您希望更新的收款信息。提交后，管理员将进行审核。留空表示删除该项。
                             </DialogDescription>
                         </DialogHeader>
-                        <div className="grid gap-6 py-4">
+                        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
                             <h4 className="font-semibold text-sm">银行账户</h4>
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
@@ -233,7 +246,7 @@ export default function WalletPage() {
                         <div className="p-4 bg-secondary/30 rounded-lg border flex justify-between items-center">
                             <div>
                                 <p className="text-sm font-bold">当前绑定地址</p>
-                                <p className="font-mono text-sm opacity-70">{profile?.walletAddress || '未连接'}</p>
+                                <p className="font-mono text-sm opacity-70 break-all">{profile?.walletAddress || '未连接'}</p>
                             </div>
                             <Button variant="outline" onClick={connectWeb3} disabled={isConnecting}>
                                 {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
@@ -250,19 +263,37 @@ export default function WalletPage() {
                         </CardTitle>
                         <CardDescription>这是您当前设置的收款信息，买家将通过这些方式向您付款。</CardDescription>
                     </CardHeader>
-                    <CardContent className="divide-y divide-border">
-                        <div className="py-2">
-                            <h4 className="text-base font-semibold mb-2 flex items-center gap-2"><Building className="h-4 w-4 text-primary" /> 银行账户</h4>
-                            <InfoRow label="银行名称" value={profile?.paymentInfo?.bankAccount?.bankName} />
-                            <InfoRow label="户名" value={profile?.paymentInfo?.bankAccount?.accountName} />
-                            <InfoRow label="账号" value={profile?.paymentInfo?.bankAccount?.accountNumber} isMono />
-                        </div>
-                         <div className="py-2">
-                            <h4 className="text-base font-semibold mb-2 mt-4 flex items-center gap-2"><QrCode className="h-4 w-4 text-primary" /> 收款二维码</h4>
-                            <QrCodeDisplay label="支付宝" qrUrl={profile?.paymentInfo?.alipayQrUrl} />
-                            <QrCodeDisplay label="微信支付" qrUrl={profile?.paymentInfo?.wechatPayQrUrl} />
-                            <QrCodeDisplay label="PromptPay (泰国)" qrUrl={profile?.paymentInfo?.promptPayQrUrl} />
-                        </div>
+                    <CardContent>
+                        {hasExistingPaymentInfo ? (
+                             <div className="divide-y divide-border -m-6">
+                                <div className="p-6">
+                                    <h4 className="text-base font-semibold mb-3 flex items-center gap-2"><Building className="h-4 w-4 text-primary" /> 银行账户</h4>
+                                    <div className="space-y-3">
+                                        <InfoRow label="银行名称" value={profile?.paymentInfo?.bankAccount?.bankName} />
+                                        <InfoRow label="户名" value={profile?.paymentInfo?.bankAccount?.accountName} />
+                                        <InfoRow label="账号" value={profile?.paymentInfo?.bankAccount?.accountNumber} isMono />
+                                    </div>
+                                </div>
+                                <div className="p-6">
+                                    <h4 className="text-base font-semibold mb-4 flex items-center gap-2"><QrCode className="h-4 w-4 text-primary" /> 收款二维码</h4>
+                                    <div className="space-y-4">
+                                        <QrCodeDisplay label="支付宝" qrUrl={profile?.paymentInfo?.alipayQrUrl} />
+                                        <QrCodeDisplay label="微信支付" qrUrl={profile?.paymentInfo?.wechatPayQrUrl} />
+                                        <QrCodeDisplay label="PromptPay (泰国)" qrUrl={profile?.paymentInfo?.promptPayQrUrl} />
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                                <p className="text-muted-foreground">您尚未设置任何法币收款方式。</p>
+                                <DialogTrigger asChild>
+                                    <Button className="mt-4" disabled={hasPendingRequest}>
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        立即设置
+                                    </Button>
+                                </DialogTrigger>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
