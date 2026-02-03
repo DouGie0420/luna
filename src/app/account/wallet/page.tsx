@@ -5,6 +5,7 @@ import { useUser, useFirestore, useCollection } from "@/firebase";
 import { collection, query, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { ethers } from 'ethers';
 import type { PaymentChangeRequest, PaymentInfo } from '@/lib/types';
+import { compressImage } from '@/lib/image-compressor';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building } from "lucide-react";
+import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X } from "lucide-react";
 import Image from 'next/image';
 import { updateUserProfile } from '@/lib/user';
 
@@ -50,6 +51,65 @@ const QrCodeDisplay = ({ label, qrUrl }: { label: string, qrUrl: string | null |
     </div>
 );
 
+const FileUploader = ({
+  preview,
+  onFileChange,
+  onRemove,
+  id,
+  title,
+  description,
+  disabled,
+}: {
+  preview: string | null;
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onRemove: () => void;
+  id: string;
+  title: string;
+  description: string;
+  disabled: boolean;
+}) => {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor={id} className="text-center font-semibold">
+        {title}
+      </Label>
+      {preview ? (
+        <div className="relative aspect-square w-32 mx-auto">
+          <Image src={preview} alt="Preview" fill className="object-contain rounded-md border bg-muted/20" />
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+            onClick={onRemove}
+            disabled={disabled}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <label
+          htmlFor={id}
+          className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors"
+        >
+          <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+            <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+          <input
+            id={id}
+            type="file"
+            className="sr-only"
+            onChange={onFileChange}
+            accept="image/*"
+            disabled={disabled}
+          />
+        </label>
+      )}
+    </div>
+  );
+};
+
 
 export default function WalletPage() {
     const { user, profile } = useUser();
@@ -63,6 +123,10 @@ export default function WalletPage() {
     const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
     const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
     const [newPaymentInfo, setNewPaymentInfo] = useState<PaymentInfo>({});
+
+    const [alipayQrPreview, setAlipayQrPreview] = useState<string | null>(null);
+    const [wechatPayQrPreview, setWechatPayQrPreview] = useState<string | null>(null);
+    const [promptPayQrPreview, setPromptPayQrPreview] = useState<string | null>(null);
     
     const pendingRequestQuery = useMemo(() => {
         if (!firestore || !user) return null;
@@ -77,6 +141,12 @@ export default function WalletPage() {
     const hasPendingRequest = pendingRequests && pendingRequests.length > 0;
     const hasExistingPaymentInfo = profile?.paymentInfo && Object.values(profile.paymentInfo).some(v => v);
 
+    const resetRequestForm = () => {
+        setNewPaymentInfo({});
+        setAlipayQrPreview(null);
+        setWechatPayQrPreview(null);
+        setPromptPayQrPreview(null);
+    }
 
     // --- Web3 Logic ---
     const connectWeb3 = async () => {
@@ -121,6 +191,56 @@ export default function WalletPage() {
         }
     };
 
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'alipay' | 'wechat' | 'promptpay') => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsSubmittingRequest(true); // show loader
+        try {
+            const compressedDataUrl = await compressImage(file);
+            switch(type) {
+                case 'alipay':
+                    setAlipayQrPreview(compressedDataUrl);
+                    setNewPaymentInfo(prev => ({ ...prev, alipayQrUrl: compressedDataUrl }));
+                    break;
+                case 'wechat':
+                    setWechatPayQrPreview(compressedDataUrl);
+                    setNewPaymentInfo(prev => ({ ...prev, wechatPayQrUrl: compressedDataUrl }));
+                    break;
+                case 'promptpay':
+                    setPromptPayQrPreview(compressedDataUrl);
+                    setNewPaymentInfo(prev => ({ ...prev, promptPayQrUrl: compressedDataUrl }));
+                    break;
+            }
+        } catch (error) {
+            console.error('Image compression error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Image Error',
+                description: 'Failed to process image. Please try another file.',
+            });
+        } finally {
+            setIsSubmittingRequest(false); // hide loader
+        }
+    };
+
+    const handleRemoveImage = (type: 'alipay' | 'wechat' | 'promptpay') => {
+        switch(type) {
+            case 'alipay':
+                setAlipayQrPreview(null);
+                setNewPaymentInfo(prev => ({ ...prev, alipayQrUrl: undefined }));
+                break;
+            case 'wechat':
+                setWechatPayQrPreview(null);
+                setNewPaymentInfo(prev => ({ ...prev, wechatPayQrUrl: undefined }));
+                break;
+            case 'promptpay':
+                setPromptPayQrPreview(null);
+                setNewPaymentInfo(prev => ({ ...prev, promptPayQrUrl: undefined }));
+                break;
+        }
+    }
+
     const handleSubmitRequest = async () => {
         if (!user || !profile || !firestore) return;
         
@@ -147,7 +267,7 @@ export default function WalletPage() {
             await addDoc(collection(firestore, 'paymentChangeRequests'), requestData);
             toast({ title: '修改申请已提交', description: '管理员审核通过后将会生效。' });
             setIsRequestDialogOpen(false);
-            setNewPaymentInfo({});
+            resetRequestForm();
         } catch (error) {
             console.error("Error submitting request:", error);
             toast({ variant: 'destructive', title: '提交失败', description: '请检查数据库权限设置。' });
@@ -158,7 +278,12 @@ export default function WalletPage() {
 
     return (
         <div className="container max-w-4xl py-10">
-            <Dialog open={isRequestDialogOpen} onOpenChange={setIsRequestDialogOpen}>
+            <Dialog open={isRequestDialogOpen} onOpenChange={(isOpen) => {
+                setIsRequestDialogOpen(isOpen);
+                if (!isOpen) {
+                    resetRequestForm();
+                }
+            }}>
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-3xl font-bold">支付与钱包管理</h1>
                     <DialogTrigger asChild>
@@ -251,7 +376,7 @@ export default function WalletPage() {
                     <DialogHeader>
                         <DialogTitle>申请修改收款信息</DialogTitle>
                         <DialogDescription>
-                            提交后管理员将进行审核。留空表示删除该项。请为每个支付方式的二维码提供图片链接(URL)。
+                            提交后管理员将进行审核。留空表示删除该项。请上传收款二维码图片。
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-4">
@@ -274,19 +399,34 @@ export default function WalletPage() {
                         </div>
                         <div>
                             <h4 className="font-semibold text-sm mb-2">二维码收款</h4>
-                             <div className="grid gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="new-alipayQrUrl">支付宝收款码链接</Label>
-                                    <Input id="new-alipayQrUrl" name="alipayQrUrl" onChange={handleNewInfoChange} placeholder="https://..." />
-                                </div>
-                                 <div className="grid gap-2">
-                                    <Label htmlFor="new-wechatPayQrUrl">微信支付收款码链接</Label>
-                                    <Input id="new-wechatPayQrUrl" name="wechatPayQrUrl" onChange={handleNewInfoChange} placeholder="https://..." />
-                                </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="new-promptPayQrUrl">PromptPay收款码链接</Label>
-                                    <Input id="new-promptPayQrUrl" name="promptPayQrUrl" onChange={handleNewInfoChange} placeholder="https://..." />
-                                </div>
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                               <FileUploader
+                                    id="alipay-upload"
+                                    title="支付宝"
+                                    description="上传收款码"
+                                    preview={alipayQrPreview}
+                                    onFileChange={(e) => handleFileChange(e, 'alipay')}
+                                    onRemove={() => handleRemoveImage('alipay')}
+                                    disabled={isSubmittingRequest}
+                                />
+                                <FileUploader
+                                    id="wechat-upload"
+                                    title="微信支付"
+                                    description="上传收款码"
+                                    preview={wechatPayQrPreview}
+                                    onFileChange={(e) => handleFileChange(e, 'wechat')}
+                                    onRemove={() => handleRemoveImage('wechat')}
+                                    disabled={isSubmittingRequest}
+                                />
+                                <FileUploader
+                                    id="promptpay-upload"
+                                    title="PromptPay"
+                                    description="上传收款码"
+                                    preview={promptPayQrPreview}
+                                    onFileChange={(e) => handleFileChange(e, 'promptpay')}
+                                    onRemove={() => handleRemoveImage('promptpay')}
+                                    disabled={isSubmittingRequest}
+                                />
                             </div>
                         </div>
                     </div>
@@ -302,5 +442,3 @@ export default function WalletPage() {
         </div>
     );
 }
-
-    
