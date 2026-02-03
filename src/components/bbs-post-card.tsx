@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from 'next/image';
@@ -211,7 +212,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
 
     const isLiked = user && post.likedBy?.includes(user.uid);
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
-    const authorProfileUrl = `/u/${post.author.loginId || post.author.id}`;
+    const authorProfileUrl = `/@${post.author.loginId || post.author.id}`;
 
     return (
         <>

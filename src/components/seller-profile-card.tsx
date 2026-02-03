@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -38,7 +39,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
     const displayUser = sellerProfile || seller;
     const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
     const displayName = displayUser.displayName || displayUser.name;
-    const profileUrl = `/u/${displayUser.loginId || displayUser.id}`;
+    const profileUrl = `/@${displayUser.loginId || displayUser.id}`;
 
 
     return (

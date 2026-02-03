@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -160,15 +161,15 @@ export default function UserProfilePage() {
                                     </div>
                                     <Separator className="my-1.5" />
                                     <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                        <Link href={`/u/${user.loginId}/followers`} className="hover:underline">
+                                        <Link href={`/@${user.loginId}/followers`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/u/${user.loginId}/following`} className="hover:underline">
+                                        <Link href={`/@${user.loginId}/following`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/u/${user.loginId}/listings`} className="hover:underline">
+                                        <Link href={`/@${user.loginId}/listings`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
                                         </Link>
                                     </div>
@@ -212,7 +213,7 @@ export default function UserProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                            <Link href={`/u/${user.loginId}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                            <Link href={`/@${user.loginId}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
@@ -221,7 +222,7 @@ export default function UserProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/u/${user.loginId}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                            <Link href={`/@${user.loginId}/sold`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
@@ -271,7 +272,7 @@ export default function UserProfilePage() {
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>{t('userProfile.latestListings').replace('{userName}', user.displayName)}</CardTitle>
                              <Button asChild variant="ghost">
-                                <Link href={`/u/${user.loginId}/listings`}>View All</Link>
+                                <Link href={`/@${user.loginId}/listings`}>View All</Link>
                              </Button>
                         </CardHeader>
                         <CardContent>

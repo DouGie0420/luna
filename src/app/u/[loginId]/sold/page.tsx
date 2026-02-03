@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -63,7 +64,7 @@ export default function UserSoldPage() {
         return notFound();
     }
     
-    const userProfileUrl = `/u/${user.loginId}`;
+    const userProfileUrl = `/@${user.loginId}`;
 
     return (
     <>

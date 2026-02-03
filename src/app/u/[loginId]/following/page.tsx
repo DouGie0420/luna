@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -102,7 +103,7 @@ export default function UserFollowingPage() {
         return notFound();
     }
     
-    const userProfileUrl = `/u/${user.loginId}`;
+    const userProfileUrl = `/@${user.loginId}`;
 
     return (
     <>
@@ -124,7 +125,7 @@ export default function UserFollowingPage() {
                 <div className="divide-y">
                     {following.map((followedUser) => (
                     <div key={followedUser.uid} className="flex items-center gap-4 p-4">
-                        <Link href={`/u/${followedUser.loginId}`} className="flex items-center gap-4 flex-1">
+                        <Link href={`/@${followedUser.loginId}`} className="flex items-center gap-4 flex-1">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={followedUser.photoURL} alt={followedUser.displayName} />
                                 <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>

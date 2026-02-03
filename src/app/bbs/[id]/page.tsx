@@ -161,7 +161,7 @@ const CommentItem = ({
   const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
   const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
   const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
-  const profileUrl = `/u/${author?.loginId || author?.uid}`;
+  const profileUrl = `/@${author?.loginId || author?.uid}`;
 
   return (
     <div className="flex items-start gap-3">
@@ -578,7 +578,7 @@ export default function BbsPostPage() {
     }
     
     const postDate = post.createdAt?.toDate();
-    const authorProfileUrl = `/u/${authorProfile?.loginId || post.authorId}`;
+    const authorProfileUrl = `/@${authorProfile?.loginId || post.authorId}`;
     
     const renderComments = (commentList: NestedComment[]) => {
       return commentList.map(comment => (

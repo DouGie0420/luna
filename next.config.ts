@@ -99,6 +99,18 @@ const nextConfig: NextConfig = {
       'https://6000-firebase-studio-1769731865538.cluster-c36dgv2kibakqwbbbsgmia3fny.cloudworkstations.dev',
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/@:loginId',
+        destination: '/u/:loginId',
+      },
+      {
+        source: '/@:loginId/:path*',
+        destination: '/u/:loginId/:path*',
+      },
+    ]
+  },
 };
 
 export default nextConfig;
