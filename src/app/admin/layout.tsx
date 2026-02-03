@@ -41,8 +41,8 @@ type Role = NonNullable<UserProfile['role']>;
 // Centralized permission check function
 const hasRole = (userRole: Role | undefined, allowedRoles: Array<Role>): boolean => {
     if (!userRole) return false;
-    // Admin has access to everything
-    if (userRole === 'admin') return true;
+    // Admin has access to everything and is implicitly included in all checks within this component logic.
+    // So we just check if the user's role is in the list.
     return allowedRoles.includes(userRole);
 }
 
@@ -77,7 +77,7 @@ export default function AdminLayout({
   }
   
   // 1. Central Guard: Check if user can access the admin panel at all
-  if (!user || !hasRole(userRole, ['admin', 'ghost', 'staff', 'support'])) {
+  if (!user || !userRole || !['admin', 'ghost', 'staff', 'support'].includes(userRole)) {
       return (
         <div className="flex h-screen w-full items-center justify-center p-4">
             <Alert variant="destructive" className="max-w-lg">
@@ -113,11 +113,11 @@ export default function AdminLayout({
   }
 
   // 3. Central Guard: Check if user has permission for the SPECIFIC page
-  const canAccessPage = Object.entries(pagePermissions).some(([page, roles]) => 
+  const canAccessCurrentPage = Object.entries(pagePermissions).some(([page, roles]) => 
       pathname.startsWith(page) && hasRole(userRole, roles)
   );
 
-  const mainContent = canAccessPage ? children : (
+  const mainContent = canAccessCurrentPage ? children : (
      <div className="flex h-full w-full items-center justify-center p-4">
         <Alert variant="destructive" className="max-w-lg">
             <ShieldAlert className="h-4 w-4" />
