@@ -8,6 +8,11 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Helper function to check for admin roles safely
+    function isManager() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
+    }
+
     match /users/{userId} {
       // Public profile data is readable by anyone
       allow get: if true;
@@ -72,15 +77,14 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
       
       // A user can read their own request, and admins can read any.
-      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost']);
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isManager());
 
       // A user can list their own requests, and admins can list all.
-      allow list: if isSignedIn() && (request.query.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost']);
+      // This is the key fix.
+      allow list: if isSignedIn() && (request.query.userId == request.auth.uid || isManager());
 
       // Admins/staff can update any request
-      allow update: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role IN ['admin', 'staff', 'ghost'];
+      allow update: if isManager();
     }
   }
 }
-
-    
