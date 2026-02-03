@@ -2,7 +2,7 @@
 
 import { useCollection, useFirestore, useUser } from "@/firebase";
 import React, { useMemo, useState } from 'react';
-import { collection, query, doc, updateDoc } from "firebase/firestore";
+import { collection, query, doc, updateDoc, getDocs, where } from "firebase/firestore";
 import type { UserProfile, KycStatus } from "@/lib/types";
 import {
   Table,
@@ -43,6 +43,19 @@ export default function AdminUsersPage() {
     const { data: users, loading } = useCollection<UserProfile>(usersQuery);
 
     const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const filteredUsers = useMemo(() => {
+        if (!users) return [];
+        if (!searchTerm) return users;
+        const lowercasedTerm = searchTerm.toLowerCase();
+        return users.filter(user =>
+            user.displayName?.toLowerCase().includes(lowercasedTerm) ||
+            user.email?.toLowerCase().includes(lowercasedTerm) ||
+            user.loginId?.toLowerCase().includes(lowercasedTerm)
+        );
+    }, [users, searchTerm]);
 
     const toggleRow = (uid: string) => {
         setExpandedIds(prev => {
@@ -60,7 +73,7 @@ export default function AdminUsersPage() {
         if (!firestore || currentUserProfile?.uid === uid) return;
 
         let processedValue = value;
-        if (field === 'creditScore' || field === 'lunarSoil') {
+        if (['creditScore', 'lunarSoil'].includes(field)) {
             processedValue = Number(value);
             if (isNaN(processedValue)) {
                 toast({ variant: "destructive", title: 'Invalid Input', description: 'Please enter a valid number.' });
@@ -85,6 +98,57 @@ export default function AdminUsersPage() {
         }
     };
     
+    const handleLoginIdUpdate = async (uid: string, newLoginId: string) => {
+        if (!firestore) return;
+
+        if (!/^\d{3,}$/.test(newLoginId)) {
+            toast({
+                variant: "destructive",
+                title: '无效的专属ID',
+                description: 'ID必须是3位或更长的纯数字。',
+            });
+            // We can't easily revert the input value with defaultValue, but the user will be notified.
+            // A page refresh would fix the visual state if needed.
+            return;
+        }
+
+        const user = users?.find(u => u.uid === uid);
+        if (user?.loginId === newLoginId) {
+            return; // No change
+        }
+
+        setIsSubmitting(true);
+        try {
+            const q = query(collection(firestore, 'users'), where('loginId', '==', newLoginId));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty && querySnapshot.docs[0].id !== uid) {
+                toast({
+                    variant: "destructive",
+                    title: 'ID已被占用',
+                    description: '此专属ID已被其他用户使用，请更换。',
+                });
+                return;
+            }
+            
+            const userRef = doc(firestore, "users", uid);
+            await updateDoc(userRef, { loginId: newLoginId });
+            toast({
+                title: '专属ID已更新',
+                description: `用户 ${uid.slice(0, 6)}... 的新ID为 @${newLoginId}.`,
+            });
+        } catch (error) {
+            console.error("Failed to update loginId:", error);
+            toast({
+                variant: "destructive",
+                title: '更新失败',
+                description: "无法更新ID，请检查您的权限或网络连接。"
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -96,6 +160,14 @@ export default function AdminUsersPage() {
     return (
         <div>
             <h2 className="text-3xl font-headline mb-6">{t('admin.usersPage.title')}</h2>
+            <div className="mb-4 max-w-lg">
+                <Input
+                    placeholder="按昵称、邮箱或专属ID搜索..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="h-12"
+                />
+            </div>
             <Table>
                 <TableHeader>
                     <TableRow>
@@ -108,17 +180,26 @@ export default function AdminUsersPage() {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {users && users.length > 0 ? (
-                        users.map(user => {
+                    {filteredUsers && filteredUsers.length > 0 ? (
+                        filteredUsers.map(user => {
                             const isSelf = currentUserProfile?.uid === user.uid;
-                            const isTargetAdmin = user.role === 'admin';
-                            const isRequesterGhost = currentUserProfile?.role === 'ghost';
-                            const isRequesterStaff = currentUserProfile?.role === 'staff';
+                            const isTargetAdmin = ['admin', 'ghost'].includes(user.role || '');
+                            const isRequesterStaffOrSupport = ['staff', 'support'].includes(currentUserProfile?.role || '');
 
-                            // Centralized modification disable logic
-                            const modificationDisabled = isSelf || 
-                                                       (isRequesterGhost && isTargetAdmin) || 
-                                                       isRequesterStaff;
+                            // Staff and Support cannot modify anything for high-level admins.
+                            // General admins cannot modify other admins or ghosts.
+                            // Ghosts can modify anyone except themselves.
+                            let modificationDisabled = isSelf;
+                            if (isRequesterStaffOrSupport && isTargetAdmin) {
+                                modificationDisabled = true;
+                            }
+                            if (currentUserProfile?.role === 'admin' && isTargetAdmin) {
+                                modificationDisabled = true;
+                            }
+                            
+                            // Only super admins can edit the critical loginId.
+                            const canEditLoginId = currentUserProfile?.role === 'admin' || currentUserProfile?.role === 'ghost';
+                            const loginIdModificationDisabled = isSelf || !canEditLoginId || isSubmitting || (currentUserProfile?.role === 'admin' && isTargetAdmin);
 
                             return (
                             <React.Fragment key={user.uid}>
@@ -129,7 +210,10 @@ export default function AdminUsersPage() {
                                                 <AvatarImage src={user.photoURL} alt={user.displayName} />
                                                 <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                                             </Avatar>
-                                            <p>{user.displayName}</p>
+                                            <div>
+                                                <p>{user.displayName}</p>
+                                                <p className="font-mono text-xs text-muted-foreground">@{user.loginId}</p>
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -137,7 +221,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             value={user.emailVerified ? 'true' : 'false'}
                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'emailVerified', value === 'true')}
-                                            disabled={modificationDisabled}
+                                            disabled={modificationDisabled || isSubmitting}
                                         >
                                             <SelectTrigger className="w-[120px] mt-1 h-8">
                                                 <SelectValue />
@@ -156,7 +240,7 @@ export default function AdminUsersPage() {
                                         <Select
                                             value={user.kycStatus}
                                             onValueChange={(value: KycStatus) => handleFieldUpdate(user.uid, 'kycStatus', value)}
-                                            disabled={modificationDisabled}
+                                            disabled={modificationDisabled || isSubmitting}
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue />
@@ -175,7 +259,7 @@ export default function AdminUsersPage() {
                                         <Select 
                                             defaultValue={user.role || 'guest'} 
                                             onValueChange={(value: UserRole) => handleFieldUpdate(user.uid, 'role', value)}
-                                            disabled={modificationDisabled || isTargetAdmin} // Also disable editing admin role itself
+                                            disabled={modificationDisabled || isSubmitting}
                                         >
                                             <SelectTrigger className="w-[120px] h-10">
                                                 <SelectValue placeholder={t('admin.usersPage.setRole')} />
@@ -185,8 +269,8 @@ export default function AdminUsersPage() {
                                                 <SelectItem value="user">user</SelectItem>
                                                 <SelectItem value="support">support</SelectItem>
                                                 <SelectItem value="staff">staff</SelectItem>
-                                                <SelectItem value="ghost">ghost</SelectItem>
-                                                <SelectItem value="admin" disabled>{/* Admin role cannot be assigned from UI */}admin</SelectItem>
+                                                {currentUserProfile?.role === 'ghost' && <SelectItem value="admin">admin</SelectItem>}
+                                                {currentUserProfile?.role === 'ghost' && <SelectItem value="ghost">ghost</SelectItem>}
                                             </SelectContent>
                                         </Select>
                                     </TableCell>
@@ -201,14 +285,25 @@ export default function AdminUsersPage() {
                                         <TableCell colSpan={6} className="p-0">
                                             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                                 
-                                                {/* Column 1: Credit */}
+                                                {/* Column 1: Credit & ID */}
                                                 <div className="space-y-4">
+                                                    <div className="grid gap-2">
+                                                        <Label htmlFor={`loginId-${user.uid}`}>专属ID</Label>
+                                                        <Input 
+                                                            id={`loginId-${user.uid}`} 
+                                                            defaultValue={user.loginId} 
+                                                            onBlur={(e) => handleLoginIdUpdate(user.uid, e.target.value)}
+                                                            disabled={loginIdModificationDisabled}
+                                                            className={cn(!loginIdModificationDisabled && "border-primary/50 ring-primary/20 focus-visible:ring-primary")}
+                                                        />
+                                                    </div>
+                                                    <Separator />
                                                     <div className="grid gap-2">
                                                         <Label>{t('accountPage.creditLevel')}</Label>
                                                         <Select
                                                             value={user.creditLevel || 'Newcomer'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'creditLevel', value as CreditLevel)}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -223,11 +318,11 @@ export default function AdminUsersPage() {
                                                     </div>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor={`score-${user.uid}`}>{t('accountPage.creditScore')}</Label>
-                                                        <Input id={`score-${user.uid}`} type="number" defaultValue={user.creditScore || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'creditScore', e.target.value)} disabled={modificationDisabled} />
+                                                        <Input id={`score-${user.uid}`} type="number" defaultValue={user.creditScore || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'creditScore', e.target.value)} disabled={modificationDisabled || isSubmitting} />
                                                     </div>
                                                     <div className="grid gap-2">
                                                         <Label htmlFor={`soil-${user.uid}`}>月壤 (积分)</Label>
-                                                        <Input id={`soil-${user.uid}`} type="number" defaultValue={user.lunarSoil || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'lunarSoil', e.target.value)} disabled={modificationDisabled} />
+                                                        <Input id={`soil-${user.uid}`} type="number" defaultValue={user.lunarSoil || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'lunarSoil', e.target.value)} disabled={modificationDisabled || isSubmitting} />
                                                     </div>
                                                 </div>
 
@@ -238,7 +333,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isPro ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isPro', value === 'true')}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -252,7 +347,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isWeb3Verified ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isWeb3Verified', value === 'true')}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -266,7 +361,7 @@ export default function AdminUsersPage() {
                                                         <Select 
                                                             value={user.isNftVerified ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isNftVerified', value === 'true')}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -282,7 +377,7 @@ export default function AdminUsersPage() {
                                                         <Select
                                                             value={user.isInfluencer ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isInfluencer', value === 'true')}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
@@ -296,7 +391,7 @@ export default function AdminUsersPage() {
                                                         <Select
                                                             value={user.isContributor ? 'true' : 'false'}
                                                             onValueChange={(value) => handleFieldUpdate(user.uid, 'isContributor', value === 'true')}
-                                                            disabled={modificationDisabled}
+                                                            disabled={modificationDisabled || isSubmitting}
                                                         >
                                                             <SelectTrigger><SelectValue /></SelectTrigger>
                                                             <SelectContent>
