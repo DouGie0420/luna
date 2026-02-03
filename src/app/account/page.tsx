@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,7 @@ import Link from "next/link";
 import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { type BadgeType } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -76,6 +78,8 @@ export default function AccountProfilePage() {
     const [bio, setBio] = useState('');
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
     const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+    const [newLoginId, setNewLoginId] = useState('');
+    const [isSavingId, setIsSavingId] = useState(false);
 
     const [isSyncingNfts, setIsSyncingNfts] = useState(false);
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
@@ -123,6 +127,52 @@ export default function AccountProfilePage() {
                 title: 'Error',
                 description: 'Failed to update profile.'
             })
+        }
+    };
+    
+    const handleSetLoginId = async () => {
+        if (!firestore || !user || !newLoginId.trim()) return;
+
+        if (!/^\d{3,}$/.test(newLoginId)) {
+            toast({
+                variant: "destructive",
+                title: '无效的专属ID',
+                description: 'ID必须是3位或更长的纯数字。',
+            });
+            return;
+        }
+
+        setIsSavingId(true);
+        try {
+            const usersRef = collection(firestore, 'users');
+            const q = query(usersRef, where('loginId', '==', newLoginId));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                toast({
+                    variant: "destructive",
+                    title: 'ID已被占用',
+                    description: '此专属ID已被其他用户使用，请更换。',
+                });
+                setIsSavingId(false);
+                return;
+            }
+
+            await updateUserProfile(firestore, user.uid, { loginId: newLoginId });
+            toast({
+                title: '专属ID设置成功！',
+                description: `您的新专属ID是 @${newLoginId}`,
+            });
+            setNewLoginId(''); // Clear input
+        } catch (error) {
+            console.error('Failed to set Login ID:', error);
+            toast({
+                variant: 'destructive',
+                title: '设置失败',
+                description: '更新您的ID时出错，请稍后再试。',
+            });
+        } finally {
+            setIsSavingId(false);
         }
     };
 
@@ -312,6 +362,38 @@ export default function AccountProfilePage() {
                             <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
                             <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                         </div>
+                        
+                        {profile && user && profile.loginId === user.uid ? (
+                            <div className="grid gap-2 p-4 border border-primary/50 rounded-lg bg-primary/5">
+                                <Label htmlFor="loginId">设置您的专属ID (仅一次机会)</Label>
+                                <p className="text-xs text-muted-foreground">这将是您的专属主页地址，例如 /@123。设置后不可更改。</p>
+                                <div className="flex items-center gap-2">
+                                    <Input 
+                                        id="loginId"
+                                        placeholder="请输入3位或更长的纯数字"
+                                        value={newLoginId}
+                                        onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
+                                        disabled={isSavingId}
+                                    />
+                                    <Button type="button" onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
+                                        {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        保存ID
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid gap-2">
+                                <Label>专属ID</Label>
+                                <div className="flex items-center gap-2">
+                                    <Input value={`@${profile?.loginId}`} readOnly className="border-dashed" />
+                                    <Button variant="outline" size="sm" onClick={() => {
+                                        navigator.clipboard.writeText(`https://luna.io/@${profile?.loginId}`);
+                                        toast({ title: '已复制您的专属链接！' });
+                                    }}>复制链接</Button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="grid gap-2">
                             <Label htmlFor="email">{t('accountPage.email')}</Label>
                             <div className="flex gap-2">
