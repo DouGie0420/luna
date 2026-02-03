@@ -9,8 +9,8 @@ import type { Order, Product, UserProfile } from '@/lib/types';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
+import { createNotification } from '@/lib/notifications';
 
-import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard } from 'lucide-react';
 import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 
@@ -33,7 +33,6 @@ const getStatusTranslationKey = (status: Order['status']) => {
 function OrderDetailPageSkeleton() {
     return (
         <>
-            <PageHeaderWithBackAndClose />
             <div className="container mx-auto px-4 py-12 max-w-4xl">
                  <div className="space-y-6">
                     <Card>
@@ -79,11 +78,11 @@ export default function OrderDetailPage() {
     const sellerRef = useMemo(() => firestore && order?.sellerId ? doc(firestore, 'users', order.sellerId) : null, [firestore, order]);
     const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
     
-    const [isConfirming, setIsConfirming] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleConfirmReceipt = async () => {
         if (!firestore || !order) return;
-        setIsConfirming(true);
+        setIsProcessing(true);
         try {
             await updateDoc(doc(firestore, 'orders', order.id), {
                 status: 'Completed',
@@ -94,9 +93,44 @@ export default function OrderDetailPage() {
             console.error(e);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to confirm receipt.' });
         } finally {
-            setIsConfirming(false);
+            setIsProcessing(false);
         }
     };
+    
+    const handleSimulatePayment = async () => {
+        if (!firestore || !order) return;
+        setIsProcessing(true);
+        try {
+            await updateDoc(doc(firestore, 'orders', order.id), {
+                status: 'In Escrow'
+            });
+            toast({ title: t('orderDetails.paymentSuccess') });
+        } catch (e) {
+            console.error(e);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to simulate payment.' });
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleRemindSeller = async () => {
+        if (!firestore || !order || !user || !profile || !product) return;
+        setIsProcessing(true);
+        try {
+            await createNotification(firestore, order.sellerId, {
+                type: 'remind-to-ship',
+                actor: profile,
+                order,
+                product
+            });
+            toast({ title: t('orderDetails.reminderSent') });
+        } catch(e) {
+             console.error(e);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to send reminder.' });
+        } finally {
+            setIsProcessing(false);
+        }
+    }
 
 
     const isLoading = orderLoading || productLoading || sellerLoading;
@@ -132,8 +166,6 @@ export default function OrderDetailPage() {
     const canReview = isBuyer && order.status === 'Completed' && !order.buyerReviewId;
 
     return (
-        <>
-        <PageHeaderWithBackAndClose />
         <div className="container mx-auto px-4 py-12 max-w-4xl">
             <div className="space-y-6">
                 <Card>
@@ -145,29 +177,40 @@ export default function OrderDetailPage() {
                              </Badge>
                         </CardTitle>
                         <CardDescription>
-                            {order.status === 'Shipped' ? t('orderDetails.itemOnWay') : t('orderDetails.thankYou')}
+                            {order.status === 'Shipped' ? t('orderDetails.itemOnWay') : 
+                             order.status === 'Pending' ? t('orderDetails.awaitingPayment') :
+                             t('orderDetails.thankYou')}
                         </CardDescription>
                     </CardHeader>
-                    {canConfirmReceipt && (
-                        <CardFooter className="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <p className="text-sm text-muted-foreground text-center sm:text-left">
-                                {t('orderDetails.confirmReceiptPrompt')}
-                            </p>
-                            <Button onClick={handleConfirmReceipt} disabled={isConfirming}>
-                                {isConfirming && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <CardFooter className="border-t pt-6 flex flex-col sm:flex-row items-center justify-end gap-4">
+                       {isBuyer && order.status === 'Pending' && (
+                           <Button onClick={handleSimulatePayment} disabled={isProcessing}>
+                               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                               <CreditCard className="mr-2 h-4 w-4" />
+                               {t('orderDetails.simulatePayment')}
+                           </Button>
+                       )}
+                       {isBuyer && order.status === 'In Escrow' && (
+                            <Button onClick={handleRemindSeller} disabled={isProcessing} variant="outline">
+                                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                <BellRing className="mr-2 h-4 w-4" />
+                                {t('orderDetails.remindSeller')}
+                            </Button>
+                       )}
+                       {canConfirmReceipt && (
+                            <Button onClick={handleConfirmReceipt} disabled={isProcessing}>
+                                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {t('orderDetails.confirmReceipt')}
                             </Button>
-                        </CardFooter>
-                    )}
-                     {canReview && (
-                        <CardFooter className="border-t pt-6 flex justify-end">
+                        )}
+                         {canReview && (
                             <Button asChild>
                                 <Link href={`/account/purchases/${order.id}/review`}>
                                     {t('orderDetails.leaveReview')}
                                 </Link>
                             </Button>
-                        </CardFooter>
-                    )}
+                        )}
+                    </CardFooter>
                 </Card>
 
                  <Card>
@@ -259,6 +302,5 @@ export default function OrderDetailPage() {
 
             </div>
         </div>
-        </>
-    )
+    );
 }

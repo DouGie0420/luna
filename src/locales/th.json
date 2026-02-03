@@ -229,7 +229,7 @@
       "disputed": "มีข้อพิพาท"
     },
     "status": {
-      "pending": "รอดำเนินการ",
+      "pending": "รอการชำระเงิน",
       "inEscrow": "ต้องจัดส่ง",
       "shipped": "ต้องได้รับ",
       "awaitingConfirmation": "รอการยืนยัน",
@@ -424,10 +424,17 @@
   },
   "orderDetails": {
     "status": {
-      "Shipped": "ผู้ขายได้จัดส่งแล้ว รอการยืนยัน"
+      "pending": "รอการชำระเงิน",
+      "inEscrow": "ต้องจัดส่ง",
+      "shipped": "ต้องได้รับ",
+      "awaitingConfirmation": "รอการยืนยัน",
+      "completed": "เสร็จสมบูรณ์",
+      "disputed": "มีข้อพิพาท",
+      "cancelled": "ยกเลิกแล้ว"
     },
     "thankYou": "ขอบคุณสำหรับการสั่งซื้อ",
     "itemOnWay": "สินค้าของคุณกำลังเดินทาง",
+    "awaitingPayment": "คำสั่งซื้อของคุณกำลังรอการชำระเงิน",
     "confirmReceiptPrompt": "โปรดยืนยันการรับสินค้าหลังจากที่คุณได้รับและตรวจสอบสินค้าแล้ว",
     "notFoundTitle": "ไม่พบคำสั่งซื้อ",
     "notFoundDesc": "ไม่พบคำสั่งซื้อที่คุณกำลังมองหา หรือคุณไม่มีสิทธิ์ในการดู",
@@ -448,7 +455,11 @@
     "confirmReceipt": "ยืนยันการรับสินค้า",
     "receiptConfirmed": "ยืนยันการรับสินค้าแล้ว!",
     "leaveReview": "เขียนรีวิว",
-    "reviewed": "รีวิวแล้ว"
+    "reviewed": "รีวิวแล้ว",
+    "simulatePayment": "จำลองการชำระเงิน",
+    "paymentSuccess": "การชำระเงินสำเร็จ!",
+    "remindSeller": "แจ้งเตือนให้จัดส่ง",
+    "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว"
   },
   "reviewPage": {
     "title": "เขียนรีวิว",

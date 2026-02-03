@@ -229,7 +229,7 @@
       "disputed": "Disputed"
     },
     "status": {
-      "pending": "Pending",
+      "pending": "Pending Payment",
       "inEscrow": "To Ship",
       "shipped": "To Receive",
       "awaitingConfirmation": "Awaiting Confirmation",
@@ -424,10 +424,17 @@
   },
   "orderDetails": {
     "status": {
-      "Shipped": "Seller has shipped, awaiting confirmation"
+      "pending": "Pending Payment",
+      "inEscrow": "To Ship",
+      "shipped": "To Receive",
+      "awaitingConfirmation": "Awaiting Confirmation",
+      "completed": "Completed",
+      "disputed": "Disputed",
+      "cancelled": "Cancelled"
     },
     "thankYou": "Thank you for your purchase.",
     "itemOnWay": "Your item is on its way.",
+    "awaitingPayment": "Your order is awaiting payment.",
     "confirmReceiptPrompt": "Please confirm receipt after you have received and inspected the item.",
     "notFoundTitle": "Order Not Found",
     "notFoundDesc": "The order you are looking for does not exist or you don't have permission to view it.",
@@ -448,7 +455,11 @@
     "confirmReceipt": "Confirm Receipt",
     "receiptConfirmed": "Receipt confirmed!",
     "leaveReview": "Leave Review",
-    "reviewed": "Reviewed"
+    "reviewed": "Reviewed",
+    "simulatePayment": "Simulate Payment",
+    "paymentSuccess": "Payment successful!",
+    "remindSeller": "Remind to Ship",
+    "reminderSent": "Reminder sent to seller."
   },
   "reviewPage": {
     "title": "Leave a Review",

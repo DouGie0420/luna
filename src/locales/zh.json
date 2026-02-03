@@ -229,7 +229,7 @@
       "disputed": "争议中"
     },
     "status": {
-      "pending": "待处理",
+      "pending": "待付款",
       "inEscrow": "待发货",
       "shipped": "待收货",
       "awaitingConfirmation": "等待确认",
@@ -424,10 +424,17 @@
   },
   "orderDetails": {
     "status": {
-      "Shipped": "卖家已发货，待确认收货"
+      "pending": "待付款",
+      "inEscrow": "待发货",
+      "shipped": "待收货",
+      "awaitingConfirmation": "等待确认",
+      "completed": "已完成",
+      "disputed": "争议中",
+      "cancelled": "已取消"
     },
     "thankYou": "感谢您的购买。",
     "itemOnWay": "您的商品正在运输途中。",
+    "awaitingPayment": "您的订单正在等待付款。",
     "confirmReceiptPrompt": "请在收到并检查商品后确认收货。",
     "notFoundTitle": "未找到订单",
     "notFoundDesc": "您查找的订单不存在或您没有权限查看。",
@@ -448,7 +455,11 @@
     "confirmReceipt": "确认收货",
     "receiptConfirmed": "已确认收货！",
     "leaveReview": "去评价",
-    "reviewed": "已评价"
+    "reviewed": "已评价",
+    "simulatePayment": "模拟付款",
+    "paymentSuccess": "付款成功！",
+    "remindSeller": "提醒发货",
+    "reminderSent": "已提醒卖家"
   },
   "reviewPage": {
     "title": "评价订单",

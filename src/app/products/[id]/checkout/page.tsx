@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import type { Product, UserAddress, UserProfile, PaymentMethod } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { collection, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, addDoc, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
 
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -208,19 +208,30 @@ export default function CheckoutPage() {
         shippingFee: shippingFee,
         totalAmount: totalAmount,
         currency: product.currency,
-        status: 'In Escrow' as const,
+        status: 'Pending' as const, // Create as Pending first
         createdAt: serverTimestamp(),
         shippingAddress: shippingAddress,
         shippingMethod: shippingMethod,
     };
     
     try {
-        const docRef = await addDoc(collection(firestore, 'orders'), orderData);
+        const batch = writeBatch(firestore);
+
+        // 1. Create the order
+        const orderRef = doc(collection(firestore, 'orders'));
+        batch.set(orderRef, orderData);
+        
+        // 2. Lock the product by changing its status
+        const productRef = doc(firestore, 'products', product.id);
+        batch.update(productRef, { status: 'under_review' });
+
+        await batch.commit();
+
         toast({
             title: "Order Placed!",
-            description: "Your order has been successfully created.",
+            description: "Your order is now pending payment.",
         });
-        router.push(`/account/purchases/${docRef.id}`);
+        router.push(`/account/purchases/${orderRef.id}`);
     } catch(e) {
         console.error(e);
         toast({
@@ -252,7 +263,6 @@ export default function CheckoutPage() {
   if (isLoading) {
     return (
       <>
-        <PageHeaderWithBackAndClose />
         <CheckoutPageSkeleton />
       </>
     );
@@ -264,7 +274,6 @@ export default function CheckoutPage() {
 
   return (
     <>
-      <PageHeaderWithBackAndClose />
       <Dialog open={isAddressDialogOpen} onOpenChange={setIsAddressDialogOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
