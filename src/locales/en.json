@@ -208,7 +208,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "settingsTooltip": "Feature coming soon",
-    "addresses": "Addresses"
+    "addresses": "Addresses",
+    "mySales": "My Sales"
   },
   "accountListings": {
     "title": "My Listings",
@@ -244,6 +245,26 @@
     },
     "noOrdersTitle": "No orders in this category.",
     "noOrdersDescription": "Your orders will appear here once their status changes."
+  },
+  "accountSales": {
+    "title": "My Sales",
+    "orderPlaced": "Order Placed",
+    "buyer": "Buyer",
+    "total": "Total",
+    "status": "Status",
+    "noSales": "You haven't sold any items yet.",
+    "noSalesDescription": "When a buyer purchases your item, it will appear here.",
+    "viewOrder": "View Order",
+    "markShipped": "Mark as Shipped",
+    "shippingInfoRequired": "Shipping Provider and Tracking Number are required.",
+    "updateShipmentTitle": "Update Shipment Information",
+    "updateShipmentDescription": "Enter the details below to notify the buyer.",
+    "shippingProviderLabel": "Shipping Provider",
+    "shippingProviderPlaceholder": "e.g., SF Express, Kerry Express",
+    "trackingNumberLabel": "Tracking Number",
+    "confirmShipment": "Confirm Shipment",
+    "shipmentConfirmed": "Shipment Confirmed",
+    "shipmentConfirmedDescription": "The order status has been updated and the buyer notified."
   },
   "accountWallet": {
     "title": "My Wallet",

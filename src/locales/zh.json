@@ -208,7 +208,8 @@
     "settings": "设置",
     "logout": "退出登录",
     "settingsTooltip": "功能即将推出",
-    "addresses": "收货地址"
+    "addresses": "收货地址",
+    "mySales": "我卖出的"
   },
   "accountListings": {
     "title": "我发布的",
@@ -244,6 +245,26 @@
     },
     "noOrdersTitle": "此分类下没有订单。",
     "noOrdersDescription": "当订单状态改变时，它们将显示在这里。"
+  },
+  "accountSales": {
+    "title": "我卖出的",
+    "orderPlaced": "下单时间",
+    "buyer": "买家",
+    "total": "总金额",
+    "status": "状态",
+    "noSales": "您还没有卖出任何商品。",
+    "noSalesDescription": "当有买家购买您的商品时，订单会显示在这里。",
+    "viewOrder": "查看订单",
+    "markShipped": "标记为已发货",
+    "shippingInfoRequired": "必须填写快递公司和运单号。",
+    "updateShipmentTitle": "更新发货信息",
+    "updateShipmentDescription": "输入以下信息以通知买家。",
+    "shippingProviderLabel": "快递公司",
+    "shippingProviderPlaceholder": "例如：顺丰快递、圆通快递",
+    "trackingNumberLabel": "运单号",
+    "confirmShipment": "确认发货",
+    "shipmentConfirmed": "已确认发货",
+    "shipmentConfirmedDescription": "订单状态已更新，并已通知买家。"
   },
   "accountWallet": {
     "title": "我的钱包",

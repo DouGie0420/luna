@@ -12,7 +12,8 @@ export type NotificationContext =
     | { type: 'feature', actor: UserProfile, post: BbsPost }
     | { type: 'paymentRequestApproved', actor: UserProfile, requestId: string }
     | { type: 'paymentRequestRejected', actor: UserProfile, requestId: string, reason?: string }
-    | { type: 'remind-to-ship', actor: UserProfile, order: Order, product: Product };
+    | { type: 'remind-to-ship', actor: UserProfile, order: Order, product: Product }
+    | { type: 'shipped', actor: UserProfile, order: Order, trackingNumber: string, shippingProvider: string };
 
 export async function createNotification(db: Firestore, recipientId: string, context: NotificationContext) {
     if (recipientId === context.actor.uid) {
@@ -63,6 +64,11 @@ export async function createNotification(db: Firestore, recipientId: string, con
             title = '【发货提醒】买家正在等待您发货';
             message = `买家 ${context.actor.displayName} 正在等待您为订单 #${context.order.id.slice(0, 8)}（${context.product.name}）发货。`;
             notificationType = 'warning';
+            break;
+        case 'shipped':
+            title = '您的订单已发货！';
+            message = `卖家 ${context.actor.displayName} 已将您的商品 “${context.order.productName}” 发出。物流信息: ${context.shippingProvider} ${context.trackingNumber}`;
+            notificationType = 'success';
             break;
         default:
             return;

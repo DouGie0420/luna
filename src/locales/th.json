@@ -208,7 +208,8 @@
     "settings": "ตั้งค่า",
     "logout": "ออกจากระบบ",
     "settingsTooltip": "ฟีเจอร์นี้จะมาในเร็วๆ นี้",
-    "addresses": "ที่อยู่"
+    "addresses": "ที่อยู่",
+    "mySales": "รายการที่ขาย"
   },
   "accountListings": {
     "title": "รายการของฉัน",
@@ -244,6 +245,26 @@
     },
     "noOrdersTitle": "ไม่มีคำสั่งซื้อในหมวดหมู่นี้",
     "noOrdersDescription": "คำสั่งซื้อของคุณจะปรากฏที่นี่เมื่อสถานะมีการเปลี่ยนแปลง"
+  },
+  "accountSales": {
+    "title": "รายการที่ขายของฉัน",
+    "orderPlaced": "วันที่สั่งซื้อ",
+    "buyer": "ผู้ซื้อ",
+    "total": "ทั้งหมด",
+    "status": "สถานะ",
+    "noSales": "คุณยังไม่ได้ขายสินค้าใดๆ",
+    "noSalesDescription": "เมื่อมีผู้ซื้อสินค้าของคุณ รายการจะปรากฏที่นี่",
+    "viewOrder": "ดูคำสั่งซื้อ",
+    "markShipped": "ทำเครื่องหมายว่าจัดส่งแล้ว",
+    "shippingInfoRequired": "ต้องระบุผู้ให้บริการจัดส่งและหมายเลขติดตาม",
+    "updateShipmentTitle": "อัปเดตข้อมูลการจัดส่ง",
+    "updateShipmentDescription": "ป้อนรายละเอียดด้านล่างเพื่อแจ้งให้ผู้ซื้อทราบ",
+    "shippingProviderLabel": "ผู้ให้บริการจัดส่ง",
+    "shippingProviderPlaceholder": "เช่น SF Express, Kerry Express",
+    "trackingNumberLabel": "หมายเลขติดตาม",
+    "confirmShipment": "ยืนยันการจัดส่ง",
+    "shipmentConfirmed": "ยืนยันการจัดส่งแล้ว",
+    "shipmentConfirmedDescription": "สถานะคำสั่งซื้อได้รับการอัปเดตและแจ้งให้ผู้ซื้อทราบแล้ว"
   },
   "accountWallet": {
     "title": "กระเป๋าเงินของฉัน",
@@ -373,7 +394,7 @@
     "usersListings": "รายการของ {userName}",
     "noListings": "{userName} ไม่มีรายการที่ลงขาย",
     "noListingsDescription": "กลับมาดูภายหลังว่าพวกเขากำลังขายอะไร",
-    "usersSoldItems": "สินค้าที่ขายแล้วของ {userName}",
+    "usersSoldItems": "{userName}'s Sold Items",
     "noSoldItems": "ไม่มีสินค้าที่ขายแล้วให้แสดง",
     "noSoldItemsDescription": "ประวัติการขายของผู้ใช้นี้จะปรากฏที่นี่",
     "latestListings": "รายการล่าสุดจาก {userName}",

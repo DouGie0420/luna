@@ -11,6 +11,7 @@ import {
   LogOut,
   Settings,
   MapPin,
+  DollarSign,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -115,6 +116,17 @@ export default function AccountLayout({
                   <Link href="/account/purchases">
                     <ClipboardList />
                     {t('accountLayout.myPurchases')}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive('/account/sales')}
+                >
+                  <Link href="/account/sales">
+                    <DollarSign />
+                    {t('accountLayout.mySales')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
