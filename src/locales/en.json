@@ -588,7 +588,12 @@
       "amount": "Amount",
       "status": "Status",
       "actions": "Actions",
-      "noOrders": "No order data available."
+      "noOrders": "No order data available.",
+      "statusUpdated": "Order Status Updated",
+      "statusUpdatedDesc": "Order #{orderId}... status has been changed to {status}.",
+      "updateFailed": "Update Failed",
+      "updateFailedDesc": "Could not update order status. Check console for more info.",
+      "set_status": "Set Status"
     },
     "productsPage": {
       "title": "Manage Products",

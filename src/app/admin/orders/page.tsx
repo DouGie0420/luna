@@ -26,6 +26,27 @@ import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
+const orderStatuses: OrderStatus[] = [
+    "Pending",
+    "In Escrow",
+    "Shipped",
+    "Awaiting Confirmation",
+    "Completed",
+    "Disputed",
+    "Cancelled",
+];
+
+const statusKeyMap: Record<OrderStatus, string> = {
+    "Pending": "pending",
+    "In Escrow": "inEscrow",
+    "Shipped": "shipped",
+    "Awaiting Confirmation": "awaitingConfirmation",
+    "Completed": "completed",
+    "Disputed": "disputed",
+    "Cancelled": "cancelled",
+};
+
+
 export default function AdminOrdersPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
@@ -51,15 +72,18 @@ export default function AdminOrdersPage() {
             const orderRef = doc(firestore, 'orders', orderId);
             await updateDoc(orderRef, { status: newStatus });
             toast({
-                title: "订单状态已更新",
-                description: `订单 #${orderId.slice(0, 6)}... 的状态已变更为 ${newStatus}.`,
+                title: t('admin.ordersPage.statusUpdated'),
+                description: t('admin.ordersPage.statusUpdatedDesc', { 
+                    orderId: orderId.slice(0, 6),
+                    status: t(`accountPurchases.status.${statusKeyMap[newStatus]}`)
+                 }),
             });
         } catch (error) {
             console.error("Failed to update order status:", error);
             toast({
                 variant: "destructive",
-                title: "更新失败",
-                description: "无法更新订单状态，请检查控制台以获取更多信息。",
+                title: t('admin.ordersPage.updateFailed'),
+                description: t('admin.ordersPage.updateFailedDesc'),
             });
         } finally {
             setProcessingId(null);
@@ -117,30 +141,16 @@ export default function AdminOrdersPage() {
                                     disabled={processingId === order.id}
                                 >
                                     <SelectTrigger className="w-[180px]">
-                                        <SelectValue />
+                                        <SelectValue placeholder={t('admin.ordersPage.set_status')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Pending">
-                                            <Badge variant="secondary">Pending</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="In Escrow">
-                                            <Badge variant="secondary">In Escrow</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="Shipped">
-                                            <Badge variant="secondary">Shipped</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="Awaiting Confirmation">
-                                            <Badge variant="secondary">Awaiting Confirmation</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="Completed">
-                                            <Badge variant="default">Completed</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="Disputed">
-                                            <Badge variant="destructive">Disputed</Badge>
-                                        </SelectItem>
-                                        <SelectItem value="Cancelled">
-                                             <Badge variant="destructive">Cancelled</Badge>
-                                        </SelectItem>
+                                        {orderStatuses.map((status) => (
+                                            <SelectItem key={status} value={status}>
+                                                 <Badge variant={status === 'Completed' ? 'default' : (status === 'Disputed' || status === 'Cancelled' ? 'destructive' : 'secondary')}>
+                                                    {t(`accountPurchases.status.${statusKeyMap[status]}`)}
+                                                </Badge>
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </TableCell>

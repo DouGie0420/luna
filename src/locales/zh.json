@@ -588,7 +588,12 @@
       "amount": "金额",
       "status": "状态",
       "actions": "操作",
-      "noOrders": "当前没有订单数据。"
+      "noOrders": "当前没有订单数据。",
+      "statusUpdated": "订单状态已更新",
+      "statusUpdatedDesc": "订单 #{orderId}... 的状态已变更为 {status}。",
+      "updateFailed": "更新失败",
+      "updateFailedDesc": "无法更新订单状态，请检查控制台以获取更多信息。",
+      "set_status": "设置状态"
     },
     "productsPage": {
       "title": "管理商品",
