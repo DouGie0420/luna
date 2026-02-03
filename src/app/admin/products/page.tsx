@@ -252,21 +252,20 @@ export default function AdminProductsPage() {
             return;
         }
 
-        const collectionPath = itemToReview.type === 'product' ? 'products' : 'bbs';
-        const itemRef = doc(firestore, collectionPath, itemToReview.item.id);
-
         setIsSubmitting(true);
+        const itemRef = doc(firestore, itemToReview.type === 'product' ? 'products' : 'bbs', itemToReview.item.id);
+
         try {
             await updateDoc(itemRef, { reviewReason: finalReason });
             toast({ title: '原因已记录' });
-            setItemToReview(null);
-            setReviewReason('涉黄');
-            setCustomReason('');
         } catch (error) {
             console.error("Failed to set review reason:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
         } finally {
             setIsSubmitting(false);
+            setItemToReview(null);
+            setReviewReason('涉黄');
+            setCustomReason('');
         }
     };
     
@@ -281,12 +280,12 @@ export default function AdminProductsPage() {
         try {
             await deleteDoc(itemRef);
             toast({ title: '项目已彻底删除' });
-            setItemToHardDelete(null);
         } catch (error) {
             console.error("Failed to hard delete item:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'delete' }));
         } finally {
             setIsSubmitting(false);
+            setItemToHardDelete(null);
         }
     };
 

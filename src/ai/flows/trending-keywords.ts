@@ -3,7 +3,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 // 1. 关键：直接导入模型对象
-import { gemini15Flash } from '@genkit-ai/googleai';
+import { gemini15Flash } from '@genkit-ai/google-genai';
 
 const TrendingKeywordsOutputSchema = z.object({
   keywords: z
