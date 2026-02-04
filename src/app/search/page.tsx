@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,14 +9,25 @@ import { SearchBar } from '@/components/layout/search-bar';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { useTranslation } from '@/hooks/use-translation';
 import { Search as SearchIcon } from 'lucide-react';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 function SearchPageContent() {
     const { t } = useTranslation();
     const searchParams = useSearchParams();
-    const query = searchParams.get('q') || '';
+    const queryTerm = searchParams.get('q') || '';
     
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [results, setResults] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(50);
+
 
     const popularSearches = [
         'Cyberpunk',
@@ -28,44 +38,47 @@ function SearchPageContent() {
     ];
 
     useEffect(() => {
-        if (!query) {
+        if (!firestore) return;
+        setLoading(true);
+        const q = query(collection(firestore, 'products'), where('status', '==', 'active'));
+        getDocs(q).then(snapshot => {
+            const fetchedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            setAllProducts(fetchedProducts);
+        }).catch(err => {
+            console.error("Error fetching products: ", err);
+            toast({ title: "Error fetching products", variant: "destructive" });
+        }).finally(() => {
             setLoading(false);
+        });
+    }, [firestore, toast]);
+
+    useEffect(() => {
+        if (!queryTerm) {
             setResults([]);
             return;
         }
 
-        const fetchAndFilter = async () => {
-            setLoading(true);
-            const allProducts = await getProducts();
-            const lowerCaseQuery = query.toLowerCase();
-            
+        if (!loading) {
+            const lowerCaseQuery = queryTerm.toLowerCase();
             const filteredResults = allProducts.filter(product => 
-                product.name.toLowerCase().includes(lowerCaseQuery) ||
-                product.description.toLowerCase().includes(lowerCaseQuery) ||
-                product.category.toLowerCase().includes(lowerCaseQuery) ||
-                product.seller.name.toLowerCase().includes(lowerCaseQuery)
+                product.name.toLowerCase().includes(lowerCaseQuery)
             );
-            
-            const localProductsJSON = localStorage.getItem('luna_new_products');
-            const localProducts: Product[] = localProductsJSON ? JSON.parse(localProductsJSON) : [];
-            
-            const localFilteredResults = localProducts.filter(product => 
-                product.name.toLowerCase().includes(lowerCaseQuery) ||
-                product.description.toLowerCase().includes(lowerCaseQuery) ||
-                product.category.toLowerCase().includes(lowerCaseQuery) ||
-                product.seller.name.toLowerCase().includes(lowerCaseQuery)
-            );
+            setResults(filteredResults);
+            setVisibleCount(50); // Reset pagination on new search
+        }
+    }, [queryTerm, allProducts, loading]);
 
-            const combined = [...localFilteredResults, ...filteredResults];
-            const uniqueResults = Array.from(new Map(combined.map(p => [p.id, p])).values());
-
-            setResults(uniqueResults);
-            setLoading(false);
-        };
-
-        fetchAndFilter();
-
-    }, [query]);
+    const handleLoadMore = () => {
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: '请登录后查看更多',
+                description: '注册或登录以浏览所有搜索结果。',
+            });
+            return;
+        }
+        setVisibleCount(prev => prev + 50);
+    };
 
     return (
         <>
@@ -94,25 +107,32 @@ function SearchPageContent() {
                     </div>
                 ) : (
                     <div>
-                        {query ? (
+                        {queryTerm ? (
                             <>
                                 {results.length > 0 ? (
                                     <>
                                         <h1 className="text-3xl font-headline mb-8">
-                                            {t('searchPage.resultsFor').replace('{query}', query)}
+                                            {t('searchPage.resultsFor').replace('{query}', queryTerm)} ({results.length})
                                         </h1>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                                            {results.map(product => (
+                                            {results.slice(0, visibleCount).map(product => (
                                                 <ProductCard key={product.id} product={product} />
                                             ))}
                                         </div>
+                                        {results.length > visibleCount && (
+                                            <div className="mt-12 text-center">
+                                                <Button onClick={handleLoadMore}>
+                                                    下一页
+                                                </Button>
+                                            </div>
+                                        )}
                                     </>
                                 ) : (
                                     <div className="text-center">
                                         <div className="inline-block text-center py-8 px-16 rounded-full bg-card/50 animate-glow-border-muted">
                                             <SearchIcon className="mx-auto h-12 w-12 text-primary/50 animate-pulse" />
                                             <h1 className="text-3xl font-headline mt-6 mb-2 text-yellow-400" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.1s forwards' }}>
-                                                {t('searchPage.noResultsFor').replace('{query}', query)}
+                                                {t('searchPage.noResultsFor').replace('{query}', queryTerm)}
                                             </h1>
                                             <h2 className="text-xl font-headline text-muted-foreground mb-2" style={{ animation: 'suggestion-fade-in 0.3s ease-out 0.3s forwards' }}>
                                                 {t('searchPage.tryAnotherSearch')}

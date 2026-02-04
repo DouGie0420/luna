@@ -42,6 +42,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
     setIsRecommended(recommendedItems.includes(product.id));
   }, [product.id]);
 
+  const handleGuestClick = (e: React.MouseEvent) => {
+      if (!user) {
+          e.preventDefault();
+          toast({
+              title: '需要认证',
+              description: '请先登录或注册以查看商品详情。',
+              variant: 'destructive'
+          });
+      }
+  }
+
   const handleInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
       e.preventDefault();
       e.stopPropagation();
@@ -106,7 +117,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
 
   return (
-    <Link href={`/products/${product.id}`} className="group h-full">
+    <Link href={`/products/${product.id}`} className="group h-full" onClick={handleGuestClick}>
       <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 hover:shadow-primary/20 hover:shadow-lg hover:border-primary/50", className)}>
         <CardHeader className="p-0">
           <div className="aspect-[4/3] relative overflow-hidden">
