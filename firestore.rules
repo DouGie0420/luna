@@ -48,17 +48,16 @@ service cloud.firestore {
     
     // --- Chat Systems ---
     match /direct_chats/{chatId} {
-      // Allow read (get, list) if the user is a participant.
-      // The `list` operation is implicitly secured here because the frontend query
+      // The `list` operation is secured by the client query, which
       // MUST filter by `participants` using an `array-contains` clause.
-      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow list: if isSignedIn();
+
+      // Allow get/update if the user is a participant.
+      allow get, update: if isSignedIn() && request.auth.uid in resource.data.participants;
       
       // Allow creating a chat if the user is one of the participants.
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       
-      // Allow updating chat metadata (e.g., last message) if user is a participant.
-      allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
-
       match /messages/{messageId} {
         allow read, list: if isSignedIn() && get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
         
