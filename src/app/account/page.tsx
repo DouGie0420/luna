@@ -18,11 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useUser, useFirestore } from "@/firebase";
+import { useUser, useFirestore, useCollection } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
 import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X } from "lucide-react";
@@ -35,7 +35,7 @@ import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { type BadgeType } from '@/lib/types';
+import { type BadgeType, type Product } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 import { compressImage } from "@/lib/image-compressor";
@@ -87,6 +87,20 @@ export default function AccountProfilePage() {
 
     const [isVerifying, setIsVerifying] = useState(false);
     const [cooldown, setCooldown] = useState(0);
+
+    const [userProducts, setUserProducts] = useState<Product[]>([]);
+    const userProductsQuery = useMemo(() => {
+        if (!firestore || !user) return null;
+        return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
+    }, [firestore, user]);
+    const { data: fetchedProducts, loading: productsLoading } = useCollection<Product>(userProductsQuery);
+
+    useEffect(() => {
+        if (fetchedProducts) {
+            setUserProducts(fetchedProducts);
+        }
+    }, [fetchedProducts]);
+
 
     useEffect(() => {
         if (profile) {
@@ -579,6 +593,43 @@ export default function AccountProfilePage() {
                                 保存横幅
                             </Button>
                         </CardFooter>
+                    </Card>
+                )}
+
+                {profile?.isPro && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>精选商品展示</CardTitle>
+                            <CardDescription>
+                                选择一件您的商品，它将被展示在首页“认证商户”区域您的名片下方。
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <div className="grid gap-2">
+                                <Label htmlFor="featured-product-select">选择精选商品</Label>
+                                {productsLoading ? <Skeleton className="h-10 w-full" /> : (
+                                    <Select 
+                                        value={profile.featuredProductId || ''}
+                                        onValueChange={async (value) => {
+                                            if (!firestore || !user) return;
+                                            const newFeaturedId = value === '' ? null : value;
+                                            await updateUserProfile(firestore, user.uid, { featuredProductId: newFeaturedId });
+                                            toast({ title: "精选商品已更新" });
+                                        }}
+                                    >
+                                        <SelectTrigger id="featured-product-select">
+                                            <SelectValue placeholder="选择一件商品来展示" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="">无 (不展示)</SelectItem>
+                                            {userProducts.map(product => (
+                                                <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                           </div>
+                        </CardContent>
                     </Card>
                 )}
 

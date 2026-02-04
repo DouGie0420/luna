@@ -127,7 +127,8 @@ export type UserProfile = {
     displayedBadge?: BadgeType;
     paymentInfo?: PaymentInfo;
     bannerUrl?: string;
-}
+    featuredProductId?: string;
+};
 
 export type PaymentChangeRequest = {
     id: string;
