@@ -39,9 +39,11 @@ service cloud.firestore {
       match /notifications/{docId} {
         allow read, write, list: if isSignedIn() && request.auth.uid == userId;
       }
-
+      
       match /addresses/{addressId} {
-        allow read, list, write, delete: if request.auth != null && request.auth.uid == userId;
+        // Separated read and write permissions for clarity and security.
+        allow read, list: if request.auth != null && request.auth.uid == userId;
+        allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
     
@@ -140,3 +142,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

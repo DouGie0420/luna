@@ -177,6 +177,10 @@
           "format": "uri",
           "description": "URL of the user's profile picture."
         },
+        "publicKey": {
+          "type": "string",
+          "description": "The user's public key for end-to-end encryption."
+        },
         "walletAddress": {
           "type": "string",
           "description": "The user's associated Web3 wallet address."
@@ -261,6 +265,16 @@
         "followingCount": {
           "type": "number",
           "description": "The number of users this user is following."
+        },
+        "followers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of user UIDs who are following this user."
+        },
+        "following": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of user UIDs who this user is following."
         },
         "featuredCount": {
           "type": "number",
@@ -659,55 +673,18 @@
       "description": "Represents a user's support request.",
       "type": "object",
       "properties": {
-        "userId": {
-          "type": "string"
-        },
-        "userName": {
-          "type": "string"
-        },
-        "userEmail": {
-          "type": "string"
-        },
-        "subject": {
-          "type": "string"
-        },
-        "category": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string",
-          "enum": [
-            "Open",
-            "Pending",
-            "Resolved",
-            "Closed"
-          ]
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "assignedTo": {
-          "type": "string"
-        }
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "subject": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Pending", "Resolved", "Closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "assignedTo": { "type": "string" }
       },
-      "required": [
-        "userId",
-        "userName",
-        "userEmail",
-        "subject",
-        "category",
-        "description",
-        "status",
-        "createdAt"
-      ]
+      "required": ["userId", "userName", "userEmail", "subject", "category", "description", "status", "createdAt"]
     },
     "BbsPost": {
       "title": "BBS Post",
@@ -884,10 +861,12 @@
       "description": "Stores notifications for a specific user."
     },
     "/support_tickets/{ticketId}": {
-      "schema": {
-        "$ref": "#/entities/SupportTicket"
-      },
-      "description": "Stores user-submitted support tickets and their related messages."
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "Stores user-submitted support tickets."
+    },
+    "/support_tickets/{ticketId}/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/ChatMessage" },
+        "description": "Stores messages for a support ticket."
     },
     "/bbs/{postId}": {
       "schema": { "$ref": "#/entities/BbsPost" },
@@ -905,3 +884,5 @@
     }
   }
 }
+
+    

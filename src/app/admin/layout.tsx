@@ -41,8 +41,8 @@ type Role = NonNullable<UserProfile['role']>;
 // Centralized permission check function
 const hasRole = (userRole: Role | undefined, allowedRoles: Array<Role>): boolean => {
     if (!userRole) return false;
-    // Admin has access to everything and is implicitly included in all checks within this component logic.
-    // So we just check if the user's role is in the list.
+    // Admin and Ghost have access to everything and are implicitly included in all checks.
+    if (userRole === 'admin' || userRole === 'ghost') return true;
     return allowedRoles.includes(userRole);
 }
 
@@ -139,7 +139,7 @@ export default function AdminLayout({
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
-            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname === '/admin'}>
                   <Link href="/admin">
@@ -150,7 +150,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
             
-            {hasRole(userRole, ['admin', 'ghost', 'staff']) && (
+            {hasRole(userRole, ['staff']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/users')}>
                   <Link href="/admin/users">
@@ -161,7 +161,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
 
-            {hasRole(userRole, ['admin', 'ghost', 'staff']) && (
+            {hasRole(userRole, ['staff']) && (
               <>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
@@ -190,7 +190,7 @@ export default function AdminLayout({
               </>
             )}
 
-            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/orders')}>
                   <Link href="/admin/orders">
@@ -201,7 +201,7 @@ export default function AdminLayout({
               </SidebarMenuItem>
             )}
             
-            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/kyc-list')}>
                     <Link href="/admin/kyc-list">
@@ -212,7 +212,7 @@ export default function AdminLayout({
                 </SidebarMenuItem>
             )}
 
-            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['staff', 'support']) && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/payment-requests')}>
                     <Link href="/admin/payment-requests">
@@ -223,7 +223,7 @@ export default function AdminLayout({
                 </SidebarMenuItem>
             )}
 
-            {hasRole(userRole, ['admin', 'ghost', 'staff', 'support']) && (
+            {hasRole(userRole, ['staff', 'support']) && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/admin/support')}>
                   <Link href="/admin/support">
@@ -265,3 +265,5 @@ export default function AdminLayout({
     </SidebarProvider>
   )
 }
+
+    
