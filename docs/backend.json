@@ -1,6 +1,49 @@
 
 {
   "entities": {
+    "DirectChat": {
+      "title": "Direct Chat",
+      "description": "Represents a private conversation channel between two or more users.",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "Array of user UIDs participating in the chat." },
+        "participantProfiles": {
+            "type": "object",
+            "description": "A map of participant UIDs to their basic profile info for quick display.",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "displayName": { "type": "string" },
+                    "photoURL": { "type": "string" }
+                }
+            }
+        },
+        "lastMessage": { "type": "string", "description": "The text of the last message sent in the chat for list previews." },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time", "description": "Timestamp of the last message." },
+        "unreadCount": { 
+          "type": "object",
+          "description": "A map of user UIDs to their unread message count in this chat.",
+          "additionalProperties": { "type": "number" }
+        },
+        "isFriendMode": { "type": "boolean", "description": "True if participants mutually follow each other, allowing unlimited messages." },
+        "hasReplied": { "type": "boolean", "description": "True if the non-initiator has sent at least one message." },
+        "initiatorId": { "type": "string", "description": "The UID of the user who started the conversation." },
+        "initialMessageCount": { "type": "number", "description": "The number of messages sent by the initiator before the other user replies." }
+      },
+      "required": ["participants", "lastMessageTimestamp", "initiatorId"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A single message within a direct chat.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string", "description": "The UID of the user who sent the message." },
+        "text": { "type": "string", "description": "The text content of the message." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL for an image sent in the chat." }
+      },
+      "required": ["senderId", "text", "createdAt"]
+    },
     "Product": {
       "title": "Product",
       "description": "Represents an item listed for sale on the platform.",
@@ -778,6 +821,14 @@
     ]
   },
   "firestore": {
+    "/direct_chats/{chatId}": {
+        "schema": { "$ref": "#/entities/DirectChat" },
+        "description": "Stores metadata for a private conversation between users."
+    },
+    "/direct_chats/{chatId}/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/ChatMessage" },
+        "description": "Stores the messages within a direct chat."
+    },
     "/products/{productId}": {
       "schema": {
         "$ref": "#/entities/Product"
@@ -832,11 +883,11 @@
       },
       "description": "Stores notifications for a specific user."
     },
-    "/supportTickets/{ticketId}": {
+    "/support_tickets/{ticketId}": {
       "schema": {
         "$ref": "#/entities/SupportTicket"
       },
-      "description": "Stores user-submitted support tickets."
+      "description": "Stores user-submitted support tickets and their related messages."
     },
     "/bbs/{postId}": {
       "schema": { "$ref": "#/entities/BbsPost" },

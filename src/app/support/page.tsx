@@ -49,7 +49,7 @@ export default function SupportPage() {
     }
     setIsSubmitting(true);
     try {
-      await addDoc(collection(firestore, 'supportTickets'), {
+      await addDoc(collection(firestore, 'support_tickets'), {
         userId: user.uid,
         userName: user.displayName,
         userEmail: user.email,

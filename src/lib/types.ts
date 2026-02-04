@@ -280,3 +280,24 @@ export type SupportTicket = {
     updatedAt?: any;
     assignedTo?: string;
 };
+
+export type DirectChat = {
+  id: string;
+  participants: string[];
+  participantProfiles: { [key: string]: Pick<UserProfile, 'displayName' | 'photoURL'> };
+  lastMessage: string;
+  lastMessageTimestamp: any;
+  unreadCount: { [key: string]: number };
+  isFriendMode: boolean;
+  hasReplied: boolean;
+  initiatorId: string;
+  initialMessageCount: number;
+};
+
+export type ChatMessage = {
+  id: string;
+  senderId: string;
+  text: string;
+  createdAt: any;
+  imageUrl?: string;
+};

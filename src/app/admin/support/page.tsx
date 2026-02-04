@@ -31,12 +31,12 @@ export default function AdminSupportPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     const { t } = useTranslation();
-    const ticketsQuery = useMemo(() => firestore ? query(collection(firestore, 'supportTickets')) : null, [firestore]);
+    const ticketsQuery = useMemo(() => firestore ? query(collection(firestore, 'support_tickets')) : null, [firestore]);
     const { data: tickets, loading } = useCollection<SupportTicket>(ticketsQuery);
 
     const handleStatusChange = async (ticketId: string, status: TicketStatus) => {
       if (!firestore) return;
-      const ticketRef = doc(firestore, 'supportTickets', ticketId);
+      const ticketRef = doc(firestore, 'support_tickets', ticketId);
       try {
         await updateDoc(ticketRef, { status, updatedAt: serverTimestamp() });
         toast({ 

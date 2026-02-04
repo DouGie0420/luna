@@ -10,8 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal } from "lucide-react";
-import { notFound, useParams } from "next/navigation";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal, MessageSquare } from "lucide-react";
+import { notFound, useParams, useRouter } from "next/navigation";
 import type { UserProfile, Product } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { UserAvatar } from '@/components/ui/user-avatar';
@@ -21,7 +21,7 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch } from "firebase/firestore";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -111,6 +111,7 @@ function UserProfileSkeleton() {
 
 export default function UserProfilePage() {
     const params = useParams();
+    const router = useRouter();
     const { t } = useTranslation();
     const loginId = params.loginId as string;
     
@@ -212,6 +213,54 @@ export default function UserProfilePage() {
             }));
         }
     };
+    
+    const handleSendMessage = async () => {
+        if (!currentUser || !currentUserProfile || !user) {
+            toast({ variant: 'destructive', title: 'Please login to send a message.' });
+            router.push('/login');
+            return;
+        }
+        if (!firestore) return;
+
+        const chatsRef = collection(firestore, 'direct_chats');
+        const q = query(chatsRef, where('participants', 'array-contains', currentUser.uid));
+        
+        const querySnapshot = await getDocs(q);
+        let existingChatId: string | null = null;
+        
+        querySnapshot.forEach(doc => {
+            const chat = doc.data();
+            if (chat.participants.includes(user.uid)) {
+                existingChatId = doc.id;
+            }
+        });
+
+        if (existingChatId) {
+            router.push(`/messages?chatId=${existingChatId}`);
+        } else {
+            const newChatRef = await addDoc(chatsRef, {
+                participants: [currentUser.uid, user.uid],
+                participantProfiles: {
+                    [currentUser.uid]: {
+                        displayName: currentUserProfile.displayName,
+                        photoURL: currentUserProfile.photoURL,
+                    },
+                    [user.uid]: {
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                    }
+                },
+                lastMessage: '',
+                lastMessageTimestamp: serverTimestamp(),
+                isFriendMode: false, 
+                hasReplied: false,
+                initiatorId: currentUser.uid,
+                initialMessageCount: 0,
+                unreadCount: { [currentUser.uid]: 0, [user.uid]: 0 }
+            });
+            router.push(`/messages?chatId=${newChatRef.id}`);
+        }
+    };
 
     if (userLoading) {
         return <UserProfileSkeleton />;
@@ -257,19 +306,27 @@ export default function UserProfilePage() {
                                     </div>
                                 </div>
                             </div>
-                             {currentUser && currentUser.uid !== user.uid && (
-                                <Button 
-                                    onClick={handleFollowToggle} 
-                                    variant={'default'}
-                                    className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
-                                >
-                                    {isFollowing ? (
-                                        <><Check className="mr-2 h-4 w-4" />{t('userProfile.alreadyFollowing')}</>
-                                    ) : (
-                                        <><Plus className="mr-2 h-4 w-4" />{t('userProfile.follow')}</>
-                                    )}
-                                </Button>
-                            )}
+                             <div className="flex items-center gap-2">
+                                {currentUser && currentUser.uid !== user.uid && (
+                                    <>
+                                        <Button onClick={handleSendMessage} variant="outline">
+                                            <MessageSquare className="mr-2 h-4 w-4" />
+                                            Message
+                                        </Button>
+                                        <Button 
+                                            onClick={handleFollowToggle} 
+                                            variant={'default'}
+                                            className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
+                                        >
+                                            {isFollowing ? (
+                                                <><Check className="mr-2 h-4 w-4" />{t('userProfile.alreadyFollowing')}</>
+                                            ) : (
+                                                <><Plus className="mr-2 h-4 w-4" />{t('userProfile.follow')}</>
+                                            )}
+                                        </Button>
+                                    </>
+                                )}
+                             </div>
                         </div>
                     </CardHeader>
                     <CardContent className="grid gap-6">
