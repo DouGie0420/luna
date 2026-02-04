@@ -114,7 +114,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const otherParticipantId = chat.participants.find(p => p !== user?.uid);
     const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
 
-    const canSend = chat.isFriendMode || chat.hasReplied || (user?.uid === chat.initiatorId && (chat.initialMessageCount || 0) < 5) || (user?.uid !== chat.initiatorId);
+    const canSend = chat.isFriendMode || chat.hasReplied || (user?.uid === chat.initiatorId && (chat.initialMessageCount || 0) < 5) || (user?.uid !== chat.initiatorId && !chat.hasReplied);
 
     return (
         <>
@@ -236,7 +236,8 @@ export default function MessagesPage() {
     if (user && firestore) {
       fetchChats(false);
     }
-  }, [user, firestore, fetchChats]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, firestore]);
 
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
