@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useUser } from '@/firebase';
-import { collection, query, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
 import { BbsPostCard } from './bbs-post-card';
