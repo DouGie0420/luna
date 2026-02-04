@@ -39,7 +39,7 @@ service cloud.firestore {
 
     // --- 用户集合 (users) ---
     match /users/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       
       allow delete: if isSignedIn() && (
         request.auth.uid == userId || hasRole(['admin', 'ghost'])
@@ -79,12 +79,12 @@ service cloud.firestore {
     // --- 内容管理 (社区, 广告, 问题) ---
     // 你的定义：staff 有权限，support 无权限
     match /bbs/{postId} {
-      allow read: if true;
+      allow read, list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }
     match /products/{productId} {
-      allow read: if true;
+      allow read, list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }

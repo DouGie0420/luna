@@ -20,6 +20,14 @@ function initializeFirebase() {
   if (getApps().length === 0) {
     firebaseApp = initializeApp(firebaseConfig);
     auth = getAuth(firebaseApp);
+    
+    // --- 【关键修复开始】 ---
+    // 强制指定 authDomain 为 Firebase 默认提供的生产域名
+    // 这样可以解决 Cloud Workstations 环境下 /__/auth/handler 404 的问题
+    // @ts-ignore - 忽略内部配置属性的类型检查
+    auth.config.authDomain = "studio-5896500485-92a21.firebaseapp.com";
+    // --- 【关键修复结束】 ---
+
     firestore = getFirestore(firebaseApp);
   } else {
     firebaseApp = getApps()[0];
@@ -36,9 +44,9 @@ export {
   FirebaseClientProvider,
   useCollection,
   useDoc,
-  useUser,        // 这个通常是返回 { user, profile, loading }
+  useUser,        // 返回 { user, profile, loading }
   useFirebase,
   useFirebaseApp,
-  useAuthProvider as useAuth, // 如果你的页面里用的是 useAuth，指向这里
+  useAuthProvider as useAuth, 
   useFirestore,
 };
