@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from "lucide-react";
 import { useUser, useFirestore, useCollection } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
-import { collection, query, limit } from 'firebase/firestore';
+import { collection, query, limit, where } from 'firebase/firestore';
 
 export default function MessagesPage() {
   const { user } = useUser();
@@ -19,8 +19,8 @@ export default function MessagesPage() {
 
   const usersQuery = useMemo(() => {
     if (!firestore) return null;
-    // Fetch some users to act as contacts
-    return query(collection(firestore, 'users'), limit(10));
+    // Fetch some Pro users to act as contacts
+    return query(collection(firestore, 'users'), where('isPro', '==', true), limit(10));
   }, [firestore]);
 
   const { data: contacts, loading } = useCollection<UserProfile>(usersQuery);
