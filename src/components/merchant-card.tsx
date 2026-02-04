@@ -13,6 +13,7 @@ import { useFirestore, useDoc } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
+import { GlowingPixelGrid } from './glowing-pixel-grid';
 
 interface MerchantCardProps {
   user: UserProfile;
@@ -61,13 +62,17 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
     <Link href={`/@${user.loginId || user.uid}`} className="group block h-full">
       <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border-primary/20 hover:border-primary", className)}>
         <div className="relative h-24 w-full">
-            <Image 
-                src={user.bannerUrl || "https://picsum.photos/seed/merchant-bg/1080/432"}
-                alt={`${user.displayName}'s shop background`}
-                fill
-                className="object-cover"
-                data-ai-hint={user.bannerUrl ? "custom banner" : "neon abstract"}
-            />
+            {user.bannerUrl ? (
+                <Image 
+                    src={user.bannerUrl}
+                    alt={`${user.displayName}'s shop background`}
+                    fill
+                    className="object-cover"
+                    data-ai-hint="custom banner"
+                />
+            ) : (
+                <GlowingPixelGrid />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-transparent" />
         </div>
         <CardContent className="relative p-4 pt-0 -mt-10 flex-grow flex flex-col">
