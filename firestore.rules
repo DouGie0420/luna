@@ -78,12 +78,14 @@ service cloud.firestore {
     // --- 内容管理 (社区, 广告, 问题) ---
     // 你的定义：staff 有权限，support 无权限
     match /bbs/{postId} {
-      allow read, list: if true;
+      allow get: if true;
+      allow list: if resource.data.status == 'active';
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }
     match /products/{productId} {
-      allow read, list: if true;
+      allow get: if true;
+      allow list: if resource.data.status == 'active';
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
     }
