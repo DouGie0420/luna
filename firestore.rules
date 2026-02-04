@@ -69,7 +69,7 @@ service cloud.firestore {
     // --- 内容管理 (社区, 广告, 问题) ---
     match /bbs/{postId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active' || (request.auth != null);
+      allow list: if true; // Temporarily opened for debugging index issues
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
        match /comments/{commentId} {
@@ -80,7 +80,7 @@ service cloud.firestore {
     }
     match /products/{productId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active' || (request.auth != null);
+      allow list: if true; // Temporarily opened for debugging index issues
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
        match /comments/{commentId} {
