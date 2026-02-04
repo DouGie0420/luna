@@ -31,7 +31,7 @@ service cloud.firestore {
 
     // --- 用户集合 (users) ---
     match /users/{userId} {
-      allow read, list: if true;
+      allow read: if true;
       allow delete: if isSignedIn() && (
         request.auth.uid == userId || hasRole(['admin', 'ghost'])
       );
@@ -51,16 +51,17 @@ service cloud.firestore {
       }
 
       match /addresses/{addressId} {
-        allow read, list, write, delete: if isSignedIn() && request.auth.uid == userId;
+        allow read, list: if request.auth != null && request.auth.uid == userId;
+        allow write, delete: if request.auth != null && request.auth.uid == userId;
       }
     }
 
     // --- 其他后台管理模块 (KYC, 收款, 工单) ---
     match /paymentChangeRequests/{reqId} {
-      allow list, get, create, update, delete: if isAdminGroup();
+      allow read, list, create, update, delete: if isAdminGroup();
     }
     match /supportTickets/{ticketId} {
-      allow list, get, create, update, delete: if isAdminGroup();
+      allow read, list, create, update, delete: if isAdminGroup();
     }
 
     // --- 内容管理 (社区, 广告, 问题) ---
