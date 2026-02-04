@@ -33,6 +33,9 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className, s
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Fix: Add guard clause to prevent error if seed is not yet available.
+    if (!seed) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -49,12 +52,14 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className, s
         canvas.width = parent.offsetWidth;
         canvas.height = parent.offsetHeight;
 
-        // A small color palette that fits the theme
+        // New: Expanded, colorful palette for a vibrant cyberpunk feel.
         const colors = [
-            'hsl(var(--primary) / 0.6)',
-            'hsl(var(--secondary) / 0.7)',
-            'hsl(var(--accent) / 0.5)',
-            'hsl(var(--foreground) / 0.4)',
+            'hsl(var(--primary) / 0.8)', // Bright Pink
+            'hsl(180 100% 50% / 0.7)',    // Cyan
+            'hsl(84 78% 55% / 0.8)',     // Lime Green
+            'hsl(50 100% 60% / 0.7)',    // Bright Yellow
+            'hsl(var(--foreground) / 0.5)',
+            'hsl(var(--accent))',
         ];
 
         // Use the seed to create a deterministic random generator
