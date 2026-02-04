@@ -7,7 +7,7 @@ import { BbsPostCard } from '@/components/bbs-post-card';
 import { Button } from '@/components/ui/button';
 import type { BbsPost } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { Plus, Flame, Sparkles, Star, MapPin } from 'lucide-react';
+import { Plus, Flame, Sparkles, Star, MapPin, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { X } from 'lucide-react';
@@ -15,28 +15,10 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useCollection } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import { getBbsPosts } from '@/lib/data';
+import { useUser, useFirestore } from '@/firebase';
+import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 
-
-function haversineDistance(
-  coords1: { lat: number; lng: number },
-  coords2: { lat: number; lng: number }
-): number {
-  const R = 6371; // Radius of the Earth in km
-  const dLat = ((coords2.lat - coords1.lat) * Math.PI) / 180;
-  const dLon = ((coords2.lng - coords1.lng) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((coords1.lat * Math.PI) / 180) *
-      Math.cos((coords2.lat * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
+const PAGE_SIZE = 100;
 
 function BbsPageSkeleton() {
     return (
@@ -74,32 +56,49 @@ export default function BbsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    const postsQuery = useMemo(() => 
-        firestore 
-        ? query(
-            collection(firestore, 'bbs'), 
-            where('status', '==', 'active')
-          ) 
-        : null, 
-    [firestore]);
-
-    const { data: posts, loading } = useCollection<BbsPost>(postsQuery);
-    const [mockPosts, setMockPosts] = useState<BbsPost[]>([]);
+    const [posts, setPosts] = useState<BbsPost[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'featured' | 'nearest'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+    
+    const fetchPosts = async (loadMore = false) => {
+        if (!firestore) return;
+        if (loadMore) setLoadingMore(true);
+        else setLoading(true);
+
+        const constraints = [where('status', '==', 'active'), limit(PAGE_SIZE)];
+        if (loadMore && lastVisible) {
+            constraints.push(startAfter(lastVisible));
+        }
+
+        const q = query(collection(firestore, 'bbs'), ...constraints);
+
+        try {
+            const documentSnapshots = await getDocs(q);
+            const newPosts = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }) as BbsPost);
+
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
+            setPosts(prev => loadMore ? [...prev, ...newPosts] : newPosts);
+            setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+        } catch (error) {
+            console.error("Error fetching posts:", error);
+            toast({ variant: 'destructive', title: 'Failed to fetch posts.' });
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchMocks = async () => {
-            if (!posts || posts.length === 0) {
-                const allMockPosts = await getBbsPosts();
-                setMockPosts(allMockPosts);
-            }
-        };
-        fetchMocks();
-    }, [posts]);
+        fetchPosts();
+    }, [firestore]);
+
 
     const handleNearestFilter = () => {
         setActiveFilter('nearest');
@@ -134,8 +133,7 @@ export default function BbsPage() {
 
 
     const filteredAndSortedPosts = useMemo(() => {
-        const sourcePosts = (posts && posts.length > 0) ? posts : mockPosts;
-        let processedPosts = sourcePosts ? [...sourcePosts] : [];
+        let processedPosts = posts ? [...posts] : [];
 
         // 1. Filter by search term
         if (debouncedSearchTerm) {
@@ -173,10 +171,20 @@ export default function BbsPage() {
 
         return processedPosts;
 
-    }, [debouncedSearchTerm, activeFilter, posts, mockPosts, userLocation]);
+    }, [debouncedSearchTerm, activeFilter, posts, userLocation]);
 
     if (loading) {
         return <BbsPageSkeleton />;
+    }
+
+    // Helper for Haversine distance
+    function haversineDistance(coords1: { lat: number; lng: number }, coords2: { lat: number; lng: number }): number {
+        const R = 6371; // Earth radius in km
+        const dLat = (coords2.lat - coords1.lat) * (Math.PI / 180);
+        const dLon = (coords2.lng - coords1.lng) * (Math.PI / 180);
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(coords1.lat * (Math.PI / 180)) * Math.cos(coords2.lat * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     return (
@@ -244,6 +252,15 @@ export default function BbsPage() {
                         <BbsPostCard key={post.id} post={post} />
                     ))}
                 </div>
+
+                {hasMore && (
+                    <div className="mt-12 text-center">
+                        <Button onClick={() => fetchPosts(true)} disabled={loadingMore}>
+                            {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Load More
+                        </Button>
+                    </div>
+                )}
             </div>
         </>
     )

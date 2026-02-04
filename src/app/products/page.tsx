@@ -7,15 +7,17 @@ import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
 import type { Product } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { Plus, Flame, Sparkles, Star, Search as SearchIcon } from 'lucide-react';
+import { Plus, Flame, Sparkles, Star, Search as SearchIcon, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import Link from 'next/link';
-import { useCollection, useFirestore } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
-import { getProducts } from '@/lib/data';
+import { useFirestore } from '@/firebase';
+import { collection, query, where, getDocs, orderBy, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+
+const PAGE_SIZE = 100;
 
 function ProductsPageSkeleton() {
     return (
@@ -50,36 +52,53 @@ function ProductsPageSkeleton() {
 export default function AllProductsPage() {
     const { t } = useTranslation();
     const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'popular'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
+    
+    const fetchProducts = async (loadMore = false) => {
+        if (!firestore) return;
+        if (loadMore) setLoadingMore(true);
+        else setLoading(true);
 
-    const productsQuery = useMemo(() => {
-        if (!firestore) return null;
-        return query(
-            collection(firestore, 'products'), 
-            where('status', '==', 'active')
-        );
+        const constraints = [where('status', '==', 'active'), limit(PAGE_SIZE)];
+        if (loadMore && lastVisible) {
+            constraints.push(startAfter(lastVisible));
+        }
+
+        const q = query(collection(firestore, 'products'), ...constraints);
+
+        try {
+            const documentSnapshots = await getDocs(q);
+            const newProducts = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Product);
+            
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length-1]);
+            setProducts(prev => loadMore ? [...prev, ...newProducts] : newProducts);
+            setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+
+        } catch (error) {
+            console.error("Error fetching products:", error);
+            toast({ variant: 'destructive', title: 'Failed to fetch products.' });
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
+    
+    useEffect(() => {
+        fetchProducts();
     }, [firestore]);
 
-    const { data: products, loading } = useCollection<Product>(productsQuery);
-    const [mockProducts, setMockProducts] = useState<Product[]>([]);
-
-    useEffect(() => {
-        const fetchMocks = async () => {
-            if (!products || products.length === 0) {
-                const allMockProducts = await getProducts();
-                setMockProducts(allMockProducts);
-            }
-        };
-        fetchMocks();
-    }, [products]);
-
-
     const filteredAndSortedProducts = useMemo(() => {
-        const sourceProducts = (products && products.length > 0) ? products : mockProducts;
-        let processedProducts = sourceProducts ? [...sourceProducts] : [];
+        let processedProducts = products ? [...products] : [];
 
         if (debouncedSearchTerm) {
             processedProducts = processedProducts.filter(product => {
@@ -107,7 +126,7 @@ export default function AllProductsPage() {
 
         return processedProducts;
 
-    }, [debouncedSearchTerm, activeFilter, products, mockProducts]);
+    }, [debouncedSearchTerm, activeFilter, products]);
 
     if (loading) {
         return (
@@ -174,6 +193,15 @@ export default function AllProductsPage() {
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
+                
+                {hasMore && (
+                    <div className="mt-12 text-center">
+                        <Button onClick={() => fetchProducts(true)} disabled={loadingMore}>
+                            {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Load More
+                        </Button>
+                    </div>
+                )}
             </div>
         </>
     );

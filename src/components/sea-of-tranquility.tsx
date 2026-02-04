@@ -258,6 +258,9 @@ SmallPostCard.displayName = 'SmallPostCard';
 export function SeaOfTranquility() {
     const { t } = useTranslation();
     const firestore = useFirestore();
+    const { user } = useUser();
+    const { toast } = useToast();
+    
     const postsQuery = useMemo(() => 
         firestore 
         ? query(collection(firestore, 'bbs'), where('status', '==', 'active'), orderBy('createdAt', 'desc'), limit(7)) 
@@ -265,6 +268,17 @@ export function SeaOfTranquility() {
     [firestore]);
 
     const { data: posts, loading: isLoading } = useCollection<BbsPost>(postsQuery);
+
+    const handleGuestClick = (e: React.MouseEvent) => {
+        if (!user) {
+            e.preventDefault();
+            toast({
+                title: '需要认证',
+                description: '请先登录或注册以访问更多内容。',
+                variant: 'destructive'
+            });
+        }
+    }
 
     const featuredPosts = posts?.slice(0, 2) || [];
     const otherPosts = posts?.slice(2, 7) || [];
@@ -312,7 +326,7 @@ export function SeaOfTranquility() {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-headline text-3xl font-semibold">{t('seaOfTranquility.title')}</h2>
                 <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground font-bold">
-                    <Link href="/bbs">
+                    <Link href="/bbs" onClick={handleGuestClick}>
                         {t('seaOfTranquility.enter')} <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                 </Button>

@@ -42,9 +42,26 @@ export default function AdminUsersPage() {
     const { t } = useTranslation();
     const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
     const { data: users, loading } = useCollection<UserProfile>(usersQuery);
+    const { toast } = useToast();
 
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [verifyingId, setVerifyingId] = useState<string | null>(null);
+
+    const handleVerificationToggle = async (userToUpdate: UserProfile) => {
+        if (!firestore || verifyingId) return;
+        setVerifyingId(userToUpdate.uid);
+        const userRef = doc(firestore, 'users', userToUpdate.uid);
+        try {
+            await updateDoc(userRef, { emailVerified: !userToUpdate.emailVerified });
+            toast({ title: 'Verification status updated' });
+        } catch (error) {
+            console.error("Failed to toggle verification:", error);
+            toast({ variant: 'destructive', title: 'Update Failed' });
+        } finally {
+            setVerifyingId(null);
+        }
+    };
 
     const filteredUsers = useMemo(() => {
         if (!users) return [];
@@ -138,7 +155,7 @@ export default function AdminUsersPage() {
                                                                 <AlertCircle className="h-3 w-3 text-red-500" />
                                                               </TooltipTrigger>
                                                               <TooltipContent>
-                                                                <p>旧格式ID，建议清理</p>
+                                                                <p>旧格式ID，建议清理为纯数字</p>
                                                               </TooltipContent>
                                                             </Tooltip>
                                                           </TooltipProvider>
@@ -149,9 +166,14 @@ export default function AdminUsersPage() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="font-medium">{user.email}</div>
-                                             <Badge variant={user.emailVerified ? 'default' : 'destructive'} className={cn(user.emailVerified ? "border-green-500/50 bg-green-500/20 text-green-300" : "border-red-500/50 bg-red-500/20 text-red-300")}>
-                                                {user.emailVerified ? 'Verified' : 'Not Verified'}
-                                            </Badge>
+                                             <Button
+                                                variant={user.emailVerified ? 'default' : 'destructive'}
+                                                className={cn('h-auto py-0.5 px-2 text-xs', user.emailVerified ? "border-green-500/50 bg-green-500/20 text-green-300 hover:bg-green-500/30" : "border-red-500/50 bg-red-500/20 text-red-300 hover:bg-red-500/30")}
+                                                onClick={(e) => { e.stopPropagation(); handleVerificationToggle(user); }}
+                                                disabled={verifyingId === user.uid}
+                                            >
+                                                {verifyingId === user.uid ? <Loader2 className="h-3 w-3 animate-spin" /> : (user.emailVerified ? 'Verified' : 'Not Verified')}
+                                            </Button>
                                         </TableCell>
                                         <TableCell>
                                             <Badge variant={
