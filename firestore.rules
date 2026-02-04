@@ -31,20 +31,9 @@ service cloud.firestore {
 
     // --- 用户集合 (users) ---
     match /users/{userId} {
-      allow list: if true;
       allow read: if true;
-      allow delete: if isSignedIn() && (
+      allow write: if request.auth != null && (
         request.auth.uid == userId || hasRole(['admin', 'ghost'])
-      );
-      allow update: if isSignedIn() && (
-        hasRole(['admin', 'ghost']) ||
-        (
-          !('role' in request.resource.data && request.resource.data.role != resource.data.role) &&
-          !('kycStatus' in request.resource.data && request.resource.data.kycStatus != resource.data.kycStatus) &&
-          !('isPro' in request.resource.data && request.resource.data.isPro != resource.data.isPro) &&
-          !('creditScore' in request.resource.data && request.resource.data.creditScore != resource.data.creditScore) &&
-          !('creditLevel' in request.resource.data && request.resource.data.creditLevel != resource.data.creditLevel)
-        )
       );
 
       match /notifications/{docId} {
@@ -58,14 +47,21 @@ service cloud.firestore {
     
     // --- Chat Systems ---
     match /direct_chats/{chatId} {
-      allow get, create: if request.auth != null && request.auth.uid in request.resource.data.participants;
-      allow list: if request.auth != null && request.auth.uid in resource.data.participants;
-      allow update: if request.auth != null && request.auth.uid in resource.data.participants;
+      // Allow read (get, list) if the user is a participant.
+      // The `list` operation is implicitly secured here because the frontend query
+      // MUST filter by `participants`, otherwise the read on some docs would fail, causing the entire query to fail.
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      
+      // Allow creating a chat if the user is one of the participants.
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      
+      // Allow updating chat metadata (e.g., last message) if user is a participant.
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
 
       match /messages/{messageId} {
-        allow read, list: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants;
+        allow read, list: if isSignedIn() && get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants.hasAny([request.auth.uid]);
         
-        allow create: if request.auth != null && request.auth.uid == request.resource.data.senderId && (
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId && (
             // User must be a participant to send a message
             request.auth.uid in get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants &&
             (
@@ -89,9 +85,9 @@ service cloud.firestore {
     }
 
     match /support_tickets/{ticketId} {
+      allow list: if hasRole(['admin', 'ghost', 'staff', 'support']);
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
       allow read, update: if isSignedIn() && (request.auth.uid == resource.data.userId || hasRole(['admin', 'ghost', 'staff', 'support']));
-      allow list: if hasRole(['admin', 'ghost', 'staff', 'support']);
 
       match /messages/{messageId} {
         allow read, list: if isSignedIn() && (get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
