@@ -9,9 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2 } from "lucide-react";
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
-import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -31,11 +31,25 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         );
     }, [firestore, chat.id]);
 
-    const { data: messages, loading } = useCollection<ChatMessage>(messagesQuery);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!messagesQuery) return;
+        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
+            setMessages(msgs);
+            setLoading(false);
+        }, (error) => {
+            console.error("Failed to listen to messages:", error);
+            setLoading(false);
+        });
+        return () => unsubscribe();
+    }, [messagesQuery]);
     
     useEffect(() => {
         if (scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight });
+            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }
     }, [messages]);
 
@@ -45,7 +59,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         setIsSending(true);
 
         const batch = writeBatch(firestore);
-
         const messagesRef = collection(firestore, 'direct_chats', chat.id, 'messages');
         const newMessageDocRef = doc(messagesRef);
         
@@ -63,23 +76,23 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             lastMessageTimestamp: serverTimestamp(),
         };
 
-        if (!chat.hasReplied) {
+        const otherParticipantId = chat.participants.find(p => p !== user?.uid);
+        if(otherParticipantId) {
+             chatUpdatePayload[`unreadCount.${otherParticipantId}`] = increment(1);
+        }
+        
+        if (!chat.isFriendMode && !chat.hasReplied) {
             if (user.uid === chat.initiatorId) {
-                // This check is primarily enforced by rules, but good to have on client too.
-                if (chat.initialMessageCount < 5) {
+                if ((chat.initialMessageCount || 0) < 5) {
                     chatUpdatePayload.initialMessageCount = increment(1);
                 } else {
+                    console.warn("Message limit reached.");
                     setIsSending(false);
                     return; 
                 }
             } else {
                 chatUpdatePayload.hasReplied = true;
             }
-        }
-        
-        const otherParticipantId = chat.participants.find(p => p !== user?.uid);
-        if (otherParticipantId) {
-             chatUpdatePayload[`unreadCount.${otherParticipantId}`] = increment(1);
         }
 
         batch.update(chatRef, chatUpdatePayload);
@@ -100,7 +113,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const otherParticipantId = chat.participants.find(p => p !== user?.uid);
     const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
 
-    const canSend = chat.hasReplied || (user?.uid === chat.initiatorId && chat.initialMessageCount < 5) || (user?.uid !== chat.initiatorId) || chat.isFriendMode;
+    const canSend = chat.isFriendMode || chat.hasReplied || (user?.uid === chat.initiatorId && (chat.initialMessageCount || 0) < 5) || (user?.uid !== chat.initiatorId);
 
     return (
         <>
@@ -118,7 +131,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             <CardContent className="flex-grow p-6 flex flex-col">
                 <ScrollArea className="flex-grow" viewportRef={scrollAreaRef}>
                     <div className="space-y-4">
-                        {messages?.map(msg => (
+                        {loading ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
                             <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                 {msg.senderId !== user?.uid && otherParticipantProfile && (
                                     <Avatar className="h-8 w-8">
@@ -137,7 +150,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             <div className="p-4 border-t">
                 <div className="relative">
                     <Input 
-                        placeholder={canSend ? "Type a message..." : "Wait for the user to reply..."}
+                        placeholder={canSend ? "输入消息..." : "等待对方回复..."}
                         className="pr-12"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -184,6 +197,7 @@ export default function MessagesPage() {
 
     const constraints = [
         where('participants', 'array-contains', user.uid),
+        orderBy('lastMessageTimestamp', 'desc'),
         limit(CHATS_PAGE_SIZE)
     ];
 
@@ -200,21 +214,12 @@ export default function MessagesPage() {
         setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
         setHasMore(newChats.length === CHATS_PAGE_SIZE);
 
-        if (loadMore) {
-            setChats(prev => {
-                const combined = [...prev, ...newChats];
-                // Sort client-side
-                combined.sort((a, b) => (b.lastMessageTimestamp?.toDate().getTime() || 0) - (a.lastMessageTimestamp?.toDate().getTime() || 0));
-                return combined;
-            });
-        } else {
-            // Sort client-side
-            newChats.sort((a, b) => (b.lastMessageTimestamp?.toDate().getTime() || 0) - (a.lastMessageTimestamp?.toDate().getTime() || 0));
-            setChats(newChats);
-            if (!initialChatId && newChats.length > 0) {
-                setSelectedChatId(newChats[0].id);
-            }
+        setChats(prev => loadMore ? [...prev, ...newChats] : newChats);
+        
+        if (!loadMore && !initialChatId && newChats.length > 0) {
+            setSelectedChatId(newChats[0].id);
         }
+
     } catch (e: any) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'direct_chats',
@@ -230,7 +235,7 @@ export default function MessagesPage() {
     if (user && firestore) {
       fetchChats(false);
     }
-  }, [user, firestore, fetchChats]);
+  }, [user, firestore]);
 
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
@@ -243,7 +248,7 @@ export default function MessagesPage() {
         <div className="h-[calc(100vh-200px)] grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <Card className="flex flex-col">
                 <CardHeader>
-                    <CardTitle>Chats</CardTitle>
+                    <CardTitle>私信</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 flex-grow">
                     <ScrollArea className="h-full">
@@ -282,13 +287,13 @@ export default function MessagesPage() {
                                         onClick={() => fetchChats(true)}
                                         disabled={loadingMore}
                                     >
-                                        {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load More"}
+                                        {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : "加载更多"}
                                     </Button>
                                 </div>
                             )}
                            </>
                         ) : (
-                          <p className="p-4 text-center text-muted-foreground">No conversations yet.</p>
+                          <p className="p-4 text-center text-muted-foreground">还没有对话。</p>
                         )}
                     </ScrollArea>
                 </CardContent>
@@ -299,7 +304,7 @@ export default function MessagesPage() {
                   <ChatInterface chat={selectedChat} />
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : <p className="text-muted-foreground">Select a conversation to start chatting</p>}
+                    {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : <p className="text-muted-foreground">选择一个对话开始聊天</p>}
                   </div>
                 )}
             </Card>
