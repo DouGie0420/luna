@@ -609,10 +609,10 @@ export default function AccountProfilePage() {
                                 <Label htmlFor="featured-product-select">选择精选商品</Label>
                                 {productsLoading ? <Skeleton className="h-10 w-full" /> : (
                                     <Select 
-                                        value={profile.featuredProductId || ''}
+                                        value={profile.featuredProductId || 'none'}
                                         onValueChange={async (value) => {
                                             if (!firestore || !user) return;
-                                            const newFeaturedId = value === '' ? null : value;
+                                            const newFeaturedId = value === 'none' ? null : value;
                                             await updateUserProfile(firestore, user.uid, { featuredProductId: newFeaturedId });
                                             toast({ title: "精选商品已更新" });
                                         }}
@@ -621,7 +621,7 @@ export default function AccountProfilePage() {
                                             <SelectValue placeholder="选择一件商品来展示" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">无 (不展示)</SelectItem>
+                                            <SelectItem value="none">无 (不展示)</SelectItem>
                                             {userProducts.map(product => (
                                                 <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
                                             ))}
