@@ -40,16 +40,20 @@ export default function AllMerchantsPage() {
             setLoading(true);
         }
 
-        const constraints = [where('isPro', '==', true), orderBy('lastLogin', 'desc'), limit(PAGE_SIZE)];
+        const constraints = [where('isPro', '==', true), limit(PAGE_SIZE)];
          if (loadMore && lastVisible) {
             constraints.push(startAfter(lastVisible));
         }
         
+        // The orderBy was removed from the query to avoid needing a composite index.
         const q = query(collection(firestore, 'users'), ...constraints);
 
         try {
             const documentSnapshots = await getDocs(q);
-            const newMerchants = documentSnapshots.docs.map(doc => doc.data() as UserProfile);
+            let newMerchants = documentSnapshots.docs.map(doc => doc.data() as UserProfile);
+            
+            // Sort on the client side instead.
+            newMerchants.sort((a, b) => (b.lastLogin?.toDate().getTime() || 0) - (a.lastLogin?.toDate().getTime() || 0));
             
             setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
             setMerchants(prev => loadMore ? [...prev, ...newMerchants] : newMerchants);
@@ -81,7 +85,7 @@ export default function AllMerchantsPage() {
                     </div>
                 )}
                 
-                {hasMore && (
+                {hasMore && !loading && (
                     <div className="mt-12 text-center">
                         <Button onClick={() => fetchMerchants(true)} disabled={loadingMore}>
                             {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
