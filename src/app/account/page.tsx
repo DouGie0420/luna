@@ -132,6 +132,16 @@ export default function AccountProfilePage() {
     const handleSetLoginId = async () => {
         if (!firestore || !user || !newLoginId.trim()) return;
 
+        const RESERVED_IDS = ['admin', 'staff', 'pay', 'root', 'luna'];
+        if (RESERVED_IDS.includes(newLoginId.trim().toLowerCase())) {
+            toast({
+                variant: "destructive",
+                title: 'ID不可用',
+                description: '此专属ID为系统保留，请选择其他ID。',
+            });
+            return;
+        }
+        
         if (!/^\d{3,}$/.test(newLoginId)) {
             toast({
                 variant: "destructive",
@@ -363,21 +373,19 @@ export default function AccountProfilePage() {
                         </div>
                         
                         {profile && user && profile.loginId === user.uid ? (
-                            <div className="grid gap-2 p-4 border border-primary/50 rounded-lg bg-primary/5">
-                                <Label htmlFor="loginId">设置您的专属ID (仅一次机会)</Label>
-                                <p className="text-xs text-muted-foreground">这将是您的专属主页地址，例如 /@123。设置后不可更改。</p>
-                                <div className="flex items-center gap-2">
-                                    <Input 
-                                        id="loginId"
-                                        placeholder="请输入3位或更长的纯数字"
-                                        value={newLoginId}
-                                        onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
-                                        disabled={isSavingId}
-                                    />
-                                    <Button type="button" onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
-                                        {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        保存ID
-                                    </Button>
+                             <div className="border-2 border-dashed border-primary/50 p-4 rounded-lg bg-primary/5">
+                                <p className="text-sm text-primary mb-2 italic">检测到您尚未激活专属赛博域名</p>
+                                <div className="flex gap-2">
+                                <Input 
+                                    placeholder="输入3位以上数字..." 
+                                    value={newLoginId}
+                                    onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
+                                    disabled={isSavingId}
+                                />
+                                <Button onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
+                                    {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    立即激活
+                                </Button>
                                 </div>
                             </div>
                         ) : (

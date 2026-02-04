@@ -260,7 +260,7 @@ export function SeaOfTranquility() {
     const firestore = useFirestore();
     const postsQuery = useMemo(() => 
         firestore 
-        ? query(collection(firestore, 'bbs'), orderBy('createdAt', 'desc'), limit(7)) 
+        ? query(collection(firestore, 'bbs'), where('status', '==', 'active'), orderBy('createdAt', 'desc'), limit(7)) 
         : null, 
     [firestore]);
 

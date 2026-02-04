@@ -91,6 +91,12 @@ export default function RegisterPage() {
       toast({ variant: 'destructive', title: 'Invalid Login ID', description: '专属ID必须是3位或更长的纯数字。' });
       return;
     }
+    
+    const RESERVED_IDS = ['admin', 'staff', 'pay', 'root', 'luna'];
+    if (RESERVED_IDS.includes(loginId.toLowerCase())) {
+        toast({ variant: 'destructive', title: 'Invalid Login ID', description: 'This ID is reserved for system use.' });
+        return;
+    }
 
 
     setIsLoading(true);
