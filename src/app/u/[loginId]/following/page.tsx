@@ -12,8 +12,11 @@ import type { UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { Plus, Check } from 'lucide-react';
 import Link from 'next/link';
-import { useFirestore } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, getDocs, doc, writeBatch, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 function UserListPageSkeleton() {
@@ -41,12 +44,26 @@ export default function UserFollowingPage() {
     const { t } = useTranslation();
     const loginId = params.loginId as string;
     const firestore = useFirestore();
+    const { user: currentUser, profile: currentUserProfile } = useUser();
+    const { toast } = useToast();
     
     const [user, setUser] = useState<UserProfile | null>(null);
     const [following, setFollowing] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [followingStatus, setFollowingStatus] = useState<Record<string, boolean>>({});
+
+     useEffect(() => {
+        if (currentUserProfile) {
+            const initialStatus: Record<string, boolean> = {};
+            following.forEach(f => {
+                if (currentUserProfile.following?.includes(f.uid)) {
+                    initialStatus[f.uid] = true;
+                }
+            });
+            setFollowingStatus(initialStatus);
+        }
+    }, [currentUserProfile, following]);
 
     useEffect(() => {
         if (!firestore || !loginId) return;
@@ -71,12 +88,6 @@ export default function UserFollowingPage() {
                 const followingSnapshot = await getDocs(followingQuery);
                 const followingData = followingSnapshot.docs.map(doc => doc.data() as UserProfile);
                 setFollowing(followingData);
-
-                const initialStatus: Record<string, boolean> = {};
-                followingData.forEach(u => {
-                    initialStatus[u.uid] = true;
-                });
-                setFollowingStatus(initialStatus);
             } else {
                 setFollowing([]);
             }
@@ -85,9 +96,42 @@ export default function UserFollowingPage() {
         fetchData();
     }, [firestore, loginId]);
     
-    const toggleFollow = (id: string) => {
-        setFollowingStatus(prev => ({...prev, [id]: !prev[id]}));
-    }
+    const toggleFollow = async (targetUserId: string) => {
+        if (!currentUser || !currentUserProfile || !firestore) {
+            toast({ variant: 'destructive', title: t('common.loginToInteract') });
+            return;
+        }
+
+        const isCurrentlyFollowing = followingStatus[targetUserId];
+        const newFollowingState = !isCurrentlyFollowing;
+
+        setFollowingStatus(prev => ({ ...prev, [targetUserId]: newFollowingState }));
+
+        const currentUserRef = doc(firestore, 'users', currentUser.uid);
+        const targetUserRef = doc(firestore, 'users', targetUserId);
+        
+        const batch = writeBatch(firestore);
+
+        try {
+            batch.update(currentUserRef, {
+                following: newFollowingState ? arrayUnion(targetUserId) : arrayRemove(targetUserId),
+                followingCount: increment(newFollowingState ? 1 : -1)
+            });
+            batch.update(targetUserRef, {
+                followers: newFollowingState ? arrayUnion(currentUser.uid) : arrayRemove(currentUser.uid),
+                followersCount: increment(newFollowingState ? 1 : -1)
+            });
+            
+            await batch.commit();
+
+        } catch (error) {
+            setFollowingStatus(prev => ({ ...prev, [targetUserId]: isCurrentlyFollowing })); // Revert optimistic update on error
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: `users/${targetUserId} or users/${currentUser.uid}`,
+                operation: 'update',
+            }));
+        }
+    };
 
 
     if (loading) {
@@ -124,7 +168,7 @@ export default function UserFollowingPage() {
                 {following.length > 0 ? (
                 <div className="divide-y">
                     {following.map((followedUser) => (
-                    <div key={followedUser.uid} className="flex items-center gap-4 p-4">
+                    <div key={followedUser.uid} className="flex items-center gap-4 p-4 hover:bg-accent transition-colors">
                         <Link href={`/@${followedUser.loginId}`} className="flex items-center gap-4 flex-1">
                             <Avatar className="h-12 w-12">
                                 <AvatarImage src={followedUser.photoURL} alt={followedUser.displayName} />
@@ -132,16 +176,18 @@ export default function UserFollowingPage() {
                             </Avatar>
                             <p className="font-semibold hover:underline">{followedUser.displayName}</p>
                         </Link>
-                        <Button 
-                            variant={followingStatus[followedUser.uid] ? 'outline' : 'default'}
-                            onClick={() => toggleFollow(followedUser.uid)}
-                        >
-                            {followingStatus[followedUser.uid] ? (
-                                <><Check className="mr-2 h-4 w-4" /> {t('userProfile.following')}</>
-                            ) : (
-                                <><Plus className="mr-2 h-4 w-4" /> {t('userProfile.follow')}</>
-                            )}
-                        </Button>
+                         {currentUser?.uid !== followedUser.uid && (
+                            <Button 
+                                variant={followingStatus[followedUser.uid] ? 'outline' : 'default'}
+                                onClick={() => toggleFollow(followedUser.uid)}
+                            >
+                                {followingStatus[followedUser.uid] ? (
+                                    <><Check className="mr-2 h-4 w-4" /> {t('userProfile.following')}</>
+                                ) : (
+                                    <><Plus className="mr-2 h-4 w-4" /> {t('userProfile.follow')}</>
+                                )}
+                            </Button>
+                        )}
                     </div>
                     ))}
                 </div>

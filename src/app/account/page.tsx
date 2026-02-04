@@ -678,20 +678,24 @@ export default function AccountProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                             <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <ShoppingBag className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                    <p className="font-bold">{profile?.onSaleCount || 0}</p>
+                             <Link href="/account/listings" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <ShoppingBag className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                        <p className="font-bold">{profile?.onSaleCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <ShoppingCart className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
-                                    <p className="font-bold">{profile?.purchasesCount || 0}</p>
+                             </Link>
+                            <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <ShoppingCart className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
+                                        <p className="font-bold">{profile?.purchasesCount || 0}</p>
+                                    </div>
                                 </div>
-                            </div>
+                             </Link>
                             <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
