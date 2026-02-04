@@ -15,6 +15,7 @@ import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeB
 import { formatDistanceToNow } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useToast } from '@/hooks/use-toast';
 
 function ChatInterface({ chat }: { chat: DirectChat }) {
     const { user, profile } = useUser();
@@ -235,7 +236,7 @@ export default function MessagesPage() {
     if (user && firestore) {
       fetchChats(false);
     }
-  }, [user, firestore]);
+  }, [user, firestore, fetchChats]);
 
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
