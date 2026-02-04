@@ -15,24 +15,19 @@ service cloud.firestore {
       return isSignedIn() && getRole() in roles;
     }
 
-    // 判断是否属于你的四级管理组
     function isAdminGroup() {
       return hasRole(['admin', 'ghost', 'staff', 'support']);
     }
 
-    // --- 订单集合 (orders) 修复逻辑 ---
+    // --- 订单集合 (orders) ---
     match /orders/{orderId} {
       
-      // 1. 列表查询 (list)：必须与前端 array-contains 查询完全对应
-      // 解决了“我买到的”页面报错
       allow list: if isSignedIn() && (request.auth.uid in resource.data.participants);
       
-      // 2. 单文档读取 (get)：允许参与者或管理组查看
       allow get: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
 
-      // 3. 写入权限
       allow create: if isSignedIn();
       allow update, delete: if isAdminGroup();
     }
@@ -45,13 +40,9 @@ service cloud.firestore {
         request.auth.uid == userId || hasRole(['admin', 'ghost'])
       );
 
-      // New, more flexible update rule
       allow update: if isSignedIn() && (
-        // Admins and ghosts have broad update powers
         hasRole(['admin', 'ghost']) ||
-        // All other users can update, BUT...
         (
-          // ...they cannot change these protected fields on any document.
           !('role' in request.resource.data && request.resource.data.role != resource.data.role) &&
           !('kycStatus' in request.resource.data && request.resource.data.kycStatus != resource.data.kycStatus) &&
           !('isPro' in request.resource.data && request.resource.data.isPro != resource.data.isPro) &&
@@ -60,8 +51,9 @@ service cloud.firestore {
         )
       );
 
-      match /notifications/{notifId} {
-        allow read, list, write: if isSignedIn() && request.auth.uid == userId;
+      match /notifications/{docId} {
+        allow read, list: if request.auth != null && request.auth.uid == userId;
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
 
       match /addresses/{addressId} {
@@ -70,40 +62,36 @@ service cloud.firestore {
     }
 
     // --- 其他后台管理模块 (KYC, 收款, 工单) ---
-    // 你的定义：staff 和 support 拥有这些模块的全部权限
     match /kyc_applications/{appId} { allow read, write: if isAdminGroup(); }
     match /paymentChangeRequests/{reqId} { allow read, write: if isAdminGroup(); }
     match /supportTickets/{ticketId} { allow read, write: if isAdminGroup(); }
 
     // --- 内容管理 (社区, 广告, 问题) ---
-    // 你的定义：staff 有权限，support 无权限
     match /bbs/{postId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active';
+      allow list: if resource.data.status == 'active' || (request.auth != null);
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+       match /comments/{commentId} {
+          allow read, list: if true;
+          allow create: if isSignedIn();
+          allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+      }
     }
     match /products/{productId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active';
+      allow list: if resource.data.status == 'active' || (request.auth != null);
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+       match /comments/{commentId} {
+          allow read, list: if true;
+          allow create: if isSignedIn();
+          allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+      }
     }
     match /ads/{adId} {
       allow read: if true;
       allow write: if hasRole(['admin', 'ghost', 'staff']);
-    }
-
-    // --- 评论子集合规则 ---
-    match /bbs/{postId}/comments/{commentId} {
-        allow read, list: if true;
-        allow create: if isSignedIn();
-        allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
-    }
-     match /products/{productId}/comments/{commentId} {
-        allow read, list: if true;
-        allow create: if isSignedIn();
-        allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
     }
 
     // --- 默认兜底 ---
