@@ -3,23 +3,34 @@
 import React, { useRef, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
+// A simple pseudo-random number generator function to create deterministic patterns
+function mulberry32(seed: number) {
+    return function() {
+      var t = seed += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+// Function to create a simple hash from a string (like a user's UID)
+function simpleHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
 interface GlowingPixelGridProps {
   className?: string;
+  seed: string; // The user's UID to make the pattern unique
 }
 
-interface Star {
-  x: number;
-  y: number;
-  size: number;
-  opacity: number;
-  speed: number;
-}
-
-export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className }) => {
+export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className, seed }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationFrameId = useRef<number>();
-  const stars = useRef<Star[]>([]);
-  const foregroundColor = '226, 219, 230'; // Hardcoded from hsl(284 20% 90%)
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -28,69 +39,73 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className })
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    const resizeCanvas = () => {
-        const parent = canvas.parentElement;
-        if (!parent) return;
+    const parent = canvas.parentElement;
+    if(!parent) return;
+
+    const drawPattern = () => {
+        if (!ctx) return;
+        
+        // Ensure canvas dimensions are set before drawing
         canvas.width = parent.offsetWidth;
         canvas.height = parent.offsetHeight;
-        
-        stars.current = [];
-        const starCount = Math.floor(canvas.width * canvas.height / 2000); // Adjust density
 
-        for (let i = 0; i < starCount; i++) {
-          stars.current.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: Math.random() * 2 + 1, // Size between 1 and 3
-            opacity: Math.random(),
-            speed: Math.random() * 0.05 + 0.01,
-          });
+        // A small color palette that fits the theme
+        const colors = [
+            'hsl(var(--primary) / 0.6)',
+            'hsl(var(--secondary) / 0.7)',
+            'hsl(var(--accent) / 0.5)',
+            'hsl(var(--foreground) / 0.4)',
+        ];
+
+        // Use the seed to create a deterministic random generator
+        const seedHash = simpleHash(seed);
+        const random = mulberry32(seedHash);
+
+        const gridSize = 8; // Generate an 8x8 grid of "macro-pixels"
+        const cellWidth = Math.ceil(canvas.width / gridSize);
+        const cellHeight = Math.ceil(canvas.height / gridSize);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Ensure pixelated rendering
+        ctx.imageSmoothingEnabled = false;
+
+        for (let y = 0; y < gridSize; y++) {
+            // Loop to the middle for horizontal symmetry, a common pixel art technique
+            for (let x = 0; x < Math.ceil(gridSize / 2); x++) { 
+                // 50% chance to draw a pixel
+                if (random() > 0.5) { 
+                    const colorIndex = Math.floor(random() * colors.length);
+                    ctx.fillStyle = colors[colorIndex];
+                    
+                    // Draw original pixel
+                    ctx.fillRect(x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                    
+                    // Draw mirrored pixel on the other side
+                    const mirrorX = (gridSize - 1 - x) * cellWidth;
+                    ctx.fillRect(mirrorX, y * cellHeight, cellWidth, cellHeight);
+                }
+            }
         }
-    };
+    }
     
-    resizeCanvas();
-
-    const animate = () => {
-      if (!ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      stars.current.forEach(star => {
-        // Update opacity for twinkling effect
-        star.opacity += star.speed;
-        if (star.opacity > 1 || star.opacity < 0) {
-            star.speed *= -1;
-        }
-
-        ctx.fillStyle = `rgba(${foregroundColor}, ${star.opacity})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
-      });
-
-      animationFrameId.current = requestAnimationFrame(animate);
-    };
-
-    animationFrameId.current = requestAnimationFrame(animate);
-    
-    const parent = canvas.parentElement;
-    const resizeObserver = new ResizeObserver(resizeCanvas);
+    // Draw on mount and whenever the container resizes
+    const resizeObserver = new ResizeObserver(drawPattern);
     if (parent) {
       resizeObserver.observe(parent);
     }
 
     return () => {
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
       if (parent) {
         resizeObserver.unobserve(parent);
       }
     };
-  }, [foregroundColor]);
+  }, [seed]);
 
   return (
     <canvas
       ref={canvasRef}
       className={cn(
-        'absolute inset-0 w-full h-full pointer-events-none', // z-index will be handled by parent
+        'absolute inset-0 w-full h-full pointer-events-none',
         className
       )}
     />

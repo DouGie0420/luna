@@ -71,7 +71,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
                     data-ai-hint="custom banner"
                 />
             ) : (
-                <GlowingPixelGrid />
+                <GlowingPixelGrid seed={user.uid} />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-transparent" />
         </div>
