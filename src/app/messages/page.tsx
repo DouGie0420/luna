@@ -48,11 +48,14 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
         const messagesRef = collection(firestore, 'direct_chats', chat.id, 'messages');
         const newMessageDocRef = doc(messagesRef);
-        batch.set(newMessageDocRef, {
+        
+        const messagePayload = {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
-        });
+        };
+
+        batch.set(newMessageDocRef, messagePayload);
 
         const chatRef = doc(firestore, 'direct_chats', chat.id);
         const chatUpdatePayload: any = {
@@ -62,10 +65,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
         if (!chat.hasReplied) {
             if (user.uid === chat.initiatorId) {
+                // This check is primarily enforced by rules, but good to have on client too.
                 if (chat.initialMessageCount < 5) {
                     chatUpdatePayload.initialMessageCount = increment(1);
                 } else {
-                    // This should be blocked by rules, but as a safeguard:
                     setIsSending(false);
                     return; 
                 }
@@ -74,6 +77,11 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             }
         }
         
+        const otherParticipantId = chat.participants.find(p => p !== user?.uid);
+        if (otherParticipantId) {
+             chatUpdatePayload[`unreadCount.${otherParticipantId}`] = increment(1);
+        }
+
         batch.update(chatRef, chatUpdatePayload);
 
         try {
@@ -81,7 +89,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             setNewMessage('');
         } catch (e: any) {
              errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: messagesRef.path,
+                path: `A message in chat ${chat.id}`,
                 operation: 'create',
             }));
         } finally {
@@ -140,7 +148,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                         size="icon" 
                         className="absolute top-1/2 right-1 -translate-y-1/2 h-8 w-10"
                         onClick={handleSendMessage}
-                        disabled={isSending || !canSend}
+                        disabled={isSending || !canSend || !newMessage.trim()}
                     >
                         {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </Button>
@@ -174,18 +182,16 @@ export default function MessagesPage() {
     if (!loadMore) setLoading(true);
     else setLoadingMore(true);
 
-    let q;
     const constraints = [
         where('participants', 'array-contains', user.uid),
-        orderBy('lastMessageTimestamp', 'desc'),
         limit(CHATS_PAGE_SIZE)
     ];
 
     if (loadMore && lastVisible) {
-        q = query(collection(firestore, 'direct_chats'), ...constraints, startAfter(lastVisible));
-    } else {
-        q = query(collection(firestore, 'direct_chats'), ...constraints);
+        constraints.push(startAfter(lastVisible));
     }
+    
+    const q = query(collection(firestore, 'direct_chats'), ...constraints);
     
     try {
         const querySnapshot = await getDocs(q);
@@ -195,8 +201,15 @@ export default function MessagesPage() {
         setHasMore(newChats.length === CHATS_PAGE_SIZE);
 
         if (loadMore) {
-            setChats(prev => [...prev, ...newChats]);
+            setChats(prev => {
+                const combined = [...prev, ...newChats];
+                // Sort client-side
+                combined.sort((a, b) => (b.lastMessageTimestamp?.toDate().getTime() || 0) - (a.lastMessageTimestamp?.toDate().getTime() || 0));
+                return combined;
+            });
         } else {
+            // Sort client-side
+            newChats.sort((a, b) => (b.lastMessageTimestamp?.toDate().getTime() || 0) - (a.lastMessageTimestamp?.toDate().getTime() || 0));
             setChats(newChats);
             if (!initialChatId && newChats.length > 0) {
                 setSelectedChatId(newChats[0].id);
@@ -217,7 +230,7 @@ export default function MessagesPage() {
     if (user && firestore) {
       fetchChats(false);
     }
-  }, [user, firestore]);
+  }, [user, firestore, fetchChats]);
 
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
