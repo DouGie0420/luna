@@ -41,7 +41,6 @@ service cloud.firestore {
       }
       
       match /addresses/{addressId} {
-        // Separated read and write permissions for clarity and security.
         allow read, list: if request.auth != null && request.auth.uid == userId;
         allow create, update, delete: if request.auth != null && request.auth.uid == userId;
       }
@@ -51,7 +50,7 @@ service cloud.firestore {
     match /direct_chats/{chatId} {
       // Allow read (get, list) if the user is a participant.
       // The `list` operation is implicitly secured here because the frontend query
-      // MUST filter by `participants`, otherwise the read on some docs would fail, causing the entire query to fail.
+      // MUST filter by `participants` using an `array-contains` clause.
       allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
       
       // Allow creating a chat if the user is one of the participants.
@@ -142,5 +141,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
