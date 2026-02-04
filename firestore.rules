@@ -22,13 +22,19 @@ service cloud.firestore {
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
       
-      allow list: if isSignedIn() && (request.auth.uid in resource.data.participants);
+      // Admins can list all orders for the backend pages.
+      // Users can perform queries constrained by the 'get' rule.
+      allow list: if isAdminGroup();
       
+      // Users can get their own orders, Admins can get any order.
       allow get: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
 
+      // Only signed in users can create an order.
       allow create: if isSignedIn();
+      
+      // Only admins can update or delete an order.
       allow update, delete: if isAdminGroup();
     }
 
@@ -63,13 +69,19 @@ service cloud.firestore {
 
     // --- 其他后台管理模块 (KYC, 收款, 工单) ---
     match /kyc_applications/{appId} { allow read, write: if isAdminGroup(); }
-    match /paymentChangeRequests/{reqId} { allow read, write: if isAdminGroup(); }
-    match /supportTickets/{ticketId} { allow read, write: if isAdminGroup(); }
+    match /paymentChangeRequests/{reqId} {
+      allow list: if isAdminGroup();
+      allow get, create, update, delete: if isAdminGroup();
+    }
+    match /supportTickets/{ticketId} {
+      allow list: if isAdminGroup();
+      allow get, create, update, delete: if isAdminGroup();
+    }
 
     // --- 内容管理 (社区, 广告, 问题) ---
     match /bbs/{postId} {
       allow get: if true;
-      allow list: if true; // Public listing is allowed; frontend queries MUST filter for 'active' status.
+      allow list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
        match /comments/{commentId} {
@@ -80,7 +92,7 @@ service cloud.firestore {
     }
     match /products/{productId} {
       allow get: if true;
-      allow list: if true; // Public listing is allowed; frontend queries MUST filter for 'active' status.
+      allow list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
        match /comments/{commentId} {
