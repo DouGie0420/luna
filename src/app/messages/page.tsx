@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,26 +88,36 @@ export default function MessagesPage() {
     if (!firestore || !user) return null;
     return query(
         collection(firestore, 'direct_chats'), 
-        where('participants', 'array-contains', user.uid),
-        orderBy('lastMessageTimestamp', 'desc')
+        where('participants', 'array-contains', user.uid)
+        // Removed orderBy to prevent composite index requirement and permission issues
     );
   }, [firestore, user]);
 
   const { data: chats, loading } = useCollection<DirectChat>(chatsQuery);
 
+  const sortedChats = useMemo(() => {
+    if (!chats) return [];
+    return [...chats].sort((a, b) => {
+        const timeA = a.lastMessageTimestamp?.toDate()?.getTime() || 0;
+        const timeB = b.lastMessageTimestamp?.toDate()?.getTime() || 0;
+        return timeB - timeA;
+    });
+  }, [chats]);
+
   const selectedChat = useMemo(() => {
-    if (!chats) return null;
-    return chats.find(c => c.id === selectedChatId) || chats[0] || null;
-  }, [chats, selectedChatId]);
+    if (!sortedChats) return null;
+    return sortedChats.find(c => c.id === selectedChatId) || sortedChats[0] || null;
+  }, [sortedChats, selectedChatId]);
   
-  // Update selectedChatId if the initial one is valid or when chats load
-  useState(() => {
-    if (chats && chats.length > 0) {
-      if (!initialChatId || !chats.some(c => c.id === initialChatId)) {
-        setSelectedChatId(chats[0].id);
+  useEffect(() => {
+    if (sortedChats && sortedChats.length > 0) {
+      if (!initialChatId || !sortedChats.some(c => c.id === initialChatId)) {
+        if (!selectedChatId) {
+          setSelectedChatId(sortedChats[0].id);
+        }
       }
     }
-  });
+  }, [sortedChats, initialChatId, selectedChatId]);
 
   return (
     <>
@@ -125,8 +135,8 @@ export default function MessagesPage() {
                           <div className="flex justify-center items-center h-full">
                             <Loader2 className="h-6 w-6 animate-spin" />
                           </div>
-                        ) : chats && chats.length > 0 ? (
-                            chats.map(chat => {
+                        ) : sortedChats && sortedChats.length > 0 ? (
+                            sortedChats.map(chat => {
                                 const otherParticipantId = chat.participants.find(p => p !== user?.uid);
                                 const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
 
