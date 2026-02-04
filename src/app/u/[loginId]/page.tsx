@@ -21,7 +21,7 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { errorEmitter } from "@/firebase/error-emitter";
 import { FirestorePermissionError } from "@/firebase/errors";
 
@@ -113,7 +113,7 @@ export default function UserProfilePage() {
     const params = useParams();
     const router = useRouter();
     const { t } = useTranslation();
-    const loginId = params.loginId as string;
+    const identifier = params.loginId as string;
     
     const { user: currentUser, profile: currentUserProfile } = useUser();
     const firestore = useFirestore();
@@ -121,7 +121,7 @@ export default function UserProfilePage() {
     
     const [user, setUser] = useState<UserProfile | null>(null);
     const [userLoading, setUserLoading] = useState(true);
-    const [isReserved, setIsReserved] = useState(false); // 新增：是否为保留域名
+    const [isReserved, setIsReserved] = useState(false);
 
     const productsQuery = useMemo(() => {
       if (!firestore || !user) return null;
@@ -132,41 +132,50 @@ export default function UserProfilePage() {
     const [isFollowing, setIsFollowing] = useState(false);
 
     useEffect(() => {
-        if (!firestore || !loginId) return;
-        
+        if (!firestore || !identifier) return;
+
         const fetchUser = async () => {
             setUserLoading(true);
             try {
-                const usersRef = collection(firestore, 'users');
-                const q = query(usersRef, where('loginId', '==', loginId), limit(1));
-                const querySnapshot = await getDocs(q);
+                let userDoc;
+                const isLikelyUid = identifier.length > 20 && !/^\d+$/.test(identifier);
 
-                if (querySnapshot.empty) {
-                    setUser(null);
-                    setIsReserved(false);
+                if (isLikelyUid) {
+                    const userRef = doc(firestore, 'users', identifier);
+                    userDoc = await getDoc(userRef);
                 } else {
-                    const userData = querySnapshot.docs[0].data() as UserProfile;
+                    const usersRef = collection(firestore, 'users');
+                    const q = query(usersRef, where('loginId', '==', identifier), limit(1));
+                    const querySnapshot = await getDocs(q);
+                    userDoc = querySnapshot.docs[0];
+                }
+                
+                if (userDoc && userDoc.exists()) {
+                    const userData = userDoc.data() as UserProfile;
                     setUser(userData);
                     setIsReserved(false);
-                     if (currentUserProfile && userData) {
+                    if (currentUserProfile && userData) {
                         setIsFollowing(currentUserProfile.following?.includes(userData.uid) || false);
                     }
+                } else {
+                    setUser(null);
+                    setIsReserved(false);
                 }
             } catch (error: any) {
-                // 重点：如果报错是权限拒绝，我们将其伪装成“保留域名”
                 if (error.code === 'permission-denied') {
                     console.log("Detecting reserved/protected node via permission-denied");
                     setIsReserved(true);
                 } else {
                     console.error("Fetch User Error:", error);
+                    setUser(null);
                 }
             } finally {
                 setUserLoading(false);
             }
-        }
-        fetchUser();
+        };
 
-    }, [firestore, loginId, currentUserProfile]);
+        fetchUser();
+    }, [firestore, identifier, currentUserProfile]);
     
 
     const handleFollowToggle = async () => {
@@ -266,9 +275,8 @@ export default function UserProfilePage() {
         return <UserProfileSkeleton />;
     }
 
-    // 渲染保留域名伪装界面
     if (isReserved) {
-        return <ReservedDomainUI loginId={loginId} />;
+        return <ReservedDomainUI loginId={identifier} />;
     }
 
     if (!user) {
