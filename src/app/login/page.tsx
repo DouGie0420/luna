@@ -82,6 +82,13 @@ export default function LoginPage() {
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
          toast({ variant: "destructive", title: t('loginPage.popupClosedTitle'), description: t('loginPage.popupClosed') });
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+          variant: "destructive",
+          title: "该邮箱已被使用",
+          description: "此邮箱已通过其他方式（如谷歌或密码）注册。请使用原始方式登录。",
+          duration: 7000
+        });
       } else {
         toast({ variant: "destructive", title: t('loginPage.loginFailedTitle'), description: error.message });
       }

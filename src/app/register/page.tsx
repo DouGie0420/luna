@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
@@ -152,7 +152,15 @@ export default function RegisterPage() {
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {
          toast({ variant: "destructive", title: t('registerPage.popupClosedTitle'), description: t('registerPage.popupClosed') });
-      } else {
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast({
+          variant: "destructive",
+          title: "该邮箱已被使用",
+          description: "此邮箱已通过其他方式（如谷歌或密码）注册。请使用原始方式登录。",
+          duration: 7000
+        });
+      }
+      else {
         toast({ variant: "destructive", title: t('registerPage.registrationFailedTitle'), description: error.message });
       }
     } finally {
