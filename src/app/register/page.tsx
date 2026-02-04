@@ -15,9 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import { useAuth, useUser } from "@/firebase"
+import { useAuth, useUser, useFirestore } from "@/firebase" 
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
-import { useFirestore } from "@/firebase"
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
 import { useToast } from "@/hooks/use-toast"
@@ -25,6 +24,17 @@ import { X, Loader2 } from "lucide-react"
 import { useTranslation } from "@/hooks/use-translation";
 import type { UserProfile } from "@/lib/types";
 import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
@@ -178,104 +188,143 @@ export default function RegisterPage() {
 
 
   return (
-    <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
-        <Card className="w-full max-w-2xl mx-auto relative">
-          <Button asChild variant="ghost" size="icon" className="absolute right-2 top-2 z-10 h-9 w-9 rounded-full p-1 text-primary ring-offset-background transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none animate-glow">
-              <Link href="/">
-                <X className="h-5 w-5" />
-                <span className="sr-only">{t('common.close')}</span>
-              </Link>
-          </Button>
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline">{t('registerPage.title')}</CardTitle>
-            <CardDescription>
-              {t('registerPage.description')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Dialog>
+      <div className="container mx-auto px-4 py-12 flex items-center justify-center min-h-[calc(100vh-16rem)]">
+          <Card className="w-full max-w-2xl mx-auto relative">
+            <Button asChild variant="ghost" size="icon" className="absolute right-2 top-2 z-10 h-9 w-9 rounded-full p-1 text-primary ring-offset-background transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none animate-glow">
+                <Link href="/">
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">{t('common.close')}</span>
+                </Link>
+            </Button>
+            <CardHeader>
+              <CardTitle className="text-2xl font-headline">{t('registerPage.title')}</CardTitle>
+              <CardDescription>
+                {t('registerPage.description')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="loginId">自定义专属ID (纯数字)</Label>
+                  <Input id="loginId" placeholder="一个独特的数字ID" required value={loginId} onChange={handleLoginIdChange} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="displayName">{t('registerPage.usernameLabel')}</Label>
+                  <Input id="displayName" placeholder="人们将如何称呼您？" required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                </div>
+              </div>
+               <div className="grid gap-2">
+                  <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
+                  <Input id="email" type="email" placeholder="luna@test.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+              
               <div className="grid gap-2">
-                <Label htmlFor="loginId">自定义专属ID (纯数字)</Label>
-                <Input id="loginId" placeholder="一个独特的数字ID" required value={loginId} onChange={handleLoginIdChange} />
-                 <p className="text-xs text-muted-foreground">这将是您的专属网址: /u/{loginId || '420'}</p>
+                  <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
+                  <Input id="phone" type="tel" placeholder="+86 138 0013 8000" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="displayName">{t('registerPage.usernameLabel')}</Label>
-                <Input id="displayName" placeholder={t('registerPage.usernamePlaceholder')} required value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-              </div>
-            </div>
-             <div className="grid gap-2">
-                <Label htmlFor="email">{t('registerPage.emailLabel')}</Label>
-                <Input id="email" type="email" placeholder={t('registerPage.emailPlaceholder')} required value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-            
-            <div className="grid gap-2">
-                <Label htmlFor="phone">{t('registerPage.phoneLabel')}</Label>
-                <Input id="phone" type="tel" placeholder={t('registerPage.phonePlaceholder')} value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
 
-            <Separator />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="password">{t('registerPage.passwordLabel')}</Label>
-                <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password-confirm">{t('registerPage.confirmPasswordLabel')}</Label>
-                <Input id="password-confirm" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              </div>
-            </div>
-
-            <div className="items-top flex space-x-2">
-                <Checkbox id="terms1" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(!!checked)} />
-                <div className="grid gap-1.5 leading-none">
-                  <label
-                    htmlFor="terms1"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {t('registerPage.termsAgreement')}{" "}
-                    <Link href="/terms" className="text-primary hover:underline">
-                      {t('registerPage.termsOfService')}
-                    </Link>
-                  </label>
-                  <p className="text-sm text-muted-foreground">
-                    {t('registerPage.termsRequirement')}
-                  </p>
+              <Separator />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="password">{t('registerPage.passwordLabel')}</Label>
+                  <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password-confirm">{t('registerPage.confirmPasswordLabel')}</Label>
+                  <Input id="password-confirm" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
                 </div>
               </div>
 
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading || !termsAccepted}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <span>{t('registerPage.createAccount')}</span>
+              <div className="items-top flex space-x-2">
+                  <Checkbox id="terms1" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(!!checked)} />
+                  <div className="grid gap-1.5 leading-none">
+                    <label
+                      htmlFor="terms1"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      {t('registerPage.termsAgreement')}{" "}
+                      <DialogTrigger asChild>
+                        <span className="text-primary hover:underline cursor-pointer">
+                          {t('registerPage.termsOfService')}
+                        </span>
+                      </DialogTrigger>
+                    </label>
+                    <p className="text-sm text-muted-foreground">
+                      {t('registerPage.termsRequirement')}
+                    </p>
+                  </div>
+                </div>
+
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading || !termsAccepted}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <span>{t('registerPage.createAccount')}</span>
+              </Button>
+              
+              <div className="relative w-full">
+                <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
+                <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('registerPage.orRegisterWith')}</span>
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={isLoading}>
+                    <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
+                    <span>Google</span>
+                  </Button>
+                  <Button variant="outline" onClick={() => handleSocialLogin('facebook')} disabled={isLoading}>
+                    <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
+                    <span>Facebook</span>
+                  </Button>
+              </div>
+
+              <div className="text-center text-sm">
+                {t('registerPage.alreadyHaveAccount')}{" "}
+                <Link href="/login" className="underline text-primary">
+                  {t('common.login')}
+                </Link>
+              </div>
+            </CardFooter>
+          </Card>
+      </div>
+
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>服务条款</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="h-96 pr-6">
+          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 whitespace-pre-wrap leading-relaxed space-y-4">
+              <p>最后更新：{new Date().toLocaleDateString()}</p>
+              <p>欢迎来到 LUNA！这些服务条款（“条款”）规定了您对我们网站、服务和应用程序（统称为“平台”）的访问和使用。请仔细阅读。</p>
+              
+              <h3 className="text-foreground font-semibold">1. 接受条款</h3>
+              <p>通过访问或使用我们的平台，您同意受这些条款和我们的隐私政策的约束。如果您不同意这些条款，请不要访问或使用我们的平台。</p>
+
+              <h3 className="text-foreground font-semibold">2. 账户</h3>
+              <p>您需要创建一个帐户才能使用我们平台的某些功能。您有责任维护您的帐户和密码的机密性，并对在您的帐户下发生的所有活动负责。</p>
+
+              <h3 className="text-foreground font-semibold">3. 用户行为</h3>
+              <p>您同意不参与任何以下禁止活动：(a) 复制、分发或披露平台的任何部分；(b) 使用任何自动化系统访问平台；(c) 冒充他人或以其他方式歪曲您与某人或某实体的关系。</p>
+              
+              <h3 className="text-foreground font-semibold">4. 终止</h3>
+              <p>我们可以随时以任何理由终止或暂停您访问我们平台的权限，而无需事先通知或承担责任，包括但不限于如果您违反了条款。</p>
+              
+              <h3 className="text-foreground font-semibold">5. 免责声明</h3>
+              <p>本平台按“原样”和“现有”基础提供。对于平台的运营或平台上包含的信息、内容或材料，我们不作任何形式的明示或暗示的陈述或保证。</p>
+          </div>
+        </ScrollArea>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button type="button">
+              同意服务条款
             </Button>
-            
-            <div className="relative w-full">
-              <Separator className="absolute left-0 top-1/2 -translate-y-1/2 w-full" />
-              <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('registerPage.orRegisterWith')}</span>
-            </div>
-
-            <div className="w-full grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={isLoading}>
-                  <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
-                  <span>Google</span>
-                </Button>
-                <Button variant="outline" onClick={() => handleSocialLogin('facebook')} disabled={isLoading}>
-                  <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                  <span>Facebook</span>
-                </Button>
-            </div>
-
-            <div className="text-center text-sm">
-              {t('registerPage.alreadyHaveAccount')}{" "}
-              <Link href="/login" className="underline text-primary">
-                {t('common.login')}
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
-    </div>
-  )
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
+
+    
