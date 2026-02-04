@@ -66,7 +66,7 @@ export async function upsertUserProfile(
             badReviews: 0,
             creditScore: 0,
             creditLevel: 'Newcomer',
-            role: 'guest',
+            role: user.emailVerified ? 'user' : 'guest',
             postsCount: 0,
             displayedBadge: 'none',
             ...additionalData
