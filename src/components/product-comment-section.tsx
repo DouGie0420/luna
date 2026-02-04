@@ -29,9 +29,9 @@ import { collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimesta
 import type { Comment as CommentType, UserProfile } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import type { User as FirebaseUser } from 'firebase/auth';
 
 type NestedComment = CommentType & {
-    authorProfile?: UserProfile;
     replies: NestedComment[];
 };
 
@@ -78,6 +78,94 @@ const CommentForm = ({
     </div>
   )
 }
+
+const CommentItem = ({
+  comment,
+  user,
+  canInteract,
+  handleLikeDislike,
+  setReplyingTo,
+  handleInteractionNotAllowed,
+  setCommentToDelete,
+}: {
+  comment: NestedComment;
+  user: FirebaseUser | null;
+  canInteract: boolean;
+  handleLikeDislike: (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => void;
+  setReplyingTo: React.Dispatch<React.SetStateAction<{ id: string; authorName: string; } | null>>;
+  handleInteractionNotAllowed: () => void;
+  setCommentToDelete: React.Dispatch<React.SetStateAction<string | null>>;
+}) => {
+  const firestore = useFirestore();
+  const { t, language } = useTranslation();
+  const { data: author } = useDoc<UserProfile>(firestore ? doc(firestore, 'users', comment.authorId) : null);
+  const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
+  const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
+  const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
+  const authorName = author?.displayName || comment.authorId.slice(0, 6);
+  const profileUrl = `/@${author?.loginId || author?.uid}`;
+
+  return (
+    <div className="flex items-start gap-3">
+        <Link href={profileUrl}>
+            <Avatar className="h-10 w-10">
+                {author?.photoURL && <AvatarImage src={author.photoURL} alt={authorName} />}
+                <AvatarFallback>{authorName.charAt(0) || '?'}</AvatarFallback>
+            </Avatar>
+        </Link>
+        <div className="flex-1">
+            <div className="flex items-center justify-between">
+                <div>
+                    <span className="font-semibold text-foreground">{authorName}</span>
+                </div>
+                <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                    <Button
+                        variant="ghost"
+                        onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')}
+                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
+                    >
+                        <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
+                        <span>{comment.likes || 0}</span>
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')}
+                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
+                    >
+                        <ThumbsDown className="h-4 w-4" />
+                        <span>{comment.dislikes || 0}</span>
+                    </Button>
+                    <span>{timeAgo}</span>
+                </div>
+            </div>
+            <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
+            <div className="flex items-center gap-2">
+                <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
+                    onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: authorName }) : handleInteractionNotAllowed()}
+                >
+                    <Reply className="mr-1 h-3 w-3 -scale-x-100" />
+                    {t('productComments.reply')}
+                </Button>
+                {user?.uid === comment.authorId && (
+                     <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-auto p-1 text-xs text-destructive hover:text-destructive"
+                        onClick={() => setCommentToDelete(comment.id)}
+                    >
+                        <Trash2 className="mr-1 h-3 w-3" />
+                        {t('productComments.delete')}
+                    </Button>
+                )}
+            </div>
+        </div>
+    </div>
+  );
+};
+
 
 export function ProductCommentSection({ productId }: { productId: string }) {
     const { t, language } = useTranslation();
@@ -173,19 +261,14 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         setVisibleCommentsCount(prev => prev + COMMENTS_LOAD_MORE);
     };
 
-    const handleLikeDislike = async (commentId: string, type: 'like' | 'dislike') => {
+    const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
         if (!canInteract || !firestore || !user) {
             handleInteractionNotAllowed();
             return;
         }
 
         const commentRef = doc(firestore, 'products', productId, 'comments', commentId);
-        const comment = comments?.find(c => c.id === commentId);
-        if (!comment) return;
-
-        const isLiked = comment.likedBy?.includes(user.uid);
-        const isDisliked = comment.dislikedBy?.includes(user.uid);
-
+        
         let updateData: any = {};
         
         if (type === 'like') {
@@ -236,88 +319,38 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         return topLevelComments;
     }, [comments]);
     
-    const renderComment = (comment: NestedComment, isReply: boolean = false) => {
-        const timeAgo = comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
-        const isLiked = user ? comment.likedBy?.includes(user.uid) : false;
-        const isDisliked = user ? comment.dislikedBy?.includes(user.uid) : false;
-        // In a real app, you might fetch author profiles separately. For now, we'll just show the ID if no profile is passed.
-        const authorName = comment.authorProfile?.displayName || comment.authorId.slice(0, 6);
-        const authorAvatar = comment.authorProfile?.photoURL;
-        
-        return (
-             <div key={comment.id}>
-                <div className="flex items-start gap-3">
-                    <Link href={`/user/${comment.authorId}`}>
-                        <Avatar className="h-10 w-10">
-                            {authorAvatar && <AvatarImage src={authorAvatar} alt={authorName} />}
-                            <AvatarFallback>{authorName.charAt(0) || '?'}</AvatarFallback>
-                        </Avatar>
-                    </Link>
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <span className="font-semibold text-foreground">{authorName}</span>
-                            </div>
-                            <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleLikeDislike(comment.id, 'like')}
-                                    className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
-                                >
-                                    <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                                    <span>{comment.likes || 0}</span>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => handleLikeDislike(comment.id, 'dislike')}
-                                    className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
-                                >
-                                    <ThumbsDown className="h-4 w-4" />
-                                    <span>{comment.dislikes || 0}</span>
-                                </Button>
-                                <span>{timeAgo}</span>
-                            </div>
-                        </div>
-                        <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
-                        <div className="flex items-center gap-2">
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: authorName }) : handleInteractionNotAllowed()}
-                            >
-                                <Reply className="mr-1 h-3 w-3 -scale-x-100" />
-                                {t('productComments.reply')}
-                            </Button>
-                            {user?.uid === comment.authorId && (
-                                 <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-auto p-1 text-xs text-destructive hover:text-destructive"
-                                    onClick={() => setCommentToDelete(comment.id)}
-                                >
-                                    <Trash2 className="mr-1 h-3 w-3" />
-                                    {t('productComments.delete')}
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                {replyingTo?.id === comment.id && (
-                    <div className="mt-4 ml-12 pl-4 border-l-2">
-                        <CommentForm
-                            isSubmitting={isSubmitting}
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onSubmit={handlePostComment}
-                            onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
-                        />
-                    </div>
-                )}
+    const renderComments = (commentList: NestedComment[]) => {
+      return commentList.map(comment => (
+        <div key={comment.id}>
+          <CommentItem
+            comment={comment}
+            user={user}
+            canInteract={canInteract}
+            handleInteractionNotAllowed={handleInteractionNotAllowed}
+            handleLikeDislike={handleLikeDislike}
+            setReplyingTo={setReplyingTo}
+            setCommentToDelete={setCommentToDelete}
+          />
+          {replyingTo?.id === comment.id && (
+            <div className="mt-4 ml-12 pl-4 border-l-2">
+              <CommentForm
+                isSubmitting={isSubmitting}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                onSubmit={handlePostComment}
+                onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : setReplyingTo(null)}
+              />
             </div>
-        );
-    }
+          )}
+          {comment.replies.length > 0 && (
+            <div className="ml-10 mt-4 space-y-4 border-l-2 pl-4">
+              {renderComments(comment.replies)}
+            </div>
+          )}
+        </div>
+      ));
+    };
+
 
     return (
         <>
@@ -369,16 +402,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                         <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
                     ) : nestedComments.length > 0 ? (
                         <div className="space-y-6">
-                            {nestedComments.slice(0, visibleCommentsCount).map(comment => (
-                                <div key={comment.id}>
-                                    {renderComment(comment)}
-                                    {comment.replies.length > 0 && (
-                                        <div className="ml-10 mt-4 space-y-4 border-l-2 pl-4">
-                                            {comment.replies.map(reply => renderComment(reply, true))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                            {renderComments(nestedComments.slice(0, visibleCommentsCount))}
                         </div>
                     ) : (
                          <div className="text-center py-8 text-muted-foreground">
