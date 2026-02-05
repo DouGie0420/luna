@@ -133,7 +133,9 @@ service cloud.firestore {
         // Seller and admins can edit anything
         (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff'])) ||
         // Any user can update interaction fields
-        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'views']))
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'views'])) ||
+        // Allow any signed-in user to change the status from 'active' to 'under_review' (i.e., to "lock" an item for purchase)
+        (request.resource.data.status == 'under_review' && resource.data.status == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']))
       );
        match /comments/{commentId} {
           allow read, list: if true;
