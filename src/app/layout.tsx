@@ -7,6 +7,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { LanguageProvider } from '@/context/language-provider';
 import { FloatingSupportButton } from '@/components/floating-support-button';
+import { BackgroundSnake } from '@/components/background-snake';
 
 export default function RootLayout({
   children,
@@ -23,6 +24,8 @@ export default function RootLayout({
       <body className={cn("font-body", "bg-background text-foreground")}>
         <FirebaseClientProvider>
           <LanguageProvider>
+            <div className="pixel-grid-bg" />
+            <BackgroundSnake />
             <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
