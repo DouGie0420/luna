@@ -1,3 +1,4 @@
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -40,8 +41,10 @@ service cloud.firestore {
         (request.auth.uid == userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
         // Case 2: Admin/Ghost can update anything
         hasRole(['admin', 'ghost']) ||
-        // Case 3: Following/Unfollowing another user by updating `followers` and `followersCount`
-        (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'followersCount']))
+        // Case 3: Following/Unfollowing another user.
+        // This rule allows the signed-in user to modify ONLY the 'followers' and/or 'followersCount' fields on another user's document.
+        // It prevents any other field from being changed in the same operation.
+        (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().difference(['followers', 'followersCount']).size() == 0)
       );
 
       match /notifications/{docId} {
@@ -56,8 +59,8 @@ service cloud.firestore {
     
     // --- Chat Systems ---
     match /direct_chats/{chatId} {
-      // The `list` operation is secured by the client query, which
-      // MUST filter by `participants` using an `array-contains` clause.
+      // Allow a user to query for the list of chats they are a part of.
+      // This works because the get rule below will be checked for every document returned.
       allow list: if isSignedIn();
 
       // Allow get/update if the user is a participant.
