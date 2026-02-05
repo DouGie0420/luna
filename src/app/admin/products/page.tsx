@@ -286,7 +286,7 @@ export default function AdminProductsPage() {
         try {
             await updateDoc(itemRef, { reviewReason: finalReason });
             toast({ title: '原因已记录' });
-            fetchItems();
+            fetchItems(); // Refresh data after setting reason
         } catch (error) {
             console.error("Failed to set review reason:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
