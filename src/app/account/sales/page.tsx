@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useUser, useFirestore } from "@/firebase";
 import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp, getDocs, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -18,8 +18,36 @@ import { useToast } from '@/hooks/use-toast';
 import { createNotification } from '@/lib/notifications';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const PAGE_SIZE = 50;
+
+function SalesPageSkeleton() {
+    return (
+        <div className="grid gap-4">
+            {[...Array(3)].map((_, i) => (
+                 <Card key={i} className="overflow-hidden">
+                    <CardHeader className="flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
+                         <Skeleton className="h-5 w-3/4" />
+                         <Skeleton className="h-6 w-24" />
+                    </CardHeader>
+                     <CardContent className="pt-6">
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
+                        </div>
+                    </CardContent>
+                    <CardFooter className="pb-4 flex justify-end gap-2">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-32" />
+                    </CardFooter>
+                </Card>
+            ))}
+        </div>
+    )
+}
+
 
 export default function SalesPage() {
     const { t } = useTranslation();
@@ -29,13 +57,16 @@ export default function SalesPage() {
 
     const [salesOrders, setSalesOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
     const [error, setError] = useState<any>(null);
 
     const [shippingInfo, setShippingInfo] = useState({ provider: '', trackingNumber: '' });
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (!user?.uid || !db) {
             setLoading(false);
             return;
@@ -54,6 +85,8 @@ export default function SalesPage() {
                 const documentSnapshots = await getDocs(q);
                 const orders = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
                 setSalesOrders(orders);
+                setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length-1]);
+                setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
             } catch (err) {
                 console.error(err);
                 setError(err);
@@ -64,6 +97,30 @@ export default function SalesPage() {
 
         fetchInitialOrders();
     }, [user?.uid, db]);
+    
+    const handleLoadMore = async () => {
+        if (!user?.uid || !db || !lastVisible) return;
+        setLoadingMore(true);
+        try {
+            const q = query(
+                collection(db, "orders"),
+                where("sellerId", "==", user.uid),
+                orderBy("createdAt", "desc"),
+                startAfter(lastVisible),
+                limit(PAGE_SIZE)
+            );
+            const documentSnapshots = await getDocs(q);
+            const newOrders = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+            setSalesOrders(prev => [...prev, ...newOrders]);
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+            setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+        } catch (err) {
+            console.error(err);
+            setError(err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
 
     const handleMarkAsShipped = (order: Order) => {
@@ -121,7 +178,7 @@ export default function SalesPage() {
         return `accountPurchases.status.${camelCaseStatus}`;
     }
 
-    if (authLoading || loading) {
+    if (authLoading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -142,14 +199,15 @@ export default function SalesPage() {
                     <h1 className="text-3xl font-bold tracking-tight">{t('accountSales.title')}</h1>
                 </div>
 
-                {error && (
+                {error ? (
                     <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/5 text-center">
                         <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
                         <h2 className="text-destructive font-bold">连接被拦截</h2>
                         <p className="text-sm mt-2 text-muted-foreground">无法加载销售记录。这可能是因为缺少数据库索引。请打开开发者控制台(F12)查看错误信息，其中通常会包含一个用于一键创建索引的链接。</p>
                     </div>
-                )}
-                {!error && (!salesOrders || salesOrders.length === 0) ? (
+                ) : loading ? (
+                    <SalesPageSkeleton />
+                ) : !salesOrders || salesOrders.length === 0 ? (
                     <div className="text-center p-20 border-2 border-dashed rounded-xl">
                         <PackageCheck className="mx-auto h-12 w-12 opacity-20 mb-4" />
                         <h3 className="text-lg font-semibold">{t('accountSales.noSales')}</h3>
@@ -180,7 +238,10 @@ export default function SalesPage() {
                                         </div>
                                         <div>
                                             <p className="text-xs text-muted-foreground">{t('accountSales.total')}</p>
-                                            <p className="font-bold text-lg text-primary">{order.totalAmount.toLocaleString()} <span className="text-xs">{order.currency}</span></p>
+                                            <p className="font-bold text-lg text-primary">
+                                                {(order.totalAmount ?? 0).toLocaleString()}{" "}
+                                                <span className="text-xs">{order.currency || 'USD'}</span>
+                                            </p>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -198,6 +259,14 @@ export default function SalesPage() {
                                 </CardFooter>
                             </Card>
                         ))}
+                    </div>
+                )}
+                 {hasMore && !loading && salesOrders.length > 0 && (
+                    <div className="mt-12 text-center">
+                        <Button onClick={handleLoadMore} disabled={loadingMore}>
+                            {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Load More
+                        </Button>
                     </div>
                 )}
             </div>

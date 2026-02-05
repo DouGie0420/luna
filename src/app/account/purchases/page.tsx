@@ -135,7 +135,7 @@ function PurchaseOrderCard({ order }: { order: Order }) {
                 </div>
                 <div className="flex-1">
                     <p className="font-semibold hover:underline">{order.productName}</p>
-                    <p className="text-primary">{order.totalAmount.toLocaleString()} {order.currency}</p>
+                    <p className="text-primary">{(order.totalAmount ?? 0).toLocaleString()} {order.currency}</p>
                     <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                         <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()}>
                             <Avatar className="h-6 w-6">
@@ -299,4 +299,3 @@ export default function PurchasesPage() {
         </div>
     );
 }
-    
