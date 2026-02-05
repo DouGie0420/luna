@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useRef, useEffect } from 'react';
@@ -33,9 +34,6 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className, s
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    // Fix: Add guard clause to prevent error if seed is not yet available.
-    if (!seed) return;
-
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -116,5 +114,3 @@ export const GlowingPixelGrid: React.FC<GlowingPixelGridProps> = ({ className, s
     />
   );
 };
-
-    
