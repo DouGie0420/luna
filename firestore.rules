@@ -26,10 +26,7 @@ service cloud.firestore {
 
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
-      allow list: if isAdminGroup() || 
-                    (isSignedIn() && request.auth.uid == request.query.where.buyerId) ||
-                    (isSignedIn() && request.auth.uid == request.query.where.sellerId);
-      allow get: if isSignedIn() && (
+      allow read: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
       allow create: if isSignedIn();
