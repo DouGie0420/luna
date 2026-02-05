@@ -24,7 +24,7 @@ import { enUS, zhCN, th } from 'date-fns/locale';
 
 // UI Components
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -337,76 +337,76 @@ export default function AdminSupportPage() {
     }, [firestore, activeFilter]);
 
     return (
-        <div className="space-y-6 h-full flex flex-col">
-            <div className="flex items-center gap-3 shrink-0">
-                <LifeBuoy className="h-8 w-8 text-primary" />
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.supportPage.title')}</h1>
-            </div>
+        <div className="h-full">
+            <div className="flex flex-col h-full space-y-6">
+                <div className="flex items-center gap-3 shrink-0">
+                    <LifeBuoy className="h-8 w-8 text-primary" />
+                    <h1 className="text-3xl font-bold tracking-tight">{t('admin.supportPage.title')}</h1>
+                </div>
 
-            <TicketStats tickets={tickets} />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
-                <Card className="lg:col-span-1 flex flex-col">
-                    <CardHeader>
-                       <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as any)}>
-                            <TabsList className="grid w-full grid-cols-5">
-                                <TabsTrigger value="All">{t('admin.supportPage.all')}</TabsTrigger>
-                                {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(status => (
-                                    <TabsTrigger key={status} value={status}>{t(getTicketStatusTranslationKey(status))}</TabsTrigger>
-                                ))}
-                            </TabsList>
-                        </Tabs>
-                    </CardHeader>
-                    <CardContent className="flex-grow p-0">
-                        <ScrollArea className="h-[calc(100vh-25rem)]">
-                            {loading ? (
-                                <div className="p-4 space-y-2">
-                                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
-                                </div>
-                            ) : tickets.length > 0 ? (
-                                tickets.map(ticket => {
-                                    const { icon, color } = getStatusConfig(ticket.status);
-                                    return (
-                                        <div key={ticket.id} 
-                                            className={cn("p-4 border-b cursor-pointer hover:bg-accent", selectedTicketId === ticket.id && "bg-accent")}
-                                            onClick={() => setSelectedTicketId(ticket.id)}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <p className="font-semibold truncate pr-4">{ticket.subject}</p>
-                                                <icon.icon className={cn("h-4 w-4 shrink-0", color)} />
+                <TicketStats tickets={tickets} />
+                
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
+                    <Card className="lg:col-span-1 flex flex-col">
+                        <CardHeader>
+                        <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as any)}>
+                                <TabsList className="grid w-full grid-cols-5">
+                                    <TabsTrigger value="All">{t('admin.supportPage.all')}</TabsTrigger>
+                                    {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(status => (
+                                        <TabsTrigger key={status} value={status}>{t(getTicketStatusTranslationKey(status))}</TabsTrigger>
+                                    ))}
+                                </TabsList>
+                            </Tabs>
+                        </CardHeader>
+                        <CardContent className="flex-grow p-0">
+                            <ScrollArea className="h-[calc(100vh-25rem)]">
+                                {loading ? (
+                                    <div className="p-4 space-y-2">
+                                        {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
+                                    </div>
+                                ) : tickets.length > 0 ? (
+                                    tickets.map(ticket => {
+                                        const { icon: Icon, color } = getStatusConfig(ticket.status);
+                                        return (
+                                            <div key={ticket.id} 
+                                                className={cn("p-4 border-b cursor-pointer hover:bg-accent", selectedTicketId === ticket.id && "bg-accent")}
+                                                onClick={() => setSelectedTicketId(ticket.id)}
+                                            >
+                                                <div className="flex justify-between items-start">
+                                                    <p className="font-semibold truncate pr-4">{ticket.subject}</p>
+                                                    <Icon className={cn("h-4 w-4 shrink-0", color)} />
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{ticket.userName}</p>
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    {t('admin.supportPage.updated')} {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true, locale: locales[language] })}
+                                                </p>
                                             </div>
-                                            <p className="text-sm text-muted-foreground">{ticket.userName}</p>
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                {t('admin.supportPage.updated')} {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true, locale: locales[language] })}
-                                            </p>
-                                        </div>
-                                    )
-                                })
-                            ) : (
-                                <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
-                                    <Inbox className="h-10 w-10 opacity-50" />
-                                    <p className="mt-4">{t('admin.supportPage.noTicketsInCategory')}</p>
-                                </div>
-                            )}
-                        </ScrollArea>
-                    </CardContent>
-                </Card>
+                                        )
+                                    })
+                                ) : (
+                                    <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
+                                        <Inbox className="h-10 w-10 opacity-50" />
+                                        <p className="mt-4">{t('admin.supportPage.noTicketsInCategory')}</p>
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
 
-                <div className="lg:col-span-2">
-                    {selectedTicketId ? (
-                        <TicketDetail ticketId={selectedTicketId} adminProfile={adminProfile} />
-                    ) : (
-                        <div className="flex h-full rounded-lg border-2 border-dashed items-center justify-center">
-                            <div className="text-center text-muted-foreground">
-                                <Inbox className="h-12 w-12 mx-auto opacity-50" />
-                                <p className="mt-4">{t('admin.supportPage.selectTicketPrompt')}</p>
+                    <div className="lg:col-span-2">
+                        {selectedTicketId ? (
+                            <TicketDetail ticketId={selectedTicketId} adminProfile={adminProfile} />
+                        ) : (
+                            <div className="flex h-full rounded-lg border-2 border-dashed items-center justify-center">
+                                <div className="text-center text-muted-foreground">
+                                    <Inbox className="h-12 w-12 mx-auto opacity-50" />
+                                    <p className="mt-4">{t('admin.supportPage.selectTicketPrompt')}</p>
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
     );
 }
-
-    
