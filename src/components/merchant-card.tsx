@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, ShieldCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import type { UserProfile, Product } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -14,6 +13,7 @@ import { doc } from 'firebase/firestore';
 import { useMemo } from 'react';
 import { Skeleton } from './ui/skeleton';
 import { GlowingPixelGrid } from './glowing-pixel-grid';
+import { UserAvatar } from './ui/user-avatar';
 
 interface MerchantCardProps {
   user: UserProfile;
@@ -77,10 +77,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
         </div>
         <CardContent className="relative p-4 pt-0 -mt-10 flex-grow flex flex-col">
             <div className="flex items-end gap-4">
-                <Avatar className="h-20 w-20 border-4 border-card group-hover:border-primary/50 transition-colors">
-                    <AvatarImage src={user.photoURL} alt={user.displayName} />
-                    <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                </Avatar>
+                <UserAvatar profile={user} className="h-20 w-20 border-4 border-card group-hover:border-primary/50 transition-colors" />
                 <div className="flex-1 pb-2">
                     <Badge variant="default" className="mb-1 bg-primary/80 border-primary/50">
                         <ShieldCheck className="h-3 w-3 mr-1" />
