@@ -106,7 +106,7 @@ function PurchaseOrderCard({ order }: { order: Order }) {
     }
 
     return (
-        <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+        <Card className="overflow-hidden transition-shadow hover:shadow-lg cursor-pointer" onClick={() => router.push(`/account/purchases/${order.id}`)}>
             <CardHeader className="flex-row items-center justify-between bg-muted/30 p-4">
                 <div>
                     <p className="text-sm font-medium">
@@ -123,37 +123,35 @@ function PurchaseOrderCard({ order }: { order: Order }) {
                     {t(getStatusTranslationKey(order.status), order.status)}
                 </Badge>
             </CardHeader>
-             <Link href={`/account/purchases/${order.id}`} className="block">
-                <CardContent className="p-4">
-                    <div className="flex items-start gap-4">
-                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
-                        <Image
-                            src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/200/200'}
-                            alt={product?.name || 'Product image'}
-                            fill
-                            className="object-cover"
-                        />
+            <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
+                    <Image
+                        src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/200/200'}
+                        alt={product?.name || 'Product image'}
+                        fill
+                        className="object-cover"
+                    />
+                </div>
+                <div className="flex-1">
+                    <p className="font-semibold hover:underline">{order.productName}</p>
+                    <p className="text-primary">{order.totalAmount.toLocaleString()} {order.currency}</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()}>
+                            <Avatar className="h-6 w-6">
+                                <AvatarImage src={seller?.photoURL} />
+                                <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        </Link>
+                        <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+                            {seller?.displayName}
+                        </Link>
                     </div>
-                    <div className="flex-1">
-                        <p className="font-semibold hover:underline">{order.productName}</p>
-                        <p className="text-primary">{order.totalAmount.toLocaleString()} {order.currency}</p>
-                        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                            <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()}>
-                                <Avatar className="h-6 w-6">
-                                    <AvatarImage src={seller?.photoURL} />
-                                    <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                            </Link>
-                            <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
-                                {seller?.displayName}
-                            </Link>
-                        </div>
-                    </div>
-                    </div>
-                </CardContent>
-            </Link>
+                </div>
+                </div>
+            </CardContent>
             <CardFooter className="flex justify-end gap-2 bg-muted/30 p-4">
-                <Button size="sm" variant="outline" onClick={() => router.push(`/account/purchases/${order.id}`)}>
+                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/account/purchases/${order.id}`); }}>
                     <ExternalLink className="h-4 w-4 mr-1" /> View Details
                 </Button>
                 {order.status === 'Shipped' && (
@@ -163,14 +161,14 @@ function PurchaseOrderCard({ order }: { order: Order }) {
                     </Button>
                 )}
                 {order.status === 'Completed' && !order.buyerReviewId && (
-                    <Button size="sm" asChild>
+                    <Button size="sm" asChild onClick={(e) => e.stopPropagation()}>
                         <Link href={`/account/purchases/${order.id}/review`}>
                             {t('orderDetails.leaveReview')}
                         </Link>
                     </Button>
                 )}
                 {order.status === 'Completed' && order.buyerReviewId && (
-                    <Button size="sm" variant="ghost" disabled>
+                    <Button size="sm" variant="ghost" disabled onClick={(e) => e.stopPropagation()}>
                         {t('orderDetails.reviewed')}
                     </Button>
                 )}
@@ -301,3 +299,4 @@ export default function PurchasesPage() {
         </div>
     );
 }
+    

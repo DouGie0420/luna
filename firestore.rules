@@ -26,10 +26,12 @@ service cloud.firestore {
 
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
-      // Allow list only with a limit for any signed-in user.
-      // Frontend queries MUST be secured with a `where` clause to prevent data leakage.
-      allow list: if isSignedIn() && request.query.limit <= 50;
-      // Allow get if the user is a participant or an admin.
+      allow list: if isSignedIn() && request.query.limit <= 50 &&
+                   (
+                      (request.query.where.buyerId == request.auth.uid) || 
+                      (request.query.where.sellerId == request.auth.uid) ||
+                      (isAdminGroup())
+                   );
       allow get: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
@@ -173,3 +175,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
