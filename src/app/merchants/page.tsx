@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase';
 import { collection, query, where, limit, getDocs, startAfter, DocumentData, QueryDocumentSnapshot, orderBy } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { MerchantCard } from '@/components/merchant-card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const PAGE_SIZE = 50;
 
@@ -33,6 +34,8 @@ export default function AllMerchantsPage() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
+    const [errorInfo, setErrorInfo] = useState<{ message: string; link?: string | null } | null>(null);
+
 
     const fetchMerchants = async (loadMore = false) => {
         if (!firestore) return;
@@ -40,11 +43,13 @@ export default function AllMerchantsPage() {
             setLoadingMore(true);
         } else {
             setLoading(true);
+            setErrorInfo(null);
         }
 
         const constraints = [
             where('isPro', '==', true),
             orderBy('displayPriority', 'desc'),
+            orderBy('lastLogin', 'desc'),
             limit(PAGE_SIZE)
         ];
         
@@ -62,14 +67,24 @@ export default function AllMerchantsPage() {
             setMerchants(prev => loadMore ? [...prev, ...newMerchants] : newMerchants);
             setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching merchants:", error);
-            toast({
-              variant: 'destructive',
-              title: 'Error fetching merchants',
-              description: 'This may be due to missing Firestore indexes. Please check the browser console for a link to create it.',
-              duration: 10000,
-            })
+            const errorMessage: string = error.message || 'An unknown error occurred.';
+            const firebaseUrlMatch = errorMessage.match(/(https?:\/\/[^\s]+console\.firebase\.google\.com[^\s]+)/);
+
+            if (firebaseUrlMatch) {
+                setErrorInfo({
+                    message: "为了按优先级和活跃度排序商户，数据库需要一个复合索引。请点击下方按钮一键创建。",
+                    link: firebaseUrlMatch[0],
+                });
+            } else {
+                toast({
+                  variant: 'destructive',
+                  title: 'Error fetching merchants',
+                  description: 'This may be due to missing Firestore indexes. Please check the browser console for a link to create it.',
+                  duration: 10000,
+                })
+            }
         } finally {
             setLoading(false);
             setLoadingMore(false);
@@ -79,6 +94,29 @@ export default function AllMerchantsPage() {
     useEffect(() => {
         fetchMerchants();
     }, [firestore]);
+
+
+    if (errorInfo) {
+        return (
+            <>
+                <PageHeaderWithBackAndClose />
+                <div className="container mx-auto px-4 py-12 text-center">
+                    <div className="max-w-2xl mx-auto p-8 border border-destructive/50 bg-destructive/10 rounded-lg">
+                        <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
+                        <h1 className="mt-4 text-2xl font-bold text-destructive-foreground">需要创建数据库索引</h1>
+                        <p className="mt-2 text-muted-foreground">{errorInfo.message}</p>
+                        {errorInfo.link && (
+                            <Button asChild className="mt-6">
+                                <a href={errorInfo.link} target="_blank" rel="noopener noreferrer">
+                                    在 Firebase 控制台创建索引
+                                </a>
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </>
+        )
+    }
 
     return (
         <>
