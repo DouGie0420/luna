@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useUser, useFirestore } from '@/firebase';
 import {
   collection,
   query,
@@ -11,6 +11,11 @@ import {
   updateDoc,
   writeBatch,
   where,
+  getDocs,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import {
   Table,
@@ -38,6 +43,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+const PAGE_SIZE = 50;
+
 const planTiers: Record<string, string> = {
     tier1: '1 Month',
     tier2: '3 Months',
@@ -48,22 +55,61 @@ export default function AdminProApplicationsPage() {
   const { profile, loading: authLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { t } = useTranslation();
+  
+  const [requests, setRequests] = useState<ProApplication[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<any>(null);
 
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
 
-  const requestsQuery = useMemo(() => {
-    if (!firestore || !hasAccess) return null;
-    return query(
-      collection(firestore, 'proApplications'),
-      where('status', '==', 'pending'),
-      orderBy('createdAt', 'desc')
-    );
+  const fetchApplications = useCallback(async (loadMore = false) => {
+    if (!firestore || !hasAccess) {
+      setLoading(false);
+      return;
+    }
+
+    if (loadMore) setLoadingMore(true);
+    else setLoading(true);
+    setError(null);
+    
+    try {
+      const constraints = [
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc'),
+        limit(PAGE_SIZE),
+      ];
+
+      if (loadMore && lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+
+      const q = query(collection(firestore, 'proApplications'), ...constraints);
+      const documentSnapshots = await getDocs(q);
+
+      const newApplications = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProApplication));
+      
+      setRequests(prev => loadMore ? [...prev, ...newApplications] : newApplications);
+      setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+      setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+
+    } catch (err) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [firestore, hasAccess, lastVisible]);
+  
+  useEffect(() => {
+    fetchApplications();
   }, [firestore, hasAccess]);
 
-  const { data: requests, loading: dataLoading, error } = useCollection<ProApplication>(requestsQuery);
 
   const handleApprove = async (request: ProApplication) => {
     if (!firestore || !profile) return;
@@ -79,7 +125,7 @@ export default function AdminProApplicationsPage() {
       await batch.commit();
 
       // await createNotification(firestore, request.userId, { type: 'proRequestApproved', actor: profile, requestId: request.id });
-
+      setRequests(prev => prev.filter(r => r.id !== request.id));
       toast({ title: '申请已批准' });
     } catch (error: any) {
         console.error("Error approving PRO application:", error);
@@ -105,7 +151,7 @@ export default function AdminProApplicationsPage() {
         });
 
         // await createNotification(firestore, request.userId, { type: 'proRequestRejected', actor: profile, requestId: request.id });
-
+        setRequests(prev => prev.filter(r => r.id !== request.id));
         toast({ title: '申请已拒绝' });
     } catch (error: any) {
         console.error("Error rejecting PRO application:", error);
@@ -118,7 +164,7 @@ export default function AdminProApplicationsPage() {
     }
   };
 
-  const isLoading = authLoading || dataLoading;
+  const isLoading = authLoading || loading;
 
   if (isLoading) {
     return (
@@ -206,6 +252,14 @@ export default function AdminProApplicationsPage() {
               )}
             </TableBody>
           </Table>
+          {hasMore && !loading && (
+            <div className="mt-6 text-center">
+              <Button variant="outline" onClick={() => fetchApplications(true)} disabled={loadingMore}>
+                {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Load More
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

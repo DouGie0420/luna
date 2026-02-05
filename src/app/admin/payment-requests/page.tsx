@@ -1,7 +1,8 @@
+
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { useUser, useFirestore, useCollection } from '@/firebase';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useUser, useFirestore } from '@/firebase';
 import {
   collection,
   query,
@@ -10,6 +11,11 @@ import {
   updateDoc,
   writeBatch,
   where,
+  getDocs,
+  limit,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import {
   Table,
@@ -62,6 +68,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
+const PAGE_SIZE = 50;
 
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
     <div className="flex justify-between items-center text-sm py-1">
@@ -91,7 +98,13 @@ export default function AdminPaymentRequestsPage() {
   const { profile, loading: authLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { t } = useTranslation();
+
+  const [requests, setRequests] = useState<PaymentChangeRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [error, setError] = useState<any>(null);
 
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [rejectionTarget, setRejectionTarget] = useState<PaymentChangeRequest | null>(null);
@@ -99,17 +112,49 @@ export default function AdminPaymentRequestsPage() {
 
   const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
 
-  const requestsQuery = useMemo(() => {
-    if (!firestore || !hasAccess) return null;
-    // THIS IS THE EFFICIENT QUERY THAT REQUIRES THE INDEX
-    return query(
-      collection(firestore, 'paymentChangeRequests'),
-      where('status', '==', 'pending'),
-      orderBy('createdAt', 'desc')
-    );
+  const fetchRequests = useCallback(async (loadMore = false) => {
+    if (!firestore || !hasAccess) {
+      setLoading(false);
+      return;
+    }
+
+    if (loadMore) setLoadingMore(true);
+    else setLoading(true);
+    setError(null);
+
+    try {
+      const constraints = [
+        where('status', '==', 'pending'),
+        orderBy('createdAt', 'desc'),
+        limit(PAGE_SIZE)
+      ];
+
+      if (loadMore && lastVisible) {
+        constraints.push(startAfter(lastVisible));
+      }
+
+      const q = query(collection(firestore, 'paymentChangeRequests'), ...constraints);
+
+      const documentSnapshots = await getDocs(q);
+      const newRequests = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as PaymentChangeRequest));
+
+      setRequests(prev => loadMore ? [...prev, ...newRequests] : newRequests);
+      setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+      setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+
+    } catch (err: any) {
+      console.error(err);
+      setError(err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [firestore, hasAccess, lastVisible]);
+  
+  useEffect(() => {
+    fetchRequests();
   }, [firestore, hasAccess]);
 
-  const { data: requests, loading: dataLoading, error } = useCollection<PaymentChangeRequest>(requestsQuery);
 
   const handleApprove = async (request: PaymentChangeRequest) => {
     if (!firestore || !profile) return;
@@ -125,7 +170,8 @@ export default function AdminPaymentRequestsPage() {
       await batch.commit();
 
       await createNotification(firestore, request.userId, { type: 'paymentRequestApproved', actor: profile, requestId: request.id });
-
+      
+      setRequests(prev => prev.filter(r => r.id !== request.id));
       toast({ title: '申请已批准' });
     } catch (error: any) {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -157,6 +203,7 @@ export default function AdminPaymentRequestsPage() {
             reason: rejectionReason,
         });
 
+        setRequests(prev => prev.filter(r => r.id !== rejectionTarget.id));
         toast({ title: '申请已拒绝' });
         setRejectionTarget(null);
         setRejectionReason('');
@@ -170,7 +217,7 @@ export default function AdminPaymentRequestsPage() {
     }
   };
 
-  const isLoading = authLoading || dataLoading;
+  const isLoading = authLoading || loading;
 
   if (isLoading) {
     return (
@@ -287,6 +334,14 @@ export default function AdminPaymentRequestsPage() {
               )}
             </TableBody>
           </Table>
+          {hasMore && !loading && (
+            <div className="mt-6 text-center">
+              <Button variant="outline" onClick={() => fetchRequests(true)} disabled={loadingMore}>
+                {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Load More
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
       <AlertDialog open={!!rejectionTarget} onOpenChange={(open) => !open && setRejectionTarget(null)}>

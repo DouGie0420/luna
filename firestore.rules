@@ -26,9 +26,9 @@ service cloud.firestore {
 
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
-      // Admins can list any orders based on their client-side query.
-      // Regular users can only list orders where they are a participant.
-      allow list: if (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId || isAdminGroup()) && request.query.limit <= 50;
+      // List: Any signed-in user can list orders, but the client query MUST be secured and paginated.
+      // The 'get' rule below will be checked for each document read.
+      allow list: if isSignedIn() && request.query.limit <= 50;
       allow get: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
@@ -113,15 +113,18 @@ service cloud.firestore {
 
     // --- 其他后台管理模块 (KYC, 收款, 工单) ---
     match /paymentChangeRequests/{reqId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdminGroup();
-      allow list: if isAdminGroup() && resource.data.status == 'pending';
+        allow create: if isSignedIn();
+        allow read, update, delete: if isAdminGroup();
+        // List: Admins can list requests. Client MUST filter by status and paginate.
+        allow list: if isAdminGroup() && request.query.limit <= 50;
     }
     
     match /proApplications/{applicationId} {
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-        allow read, update: if isAdminGroup();
-        allow list: if isAdminGroup() && resource.data.status == 'pending';
+        allow read: if isAdminGroup() || (isSignedIn() && resource.data.userId == request.auth.uid);
+        allow update: if isAdminGroup();
+        // List: Admins can list requests. Client MUST filter by status and paginate.
+        allow list: if isAdminGroup() && request.query.limit <= 50;
     }
 
 

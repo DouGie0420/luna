@@ -199,13 +199,13 @@ export default function KycListPage() {
                         <div>
                           <h3 className="font-semibold mb-2">{t('admin.kycListPage.idDocument')}</h3>
                           {app.kycIdPhotoUrl ? (
-                            <Image src={app.kycIdPhotoUrl} alt="ID Document" width={600} height={400} className="rounded-md" />
+                            <img src={app.kycIdPhotoUrl} alt="ID Document" width={600} height={400} className="rounded-md" />
                           ) : <p>{t('admin.kycListPage.noIdPhoto')}</p>}
                         </div>
                         <div>
                           <h3 className="font-semibold mb-2">{t('admin.kycListPage.selfie')}</h3>
                           {app.kycSelfieUrl ? (
-                            <Image src={app.kycSelfieUrl} alt="Selfie" width={600} height={400} className="rounded-md" />
+                            <img src={app.kycSelfieUrl} alt="Selfie" width={600} height={400} className="rounded-md" />
                           ) : <p>{t('admin.kycListPage.noSelfie')}</p>}
                         </div>
                       </div>
