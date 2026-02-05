@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { useUser, useCollection, useFirestore } from "@/firebase";
+import React, { useMemo, useState } from 'react';
+import { useUser, useCollection, useFirestore, useDoc } from "@/firebase";
 import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,40 +10,80 @@ import { Loader2, ShoppingBag, ExternalLink, CheckCircle2, XCircle } from "lucid
 import { format } from "date-fns";
 import { useTranslation } from '@/hooks/use-translation';
 import Link from 'next/link';
-import type { Order } from '@/lib/types';
+import type { Order, Product, UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { enUS, zhCN, th } from 'date-fns/locale';
+import { useRouter } from 'next/navigation';
+
+const locales = { en: enUS, zh: zhCN, th: th };
+
+const getStatusBadgeVariant = (status: Order['status']) => {
+    switch (status) {
+        case 'Completed': return 'default';
+        case 'Disputed':
+        case 'Cancelled': return 'destructive';
+        default: return 'secondary';
+    }
+};
+
+const getStatusTranslationKey = (status: Order['status']) => {
+    const camelCaseStatus = status.charAt(0).toLowerCase() + status.slice(1).replace(/\s/g, '');
+    return `accountPurchases.status.${camelCaseStatus}`;
+}
+
+function OrderCardSkeleton() {
+    return (
+        <Card className="overflow-hidden">
+            <CardHeader className="flex-row items-center justify-between bg-muted/30 p-4">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-6 w-24" />
+            </CardHeader>
+            <CardContent className="p-4">
+                <div className="flex items-start gap-4">
+                    <Skeleton className="h-24 w-24 rounded-md" />
+                    <div className="flex-1 space-y-2">
+                        <Skeleton className="h-5 w-3/4" />
+                        <Skeleton className="h-5 w-1/4" />
+                        <div className="flex items-center gap-2 pt-2">
+                            <Skeleton className="h-6 w-6 rounded-full" />
+                            <Skeleton className="h-4 w-24" />
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2 bg-muted/30 p-4">
+                <Skeleton className="h-9 w-24" />
+                <Skeleton className="h-9 w-24" />
+            </CardFooter>
+        </Card>
+    );
+}
 
 
-export default function PurchasesPage() {
-    const { t } = useTranslation();
-    const { user, loading: authLoading } = useUser();
-    const db = useFirestore();
+function PurchaseOrderCard({ order }: { order: Order }) {
+    const firestore = useFirestore();
+    const router = useRouter();
+    const { t, language } = useTranslation();
     const { toast } = useToast();
 
-    // Query for all orders where the user is a participant
-    const ordersQuery = useMemo(() => {
-        if (!user?.uid || !db) return null;
-        return query(
-            collection(db, "orders"),
-            where("participants", "array-contains", user.uid)
-            // orderBy is removed to avoid needing a composite index
-        );
-    }, [user?.uid, db]);
+    const productRef = useMemo(() => firestore ? doc(firestore, 'products', order.productId) : null, [firestore, order.productId]);
+    const { data: product, loading: productLoading } = useDoc<Product>(productRef);
 
-    const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+    const sellerRef = useMemo(() => firestore ? doc(firestore, 'users', order.sellerId) : null, [firestore, order.sellerId]);
+    const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
+    
+    const [isConfirming, setIsConfirming] = useState(false);
 
-    // Client-side filter and sort for purchases
-    const purchaseOrders = useMemo(() => {
-        if (!allUserOrders || !user) return [];
-        const filtered = allUserOrders.filter(order => order.buyerId === user.uid);
-        // Sort client-side
-        filtered.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
-        return filtered;
-    }, [allUserOrders, user]);
+    const handleConfirmReceipt = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!firestore) return;
 
-    const handleConfirmReceipt = async (orderId: string) => {
-        if (!db) return;
-        const orderRef = doc(db, 'orders', orderId);
+        setIsConfirming(true);
+        const orderRef = doc(firestore, 'orders', order.id);
         try {
             await updateDoc(orderRef, {
                 status: 'Completed',
@@ -53,8 +93,106 @@ export default function PurchasesPage() {
         } catch (error) {
             console.error("Failed to confirm receipt:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
+        } finally {
+            setIsConfirming(false);
         }
     };
+    
+    const isLoading = productLoading || sellerLoading;
+
+    if (isLoading) {
+        return <OrderCardSkeleton />;
+    }
+
+    return (
+        <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+            <CardHeader className="flex-row items-center justify-between bg-muted/30 p-4">
+                <div>
+                    <p className="text-sm font-medium">
+                        {t('accountSales.orderPlaced')}:{' '}
+                        <span className="font-normal text-muted-foreground">
+                        {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'PPP', { locale: locales[language] }) : 'N/A'}
+                        </span>
+                    </p>
+                    <p className="text-[10px] font-mono text-muted-foreground">
+                        ORDER ID: {order.id}
+                    </p>
+                </div>
+                <Badge variant={getStatusBadgeVariant(order.status)}>
+                    {t(getStatusTranslationKey(order.status), order.status)}
+                </Badge>
+            </CardHeader>
+             <Link href={`/account/purchases/${order.id}`} className="block">
+                <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
+                        <Image
+                            src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/200/200'}
+                            alt={product?.name || 'Product image'}
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                    <div className="flex-1">
+                        <p className="font-semibold hover:underline">{order.productName}</p>
+                        <p className="text-primary">{order.totalAmount.toLocaleString()} {order.currency}</p>
+                        <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                            <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()}>
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={seller?.photoURL} />
+                                    <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                            </Link>
+                            <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
+                                {seller?.displayName}
+                            </Link>
+                        </div>
+                    </div>
+                    </div>
+                </CardContent>
+            </Link>
+            <CardFooter className="flex justify-end gap-2 bg-muted/30 p-4">
+                <Button size="sm" variant="outline" onClick={() => router.push(`/account/purchases/${order.id}`)}>
+                    <ExternalLink className="h-4 w-4 mr-1" /> View Details
+                </Button>
+                {order.status === 'Shipped' && (
+                    <Button size="sm" onClick={handleConfirmReceipt} disabled={isConfirming}>
+                        {isConfirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                        {t('orderDetails.confirmReceipt')}
+                    </Button>
+                )}
+                {order.status === 'Completed' && !order.buyerReviewId && (
+                    <Button size="sm" asChild>
+                        <Link href={`/account/purchases/${order.id}/review`}>
+                            {t('orderDetails.leaveReview')}
+                        </Link>
+                    </Button>
+                )}
+                {order.status === 'Completed' && order.buyerReviewId && (
+                    <Button size="sm" variant="ghost" disabled>
+                        {t('orderDetails.reviewed')}
+                    </Button>
+                )}
+            </CardFooter>
+        </Card>
+    )
+}
+
+export default function PurchasesPage() {
+    const { t } = useTranslation();
+    const { user, loading: authLoading } = useUser();
+    const db = useFirestore();
+
+    const ordersQuery = useMemo(() => {
+        if (!user?.uid || !db) return null;
+        return query(
+            collection(db, "orders"),
+            where("buyerId", "==", user.uid),
+            orderBy('createdAt', 'desc')
+        );
+    }, [user?.uid, db]);
+
+    const { data: purchaseOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
     if (authLoading || (user && dataLoading)) {
         return (
@@ -68,6 +206,8 @@ export default function PurchasesPage() {
     if (!user) {
         return <div className="p-20 text-center text-muted-foreground">请登录后查看您的订单。</div>;
     }
+    
+    const showLoadingSkeleton = authLoading || (user && dataLoading);
 
     return (
         <div className="p-6 md:p-12 max-w-6xl mx-auto">
@@ -80,57 +220,22 @@ export default function PurchasesPage() {
                 <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/5 text-center">
                     <XCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
                     <h2 className="text-destructive font-bold">连接被拦截</h2>
-                    <p className="text-sm mt-2 text-muted-foreground">请检查 Firebase 控制台的 Rules 是否已点击 Publish。</p>
+                    <p className="text-sm mt-2 text-muted-foreground">
+                        无法加载订单，这可能是因为数据库缺少必要的查询索引。请打开开发者控制台(F12)查看错误信息，其中通常会包含一个用于一键创建索引的链接。
+                    </p>
+                </div>
+            ) : showLoadingSkeleton ? (
+                 <div className="grid gap-6">
+                    {[...Array(3)].map((_, i) => <OrderCardSkeleton key={i} />)}
                 </div>
             ) : !purchaseOrders || purchaseOrders.length === 0 ? (
                 <div className="py-24 text-center border-2 border-dashed rounded-2xl opacity-40">
                     <p className="text-xl italic">空空如也，去商城看看吧</p>
                 </div>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-6">
                     {purchaseOrders.map((order: Order) => (
-                        <Card key={order.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                             <Link href={`/account/purchases/${order.id}`} className="block">
-                                <CardHeader className="flex flex-row items-center justify-between space-y-0 bg-muted/30 p-4">
-                                    <div>
-                                        <p className="text-[10px] text-muted-foreground font-mono">ORDER ID: {order.id?.slice(0, 10) || 'N/A'}</p>
-                                        <CardTitle className="text-lg mt-1 group-hover:underline">{order.productName || '数字资产'}</CardTitle>
-                                    </div>
-                                    <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' || order.status === 'Cancelled' ? 'destructive' : 'secondary')}>
-                                        {t(`accountPurchases.status.${order.status.toLowerCase().replace(/\s/g, '')}` as any, order.status)}
-                                    </Badge>
-                                </CardHeader>
-                                <CardContent className="pt-6">
-                                    <div className="flex justify-between items-end">
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-muted-foreground">
-                                                下单时间: {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}
-                                            </p>
-                                            <p className="font-bold text-2xl text-primary">{order.totalAmount.toLocaleString()} <span className="text-sm">{order.currency}</span></p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Link>
-                             <CardFooter className="pb-4 flex justify-end gap-2">
-                                 {order.status === 'Shipped' && (
-                                    <Button size="sm" onClick={() => handleConfirmReceipt(order.id)}>
-                                        <CheckCircle2 className="h-4 w-4 mr-1" /> {t('orderDetails.confirmReceipt')}
-                                    </Button>
-                                )}
-                                {order.status === 'Completed' && !order.buyerReviewId && (
-                                        <Button size="sm" variant="outline" asChild>
-                                        <Link href={`/account/purchases/${order.id}/review`}>
-                                            {t('orderDetails.leaveReview')}
-                                        </Link>
-                                    </Button>
-                                )}
-                                    {order.status === 'Completed' && order.buyerReviewId && (
-                                        <Button size="sm" variant="ghost" disabled>
-                                        {t('orderDetails.reviewed')}
-                                    </Button>
-                                )}
-                            </CardFooter>
-                        </Card>
+                        <PurchaseOrderCard key={order.id} order={order} />
                     ))}
                 </div>
             )}

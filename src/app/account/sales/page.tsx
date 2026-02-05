@@ -29,26 +29,16 @@ export default function SalesPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Query for all orders where the user is a participant
     const ordersQuery = useMemo(() => {
         if (!user?.uid || !db) return null;
         return query(
             collection(db, "orders"),
-            where("participants", "array-contains", user.uid)
-            // orderBy is removed to avoid needing a composite index
+            where("sellerId", "==", user.uid),
+            orderBy('createdAt', 'desc')
         );
     }, [user?.uid, db]);
 
-    const { data: allUserOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
-
-    // Client-side filter and sort for sales
-    const salesOrders = useMemo(() => {
-        if (!allUserOrders || !user) return [];
-        const filtered = allUserOrders.filter(order => order.sellerId === user.uid);
-        // Sort client-side
-        filtered.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
-        return filtered;
-    }, [allUserOrders, user]);
+    const { data: salesOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
     const handleMarkAsShipped = (order: Order) => {
         setSelectedOrder(order);
