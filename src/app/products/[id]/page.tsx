@@ -189,8 +189,7 @@ export default function ProductPage() {
                 title: "商品已提交审核",
                 description: "该商品已从前台隐藏，等待管理员审核。",
             });
-            setIsDeleteDialogOpen(false);
-            router.push('/products');
+            setIsDeleteDialogOpen(false); // This will trigger onOpenChange
         } catch (serverError) {
             const permissionError = new FirestorePermissionError({
                 path: productRef.path,
@@ -317,7 +316,15 @@ export default function ProductPage() {
             </div>
              <AlertDialog 
                 open={isDeleteDialogOpen} 
-                onOpenChange={setIsDeleteDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        if (isSubmittingDelete) {
+                            router.push('/products');
+                        }
+                        setIsSubmittingDelete(false);
+                    }
+                    setIsDeleteDialogOpen(open);
+                }}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>

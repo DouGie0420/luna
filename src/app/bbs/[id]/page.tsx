@@ -459,17 +459,16 @@ export default function BbsPostPage() {
                 title: "帖子已提交审核",
                 description: "该帖子现在将在后台等待最终审核。",
             });
-            setIsDeleteDialogOpen(false);
-            router.push('/bbs');
+            setIsDeleteDialogOpen(false); // This triggers onOpenChange
         } catch (serverError) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: postRef.path,
                 operation: 'update',
                 requestResourceData: updateData,
             }));
-            setIsSubmittingDelete(false);
+            setIsSubmittingDelete(false); // Reset on error to allow user to try again
         }
-      };
+    };
 
     const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
         if (!canInteract || !firestore || !user || !post) {
@@ -822,7 +821,15 @@ export default function BbsPostPage() {
             </div>
             <AlertDialog 
                 open={isDeleteDialogOpen} 
-                onOpenChange={setIsDeleteDialogOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        if (isSubmittingDelete) {
+                            router.push('/bbs');
+                        }
+                        setIsSubmittingDelete(false);
+                    }
+                    setIsDeleteDialogOpen(open);
+                }}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
