@@ -223,40 +223,40 @@ export default function AdminProductsPage() {
     const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
     const [reviewReason, setReviewReason] = useState('涉黄');
     const [customReason, setCustomReason] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     
     // Hard delete state
     const [itemToHardDelete, setItemToHardDelete] = useState<{ type: 'product' | 'post'; id: string } | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    useEffect(() => {
+    const fetchItems = async () => {
         if (!firestore) return;
 
-        const fetchItems = async () => {
-            setLoading(true);
-            try {
-                const productsQuery = query(collection(firestore, 'products'), where('status', '==', 'under_review'));
-                const postsQuery = query(collection(firestore, 'bbs'), where('status', '==', 'under_review'));
+        setLoading(true);
+        try {
+            const productsQuery = query(collection(firestore, 'products'), where('status', '==', 'under_review'));
+            const postsQuery = query(collection(firestore, 'bbs'), where('status', '==', 'under_review'));
 
-                const [productsSnapshot, postsSnapshot] = await Promise.all([
-                    getDocs(productsQuery),
-                    getDocs(postsQuery)
-                ]);
+            const [productsSnapshot, postsSnapshot] = await Promise.all([
+                getDocs(productsQuery),
+                getDocs(postsQuery)
+            ]);
 
-                const productsData = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-                const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BbsPost));
+            const productsData = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+            const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BbsPost));
 
-                setProducts(productsData);
-                setPosts(postsData);
-            } catch (error) {
-                console.error("Failed to fetch review items:", error);
-                toast({ variant: 'destructive', title: 'Failed to load items for review.' });
-            } finally {
-                setLoading(false);
-            }
-        };
+            setProducts(productsData);
+            setPosts(postsData);
+        } catch (error) {
+            console.error("Failed to fetch review items:", error);
+            toast({ variant: 'destructive', title: 'Failed to load items for review.' });
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchItems();
-    }, [firestore, toast]);
+    }, [firestore]);
 
     const handleStatusChange = async (collectionName: 'products' | 'bbs', itemId: string, status: ProductStatus | PostStatus) => {
         if (!firestore) return;
@@ -264,12 +264,7 @@ export default function AdminProductsPage() {
         try {
             await updateDoc(itemRef, { status, reviewReason: null });
             toast({ title: '状态已更新', description: `项目已设置为 "${status}"。` });
-            
-            if (collectionName === 'products') {
-                setProducts(prev => prev ? prev.filter(p => p.id !== itemId) : null);
-            } else {
-                setPosts(prev => prev ? prev.filter(p => p.id !== itemId) : null);
-            }
+            fetchItems();
         } catch (error) {
             console.error("Failed to update status:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { status } }));
@@ -291,11 +286,7 @@ export default function AdminProductsPage() {
         try {
             await updateDoc(itemRef, { reviewReason: finalReason });
             toast({ title: '原因已记录' });
-             if (itemToReview.type === 'product') {
-                setProducts(prev => prev ? prev.map(p => p.id === itemToReview.item.id ? { ...p, reviewReason: finalReason } : p) : null);
-            } else {
-                setPosts(prev => prev ? prev.map(p => p.id === itemToReview.item.id ? { ...p, reviewReason: finalReason } : p) : null);
-            }
+            fetchItems();
         } catch (error) {
             console.error("Failed to set review reason:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
@@ -318,17 +309,12 @@ export default function AdminProductsPage() {
         try {
             await deleteDoc(itemRef);
             toast({ title: '项目已彻底删除' });
-            if (type === 'product') {
-                setProducts(prev => prev ? prev.filter(p => p.id !== id) : null);
-            } else {
-                setPosts(prev => prev ? prev.filter(p => p.id !== id) : null);
-            }
+            setItemToHardDelete(null); // Close dialog
+            window.location.reload(); // Refresh the page to clear state and refetch
         } catch (error) {
             console.error("Failed to hard delete item:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'delete' }));
-        } finally {
-            setIsSubmitting(false);
-            setItemToHardDelete(null);
+            setIsSubmitting(false); // Only set to false on error
         }
     };
 
