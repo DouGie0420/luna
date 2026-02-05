@@ -177,6 +177,11 @@ service cloud.firestore {
       allow write: if hasRole(['admin', 'ghost', 'staff']);
     }
 
+    match /settings/{settingsId} {
+      allow read: if true;
+      allow write: if hasRole(['admin', 'ghost']);
+    }
+
     match /ads/{adId} {
       allow read: if true;
       allow write: if hasRole(['admin', 'ghost', 'staff']);
@@ -193,5 +198,7 @@ service cloud.firestore {
     }
   }
 }
+
+    
 
     

@@ -1,10 +1,11 @@
+
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, Loader2, DollarSign, Activity, AlertCircle, TrendingUp, HandCoins } from "lucide-react";
-import { useFirestore } from "@/firebase";
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { Users, ShieldCheck, Loader2, DollarSign, Activity, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award } from "lucide-react";
+import { useFirestore, useDoc } from "@/firebase";
+import { collection, getDocs, query, where, Timestamp, doc, setDoc } from "firebase/firestore";
+import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import Link from "next/link";
 import {
@@ -15,6 +16,10 @@ import {
 } from "@/components/ui/chart"
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type { GlobalSettings } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 type Stats = {
     totalUsers: number;
@@ -47,8 +52,12 @@ const chartConfig = {
 export default function AdminDashboardPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
+    const { toast } = useToast();
     const [stats, setStats] = useState<Stats | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
+    const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
 
     useEffect(() => {
         if (!firestore) return;
@@ -87,6 +96,17 @@ export default function AdminDashboardPage() {
         fetchStats();
 
     }, [firestore]);
+
+    const handleSettingToggle = async (settingName: keyof GlobalSettings, value: boolean) => {
+        if (!settingsRef) return;
+        try {
+            await setDoc(settingsRef, { [settingName]: value }, { merge: true });
+            toast({ title: 'Setting updated' });
+        } catch (error) {
+            console.error("Failed to update setting:", error);
+            toast({ variant: 'destructive', title: 'Update failed' });
+        }
+    };
 
 
     if (loading || !stats) {
@@ -168,6 +188,44 @@ export default function AdminDashboardPage() {
                 </Link>
              </div>
 
+             <Card>
+                <CardHeader>
+                    <CardTitle>功能开关</CardTitle>
+                    <CardContent className="pt-6 space-y-4">
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="ai-toggle" className="flex items-center gap-2 text-base"><SparklesIcon className="h-4 w-4 text-primary"/> AI 智能分析</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    开启或关闭用户发布商品时使用 AI 生成描述的功能。
+                                </p>
+                            </div>
+                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
+                                <Switch
+                                    id="ai-toggle"
+                                    checked={globalSettings?.isAiAnalysisEnabled ?? false}
+                                    onCheckedChange={(checked) => handleSettingToggle('isAiAnalysisEnabled', checked)}
+                                />
+                            )}
+                        </div>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="pro-toggle" className="flex items-center gap-2 text-base"><Award className="h-4 w-4 text-primary"/> PRO 商户申请</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    开启或关闭用户在个人资料页面申请PRO商户认证的功能。
+                                </p>
+                            </div>
+                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
+                                <Switch
+                                    id="pro-toggle"
+                                    checked={globalSettings?.isProApplicationEnabled ?? false}
+                                    onCheckedChange={(checked) => handleSettingToggle('isProApplicationEnabled', checked)}
+                                />
+                            )}
+                        </div>
+                    </CardContent>
+                </CardHeader>
+             </Card>
+
              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
@@ -202,3 +260,5 @@ export default function AdminDashboardPage() {
         </div>
     );
 }
+
+    

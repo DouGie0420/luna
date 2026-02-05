@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import {
@@ -33,11 +33,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
-import type { User, PaymentMethod } from '@/lib/types';
+import type { User, PaymentMethod, GlobalSettings } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { cn } from '@/lib/utils';
 
 
 export default function NewProductPage() {
@@ -62,6 +63,9 @@ export default function NewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
 
+  const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
+  const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
+  const isAiFeatureEnabled = globalSettings?.isAiAnalysisEnabled ?? false;
 
   useEffect(() => {
       if (!loading && !user) {
@@ -300,15 +304,27 @@ export default function NewProductPage() {
             <CardContent>
               <form className="grid gap-6" onSubmit={handleSubmit}>
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
-                    <Checkbox id="ai-analysis" checked={isAiAnalysisEnabled} onCheckedChange={(checked) => setIsAiAnalysisEnabled(!!checked)} />
+                    <Checkbox
+                        id="ai-analysis"
+                        checked={isAiAnalysisEnabled}
+                        onCheckedChange={(checked) => setIsAiAnalysisEnabled(!!checked)}
+                        disabled={!isAiFeatureEnabled || settingsLoading}
+                    />
                     <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="ai-analysis" className="text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary" />
-                        {t('newProductPage.aiAnalysis')}
-                    </Label>
-                    <p className="text-sm text-muted-foreground">
-                        {t('newProductPage.aiAnalysisDescription')}
-                    </p>
+                        <Label
+                            htmlFor="ai-analysis"
+                            className={cn(
+                                "text-base font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2",
+                                !isAiFeatureEnabled && "text-muted-foreground"
+                            )}
+                        >
+                            <Sparkles className="h-4 w-4 text-primary" />
+                            {t('newProductPage.aiAnalysis')}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                            {t('newProductPage.aiAnalysisDescription')}
+                            {!isAiFeatureEnabled && !settingsLoading && " (管理员已禁用此功能)"}
+                        </p>
                     </div>
                 </div>
 
@@ -506,3 +522,5 @@ export default function NewProductPage() {
     </>
   )
 }
+
+    

@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -20,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { useUser, useFirestore, useCollection } from "@/firebase";
+import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,9 +34,9 @@ import Link from "next/link";
 import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { type BadgeType, type Product } from '@/lib/types';
+import { type BadgeType, type Product, type GlobalSettings } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 import { compressImage } from "@/lib/image-compressor";
@@ -121,6 +120,10 @@ export default function AccountProfilePage() {
     const [totalPurchased, setTotalPurchased] = useState(0);
     const [totalSold, setTotalSold] = useState(0);
     const [loadingStats, setLoadingStats] = useState(true);
+
+    const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
+    const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
+    const isProApplicationEnabled = globalSettings?.isProApplicationEnabled ?? false;
 
     useEffect(() => {
         if (fetchedProducts) {
@@ -527,486 +530,537 @@ export default function AccountProfilePage() {
             onSelect={handleSetNftAvatar}
             isUpdating={isUpdatingAvatar}
         />
-        <div className="p-6 md:p-8 lg:p-12">
-            <h1 className="text-3xl font-headline mb-6">{t('accountPage.title')}</h1>
-            <div className="grid gap-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('accountPage.personalInfo')}</CardTitle>
-                        <CardDescription>{t('accountPage.personalInfoDescription')}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
-                            <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                        </div>
-                        
-                        {profile && user && profile.loginId === user.uid ? (
-                             <div className="border-2 border-dashed border-primary/50 p-4 rounded-lg bg-primary/5">
-                                <p className="text-sm text-primary mb-2 italic">检测到您尚未激活专属赛博域名</p>
-                                <div className="flex gap-2">
-                                <Input 
-                                    placeholder="输入3位以上数字..." 
-                                    value={newLoginId}
-                                    onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
-                                    disabled={isSavingId}
-                                />
-                                <Button onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
-                                    {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                    立即激活
-                                </Button>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="grid gap-2">
-                                <Label>专属ID</Label>
-                                <div className="flex items-center gap-2">
-                                    <Input value={`@${profile?.loginId}`} readOnly className="border-dashed" />
-                                    <Button variant="outline" size="sm" onClick={() => {
-                                        navigator.clipboard.writeText(`https://luna.io/@${profile?.loginId}`);
-                                        toast({ title: '已复制您的专属链接！' });
-                                    }}>复制链接</Button>
-                                </div>
-                            </div>
-                        )}
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">{t('accountPage.email')}</Label>
-                            <div className="flex gap-2">
-                                <Input 
-                                    id="email" 
-                                    type="email" 
-                                    value={profile?.email || user?.email || ''} 
-                                    readOnly 
-                                    className={cn(
-                                        "text-muted-foreground", 
-                                        profile?.emailVerified && "border-dashed border-muted-foreground/30 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 cursor-default"
-                                    )}
-                                />
-                                {user && !profile?.emailVerified && (
-                                    <Button type="button" onClick={handleSendVerification} disabled={cooldown > 0 || isVerifying}>
-                                        {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        {cooldown > 0 ? `${t('accountPage.resendIn')} ${cooldown}s` : t('accountPage.verifyEmail')}
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="gender">{t('accountPage.gender')}</Label>
-                                <Select value={gender} onValueChange={setGender}>
-                                    <SelectTrigger id="gender">
-                                        <SelectValue placeholder={t('accountPage.genderSelectPlaceholder')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="男">{t('accountPage.genderMale')}</SelectItem>
-                                        <SelectItem value="女">{t('accountPage.genderFemale')}</SelectItem>
-                                        <SelectItem value="其他">{t('accountPage.genderOther')}</SelectItem>
-                                        <SelectItem value="保密">{t('accountPage.genderSecret')}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="location">{t('accountPage.location')}</Label>
-                                <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('accountPage.locationPlaceholder')} />
-                            </div>
-                        </div>
-                        <div className="grid gap-2">
-                             <Label htmlFor="bio">{t('accountPage.bio')}</Label>
-                            <Textarea
-                                id="bio"
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                                placeholder={t('accountPage.bioPlaceholder')}
-                                rows={3}
-                                maxLength={200}
-                            />
-                            <p className="text-xs text-muted-foreground text-right">{bio.length} / 200</p>
-                        </div>
-                        <Separator />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="grid gap-2">
-                                <Label>{t('accountPage.kycStatus')}</Label>
-                                <Badge variant={
-                                    profile?.kycStatus === "Verified" ? "default" :
-                                    profile?.kycStatus === "Pending" ? "secondary" :
-                                    "destructive"
-                                }>{profile?.kycStatus || 'N/A'}</Badge>
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>{t('accountPage.emailVerification')}</Label>
-                                {profile?.emailVerified ? (
-                                    <div className="flex items-center pt-2">
-                                        <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
-                                        <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.verified')}</span>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center pt-2">
-                                        <XCircle className="h-5 w-5 text-destructive mr-2" />
-                                        <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.notVerified')}</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="grid gap-2">
-                                <Label>{t('accountPage.joinedOn')}</Label>
-                                <p className="text-sm text-muted-foreground pt-2">
-                                    {profile?.createdAt?.toDate ? format(profile.createdAt.toDate(), 'PPP') : 'N/A'}
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="border-t px-6 py-4">
-                        <Button onClick={handleSaveChanges}>{t('accountPage.saveChanges')}</Button>
-                    </CardFooter>
-                </Card>
-
-                 <Card>
-                    <CardHeader className="flex flex-row items-start justify-between">
-                        <div>
-                            <CardTitle>{t('accountPage.badges.title')}</CardTitle>
-                            <CardDescription>{t('accountPage.badges.description')}</CardDescription>
-                        </div>
-                         <Button
-                            variant={!profile?.displayedBadge || profile.displayedBadge === 'none' ? 'default' : 'outline'}
-                            onClick={() => handleBadgeSelection('none')}
-                            className="flex-shrink-0"
-                        >
-                            <XCircle className="mr-2 h-4 w-4" />
-                            {t('accountPage.badges.no_display')}
-                        </Button>
-                    </CardHeader>
-                    <CardContent>
-                        {availableBadges.length > 0 ? (
-                            <RadioGroup
-                                value={profile?.displayedBadge || 'none'}
-                                onValueChange={handleBadgeSelection}
-                                className="grid grid-cols-2 md:grid-cols-3 gap-4"
-                            >
-                                {availableBadges.map(({ type, label, icon: Icon }) => (
-                                    <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
-                                        <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
-                                        {type === 'pro' ? (
-                                            <div className="relative h-8 w-8 flex items-center justify-center">
-                                                <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg">PRO</span>
-                                            </div>
-                                        ) : type === 'admin' ? (
-                                            <AdminBadgeIcon className="h-8 w-8" />
-                                        ) : (
-                                            <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
-                                        )}
-                                        <span className="font-semibold">{label}</span>
-                                    </Label>
-                                ))}
-                            </RadioGroup>
-                        ) : (
-                            <p className="text-muted-foreground text-center p-4">{t('accountPage.badges.no_badges')}</p>
-                        )}
-                    </CardContent>
-                </Card>
-                
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>{t('accountPage.proCertification.title')}</CardTitle>
-                        <CardDescription>{t('accountPage.proCertification.description')}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {profile?.isPro ? (
-                            <div className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/50">
-                                <ShieldCheck className="h-8 w-8 text-green-400"/>
-                                <div>
-                                    <h3 className="font-semibold text-green-300">{t('accountPage.proCertification.alreadyPro')}</h3>
-                                    <p className="text-sm text-green-400/80">您已解锁所有PRO商户特权。</p>
-                                </div>
-                            </div>
-                        ) : hasPendingApplication ? (
-                            <div className="flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50">
-                                <Loader2 className="h-8 w-8 text-yellow-400 animate-spin"/>
-                                <div>
-                                    <h3 className="font-semibold text-yellow-300">您的 PRO 申请正在审核中</h3>
-                                    <p className="text-sm text-yellow-400/80">我们会在审核完成后通知您。</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="w-full">
-                                            <Button size="lg" className="w-full h-12 text-lg font-bold" disabled>{t('accountPage.proCertification.applyButton')}</Button>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>PRO认证申请功能暂未开放，敬请期待。</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
-                    </CardContent>
-                </Card>
-
-                {canCustomize && (
+        <Dialog open={isProDialogOpen} onOpenChange={setIsProDialogOpen}>
+            <div className="p-6 md:p-8 lg:p-12">
+                <h1 className="text-3xl font-headline mb-6">{t('accountPage.title')}</h1>
+                <div className="grid gap-8">
                     <Card>
                         <CardHeader>
-                            <CardTitle>自定义头像</CardTitle>
-                            <CardDescription>
-                                作为认证商户或管理员，您可以上传新头像和商户横幅。
-                            </CardDescription>
+                            <CardTitle>{t('accountPage.personalInfo')}</CardTitle>
+                            <CardDescription>{t('accountPage.personalInfoDescription')}</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-8">
-                            {/* Avatar Upload */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                                <div className="md:col-span-1 grid gap-2">
-                                    <Label htmlFor="avatar-upload">上传新头像</Label>
-                                    <p className="text-xs text-muted-foreground">点击按键以上传新头像。</p>
-                                </div>
-                                <div className="md:col-span-2 grid gap-4">
-                                    <label htmlFor="avatar-upload" className="cursor-pointer w-fit">
-                                        <div className="relative h-24 w-24">
-                                            {avatarPreview ? (
-                                                <Image src={avatarPreview} alt="Avatar Preview" fill className="rounded-full object-cover border-2 border-primary" />
-                                            ) : (
-                                                <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
-                                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
-                                                </div>
-                                            )}
-                                            {isUploadingAvatar && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
-                                                </div>
-                                            )}
-                                        </div>
-                                    </label>
-                                    <input id="avatar-upload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploadingAvatar} />
-                                    <Button onClick={handleSaveAvatar} disabled={isUploadingAvatar || !avatarPreview || avatarPreview === profile?.photoURL} className="w-fit">
-                                        {isUploadingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                        保存头像
-                                    </Button>
-                                </div>
+                        <CardContent className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="full-name">{t('accountPage.fullName')}</Label>
+                                <Input id="full-name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
                             </div>
-
-                            {profile?.isPro && <Separator />}
                             
-                            {/* Banner Upload */}
-                            {profile?.isPro && (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-                                    <div className="md:col-span-1 grid gap-2">
-                                        <Label htmlFor="banner-upload">自定义商户横幅</Label>
-                                        <p className="text-xs text-muted-foreground">推荐尺寸: 1080x432. 将展示在您的公开资料页和认证商户列表中。</p>
+                            {profile && user && profile.loginId === user.uid ? (
+                                <div className="border-2 border-dashed border-primary/50 p-4 rounded-lg bg-primary/5">
+                                    <p className="text-sm text-primary mb-2 italic">检测到您尚未激活专属赛博域名</p>
+                                    <div className="flex gap-2">
+                                    <Input 
+                                        placeholder="输入3位以上数字..." 
+                                        value={newLoginId}
+                                        onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
+                                        disabled={isSavingId}
+                                    />
+                                    <Button onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
+                                        {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        立即激活
+                                    </Button>
                                     </div>
-                                    <div className="md:col-span-2 grid gap-4">
-                                        {bannerPreview ? (
-                                            <div className="relative aspect-[1080/432] w-full">
-                                                <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-md border bg-muted/20" />
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
-                                                    size="icon"
-                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
-                                                    onClick={() => setBannerPreview(null)}
-                                                    disabled={isUploadingBanner}
-                                                >
-                                                    <X className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                                                    <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                                                    <p className="text-xs text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽</p>
-                                                </div>
-                                                <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
-                                            </label>
-                                        )}
-                                        {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
-                                        <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview} className="w-fit">
-                                            {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            保存横幅
-                                        </Button>
+                                </div>
+                            ) : (
+                                <div className="grid gap-2">
+                                    <Label>专属ID</Label>
+                                    <div className="flex items-center gap-2">
+                                        <Input value={`@${profile?.loginId}`} readOnly className="border-dashed" />
+                                        <Button variant="outline" size="sm" onClick={() => {
+                                            navigator.clipboard.writeText(`https://luna.io/@${profile?.loginId}`);
+                                            toast({ title: '已复制您的专属链接！' });
+                                        }}>复制链接</Button>
                                     </div>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-                )}
 
-
-                {profile?.isPro && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>精选商品展示</CardTitle>
-                            <CardDescription>
-                                选择一件您的商品，它将被展示在首页“认证商户”区域您的名片下方。
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           <div className="grid gap-2">
-                                <Label htmlFor="featured-product-select">选择精选商品</Label>
-                                {productsLoading ? <Skeleton className="h-10 w-full" /> : (
-                                    <Select 
-                                        value={profile.featuredProductId || 'none'}
-                                        onValueChange={async (value) => {
-                                            if (!firestore || !user) return;
-                                            const newFeaturedId = value === 'none' ? null : value;
-                                            await updateUserProfile(firestore, user.uid, { featuredProductId: newFeaturedId });
-                                            toast({ title: "精选商品已更新" });
-                                        }}
-                                    >
-                                        <SelectTrigger id="featured-product-select">
-                                            <SelectValue placeholder="选择一件商品来展示" />
+                            <div className="grid gap-2">
+                                <Label htmlFor="email">{t('accountPage.email')}</Label>
+                                <div className="flex gap-2">
+                                    <Input 
+                                        id="email" 
+                                        type="email" 
+                                        value={profile?.email || user?.email || ''} 
+                                        readOnly 
+                                        className={cn(
+                                            "text-muted-foreground", 
+                                            profile?.emailVerified && "border-dashed border-muted-foreground/30 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 cursor-default"
+                                        )}
+                                    />
+                                    {user && !profile?.emailVerified && (
+                                        <Button type="button" onClick={handleSendVerification} disabled={cooldown > 0 || isVerifying}>
+                                            {isVerifying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            {cooldown > 0 ? `${t('accountPage.resendIn')} ${cooldown}s` : t('accountPage.verifyEmail')}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="gender">{t('accountPage.gender')}</Label>
+                                    <Select value={gender} onValueChange={setGender}>
+                                        <SelectTrigger id="gender">
+                                            <SelectValue placeholder={t('accountPage.genderSelectPlaceholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="none">无 (不展示)</SelectItem>
-                                            {userProducts.map(product => (
-                                                <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
-                                            ))}
+                                            <SelectItem value="男">{t('accountPage.genderMale')}</SelectItem>
+                                            <SelectItem value="女">{t('accountPage.genderFemale')}</SelectItem>
+                                            <SelectItem value="其他">{t('accountPage.genderOther')}</SelectItem>
+                                            <SelectItem value="保密">{t('accountPage.genderSecret')}</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                )}
-                           </div>
-                        </CardContent>
-                    </Card>
-                )}
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Crypto Wallet</CardTitle>
-                        <CardDescription>将您的数字资产展示在月之女神的静谧中</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.isWeb3Verified}>
-                            {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            验证 NFT 资产
-                        </Button>
-                        {!profile?.isWeb3Verified && (
-                             <p className="text-xs text-muted-foreground mt-2">请先使用钱包登录以启用此功能。</p>
-                        )}
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{t('accountPage.creditTitle')}</CardTitle>
-                        <CardDescription>{t('accountPage.creditDescription')}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="grid gap-6">
-                        <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg animate-glow">
-                            <Gem className="h-10 w-10 text-primary" />
-                            <div className="flex-1">
-                                <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
-                                <p className="text-2xl font-bold">{profile?.creditLevel || 'Newcomer'}</p>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="location">{t('accountPage.location')}</Label>
+                                    <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} placeholder={t('accountPage.locationPlaceholder')} />
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
-                                <p className="text-2xl font-bold">{profile?.creditScore || 0}</p>
+                            <div className="grid gap-2">
+                                <Label htmlFor="bio">{t('accountPage.bio')}</Label>
+                                <Textarea
+                                    id="bio"
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    placeholder={t('accountPage.bioPlaceholder')}
+                                    rows={3}
+                                    maxLength={200}
+                                />
+                                <p className="text-xs text-muted-foreground text-right">{bio.length} / 200</p>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                             <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <Star className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('accountPage.rating')}</p>
-                                    <p className="font-bold">
-                                        {profile?.rating?.toFixed(1) || '0.0'} 
-                                        <span className="text-xs text-muted-foreground font-normal"> ({profile?.reviewsCount || 0} {t('accountPage.reviews')})</span>
+                            <Separator />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid gap-2">
+                                    <Label>{t('accountPage.kycStatus')}</Label>
+                                    <Badge variant={
+                                        profile?.kycStatus === "Verified" ? "default" :
+                                        profile?.kycStatus === "Pending" ? "secondary" :
+                                        "destructive"
+                                    }>{profile?.kycStatus || 'N/A'}</Badge>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>{t('accountPage.emailVerification')}</Label>
+                                    {profile?.emailVerified ? (
+                                        <div className="flex items-center pt-2">
+                                            <CheckCircle className="h-5 w-5 text-green-400 mr-2" />
+                                            <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.verified')}</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center pt-2">
+                                            <XCircle className="h-5 w-5 text-destructive mr-2" />
+                                            <span className="text-sm text-muted-foreground">{t('accountPage.emailVerifiedStatus.notVerified')}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>{t('accountPage.joinedOn')}</Label>
+                                    <p className="text-sm text-muted-foreground pt-2">
+                                        {profile?.createdAt?.toDate ? format(profile.createdAt.toDate(), 'PPP') : 'N/A'}
                                     </p>
                                 </div>
                             </div>
-                             <Link href="/account/listings" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <ShoppingBag className="h-6 w-6 text-primary" />
+                        </CardContent>
+                        <CardFooter className="border-t px-6 py-4">
+                            <Button onClick={handleSaveChanges}>{t('accountPage.saveChanges')}</Button>
+                        </CardFooter>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-start justify-between">
+                            <div>
+                                <CardTitle>{t('accountPage.badges.title')}</CardTitle>
+                                <CardDescription>{t('accountPage.badges.description')}</CardDescription>
+                            </div>
+                            <Button
+                                variant={!profile?.displayedBadge || profile.displayedBadge === 'none' ? 'default' : 'outline'}
+                                onClick={() => handleBadgeSelection('none')}
+                                className="flex-shrink-0"
+                            >
+                                <XCircle className="mr-2 h-4 w-4" />
+                                {t('accountPage.badges.no_display')}
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {availableBadges.length > 0 ? (
+                                <RadioGroup
+                                    value={profile?.displayedBadge || 'none'}
+                                    onValueChange={handleBadgeSelection}
+                                    className="grid grid-cols-2 md:grid-cols-3 gap-4"
+                                >
+                                    {availableBadges.map(({ type, label, icon: Icon }) => (
+                                        <Label key={type} htmlFor={`badge-${type}`} className="flex flex-col items-center justify-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-2 has-[:checked]:ring-primary/50 transition-all">
+                                            <RadioGroupItem value={type} id={`badge-${type}`} className="sr-only" />
+                                            {type === 'pro' ? (
+                                                <div className="relative h-8 w-8 flex items-center justify-center">
+                                                    <span className="font-headline text-[8px] text-yellow-300 drop-shadow-lg">PRO</span>
+                                                </div>
+                                            ) : type === 'admin' ? (
+                                                <AdminBadgeIcon className="h-8 w-8" />
+                                            ) : (
+                                                <Icon className={cn("h-8 w-8", badgeColors[type as keyof typeof badgeColors])} />
+                                            )}
+                                            <span className="font-semibold">{label}</span>
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
+                            ) : (
+                                <p className="text-muted-foreground text-center p-4">{t('accountPage.badges.no_badges')}</p>
+                            )}
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{t('accountPage.proCertification.title')}</CardTitle>
+                            <CardDescription>{t('accountPage.proCertification.description')}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {profile?.isPro ? (
+                                <div className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/50">
+                                    <ShieldCheck className="h-8 w-8 text-green-400"/>
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold group-hover:underline">{profile?.onSaleCount || 0}</p>
+                                        <h3 className="font-semibold text-green-300">{t('accountPage.proCertification.alreadyPro')}</h3>
+                                        <p className="text-sm text-green-400/80">您已解锁所有PRO商户特权。</p>
                                     </div>
                                 </div>
-                             </Link>
-                             <Link href="/account/sales" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
+                            ) : hasPendingApplication ? (
+                                <div className="flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50">
+                                    <Loader2 className="h-8 w-8 text-yellow-400 animate-spin"/>
+                                    <div>
+                                        <h3 className="font-semibold text-yellow-300">您的 PRO 申请正在审核中</h3>
+                                        <p className="text-sm text-yellow-400/80">我们会在审核完成后通知您。</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                <DialogTrigger asChild>
+                                    <Button size="lg" className="w-full h-12 text-lg font-bold" disabled={!isProApplicationEnabled || settingsLoading}>
+                                        {settingsLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        {t('accountPage.proCertification.applyButton')}
+                                    </Button>
+                                </DialogTrigger>
+                                {!isProApplicationEnabled && !settingsLoading && (
+                                    <p className="text-xs text-muted-foreground text-center mt-2">
+                                        PRO认证申请功能当前已由管理员关闭。
+                                    </p>
+                                )}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {canCustomize && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>自定义头像</CardTitle>
+                                <CardDescription>
+                                    作为认证商户或管理员，您可以上传新头像和商户横幅。
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="grid gap-8">
+                                {/* Avatar Upload */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                                    <div className="md:col-span-1 grid gap-2">
+                                        <Label htmlFor="avatar-upload">上传新头像</Label>
+                                        <p className="text-xs text-muted-foreground">点击按键以上传新头像。</p>
+                                    </div>
+                                    <div className="md:col-span-2 grid gap-4">
+                                        <label htmlFor="avatar-upload" className="cursor-pointer w-fit">
+                                            <div className="relative h-24 w-24">
+                                                {avatarPreview ? (
+                                                    <Image src={avatarPreview} alt="Avatar Preview" fill className="rounded-full object-cover border-2 border-primary" />
+                                                ) : (
+                                                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+                                                        <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                                    </div>
+                                                )}
+                                                {isUploadingAvatar && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                                                        <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </label>
+                                        <input id="avatar-upload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploadingAvatar} />
+                                        <Button onClick={handleSaveAvatar} disabled={isUploadingAvatar || !avatarPreview || avatarPreview === profile?.photoURL} className="w-fit">
+                                            {isUploadingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            保存头像
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {profile?.isPro && <Separator />}
+                                
+                                {/* Banner Upload */}
+                                {profile?.isPro && (
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                                        <div className="md:col-span-1 grid gap-2">
+                                            <Label htmlFor="banner-upload">自定义商户横幅</Label>
+                                            <p className="text-xs text-muted-foreground">推荐尺寸: 1080x432. 将展示在您的公开资料页和认证商户列表中。</p>
+                                        </div>
+                                        <div className="md:col-span-2 grid gap-4">
+                                            {bannerPreview ? (
+                                                <div className="relative aspect-[1080/432] w-full">
+                                                    <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-md border bg-muted/20" />
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="icon"
+                                                        className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
+                                                        onClick={() => setBannerPreview(null)}
+                                                        disabled={isUploadingBanner}
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
+                                                    <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                                        <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                                                        <p className="text-xs text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽</p>
+                                                    </div>
+                                                    <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
+                                                </label>
+                                            )}
+                                            {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
+                                            <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview} className="w-fit">
+                                                {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                                保存横幅
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+
+                    {profile?.isPro && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>精选商品展示</CardTitle>
+                                <CardDescription>
+                                    选择一件您的商品，它将被展示在首页“认证商户”区域您的名片下方。
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                            <div className="grid gap-2">
+                                    <Label htmlFor="featured-product-select">选择精选商品</Label>
+                                    {productsLoading ? <Skeleton className="h-10 w-full" /> : (
+                                        <Select 
+                                            value={profile.featuredProductId || 'none'}
+                                            onValueChange={async (value) => {
+                                                if (!firestore || !user) return;
+                                                const newFeaturedId = value === 'none' ? null : value;
+                                                await updateUserProfile(firestore, user.uid, { featuredProductId: newFeaturedId });
+                                                toast({ title: "精选商品已更新" });
+                                            }}
+                                        >
+                                            <SelectTrigger id="featured-product-select">
+                                                <SelectValue placeholder="选择一件商品来展示" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">无 (不展示)</SelectItem>
+                                                {userProducts.map(product => (
+                                                    <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                            </div>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Crypto Wallet</CardTitle>
+                            <CardDescription>将您的数字资产展示在月之女神的静谧中</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.isWeb3Verified}>
+                                {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                验证 NFT 资产
+                            </Button>
+                            {!profile?.isWeb3Verified && (
+                                <p className="text-xs text-muted-foreground mt-2">请先使用钱包登录以启用此功能。</p>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{t('accountPage.creditTitle')}</CardTitle>
+                            <CardDescription>{t('accountPage.creditDescription')}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg animate-glow">
+                                <Gem className="h-10 w-10 text-primary" />
+                                <div className="flex-1">
+                                    <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
+                                    <p className="text-2xl font-bold">{profile?.creditLevel || 'Newcomer'}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
+                                    <p className="text-2xl font-bold">{profile?.creditScore || 0}</p>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                    <Star className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.rating')}</p>
+                                        <p className="font-bold">
+                                            {profile?.rating?.toFixed(1) || '0.0'} 
+                                            <span className="text-xs text-muted-foreground font-normal"> ({profile?.reviewsCount || 0} {t('accountPage.reviews')})</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link href="/account/listings" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                    <div className="flex items-center gap-3 p-3">
+                                        <ShoppingBag className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                            <p className="font-bold group-hover:underline">{profile?.onSaleCount || 0}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <Link href="/account/sales" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                    <div className="flex items-center gap-3 p-3">
+                                        <DollarSign className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('accountPage.sales')}</p>
+                                            <p className="font-bold group-hover:underline">{profile?.salesCount || 0}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                    <div className="flex items-center gap-3 p-3">
+                                        <ShoppingCart className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
+                                            <p className="font-bold group-hover:underline">{profile?.purchasesCount || 0}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                     <DollarSign className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('accountPage.sales')}</p>
-                                        <p className="font-bold group-hover:underline">{profile?.salesCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.totalSold')}</p>
+                                        <p className="font-bold">{totalSold.toLocaleString()}</p>
                                     </div>
                                 </div>
-                             </Link>
-                            <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <ShoppingCart className="h-6 w-6 text-primary" />
+                                <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                    <DollarSign className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
-                                        <p className="font-bold group-hover:underline">{profile?.purchasesCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.totalSpent')}</p>
+                                        <p className="font-bold">{totalPurchased.toLocaleString()}</p>
                                     </div>
                                 </div>
-                            </Link>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <DollarSign className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('accountPage.totalSold')}</p>
-                                    <p className="font-bold">{totalSold.toLocaleString()}</p>
+                                <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                    <div className="flex items-center gap-3 p-3">
+                                        <Users className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                            <p className="font-bold group-hover:underline">{profile?.followersCount || 0}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                                <Link href={`/@${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                    <div className="flex items-center gap-3 p-3">
+                                        <UserPlus className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                            <p className="font-bold group-hover:underline">{profile?.followingCount || 0}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            </div>
+                            <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
+                                <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
+                                <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+                                    {profile?.isPro && (
+                                        <div className="flex items-center gap-1.5 text-yellow-400">
+                                            <ShieldCheck className="h-4 w-4" />
+                                            <span>PRO</span>
+                                        </div>
+                                    )}
+                                    {profile?.isWeb3Verified && (
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <Globe className="h-4 w-4" />
+                                            <span>{t('userProfile.web3')}</span>
+                                        </div>
+                                    )}
+                                    {profile?.isNftVerified && (
+                                        <div className="flex items-center gap-1.5 text-blue-400">
+                                            <EthereumIcon className="h-4 w-4 stroke-blue-400" />
+                                            <span>NFT</span>
+                                        </div>
+                                    )}
+                                    {profile?.kycStatus === 'Verified' && (
+                                        <div className="flex items-center gap-1.5 text-yellow-400">
+                                            <Fingerprint className="h-4 w-4" />
+                                            <span>{t('userProfile.kyc')}</span>
+                                        </div>
+                                    )}
+                                    {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
+                                    {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
+                                        <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
+                                    )}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
-                                <DollarSign className="h-6 w-6 text-primary" />
-                                <div>
-                                    <p className="text-sm text-muted-foreground">{t('accountPage.totalSpent')}</p>
-                                    <p className="font-bold">{totalPurchased.toLocaleString()}</p>
-                                </div>
-                            </div>
-                            <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <Users className="h-6 w-6 text-primary" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                        <p className="font-bold group-hover:underline">{profile?.followersCount || 0}</p>
-                                    </div>
-                                </div>
-                            </Link>
-                            <Link href={`/@${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
-                                <div className="flex items-center gap-3 p-3">
-                                    <UserPlus className="h-6 w-6 text-primary" />
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                        <p className="font-bold group-hover:underline">{profile?.followingCount || 0}</p>
-                                    </div>
-                                </div>
-                            </Link>
-                        </div>
-                        <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
-                            <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
-                            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-                                {profile?.isPro && (
-                                    <div className="flex items-center gap-1.5 text-yellow-400">
-                                        <ShieldCheck className="h-4 w-4" />
-                                        <span>PRO</span>
-                                    </div>
-                                )}
-                                {profile?.isWeb3Verified && (
-                                    <div className="flex items-center gap-1.5 text-blue-400">
-                                        <Globe className="h-4 w-4" />
-                                        <span>{t('userProfile.web3')}</span>
-                                    </div>
-                                )}
-                                {profile?.isNftVerified && (
-                                    <div className="flex items-center gap-1.5 text-blue-400">
-                                        <EthereumIcon className="h-4 w-4 stroke-blue-400" />
-                                        <span>NFT</span>
-                                    </div>
-                                )}
-                                {profile?.kycStatus === 'Verified' && (
-                                    <div className="flex items-center gap-1.5 text-yellow-400">
-                                        <Fingerprint className="h-4 w-4" />
-                                        <span>{t('userProfile.kyc')}</span>
-                                    </div>
-                                )}
-                                {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
-                                {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
-                                    <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
-        </div>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('accountPage.proCertification.dialogTitle')}</DialogTitle>
+                    <DialogDescription>{t('accountPage.proCertification.dialogDescription')}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <RadioGroup value={selectedPlan || ''} onValueChange={(value) => setSelectedPlan(value)}>
+                        <Label htmlFor="pro-tier1" className="flex items-center justify-between p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+                            <div>
+                                <h4 className="font-semibold">{t('accountPage.proCertification.tier1.title')}</h4>
+                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier1.description')}</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="font-bold text-lg">{t('accountPage.proCertification.tier1.price')}</span>
+                                <RadioGroupItem value="tier1" id="pro-tier1" />
+                            </div>
+                        </Label>
+                        <Label htmlFor="pro-tier2" className="flex items-center justify-between p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+                            <div>
+                                <h4 className="font-semibold">{t('accountPage.proCertification.tier2.title')}</h4>
+                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier2.description')}</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="font-bold text-lg">{t('accountPage.proCertification.tier2.price')}</span>
+                                <RadioGroupItem value="tier2" id="pro-tier2" />
+                            </div>
+                        </Label>
+                        <Label htmlFor="pro-tier3" className="flex items-center justify-between p-4 border rounded-lg cursor-pointer has-[:checked]:border-primary has-[:checked]:ring-1 has-[:checked]:ring-primary">
+                            <div>
+                                <h4 className="font-semibold">{t('accountPage.proCertification.tier3.title')}</h4>
+                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier3.description')}</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <span className="font-bold text-lg">{t('accountPage.proCertification.tier3.price')}</span>
+                                <RadioGroupItem value="tier3" id="pro-tier3" />
+                            </div>
+                        </Label>
+                    </RadioGroup>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleUpgrade} disabled={!selectedPlan || isUpgrading}>
+                        {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t('accountPage.proCertification.purchaseButton')}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
         </>
     )
 }
+
+    

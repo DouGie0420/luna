@@ -929,6 +929,27 @@
     "/proApplications/{applicationId}": {
       "schema": { "$ref": "#/entities/ProApplication" },
       "description": "Stores user requests to become a PRO merchant."
+    },
+    "/settings/{settingsId}": {
+      "schema": {
+        "title": "Global Settings",
+        "description": "Stores global feature flags and settings for the application.",
+        "type": "object",
+        "properties": {
+          "isAiAnalysisEnabled": {
+            "type": "boolean",
+            "description": "Toggles the AI product analysis feature for users."
+          },
+          "isProApplicationEnabled": {
+            "type": "boolean",
+            "description": "Toggles the ability for users to apply for PRO merchant status."
+          }
+        }
+      },
+      "description": "Contains global settings for the app. Typically only the 'global' document is used."
     }
   }
 }
+
+
+    

@@ -316,3 +316,11 @@ export type ChatMessage = {
   originalText?: string;
   isTranslated?: boolean;
 };
+
+export type GlobalSettings = {
+  id?: string;
+  isAiAnalysisEnabled: boolean;
+  isProApplicationEnabled: boolean;
+};
+
+    
