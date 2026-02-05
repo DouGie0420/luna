@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -24,8 +25,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove } from "firebase/firestore";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -157,7 +158,7 @@ export default function UserProfilePage() {
                                             <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/user/${user.uid}/listings`} className="hover:underline">
+                                        <Link href={`/bbs?author=${user.uid}`} className="hover:underline">
                                             <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
                                         </Link>
                                     </div>
