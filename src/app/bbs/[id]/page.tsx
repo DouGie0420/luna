@@ -250,7 +250,7 @@ export default function BbsPostPage() {
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [postDeletionState, setPostDeletionState] = useState<'idle' | 'deleting' | 'success'>('idle');
+    const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     
@@ -450,7 +450,7 @@ export default function BbsPostPage() {
     const handleDeletePost = async () => {
         if (!firestore || !post || !postRef) return;
     
-        setPostDeletionState('deleting');
+        setIsSubmittingDelete(true);
         const updateData = { status: 'under_review' as const };
         
         try {
@@ -459,16 +459,15 @@ export default function BbsPostPage() {
                 title: "帖子已提交审核",
                 description: "该帖子现在将在后台等待最终审核。",
             });
-            setPostDeletionState('success');
-            setIsDeleteDialogOpen(false); // This will trigger onOpenChange
+            setIsDeleteDialogOpen(false);
+            router.push('/bbs');
         } catch (serverError) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: postRef.path,
                 operation: 'update',
                 requestResourceData: updateData,
             }));
-            setPostDeletionState('idle');
-            setIsDeleteDialogOpen(false);
+            setIsSubmittingDelete(false);
         }
       };
 
@@ -823,19 +822,7 @@ export default function BbsPostPage() {
             </div>
             <AlertDialog 
                 open={isDeleteDialogOpen} 
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsDeleteDialogOpen(false);
-                        if (postDeletionState === 'success') {
-                            router.push('/bbs');
-                        }
-                        if (postDeletionState === 'deleting') {
-                            setPostDeletionState('idle');
-                        }
-                    } else {
-                        setIsDeleteDialogOpen(true);
-                    }
-                }}
+                onOpenChange={setIsDeleteDialogOpen}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -843,9 +830,9 @@ export default function BbsPostPage() {
                         <AlertDialogDescription>此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={postDeletionState === 'deleting'}>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeletePost} disabled={postDeletionState === 'deleting'} className="bg-destructive hover:bg-destructive/90">
-                            {postDeletionState === 'deleting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <AlertDialogCancel disabled={isSubmittingDelete}>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeletePost} disabled={isSubmittingDelete} className="bg-destructive hover:bg-destructive/90">
+                            {isSubmittingDelete && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             确认提交
                         </AlertDialogAction>
                     </AlertDialogFooter>
