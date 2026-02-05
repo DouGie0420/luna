@@ -1,3 +1,4 @@
+
 {
   "common": {
     "login": "登录",
@@ -131,6 +132,30 @@
     "emailVerifiedStatus": {
       "verified": "已验证",
       "notVerified": "未验证"
+    },
+    "proCertification": {
+      "title": "PRO 商户认证",
+      "description": "解锁店铺自定义、优先展示等专属特权。",
+      "applyButton": "申请 PRO 认证",
+      "alreadyPro": "您已是 PRO 商户。",
+      "dialogTitle": "选择您的 PRO 方案",
+      "dialogDescription": "选择一个方案以解锁专属功能并提升您的曝光度。",
+      "tier1": {
+        "title": "1 个月",
+        "price": "1,000 泰铢",
+        "description": "适合初次尝试，小试牛刀。"
+      },
+      "tier2": {
+        "title": "3 个月",
+        "price": "2,500 泰铢",
+        "description": "高性价比，适合活跃卖家成长。"
+      },
+      "tier3": {
+        "title": "1 年",
+        "price": "8,000 泰铢",
+        "description": "最佳选择，全年主宰市场。"
+      },
+      "purchaseButton": "购买方案"
     }
   },
   "newProductPage": {

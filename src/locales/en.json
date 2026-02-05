@@ -132,6 +132,30 @@
     "emailVerifiedStatus": {
       "verified": "Verified",
       "notVerified": "Not Verified"
+    },
+    "proCertification": {
+      "title": "PRO Merchant Certification",
+      "description": "Unlock exclusive features like store customization and priority display.",
+      "applyButton": "Apply for PRO Certification",
+      "alreadyPro": "You are a PRO Merchant.",
+      "dialogTitle": "Choose Your PRO Plan",
+      "dialogDescription": "Select a plan to unlock exclusive features and boost your visibility.",
+      "tier1": {
+        "title": "1 Month",
+        "price": "1,000 THB",
+        "description": "Perfect for getting started and testing the waters."
+      },
+      "tier2": {
+        "title": "3 Months",
+        "price": "2,500 THB",
+        "description": "Great value for active sellers looking to grow."
+      },
+      "tier3": {
+        "title": "1 Year",
+        "price": "8,000 THB",
+        "description": "Best value. Dominate the market for a full year."
+      },
+      "purchaseButton": "Purchase Plan"
     }
   },
   "newProductPage": {

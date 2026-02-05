@@ -132,6 +132,30 @@
     "emailVerifiedStatus": {
       "verified": "ยืนยันแล้ว",
       "notVerified": "ยังไม่ได้ยืนยัน"
+    },
+    "proCertification": {
+        "title": "การรับรองร้านค้า PRO",
+        "description": "ปลดล็อกคุณสมบัติพิเศษ เช่น การปรับแต่งร้านค้าและการแสดงผลลำดับแรก",
+        "applyButton": "สมัครการรับรอง PRO",
+        "alreadyPro": "คุณเป็นร้านค้า PRO แล้ว",
+        "dialogTitle": "เลือกแผน PRO ของคุณ",
+        "dialogDescription": "เลือกแผนเพื่อปลดล็อกคุณสมบัติพิเศษและเพิ่มการมองเห็นของคุณ",
+        "tier1": {
+            "title": "1 เดือน",
+            "price": "1,000 บาท",
+            "description": "เหมาะสำหรับการเริ่มต้นและทดลอง"
+        },
+        "tier2": {
+            "title": "3 เดือน",
+            "price": "2,500 บาท",
+            "description": "คุ้มค่าสำหรับผู้ขายที่กระตือรือร้นและต้องการเติบโต"
+        },
+        "tier3": {
+            "title": "1 ปี",
+            "price": "8,000 บาท",
+            "description": "คุ้มค่าที่สุด ครองตลาดตลอดทั้งปี"
+        },
+        "purchaseButton": "ซื้อแผน"
     }
   },
   "newProductPage": {
@@ -483,7 +507,7 @@
     "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว",
     "trackShipment": "ติดตามการจัดส่ง",
     "trackingInfo": "ข้อมูลการติดตาม",
-    "trackingProvider": "ผู้ให้บริการจัดส่ง",
+    "trackingProvider": "ผู้ให้บริการจัด送",
     "trackingNumber": "หมายเลขติดตาม",
     "trackingPlaceholder": "API สำหรับการติดตามสดจะถูกรวมเข้าไว้ที่นี่ในอนาคต"
   },

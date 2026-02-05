@@ -41,6 +41,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 import { compressImage } from "@/lib/image-compressor";
 import Image from "next/image";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -98,6 +107,10 @@ export default function AccountProfilePage() {
         return query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
     }, [firestore, user]);
     const { data: fetchedProducts, loading: productsLoading } = useCollection<Product>(userProductsQuery);
+    
+    const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+    const [isUpgrading, setIsUpgrading] = useState(false);
+    const [isProDialogOpen, setIsProDialogOpen] = useState(false);
 
     useEffect(() => {
         if (fetchedProducts) {
@@ -351,6 +364,23 @@ export default function AccountProfilePage() {
             setIsUpdatingAvatar(false);
         }
     };
+    
+    const handleUpgrade = async () => {
+        if (!firestore || !user || !selectedPlan) return;
+        setIsUpgrading(true);
+        try {
+            await updateUserProfile(firestore, user.uid, { isPro: true, displayedBadge: 'pro' });
+            toast({ title: "升级成功!", description: "欢迎成为PRO商户！您的专属徽章已点亮。" });
+            setIsProDialogOpen(false); // Close dialog on success
+            setSelectedPlan(null); // Reset selection
+        } catch(e) {
+            toast({ variant: 'destructive', title: '升级失败', description: '发生未知错误，请稍后再试。' });
+            console.error(e);
+        } finally {
+            setIsUpgrading(false);
+        }
+    }
+
 
     const availableBadges: { type: BadgeType; label: string; icon: React.FC<any> }[] = [];
     if (profile?.emailVerified) availableBadges.push({ type: 'email', label: t('accountPage.badges.email_label'), icon: CheckCircle });
@@ -598,6 +628,71 @@ export default function AccountProfilePage() {
                     </CardContent>
                 </Card>
                 
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>{t('accountPage.proCertification.title')}</CardTitle>
+                        <CardDescription>{t('accountPage.proCertification.description')}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {profile?.isPro ? (
+                            <div className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500/50">
+                                <ShieldCheck className="h-8 w-8 text-green-400"/>
+                                <div>
+                                    <h3 className="font-semibold text-green-300">{t('accountPage.proCertification.alreadyPro')}</h3>
+                                    <p className="text-sm text-green-400/80">您已解锁所有PRO商户特权。</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <Dialog open={isProDialogOpen} onOpenChange={setIsProDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button size="lg" className="w-full h-12 text-lg font-bold">{t('accountPage.proCertification.applyButton')}</Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl">
+                                    <DialogHeader>
+                                        <DialogTitle className="font-headline text-2xl">{t('accountPage.proCertification.dialogTitle')}</DialogTitle>
+                                        <DialogDescription>{t('accountPage.proCertification.dialogDescription')}</DialogDescription>
+                                    </DialogHeader>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
+                                        <Card onClick={() => setSelectedPlan('tier1')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier1' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
+                                            <CardHeader>
+                                                <CardTitle>{t('accountPage.proCertification.tier1.title')}</CardTitle>
+                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier1.price')}</p>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier1.description')}</p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card onClick={() => setSelectedPlan('tier2')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier2' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
+                                             <CardHeader>
+                                                <CardTitle>{t('accountPage.proCertification.tier2.title')}</CardTitle>
+                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier2.price')}</p>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier2.description')}</p>
+                                            </CardContent>
+                                        </Card>
+                                        <Card onClick={() => setSelectedPlan('tier3')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier3' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
+                                             <CardHeader>
+                                                <CardTitle>{t('accountPage.proCertification.tier3.title')}</CardTitle>
+                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier3.price')}</p>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier3.description')}</p>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button onClick={handleUpgrade} size="lg" disabled={!selectedPlan || isUpgrading}>
+                                            {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                            {t('accountPage.proCertification.purchaseButton')}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </CardContent>
+                </Card>
+
                 {canCustomize && (
                     <Card>
                         <CardHeader>
@@ -782,7 +877,7 @@ export default function AccountProfilePage() {
                                         <p className="font-bold">{profile?.purchasesCount || 0}</p>
                                     </div>
                                 </div>
-                             </Link>
+                            </Link>
                             <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
