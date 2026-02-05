@@ -17,6 +17,7 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 const PAGE_SIZE = 50;
 const locales = { en: enUS, zh: zhCN, th: th };
@@ -38,27 +39,35 @@ const getStatusTranslationKey = (status: Order['status']) => {
 function OrderCardSkeleton() {
     return (
         <Card className="overflow-hidden">
-            <CardHeader className="flex-row items-center justify-between bg-muted/30 p-4">
-                <Skeleton className="h-5 w-48" />
-                <Skeleton className="h-6 w-24" />
-            </CardHeader>
-            <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                    <Skeleton className="h-24 w-24 rounded-md" />
-                    <div className="flex-1 space-y-2">
-                        <Skeleton className="h-5 w-3/4" />
-                        <Skeleton className="h-5 w-1/4" />
-                        <div className="flex items-center gap-2 pt-2">
-                            <Skeleton className="h-6 w-6 rounded-full" />
-                            <Skeleton className="h-4 w-24" />
+            <div className="grid grid-cols-1 md:grid-cols-3">
+                <div className="md:col-span-1 relative aspect-video md:aspect-square">
+                    <Skeleton className="w-full h-full" />
+                </div>
+                <div className="md:col-span-2 p-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                        <div className="flex justify-between items-start">
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-6 w-20" />
+                        </div>
+                        <Skeleton className="h-7 w-1/4" />
+                        <Separator/>
+                        <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <Skeleton className="h-6 w-6 rounded-full" />
+                                <Skeleton className="h-4 w-24" />
+                            </div>
+                            <div className="space-y-1 text-right">
+                                <Skeleton className="h-3 w-28" />
+                                <Skeleton className="h-3 w-20" />
+                            </div>
                         </div>
                     </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Skeleton className="h-9 w-24" />
+                        <Skeleton className="h-9 w-32" />
+                    </div>
                 </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2 bg-muted/30 p-4">
-                <Skeleton className="h-9 w-24" />
-                <Skeleton className="h-9 w-24" />
-            </CardFooter>
+            </div>
         </Card>
     );
 }
@@ -106,73 +115,78 @@ function PurchaseOrderCard({ order }: { order: Order }) {
     }
 
     return (
-        <Card className="overflow-hidden transition-shadow hover:shadow-lg cursor-pointer" onClick={() => router.push(`/account/purchases/${order.id}`)}>
-            <CardHeader className="flex-row items-center justify-between bg-muted/30 p-4">
-                <div>
-                    <p className="text-sm font-medium">
-                        {t('accountSales.orderPlaced')}:{' '}
-                        <span className="font-normal text-muted-foreground">
-                        {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'PPP', { locale: locales[language] }) : 'N/A'}
-                        </span>
-                    </p>
-                    <p className="text-[10px] font-mono text-muted-foreground">
-                        ORDER ID: {order.id}
-                    </p>
-                </div>
-                <Badge variant={getStatusBadgeVariant(order.status)}>
-                    {t(getStatusTranslationKey(order.status), order.status)}
-                </Badge>
-            </CardHeader>
-            <CardContent className="p-4">
-                <div className="flex items-start gap-4">
-                <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border">
-                    <Image
-                        src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/200/200'}
+       <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3">
+                <div className="md:col-span-1 relative aspect-video md:aspect-square">
+                     <Image
+                        src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/400/400'}
                         alt={product?.name || 'Product image'}
                         fill
                         className="object-cover"
                     />
                 </div>
-                <div className="flex-1">
-                    <p className="font-semibold hover:underline">{order.productName}</p>
-                    <p className="text-primary">{(order.totalAmount ?? 0).toLocaleString()} {order.currency}</p>
-                    <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                        <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()}>
-                            <Avatar className="h-6 w-6">
-                                <AvatarImage src={seller?.photoURL} />
-                                <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                        </Link>
-                        <Link href={`/@${seller?.loginId || seller?.uid}`} onClick={(e) => e.stopPropagation()} className="hover:underline">
-                            {seller?.displayName}
-                        </Link>
+
+                <div className="md:col-span-2 p-4 flex flex-col justify-between">
+                    <div>
+                        <div className="flex justify-between items-start gap-4">
+                             <Link href={`/products/${product?.id || order.productId}`}>
+                                <p className="font-semibold text-lg hover:underline leading-tight">{order.productName}</p>
+                             </Link>
+                             <Badge variant={getStatusBadgeVariant(order.status)}>
+                                {t(getStatusTranslationKey(order.status), order.status)}
+                            </Badge>
+                        </div>
+                        
+                        <p className="text-primary text-xl font-bold mt-1">{(order.totalAmount ?? 0).toLocaleString()} {order.currency}</p>
+
+                        <Separator className="my-3" />
+                        
+                        <div className="flex items-center justify-between text-sm">
+                            <Link href={`/@${seller?.loginId || seller?.uid}`} className="flex items-center gap-2 text-muted-foreground hover:underline">
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={seller?.photoURL} />
+                                    <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <span>{seller?.displayName}</span>
+                            </Link>
+                            <div className="text-right">
+                                <p className="text-xs text-muted-foreground">
+                                    {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'PPP', { locale: locales[language] }) : 'N/A'}
+                                </p>
+                                <p className="text-[10px] font-mono text-muted-foreground">
+                                    ORDER ID: {order.id}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button size="sm" variant="outline" asChild>
+                            <Link href={`/account/purchases/${order.id}`}>
+                                <ExternalLink className="h-4 w-4 mr-1" /> View Details
+                            </Link>
+                        </Button>
+                        {order.status === 'Shipped' && (
+                            <Button size="sm" onClick={handleConfirmReceipt} disabled={isConfirming}>
+                                {isConfirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                                {t('orderDetails.confirmReceipt')}
+                            </Button>
+                        )}
+                        {order.status === 'Completed' && !order.buyerReviewId && (
+                            <Button size="sm" asChild>
+                                <Link href={`/account/purchases/${order.id}/review`}>
+                                    {t('orderDetails.leaveReview')}
+                                </Link>
+                            </Button>
+                        )}
+                        {order.status === 'Completed' && order.buyerReviewId && (
+                            <Button size="sm" variant="ghost" disabled>
+                                {t('orderDetails.reviewed')}
+                            </Button>
+                        )}
                     </div>
                 </div>
-                </div>
-            </CardContent>
-            <CardFooter className="flex justify-end gap-2 bg-muted/30 p-4">
-                <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); router.push(`/account/purchases/${order.id}`); }}>
-                    <ExternalLink className="h-4 w-4 mr-1" /> View Details
-                </Button>
-                {order.status === 'Shipped' && (
-                    <Button size="sm" onClick={handleConfirmReceipt} disabled={isConfirming}>
-                        {isConfirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-                        {t('orderDetails.confirmReceipt')}
-                    </Button>
-                )}
-                {order.status === 'Completed' && !order.buyerReviewId && (
-                    <Button size="sm" asChild onClick={(e) => e.stopPropagation()}>
-                        <Link href={`/account/purchases/${order.id}/review`}>
-                            {t('orderDetails.leaveReview')}
-                        </Link>
-                    </Button>
-                )}
-                {order.status === 'Completed' && order.buyerReviewId && (
-                    <Button size="sm" variant="ghost" disabled onClick={(e) => e.stopPropagation()}>
-                        {t('orderDetails.reviewed')}
-                    </Button>
-                )}
-            </CardFooter>
+            </div>
         </Card>
     )
 }
