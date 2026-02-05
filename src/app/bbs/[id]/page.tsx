@@ -251,7 +251,6 @@ export default function BbsPostPage() {
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-    const [shouldNavigateAfterDelete, setShouldNavigateAfterDelete] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     
@@ -460,8 +459,11 @@ export default function BbsPostPage() {
                 title: "帖子已提交审核",
                 description: "该帖子现在将在后台等待最终审核。",
             });
-            setShouldNavigateAfterDelete(true);
-            setIsDeleteDialogOpen(false); 
+            setIsDeleteDialogOpen(false);
+            // Wait for animation to finish then navigate
+            setTimeout(() => {
+                router.push('/bbs');
+            }, 300);
         } catch (serverError) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: postRef.path,
@@ -821,19 +823,7 @@ export default function BbsPostPage() {
 
                 </Card>
             </div>
-            <AlertDialog 
-                open={isDeleteDialogOpen} 
-                onOpenChange={(open) => {
-                    if (!open) {
-                        if (shouldNavigateAfterDelete) {
-                            router.push('/bbs');
-                        }
-                        setIsSubmittingDelete(false);
-                        setShouldNavigateAfterDelete(false);
-                    }
-                    setIsDeleteDialogOpen(open);
-                }}
-            >
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>

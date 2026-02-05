@@ -90,7 +90,6 @@ export default function ProductPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-    const [shouldNavigateAfterDelete, setShouldNavigateAfterDelete] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -190,8 +189,11 @@ export default function ProductPage() {
                 title: "商品已提交审核",
                 description: "该商品已从前台隐藏，等待管理员审核。",
             });
-            setShouldNavigateAfterDelete(true);
             setIsDeleteDialogOpen(false); 
+            // Wait for animation to finish then navigate
+            setTimeout(() => {
+                router.push('/products');
+            }, 300);
         } catch (serverError) {
             const permissionError = new FirestorePermissionError({
                 path: productRef.path,
@@ -316,19 +318,7 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
-             <AlertDialog 
-                open={isDeleteDialogOpen} 
-                onOpenChange={(open) => {
-                    if (!open) {
-                        if (shouldNavigateAfterDelete) {
-                            router.push('/products');
-                        }
-                        setIsSubmittingDelete(false);
-                        setShouldNavigateAfterDelete(false);
-                    }
-                    setIsDeleteDialogOpen(open);
-                }}
-            >
+             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>
