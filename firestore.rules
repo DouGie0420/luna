@@ -9,7 +9,11 @@ service cloud.firestore {
     }
 
     function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      if (userDoc != null && 'role' in userDoc.data) {
+        return userDoc.data.role;
+      }
+      return 'guest';
     }
 
     function hasRole(roles) {
