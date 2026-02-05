@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser, useFirestore } from '@/firebase';
@@ -185,7 +186,7 @@ export default function NewProductPage() {
       likedBy: [],
       favoritedBy: [],
       createdAt: serverTimestamp(),
-      status: 'active' as const,
+      status: isConsignment ? 'under_review' : 'active' as const,
     };
 
     try {
