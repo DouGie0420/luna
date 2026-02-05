@@ -295,8 +295,8 @@ export default function AdminSupportPage() {
         
         const baseQuery = collection(firestore, 'support_tickets');
         const q = activeFilter === 'All'
-            ? query(baseQuery, orderBy('updatedAt', 'desc'))
-            : query(baseQuery, where('status', '==', activeFilter), orderBy('updatedAt', 'desc'));
+            ? query(baseQuery, orderBy('createdAt', 'desc'))
+            : query(baseQuery, where('status', '==', activeFilter), orderBy('createdAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedTickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as SupportTicket);
@@ -355,7 +355,7 @@ export default function AdminSupportPage() {
                                             </div>
                                             <p className="text-sm text-muted-foreground">{ticket.userName}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
-                                                Updated {formatDistanceToNow(ticket.updatedAt?.toDate() || ticket.createdAt.toDate(), { addSuffix: true })}
+                                                Updated {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true })}
                                             </p>
                                         </div>
                                     )

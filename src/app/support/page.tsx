@@ -49,6 +49,7 @@ export default function SupportPage() {
     }
     setIsSubmitting(true);
     try {
+      const now = serverTimestamp();
       await addDoc(collection(firestore, 'support_tickets'), {
         userId: user.uid,
         userName: user.displayName,
@@ -57,7 +58,8 @@ export default function SupportPage() {
         subject,
         description,
         status: 'Open',
-        createdAt: serverTimestamp(),
+        createdAt: now,
+        updatedAt: now,
       });
       toast({ title: "Ticket Submitted", description: "Our support team will get back to you shortly." });
       setCategory('');
