@@ -27,7 +27,8 @@ service cloud.firestore {
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
       allow create: if isSignedIn();
-      allow update, delete: if isAdminGroup();
+      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
+      allow delete: if isAdminGroup();
     }
 
     // --- 用户集合 (users) ---
