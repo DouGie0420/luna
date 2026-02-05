@@ -7,8 +7,9 @@ import Link from 'next/link';
 export function Footer() {
   const pathname = usePathname();
   const isAdminPage = pathname.startsWith('/admin');
+  const isAccountPage = pathname.startsWith('/account');
 
-  if (isAdminPage) {
+  if (isAdminPage || isAccountPage) {
     return null;
   }
 
