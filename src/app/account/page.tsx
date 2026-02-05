@@ -878,20 +878,20 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.followers')}</p>
                                         <p className="font-bold">{profile?.followersCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/@${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${profile?.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.following')}</p>
                                         <p className="font-bold">{profile?.followingCount || 0}</p>
                                     </div>
                                 </div>

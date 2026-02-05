@@ -414,8 +414,8 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold group-hover:underline">{user.onSaleCount ?? 0}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.onSale')}</p>
+                                        <p className="font-bold">{user.onSaleCount ?? 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -423,8 +423,8 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                        <p className="font-bold group-hover:underline">{user.salesCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.sold')}</p>
+                                        <p className="font-bold">{user.salesCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -432,25 +432,25 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <MessageSquare className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.posts')}</p>
-                                        <p className="font-bold group-hover:underline">{user.postsCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.posts')}</p>
+                                        <p className="font-bold">{user.postsCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/@${user.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${user.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.followers')}</p>
                                         <p className="font-bold">{user.followersCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
-                            <Link href={`/@${user.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href={`/@${user.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.following')}</p>
                                         <p className="font-bold">{user.followingCount || 0}</p>
                                     </div>
                                 </div>
@@ -531,5 +531,3 @@ export default function UserProfilePage() {
       </>
     )
 }
-
-    
