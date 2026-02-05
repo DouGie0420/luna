@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -726,52 +727,18 @@ export default function AccountProfilePage() {
                                 </div>
                             </div>
                         ) : (
-                            <Dialog open={isProDialogOpen} onOpenChange={setIsProDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button size="lg" className="w-full h-12 text-lg font-bold">{t('accountPage.proCertification.applyButton')}</Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-4xl">
-                                    <DialogHeader>
-                                        <DialogTitle className="font-headline text-2xl">{t('accountPage.proCertification.dialogTitle')}</DialogTitle>
-                                        <DialogDescription>{t('accountPage.proCertification.dialogDescription')}</DialogDescription>
-                                    </DialogHeader>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
-                                        <Card onClick={() => setSelectedPlan('tier1')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier1' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
-                                            <CardHeader>
-                                                <CardTitle>{t('accountPage.proCertification.tier1.title')}</CardTitle>
-                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier1.price')}</p>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier1.description')}</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card onClick={() => setSelectedPlan('tier2')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier2' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
-                                             <CardHeader>
-                                                <CardTitle>{t('accountPage.proCertification.tier2.title')}</CardTitle>
-                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier2.price')}</p>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier2.description')}</p>
-                                            </CardContent>
-                                        </Card>
-                                        <Card onClick={() => setSelectedPlan('tier3')} className={cn("cursor-pointer transition-all", selectedPlan === 'tier3' ? "border-primary ring-2 ring-primary/50" : "hover:border-primary/50")}>
-                                             <CardHeader>
-                                                <CardTitle>{t('accountPage.proCertification.tier3.title')}</CardTitle>
-                                                <p className="text-2xl font-bold">{t('accountPage.proCertification.tier3.price')}</p>
-                                            </CardHeader>
-                                            <CardContent>
-                                                <p className="text-sm text-muted-foreground">{t('accountPage.proCertification.tier3.description')}</p>
-                                            </CardContent>
-                                        </Card>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button onClick={handleUpgrade} size="lg" disabled={!selectedPlan || isUpgrading}>
-                                            {isUpgrading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                            {t('accountPage.proCertification.purchaseButton')}
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className="w-full">
+                                            <Button size="lg" className="w-full h-12 text-lg font-bold" disabled>{t('accountPage.proCertification.applyButton')}</Button>
+                                        </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>PRO认证申请功能暂未开放，敬请期待。</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
                         )}
                     </CardContent>
                 </Card>
