@@ -26,7 +26,6 @@ import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { useSettings } from "@/hooks/use-settings";
 
 export function UserNav() {
   const { t } = useTranslation();
@@ -34,7 +33,6 @@ export function UserNav() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { settings } = useSettings();
   
   const isLoggedIn = !!user;
   const isTestUser = user?.uid === 'test-user-uid';
@@ -46,17 +44,8 @@ export function UserNav() {
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
   
   const [unreadMessages, setUnreadMessages] = useState(0);
-  const prevUnreadCountRef = useRef(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  useEffect(() => {
-    // A simple, short, and universally supported WAV file.
-    const soundData = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVgAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA==';
-    audioRef.current = new Audio(soundData);
-    audioRef.current.volume = 0.5; // Set a reasonable volume
-  }, []);
-
-  // New logic to get unread message count and play sound
+  // Get unread message count
   useEffect(() => {
     if (!firestore || !user) {
         setUnreadMessages(0);
@@ -75,17 +64,11 @@ export function UserNav() {
             }
         });
         
-        // Play sound if count has increased
-        if (totalUnread > prevUnreadCountRef.current && settings.messageSoundEnabled && audioRef.current) {
-            audioRef.current.play().catch(e => console.error("Error playing sound:", e));
-        }
-
         setUnreadMessages(totalUnread);
-        prevUnreadCountRef.current = totalUnread; // Update previous count
     });
 
     return () => unsubscribe();
-  }, [firestore, user, settings.messageSoundEnabled]);
+  }, [firestore, user]);
 
 
   // 严格匹配四级管理权限

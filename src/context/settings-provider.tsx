@@ -3,7 +3,7 @@
 import React, { createContext, useState, useEffect, useMemo, ReactNode } from 'react';
 
 export interface AppSettings {
-  messageSoundEnabled: boolean;
+  // messageSoundEnabled: boolean; // This setting is being removed
 }
 
 interface SettingsContextType {
@@ -12,7 +12,7 @@ interface SettingsContextType {
 }
 
 const defaultSettings: AppSettings = {
-  messageSoundEnabled: true,
+  // messageSoundEnabled: true, // This setting is being removed
 };
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

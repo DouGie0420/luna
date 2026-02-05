@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Bell } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -40,8 +40,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 import { compressImage } from "@/lib/image-compressor";
 import Image from "next/image";
-import { useSettings } from '@/hooks/use-settings';
-import { Switch } from '@/components/ui/switch';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,7 +70,6 @@ export default function AccountProfilePage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
     const { toast } = useToast();
-    const { settings, setSettings } = useSettings();
 
     const [displayName, setDisplayName] = useState('');
     const [gender, setGender] = useState('保密');
@@ -121,10 +118,6 @@ export default function AccountProfilePage() {
             return () => clearTimeout(timer);
         }
     }, [cooldown]);
-    
-    const handleMessageSoundToggle = (checked: boolean) => {
-        setSettings({ messageSoundEnabled: checked });
-    };
 
     const handleSaveChanges = async () => {
         if (!firestore || !user) return;
@@ -639,33 +632,6 @@ export default function AccountProfilePage() {
                         </CardContent>
                     </Card>
                 )}
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Bell className="h-5 w-5" />
-                            通知设置
-                        </CardTitle>
-                        <CardDescription>
-                            管理您的应用通知偏好。
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div>
-                                <Label htmlFor="message-sound" className="font-semibold">私信声音提醒</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    收到新私信时播放提示音。
-                                </p>
-                            </div>
-                            <Switch
-                                id="message-sound"
-                                checked={settings.messageSoundEnabled}
-                                onCheckedChange={handleMessageSoundToggle}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
 
                 <Card>
                     <CardHeader>
