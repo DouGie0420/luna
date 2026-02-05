@@ -20,7 +20,7 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, QueryDocumentSnapshot, doc } from 'firebase/firestore';
 import { useSearchParams } from 'next/navigation';
 
-const PAGE_SIZE = 100;
+const PAGE_SIZE = 50;
 
 function BbsPageSkeleton() {
     return (
@@ -120,9 +120,7 @@ function BbsPageContent() {
             toast({ 
                 variant: 'destructive', 
                 title: 'Failed to fetch posts.', 
-                description: error.message.includes('requires an index') 
-                    ? 'A database index is required. Please check the browser console for a link to create it.'
-                    : error.message
+                description: 'An error occurred while fetching the posts. Please try again later.'
             });
         } finally {
             setLoading(false);
@@ -188,7 +186,7 @@ function BbsPageContent() {
         if (!authorId) {
             switch (activeFilter) {
                 case 'trending':
-                    processedPosts.sort((a, b) => (b.likes + b.replies * 2) - (a.likes + a.replies * 2));
+                    processedPosts.sort((a, b) => ((b.likes || 0) + (b.replies * 2)) - ((a.likes || 0) + (a.replies * 2)));
                     break;
                 case 'nearest':
                     if (userLocation) {
