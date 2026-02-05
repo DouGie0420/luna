@@ -1,3 +1,4 @@
+
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
@@ -30,7 +31,7 @@ export default function RootLayout({
               <BackgroundSnake />
               <div className="flex flex-col min-h-screen">
                   <Header />
-                  <main className="flex-grow">{children}</main>
+                  <main className="flex-grow flex flex-col">{children}</main>
                   <Footer />
               </div>
               <Toaster />

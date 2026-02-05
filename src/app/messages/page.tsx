@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -8,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown, Languages, Info } from "lucide-react";
+import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown, Languages, Info, Translate } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
@@ -29,6 +30,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
+// import { translateText } from '@/ai/flows/translate-text';
 
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -48,6 +50,8 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [isSending, setIsSending] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const [showSearch, setShowSearch] = useState(false);
+    
+    // const [isTranslating, setIsTranslating] = useState(false);
 
     // New search state
     const [messageSearchTerm, setMessageSearchTerm] = useState('');
@@ -66,6 +70,8 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const profileUrl = displayUser ? `/@${(displayUser as any).loginId || (displayUser as any).uid}` : '#';
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
+
+    // const needsTranslation = profile && otherParticipantProfileData && profile.preferredLanguage !== otherParticipantProfileData.preferredLanguage;
 
     const highlightText = (text: string): React.ReactNode => {
       if (!debouncedMessageSearchTerm.trim()) return text;
@@ -145,6 +151,20 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }
     }, [messages, messageSearchTerm]);
+    
+    //  const handleTranslate = async () => {
+    //     if (!newMessage.trim() || !otherParticipantProfileData?.preferredLanguage) return;
+    //     setIsTranslating(true);
+    //     try {
+    //         const result = await translateText({ text: newMessage, targetLanguage: otherParticipantProfileData.preferredLanguage });
+    //         setNewMessage(result.translatedText);
+    //     } catch (error) {
+    //         console.error("Translation failed:", error);
+    //         toast({ variant: 'destructive', title: 'Translation failed' });
+    //     } finally {
+    //         setIsTranslating(false);
+    //     }
+    // };
 
     const handleSendMessage = async () => {
         if (!firestore || !user || !chat || !newMessage.trim()) return;
@@ -155,7 +175,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         const messagesRef = collection(firestore, 'direct_chats', chat.id, 'messages');
         const newMessageDocRef = doc(messagesRef);
         
-        const messagePayload: Omit<ChatMessage, 'id' | 'originalText' | 'isTranslated'> & Partial<Pick<ChatMessage, 'originalText' | 'isTranslated'>> = {
+        const messagePayload: Omit<ChatMessage, 'id'> = {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
@@ -318,7 +338,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             <CardContent className="flex-grow p-0 flex flex-col min-h-0">
                 <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
                   <TooltipProvider delayDuration={100}>
-                    <div className="space-y-4 p-6">
+                    <div className="p-6 space-y-4">
                         {loadingMessages ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
                             <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                 {msg.senderId !== user?.uid && otherParticipantFromChat && (
@@ -328,14 +348,24 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                     </Avatar>
                                 )}
                                 <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
-                                    <div className={cn(
-                                        `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
-                                        msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                        matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
-                                        matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
-                                    )}>
-                                        <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
-                                    </div>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className={cn(
+                                                `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
+                                                msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                                matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                                matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500',
+                                                msg.isTranslated && "border-dashed border-primary"
+                                            )}>
+                                                <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                            </div>
+                                        </TooltipTrigger>
+                                        {msg.isTranslated && msg.originalText && (
+                                            <TooltipContent>
+                                                <p><strong>Original:</strong> {msg.originalText}</p>
+                                            </TooltipContent>
+                                        )}
+                                    </Tooltip>
                                     {msg.createdAt?.toDate && (
                                         <span className="text-xs text-muted-foreground px-1">
                                             {format(msg.createdAt.toDate(), 'HH:mm')}
@@ -352,7 +382,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                 <div className="relative">
                     <Input 
                         placeholder={canSend ? "输入消息..." : "等待对方回复..."}
-                        className="pr-12"
+                        className={cn("pr-24")}
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => {
@@ -363,6 +393,18 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                         disabled={isSending || !canSend}
                     />
                     <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
+                        {/* {needsTranslation && (
+                            <Button 
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={handleTranslate}
+                                disabled={isTranslating || !newMessage.trim()}
+                                title="Translate"
+                            >
+                                {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Translate className="h-4 w-4" />}
+                            </Button>
+                        )} */}
                         <Button 
                             size="icon" 
                             className="h-8 w-10"
@@ -536,10 +578,10 @@ export default function MessagesPage() {
 
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       <PageHeaderWithBackAndClose />
-      <div className="container mx-auto px-4 py-12">
-        <div className="h-[calc(100vh-200px)] grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="container mx-auto px-4 py-12 flex-grow min-h-0">
+        <div className="h-full grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <Card className="flex flex-col">
                 <CardHeader>
                     <CardTitle>私信</CardTitle>
@@ -553,7 +595,7 @@ export default function MessagesPage() {
                         />
                     </div>
                 </CardHeader>
-                <CardContent className="p-0 flex-grow">
+                <CardContent className="p-0 flex-grow min-h-0">
                     <ScrollArea className="h-full">
                         {loading ? (
                           <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div>
@@ -626,6 +668,6 @@ export default function MessagesPage() {
             </Card>
         </div>
       </div>
-    </>
+    </div>
   )
 }
