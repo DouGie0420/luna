@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { Logo } from "./logo";
+import Link from 'next/link';
 
 export function Footer() {
   const pathname = usePathname();
@@ -14,23 +15,23 @@ export function Footer() {
   return (
     <footer className="bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
+        <div className="flex flex-col md:flex-row justify-between md:items-end">
+          <div className="mb-4 md:mb-0 text-center md:text-left">
             <Logo />
             <p className="mt-2 text-sm text-muted-foreground">
-              © {new Date().getFullYear()} Luna Exchange. All rights reserved.
+              © 2026 Luna ECO Stystem. All rights reserved.
             </p>
           </div>
           <div className="flex space-x-6 text-sm">
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
               Terms of Service
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            </Link>
+            <Link href="/privacy" className="text-muted-foreground hover:text-foreground">
               Privacy Policy
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            </Link>
+            <Link href="/support" className="text-muted-foreground hover:text-foreground">
               Contact
-            </a>
+            </Link>
           </div>
         </div>
       </div>
