@@ -50,13 +50,28 @@ export const useUser = (): UserState => {
       unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
         const profileData = docSnap.exists() ? (docSnap.data() as UserProfile) : null;
         
-        // 自动修正 role 的逻辑（保留你原有的业务逻辑）
-        if (profileData && authUser.emailVerified) {
-            if (profileData.role === 'guest' || !profileData.emailVerified) {
-                updateUserProfile(firestore, authUser.uid, { 
-                    emailVerified: true, 
-                    role: profileData.role === 'guest' ? 'user' : profileData.role 
-                });
+        if (profileData) {
+            const updatePayload: Partial<UserProfile> = {};
+
+            // 1. Fix role and emailVerified status
+            if (authUser.emailVerified && (profileData.role === 'guest' || !profileData.emailVerified)) {
+                if (profileData.role === 'guest') {
+                    updatePayload.role = 'user';
+                }
+                if (!profileData.emailVerified) {
+                    updatePayload.emailVerified = true;
+                }
+            }
+
+            // 2. Fix missing loginId for old accounts by falling back to UID
+            if (!profileData.loginId) {
+                updatePayload.loginId = authUser.uid;
+            }
+            
+            // 3. If any updates are needed, fire them off
+            if (Object.keys(updatePayload).length > 0) {
+                 updateUserProfile(firestore, authUser.uid, updatePayload);
+                 // onSnapshot will handle re-render with fresh data, so we just trigger the update.
             }
         }
 
