@@ -312,9 +312,9 @@ export default function NewBbsPostPage() {
                   <div className="max-w-3xl mx-auto">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="text-3xl font-headline">Cannot Create Post</CardTitle>
+                            <CardTitle className="text-3xl font-headline">{t('newProductPage.cannotListTitle')}</CardTitle>
                             <CardDescription>
-                                KYC verification is required to create posts in the community.
+                                {t('newProductPage.cannotListDescription')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -423,6 +423,7 @@ export default function NewBbsPostPage() {
                                     accept="image/*"
                                     multiple
                                 />
+                                {/*
                                 <Dialog open={isImageURLDialogOpen} onOpenChange={setIsImageURLDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button type="button" variant="outline" className="h-auto flex flex-col items-center justify-center p-4 border-dashed">
@@ -436,6 +437,7 @@ export default function NewBbsPostPage() {
                                         <DialogFooter><Button onClick={handleAddImageUrl}>Add Image</Button></DialogFooter>
                                     </DialogContent>
                                 </Dialog>
+                                */}
                             </div>
                         )}
                     </div>

@@ -278,6 +278,7 @@ export default function EditBbsPostPage() {
                                     accept="image/*"
                                     multiple
                                 />
+                                {/*
                                 <Dialog open={isImageURLDialogOpen} onOpenChange={setIsImageURLDialogOpen}>
                                     <DialogTrigger asChild>
                                         <Button type="button" variant="outline" className="h-auto flex flex-col items-center justify-center p-4 border-dashed">
@@ -291,6 +292,7 @@ export default function EditBbsPostPage() {
                                         <DialogFooter><Button onClick={handleAddImageUrl}>Add Image</Button></DialogFooter>
                                     </DialogContent>
                                 </Dialog>
+                                */}
                             </div>
                         )}
                     </div>
