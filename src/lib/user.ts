@@ -19,16 +19,23 @@ export async function upsertUserProfile(
         
         const updateData: { [key: string]: any } = {
             lastLogin: serverTimestamp(),
-            photoURL: user.photoURL || userProfile.photoURL,
             displayName: userProfile.displayName || user.displayName || 'User',
             ...additionalData,
         };
 
-        if (userProfile.emailVerified !== true) {
-            updateData.emailVerified = user.emailVerified;
+        if (user.emailVerified && (userProfile.role === 'guest' || !userProfile.emailVerified)) {
+            if (userProfile.role === 'guest') {
+                updateData.role = 'user';
+            }
+            if (!userProfile.emailVerified) {
+                updateData.emailVerified = true;
+            }
         }
-        if (user.emailVerified && userProfile.role === 'guest') {
-            updateData.role = 'user';
+        
+        // Ensure a photoURL exists, but don't overwrite a custom one with a social one on login.
+        // We only set one if it's completely missing.
+        if (!userProfile.photoURL) {
+             updateData.photoURL = `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`;
         }
 
         await updateUserProfile(db, user.uid, updateData);
@@ -41,7 +48,7 @@ export async function upsertUserProfile(
             email: additionalData.email || user.email || '',
             loginId: additionalData.loginId || user.uid, // Use provided loginId or fallback to uid
             displayName: additionalData.displayName || user.displayName || 'New User',
-            photoURL: user.photoURL || `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
+            photoURL: `https://api.dicebear.com/8.x/pixel-art/svg?seed=${user.uid}`,
             emailVerified: user.emailVerified,
             gender: '保密',
             location: '',
