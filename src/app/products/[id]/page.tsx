@@ -183,29 +183,25 @@ export default function ProductPage() {
         const productRef = doc(firestore, "products", product.id);
         const updateData = { status: 'under_review' as const };
         
-        // TODO: checkWeb3Escrow() - If product is linked to a Web3 transaction,
-        // ensure funds can be handled correctly before hiding the product.
-
-        updateDoc(productRef, updateData)
-            .then(() => {
-                toast({
-                    title: "商品已提交审核",
-                    description: "该商品已从前台隐藏，等待管理员审核。",
-                });
-                router.push('/products');
-            })
-            .catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: productRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            })
-            .finally(() => {
-                setIsSubmittingDelete(false);
-                setIsDeleteDialogOpen(false);
+        try {
+            await updateDoc(productRef, updateData);
+            toast({
+                title: "商品已提交审核",
+                description: "该商品已从前台隐藏，等待管理员审核。",
             });
+            setIsDeleteDialogOpen(false);
+            // Allow dialog to close before navigating
+            setTimeout(() => router.push('/products'), 150);
+        } catch (serverError) {
+            const permissionError = new FirestorePermissionError({
+                path: productRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+            setIsSubmittingDelete(false);
+            setIsDeleteDialogOpen(false);
+        }
     };
 
 

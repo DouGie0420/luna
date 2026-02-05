@@ -250,6 +250,7 @@ export default function BbsPostPage() {
     const [visibleCommentsCount, setVisibleCommentsCount] = useState(COMMENTS_INITIAL_LOAD);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     
@@ -446,32 +447,30 @@ export default function BbsPostPage() {
         router.push(`/bbs/edit/${id}`);
     };
 
-    const handleDeletePost = () => {
+    const handleDeletePost = async () => {
         if (!firestore || !post || !postRef) return;
     
-        // Close dialog immediately to prevent UI freeze
-        setIsDeleteDialogOpen(false); 
-    
+        setIsSubmittingDelete(true);
         const updateData = { status: 'under_review' as const };
-        updateDoc(postRef, updateData)
-            .then(() => {
-                // Defer toast and navigation slightly to allow UI to update
-                setTimeout(() => {
-                    toast({
-                        title: "帖子已提交审核",
-                        description: "该帖子现在将在后台等待最终审核。",
-                    });
-                    router.push('/bbs'); // Navigate away
-                }, 50); 
-            })
-            .catch(serverError => {
-                const permissionError = new FirestorePermissionError({
-                    path: postRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
+        
+        try {
+            await updateDoc(postRef, updateData);
+            toast({
+                title: "帖子已提交审核",
+                description: "该帖子现在将在后台等待最终审核。",
             });
+            setIsDeleteDialogOpen(false);
+            // Allow dialog to close before navigating
+            setTimeout(() => router.push('/bbs'), 150);
+        } catch (serverError) {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: postRef.path,
+                operation: 'update',
+                requestResourceData: updateData,
+            }));
+            setIsSubmittingDelete(false);
+            setIsDeleteDialogOpen(false);
+        }
       };
 
     const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
@@ -831,7 +830,10 @@ export default function BbsPostPage() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeletePost} className="bg-destructive hover:bg-destructive/90">确认提交</AlertDialogAction>
+                        <AlertDialogAction onClick={handleDeletePost} disabled={isSubmittingDelete} className="bg-destructive hover:bg-destructive/90">
+                            {isSubmittingDelete && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            确认提交
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
