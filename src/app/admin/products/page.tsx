@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -219,6 +220,15 @@ export default function AdminProductsPage() {
     const [posts, setPosts] = useState<BbsPost[] | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const { consignmentProducts, reportedProducts } = useMemo(() => {
+        if (!products) {
+            return { consignmentProducts: [], reportedProducts: [] };
+        }
+        const consignment = products.filter(p => p.isConsignment === true);
+        const reported = products.filter(p => p.isConsignment !== true);
+        return { consignmentProducts: consignment, reportedProducts: reported };
+    }, [products]);
+
     // Review Item State
     const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
     const [reviewReason, setReviewReason] = useState('涉黄');
@@ -321,13 +331,24 @@ export default function AdminProductsPage() {
 
     return (
         <div>
-            <h2 className="text-3xl font-headline mb-2">问题内容管理</h2>
+            <h2 className="text-3xl font-headline mb-2">内容审核</h2>
             <p className="text-muted-foreground mb-8">此页面列出了被标记为需要审核的商品和帖子。请检查并进行相应操作。</p>
             
             <div className="mb-12">
-                <h3 className="text-2xl font-headline mb-4">待审核商品</h3>
+                <h3 className="text-2xl font-headline mb-4">寄售商品审核</h3>
+                 <ProductTable 
+                    products={consignmentProducts} 
+                    loading={loading} 
+                    onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
+                    onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
+                    onHardDelete={(id) => setItemToHardDelete({ type: 'product', id })}
+                />
+            </div>
+            
+            <div className="mb-12">
+                <h3 className="text-2xl font-headline mb-4">违规商品审核</h3>
                 <ProductTable 
-                    products={products} 
+                    products={reportedProducts} 
                     loading={loading} 
                     onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
                     onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
@@ -400,3 +421,5 @@ export default function AdminProductsPage() {
         </div>
     )
 }
+
+    
