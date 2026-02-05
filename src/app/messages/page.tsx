@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -156,7 +155,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         const messagesRef = collection(firestore, 'direct_chats', chat.id, 'messages');
         const newMessageDocRef = doc(messagesRef);
         
-        const messagePayload: Omit<ChatMessage, 'id'> = {
+        const messagePayload: Omit<ChatMessage, 'id' | 'originalText' | 'isTranslated'> & Partial<Pick<ChatMessage, 'originalText' | 'isTranslated'>> = {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
@@ -316,10 +315,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                     ) : null}
                 </div>
             )}
-            <CardContent className="flex-grow p-6 flex flex-col">
-                <ScrollArea className="flex-grow" viewportRef={scrollAreaRef}>
+            <CardContent className="flex-grow p-0 flex flex-col min-h-0">
+                <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
                   <TooltipProvider delayDuration={100}>
-                    <div className="space-y-4">
+                    <div className="space-y-4 p-6">
                         {loadingMessages ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
                             <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                 {msg.senderId !== user?.uid && otherParticipantFromChat && (
