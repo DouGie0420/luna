@@ -90,6 +90,7 @@ export default function ProductPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
+    const [shouldNavigateAfterDelete, setShouldNavigateAfterDelete] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -189,7 +190,8 @@ export default function ProductPage() {
                 title: "商品已提交审核",
                 description: "该商品已从前台隐藏，等待管理员审核。",
             });
-            setIsDeleteDialogOpen(false); // This will trigger onOpenChange
+            setShouldNavigateAfterDelete(true);
+            setIsDeleteDialogOpen(false); 
         } catch (serverError) {
             const permissionError = new FirestorePermissionError({
                 path: productRef.path,
@@ -318,10 +320,11 @@ export default function ProductPage() {
                 open={isDeleteDialogOpen} 
                 onOpenChange={(open) => {
                     if (!open) {
-                        if (isSubmittingDelete) {
+                        if (shouldNavigateAfterDelete) {
                             router.push('/products');
                         }
                         setIsSubmittingDelete(false);
+                        setShouldNavigateAfterDelete(false);
                     }
                     setIsDeleteDialogOpen(open);
                 }}

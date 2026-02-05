@@ -251,6 +251,7 @@ export default function BbsPostPage() {
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
+    const [shouldNavigateAfterDelete, setShouldNavigateAfterDelete] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
     
@@ -459,14 +460,15 @@ export default function BbsPostPage() {
                 title: "帖子已提交审核",
                 description: "该帖子现在将在后台等待最终审核。",
             });
-            setIsDeleteDialogOpen(false); // This triggers onOpenChange
+            setShouldNavigateAfterDelete(true);
+            setIsDeleteDialogOpen(false); 
         } catch (serverError) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: postRef.path,
                 operation: 'update',
                 requestResourceData: updateData,
             }));
-            setIsSubmittingDelete(false); // Reset on error to allow user to try again
+            setIsSubmittingDelete(false); 
         }
     };
 
@@ -823,10 +825,11 @@ export default function BbsPostPage() {
                 open={isDeleteDialogOpen} 
                 onOpenChange={(open) => {
                     if (!open) {
-                        if (isSubmittingDelete) {
+                        if (shouldNavigateAfterDelete) {
                             router.push('/bbs');
                         }
                         setIsSubmittingDelete(false);
+                        setShouldNavigateAfterDelete(false);
                     }
                     setIsDeleteDialogOpen(open);
                 }}
