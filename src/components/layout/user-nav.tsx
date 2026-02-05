@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export function UserNav() {
     if (isTestUser) localStorage.removeItem('isTestUser');
     if (localStorage.getItem('walletUser')) localStorage.removeItem('walletUser');
     if (auth?.currentUser) await auth.signOut();
-    toast({ title: t('userNav.logout'), description: t('userNav.logoutSuccess') });
+    toast({ title: t('userNav.logoutSuccess'), variant: 'warning' });
     window.location.href = '/';
   };
   
@@ -221,3 +222,5 @@ export function UserNav() {
     </>
   );
 }
+
+    

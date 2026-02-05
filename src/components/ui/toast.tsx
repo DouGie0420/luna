@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -36,7 +37,7 @@ const toastVariants = cva(
         success:
           "success justify-between border-green-500/50 bg-green-500 text-white",
         warning:
-          "warning justify-center border-yellow-500/50 bg-yellow-500 text-yellow-950",
+          "warning justify-center text-center border-yellow-500/50 bg-yellow-500 text-yellow-950",
       },
     },
     defaultVariants: {
@@ -135,3 +136,5 @@ export {
   ToastClose,
   ToastAction,
 }
+
+    

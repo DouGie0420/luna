@@ -1,3 +1,4 @@
+
 'use client'
 
 import * as React from 'react'
@@ -48,8 +49,8 @@ export default function AccountLayout({
     if (isTestUser) {
       localStorage.removeItem('isTestUser')
       toast({
-        title: t('userNav.logout'),
-        description: t('userNav.logoutTestSuccess'),
+        title: t('userNav.logoutTestSuccess'),
+        variant: 'warning',
       })
       window.location.href = '/' // Full reload to clear state
       return
@@ -58,8 +59,8 @@ export default function AccountLayout({
     if (auth) {
       await auth.signOut()
       toast({
-        title: t('userNav.logout'),
-        description: t('userNav.logoutSuccess'),
+        title: t('userNav.logoutSuccess'),
+        variant: 'warning',
       })
       window.location.href = '/'
     }
@@ -180,3 +181,5 @@ export default function AccountLayout({
     </>
   )
 }
+
+    

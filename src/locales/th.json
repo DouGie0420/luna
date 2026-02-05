@@ -65,8 +65,8 @@
     "listAnItem": "ลงรายการ",
     "messages": "ข้อความ",
     "orders": "คำสั่งซื้อ",
-    "logoutTestSuccess": "คุณได้ออกจากระบบบัญชีทดสอบแล้ว",
-    "logoutSuccess": "คุณได้ออกจากระบบเรียบร้อยแล้ว",
+    "logoutTestSuccess": "👀คุณได้ออกจากระบบบัญชีทดสอบแล้ว👀",
+    "logoutSuccess": "👀คุณออกจากระบบแล้ว👀",
     "web3Wallet": "กระเป๋า Web3",
     "web3LoginComingSoonTitle": "ฟีเจอร์นี้จะมาในเร็วๆ นี้",
     "web3LoginComingSoonDescription": "การเข้าสู่ระบบด้วยกระเป๋าเงิน Web3 กำลังอยู่ในระหว่างการพัฒนา",
@@ -701,3 +701,5 @@
     }
   }
 }
+
+    
