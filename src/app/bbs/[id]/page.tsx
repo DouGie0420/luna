@@ -659,7 +659,7 @@ export default function BbsPostPage() {
                                         {t('userProfile.following')} <span className="font-bold text-foreground">{authorProfile?.followingCount || 0}</span>
                                     </Link>
                                     <span>&middot;</span>
-                                    <Link href={`${authorProfileUrl}/listings`} className="hover:underline">
+                                    <Link href={`/bbs?author=${post.authorId}`} className="hover:underline">
                                         {t('userProfile.posts')} <span className="font-bold text-foreground">{authorProfile?.postsCount || 0}</span>
                                     </Link>
                                 </div>
