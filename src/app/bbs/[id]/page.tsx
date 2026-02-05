@@ -261,6 +261,10 @@ export default function BbsPostPage() {
     const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
 
     useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    useEffect(() => {
         if(user && authorProfile) {
             // In a real app, this would check a `followers` subcollection or a field on the user profile.
             // For now, we mock it based on a local storage flag to persist the "Follow" button state.

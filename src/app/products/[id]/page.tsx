@@ -90,6 +90,10 @@ export default function ProductPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
     
     useEffect(() => {
       if (!firestore) {
