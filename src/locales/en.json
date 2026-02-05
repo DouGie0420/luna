@@ -18,7 +18,7 @@
     "orContinueWith": "Or continue with",
     "noAccount": "Don't have an account?",
     "testLoginSuccessTitle": "Test Login Successful",
-    "loginSuccessTitle": "Login Successful",
+    "loginSuccessTitle": "🙂Login Successful🙂",
     "loginFailedTitle": "Login Failed",
     "loginFailedDescription": "Could not sign in with social account. Please try again later.",
     "popupClosedTitle": "Login Cancelled",
@@ -611,7 +611,6 @@
       "approve": "Approve",
       "reject": "Reject",
       "rejectConfirmTitle": "Confirm Rejection",
-      "rejectConfirmDescription": "Please provide a reason for rejecting the application for {userName}.",
       "rejectionReasonLabel": "Rejection Reason",
       "rejectionReasonPlaceholder": "e.g., ID photo is blurry, selfie does not match ID...",
       "confirmReject": "Confirm Reject",
@@ -712,5 +711,3 @@
     }
   }
 }
-
-    

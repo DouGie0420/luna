@@ -53,7 +53,7 @@ export default function LoginPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await upsertUserProfile(firestore, userCredential.user);
-      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
+      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'warning' });
       router.push('/');
     } catch (error: any) {
       toast({ variant: 'destructive', title: t('loginPage.loginFailedTitle'), description: error.message });
@@ -73,7 +73,7 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, provider);
       await upsertUserProfile(firestore, result.user);
-      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'success' });
+      toast({ title: t('loginPage.loginSuccessTitle'), variant: 'warning' });
       router.push('/');
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user') {

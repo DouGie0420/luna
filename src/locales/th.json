@@ -18,7 +18,7 @@
     "orContinueWith": "หรือดำเนินการต่อด้วย",
     "noAccount": "ยังไม่มีบัญชี?",
     "testLoginSuccessTitle": "เข้าสู่ระบบทดสอบสำเร็จ",
-    "loginSuccessTitle": "เข้าสู่ระบบสำเร็จ",
+    "loginSuccessTitle": "🙂เข้าสู่ระบบสำเร็จ🙂",
     "loginFailedTitle": "เข้าสู่ระบบล้มเหลว",
     "loginFailedDescription": "ไม่สามารถลงชื่อเข้าใช้ด้วยบัญชีโซเชียลได้ โปรดลองอีกครั้งในภายหลัง",
     "popupClosedTitle": "ยกเลิกการเข้าสู่ระบบ",
@@ -584,7 +584,6 @@
       "approve": "อนุมัติ",
       "reject": "ปฏิเสธ",
       "rejectConfirmTitle": "ยืนยันการปฏิเสธ",
-      "rejectConfirmDescription": "โปรดระบุเหตุผลในการปฏิเสธใบสมัครสำหรับ {userName}",
       "rejectionReasonLabel": "เหตุผลในการปฏิเสธ",
       "rejectionReasonPlaceholder": "เช่น รูปถ่ายบัตรประชาชนไม่ชัดเจน, รูปเซลฟี่ไม่ตรงกับบัตร...",
       "confirmReject": "ยืนยันการปฏิเสธ",
@@ -685,5 +684,3 @@
     }
   }
 }
-
-    

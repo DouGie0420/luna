@@ -18,7 +18,7 @@
     "orContinueWith": "或继续",
     "noAccount": "还没有帐户？",
     "testLoginSuccessTitle": "测试登录成功",
-    "loginSuccessTitle": "登录成功",
+    "loginSuccessTitle": "🙂登录成功🙂",
     "loginFailedTitle": "登录失败",
     "loginFailedDescription": "无法通过社交账号登录，请稍后再试。",
     "popupClosedTitle": "登录已取消",
@@ -584,7 +584,6 @@
       "approve": "批准",
       "reject": "拒绝",
       "rejectConfirmTitle": "确认拒绝",
-      "rejectConfirmDescription": "请提供拒绝用户 {userName} 申请的理由。",
       "rejectionReasonLabel": "拒绝理由",
       "rejectionReasonPlaceholder": "例如：证件照片模糊、自拍照与证件不符...",
       "confirmReject": "确认拒绝",
@@ -685,5 +684,3 @@
     }
   }
 }
-
-    
