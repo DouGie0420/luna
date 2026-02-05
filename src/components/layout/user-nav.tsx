@@ -151,11 +151,9 @@ export function UserNav() {
 
   if (!isLoggedIn || !user) return (
     <div className="flex items-center gap-2">
-      <div className="relative h-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
-          <Button asChild variant="ghost" size="sm" className="h-full w-full rounded-full bg-background hover:bg-transparent px-3">
-              <Link href="/login">{t('common.login')}</Link>
-          </Button>
-      </div>
+      <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 text-primary-foreground font-bold animate-hue-rotate h-9 px-4">
+        <Link href="/login">{t('common.login')}</Link>
+      </Button>
       <Button size="sm" asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 text-primary-foreground font-bold animate-hue-rotate h-9 px-4">
         <Link href="/register">{t('common.register')}</Link>
       </Button>
