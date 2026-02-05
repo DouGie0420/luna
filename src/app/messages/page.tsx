@@ -203,8 +203,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
-            originalText: originalTextForSend ?? undefined,
-            isTranslated: !!originalTextForSend,
+            ...(originalTextForSend && { originalText: originalTextForSend, isTranslated: true }),
         };
 
         batch.set(newMessageDocRef, messagePayload);
