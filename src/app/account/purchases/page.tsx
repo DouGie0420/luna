@@ -76,10 +76,10 @@ function PurchaseOrderCard({ order }: { order: Order }) {
     const { t, language } = useTranslation();
     const { toast } = useToast();
 
-    const productRef = useMemo(() => firestore ? doc(firestore, 'products', order.productId) : null, [firestore, order.productId]);
+    const productRef = useMemo(() => (firestore && order.productId ? doc(firestore, 'products', order.productId) : null), [firestore, order.productId]);
     const { data: product, loading: productLoading } = useDoc<Product>(productRef);
 
-    const sellerRef = useMemo(() => firestore ? doc(firestore, 'users', order.sellerId) : null, [firestore, order.sellerId]);
+    const sellerRef = useMemo(() => firestore && order.sellerId ? doc(firestore, 'users', order.sellerId) : null, [firestore, order.sellerId]);
     const { data: seller, loading: sellerLoading } = useDoc<UserProfile>(sellerRef);
     
     const [isConfirming, setIsConfirming] = useState(false);
