@@ -601,17 +601,17 @@ export default function AccountProfilePage() {
                 {canCustomize && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>自定义媒体</CardTitle>
+                            <CardTitle>自定义头像</CardTitle>
                             <CardDescription>
-                                作为认证商户或管理员，您可以上传自定义头像和商户横幅。
+                                作为认证商户或管理员，您可以上传新头像和商户横幅。
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-8">
                             {/* Avatar Upload */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                 <div className="md:col-span-1 grid gap-2">
-                                    <Label htmlFor="avatar-upload">自定义头像</Label>
-                                    <p className="text-xs text-muted-foreground">点击下方图片以上传新头像。</p>
+                                    <Label htmlFor="avatar-upload">上传新头像</Label>
+                                    <p className="text-xs text-muted-foreground">点击按键以上传新头像。</p>
                                 </div>
                                 <div className="md:col-span-2 grid gap-4">
                                     <label htmlFor="avatar-upload" className="cursor-pointer w-fit">
