@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { BackgroundSnake } from '@/components/background-snake';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { LanguageProvider } from '@/context/language-provider';
@@ -25,7 +24,6 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <LanguageProvider>
             <div className="pixel-grid-bg" />
-            <BackgroundSnake />
             <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
