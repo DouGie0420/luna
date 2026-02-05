@@ -90,7 +90,6 @@ export default function ProductPage() {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-    const navigateAfterDelete = useRef(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -184,23 +183,26 @@ export default function ProductPage() {
         const productRef = doc(firestore, "products", product.id);
         const updateData = { status: 'under_review' as const };
         
-        try {
-            await updateDoc(productRef, updateData);
-            toast({
-                title: "商品已提交审核",
-                description: "该商品已从前台隐藏，等待管理员审核。",
+        updateDoc(productRef, updateData)
+            .then(() => {
+                toast({
+                    title: "商品已提交审核",
+                    description: "该商品已从前台隐藏，等待管理员审核。",
+                });
+                setIsDeleteDialogOpen(false);
+                setTimeout(() => {
+                    window.location.href = '/products';
+                }, 300);
+            })
+            .catch(serverError => {
+                const permissionError = new FirestorePermissionError({
+                    path: productRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                setIsSubmittingDelete(false);
             });
-            navigateAfterDelete.current = true;
-            setIsDeleteDialogOpen(false); 
-        } catch (serverError) {
-            const permissionError = new FirestorePermissionError({
-                path: productRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            setIsSubmittingDelete(false);
-        }
     };
 
 
@@ -316,19 +318,7 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
-             <AlertDialog 
-                open={isDeleteDialogOpen} 
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsDeleteDialogOpen(false);
-                        if (navigateAfterDelete.current) {
-                            router.push('/products');
-                        }
-                    } else {
-                        setIsDeleteDialogOpen(true);
-                    }
-                }}
-             >
+             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>

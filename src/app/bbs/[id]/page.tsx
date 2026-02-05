@@ -252,29 +252,14 @@ export default function BbsPostPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
     const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-    const [isFollowing, setIsFollowing] = useState(false);
     
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
-    const navigateAfterDelete = useRef(false);
 
 
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
     const isOwner = user?.uid === post?.authorId;
     const hasAdminAccess = profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || '');
-
-    useEffect(() => {
-        window.scrollTo(0, 0);
-    }, []);
-
-    useEffect(() => {
-        if(user && authorProfile) {
-            // In a real app, this would check a `followers` subcollection or a field on the user profile.
-            // For now, we mock it based on a local storage flag to persist the "Follow" button state.
-            const isFollowed = localStorage.getItem(`follow_${authorProfile.uid}`) === 'true';
-            setIsFollowing(isFollowed);
-        }
-    }, [user, authorProfile]);
 
     useEffect(() => {
         if (post?.videos?.some(url => url.includes('tiktok.com'))) {
@@ -311,41 +296,6 @@ export default function BbsPostPage() {
             });
         }, 0);
     }
-
-    const handleFollowToggle = async () => {
-        if (!canInteract || !authorProfile || !firestore || !user) {
-            handleInteractionNotAllowed();
-            return;
-        }
-
-        const currentUserRef = doc(firestore, 'users', user.uid);
-        const targetUserRef = doc(firestore, 'users', authorProfile.uid);
-        const newState = !isFollowing;
-        
-        try {
-            if (isFollowing) {
-                // Unfollow
-                await updateDoc(currentUserRef, { followingCount: increment(-1) });
-                await updateDoc(targetUserRef, { followersCount: increment(-1) });
-            } else {
-                // Follow
-                await updateDoc(currentUserRef, { followingCount: increment(1) });
-                await updateDoc(targetUserRef, { followersCount: increment(1) });
-            }
-            
-            setIsFollowing(newState);
-            localStorage.setItem(`follow_${authorProfile.uid}`, String(newState));
-            setTimeout(() => {
-                toast({ title: newState ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess') });
-            }, 0);
-
-        } catch (error) {
-            console.error("Failed to update follow status:", error);
-            setTimeout(() => {
-                toast({ variant: 'destructive', title: 'Action failed. Please try again.' });
-            }, 0);
-        }
-    };
 
     const handlePostComment = () => {
         if (!newComment.trim() || !user || !firestore || !post || !postRef) return;
@@ -455,22 +405,25 @@ export default function BbsPostPage() {
         setIsSubmittingDelete(true);
         const updateData = { status: 'under_review' as const };
         
-        try {
-            await updateDoc(postRef, updateData);
-            toast({
-                title: "帖子已提交审核",
-                description: "该帖子现在将在后台等待最终审核。",
+        updateDoc(postRef, updateData)
+            .then(() => {
+                toast({
+                    title: "帖子已提交审核",
+                    description: "该帖子现在将在后台等待最终审核。",
+                });
+                setIsDeleteDialogOpen(false);
+                setTimeout(() => {
+                    window.location.href = '/bbs';
+                }, 300); // Wait for dialog to close
+            })
+            .catch(serverError => {
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: postRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                }));
+                setIsSubmittingDelete(false); 
             });
-            navigateAfterDelete.current = true;
-            setIsDeleteDialogOpen(false); 
-        } catch (serverError) {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: postRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            }));
-            setIsSubmittingDelete(false); 
-        }
     };
 
     const handleLikeDislike = async (commentId: string, isLiked: boolean, isDisliked: boolean, type: 'like' | 'dislike') => {
@@ -669,21 +622,6 @@ export default function BbsPostPage() {
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            {!isOwner && (
-                                 <Button
-                                    size="sm"
-                                    onClick={handleFollowToggle}
-                                    disabled={!canInteract}
-                                    variant={'default'}
-                                    className={cn("rounded-md", isFollowing && 'bg-yellow-400 text-black hover:bg-yellow-500')}
-                                >
-                                    {isFollowing ? (
-                                        <><Check className="mr-2 h-4 w-4" /> {t('userProfile.alreadyFollowing')}</>
-                                    ) : (
-                                        <><Plus className="mr-2 h-4 w-4" /> {t('userProfile.follow')}</>
-                                    )}
-                                </Button>
-                            )}
                              {(isOwner || hasAdminAccess) && (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -790,11 +728,6 @@ export default function BbsPostPage() {
                                 </Tooltip>
                             </TooltipProvider>
                         )}
-                        {!user && (
-                            <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
-                                <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
-                            </div>
-                        )}
                         
                         {replyingTo?.id === 'root' && (
                              <div className="mb-6">
@@ -822,19 +755,7 @@ export default function BbsPostPage() {
 
                 </Card>
             </div>
-            <AlertDialog 
-                open={isDeleteDialogOpen} 
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsDeleteDialogOpen(false);
-                        if (navigateAfterDelete.current) {
-                            router.push('/bbs');
-                        }
-                    } else {
-                        setIsDeleteDialogOpen(true);
-                    }
-                }}
-            >
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>
