@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, notFound, useRouter } from 'next/navigation';
@@ -255,6 +255,8 @@ export default function BbsPostPage() {
     const [isFollowing, setIsFollowing] = useState(false);
     
     const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+    const navigateAfterDelete = useRef(false);
+
 
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isGuest = !user;
@@ -459,11 +461,8 @@ export default function BbsPostPage() {
                 title: "帖子已提交审核",
                 description: "该帖子现在将在后台等待最终审核。",
             });
-            setIsDeleteDialogOpen(false);
-            // Wait for animation to finish then navigate
-            setTimeout(() => {
-                router.push('/bbs');
-            }, 300);
+            navigateAfterDelete.current = true;
+            setIsDeleteDialogOpen(false); 
         } catch (serverError) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: postRef.path,
@@ -823,7 +822,19 @@ export default function BbsPostPage() {
 
                 </Card>
             </div>
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <AlertDialog 
+                open={isDeleteDialogOpen} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsDeleteDialogOpen(false);
+                        if (navigateAfterDelete.current) {
+                            router.push('/bbs');
+                        }
+                    } else {
+                        setIsDeleteDialogOpen(true);
+                    }
+                }}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>
