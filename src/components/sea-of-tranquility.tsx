@@ -13,7 +13,6 @@ import type { BbsPost } from '@/lib/types';
 import { Skeleton } from './ui/skeleton';
 import { BbsPostCard } from './bbs-post-card';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -209,12 +208,12 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                 <CardContent className="p-5 flex flex-col h-full">
                     <div className="flex items-start gap-4">
                         <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
-                            <Image
+                            <img
                                 src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
                                 alt={post.title || t(post.titleKey || '')}
-                                fill
-                                className="object-cover"
+                                className="object-cover w-full h-full"
                                 data-ai-hint={post.imageHints?.[0] || ''}
+                                loading="lazy"
                             />
                         </div>
                         <div className="flex-1 flex flex-col self-stretch">

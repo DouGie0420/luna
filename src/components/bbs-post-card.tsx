@@ -1,7 +1,6 @@
 
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -233,12 +232,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-border hover:border-primary/50">
                     <CardHeader className="p-0 relative">
                         <div className="aspect-[1.8/1] relative overflow-hidden">
-                            <Image
+                            <img
                                 src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/800/600'}
                                 alt={post.title || t(post.titleKey || '')}
-                                fill
-                                className="object-cover"
+                                className="object-cover w-full h-full"
                                 data-ai-hint={post.imageHints?.[0] || ''}
+                                loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                         </div>
