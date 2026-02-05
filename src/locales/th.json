@@ -677,7 +677,24 @@
       "resetPasswordNotImplemented": "เพื่อความปลอดภัย การรีเซ็ตรหัสผ่านต้องทำผ่าน Firebase Console",
       "viewPassword": "ดูรหัสผ่าน",
       "viewPasswordNotImplemented": "การกระทำนี้ไม่สามารถทำได้เพื่อความปลอดภัย",
-      "manualBadges": "มอบเหรียญตราด้วยตนเอง"
+      "manualBadges": "มอบเหรียญตราด้วยตนเอง",
+      "updateSuccessTitle": "อัปเดตผู้ใช้แล้ว",
+      "updateSuccessDescription": "ฟิลด์ {fieldName} สำหรับผู้ใช้ {userName} ถูกตั้งค่าเป็น {value}"
+    },
+    "userFields": {
+      "loginId": "รหัสเข้าสู่ระบบ",
+      "creditLevel": "ระดับเครดิต",
+      "creditScore": "คะแนนเครดิต",
+      "lunarSoil": "ดินจันทรคติ",
+      "role": "บทบาท",
+      "isPro": "สถานะ PRO",
+      "isInfluencer": "สถานะผู้มีอิทธิพล",
+      "isContributor": "สถานะผู้ร่วมให้ข้อมูล",
+      "displayPriority": "ลำดับความสำคัญในการแสดงผล",
+      "salesCount": "จำนวนการขาย",
+      "purchasesCount": "จำนวนการซื้อ",
+      "followersCount": "จำนวนผู้ติดตาม",
+      "followingCount": "จำนวนที่กำลังติดตาม"
     },
     "paymentRequestsPage": {
       "title": "คำขอเปลี่ยนแปลงวิธีการชำระเงิน"

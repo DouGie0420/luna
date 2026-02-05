@@ -75,12 +75,23 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
             }
         }
 
+        const getFieldName = (fieldKey: string): string => {
+            const key = `admin.userFields.${fieldKey}`;
+            const translated = t(key);
+            // If translation not found, fallback to a formatted field name
+            return translated === key ? fieldKey.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase()) : translated;
+        };
+
         const userRef = doc(firestore, "users", uid);
         try {
             await updateDoc(userRef, { [field]: processedValue });
             toast({ 
-                title: `${field.charAt(0).toUpperCase() + field.slice(1)} Updated`, 
-                description: `User ${uid.slice(0, 6)}... ${field} set to ${processedValue}.` 
+                title: t('admin.usersPage.updateSuccessTitle'),
+                description: t('admin.usersPage.updateSuccessDescription', {
+                    fieldName: getFieldName(field),
+                    userName: user.displayName,
+                    value: String(processedValue)
+                })
             });
         } catch (error) {
             console.error(`Failed to update ${field}:`, error);
@@ -123,8 +134,12 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
             const userRef = doc(firestore, "users", uid);
             await updateDoc(userRef, { loginId: newLoginId });
             toast({
-                title: '专属ID已更新',
-                description: `用户 ${uid.slice(0, 6)}... 的新ID为 @${newLoginId}.`,
+                title: t('admin.usersPage.updateSuccessTitle'),
+                description: t('admin.usersPage.updateSuccessDescription', {
+                    fieldName: t('admin.userFields.loginId'),
+                    userName: user.displayName,
+                    value: `@${newLoginId}`
+                })
             });
         } catch (error) {
             console.error("Failed to update loginId:", error);

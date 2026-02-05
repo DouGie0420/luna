@@ -677,7 +677,24 @@
       "resetPasswordNotImplemented": "为安全起见，重置密码必须通过Firebase控制台发起。",
       "viewPassword": "查看密码",
       "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。",
-      "manualBadges": "手动授予徽章"
+      "manualBadges": "手动授予徽章",
+      "updateSuccessTitle": "用户已更新",
+      "updateSuccessDescription": "用户 {userName} 的 {fieldName} 已更新为 {value}。"
+    },
+     "userFields": {
+      "loginId": "专属ID",
+      "creditLevel": "信用等级",
+      "creditScore": "信用分",
+      "lunarSoil": "月壤",
+      "role": "角色",
+      "isPro": "PRO 商户状态",
+      "isInfluencer": "达人状态",
+      "isContributor": "贡献者状态",
+      "displayPriority": "显示优先级",
+      "salesCount": "销售数量",
+      "purchasesCount": "购买数量",
+      "followersCount": "粉丝数量",
+      "followingCount": "关注数量"
     },
     "paymentRequestsPage": {
       "title": "收款方式变更申请"

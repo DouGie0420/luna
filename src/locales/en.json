@@ -704,7 +704,24 @@
       "resetPasswordNotImplemented": "For security, password resets must be initiated from the Firebase Console.",
       "viewPassword": "View Password",
       "viewPasswordNotImplemented": "This action is not available for security reasons.",
-      "manualBadges": "Manual Badges"
+      "manualBadges": "Manual Badges",
+      "updateSuccessTitle": "User Updated",
+      "updateSuccessDescription": "{fieldName} for user {userName} has been set to {value}."
+    },
+    "userFields": {
+      "loginId": "Login ID",
+      "creditLevel": "Credit Level",
+      "creditScore": "Credit Score",
+      "lunarSoil": "Lunar Soil",
+      "role": "Role",
+      "isPro": "PRO Status",
+      "isInfluencer": "Influencer Status",
+      "isContributor": "Contributor Status",
+      "displayPriority": "Display Priority",
+      "salesCount": "Sales Count",
+      "purchasesCount": "Purchases Count",
+      "followersCount": "Followers Count",
+      "followingCount": "Following Count"
     },
     "paymentRequestsPage": {
       "title": "Payment Method Change Requests"
