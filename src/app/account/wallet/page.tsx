@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
@@ -11,9 +12,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X } from "lucide-react";
+import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X, Gem } from "lucide-react";
 import Image from 'next/image';
 import { updateUserProfile } from '@/lib/user';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -319,6 +320,20 @@ export default function WalletPage() {
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
+                                <Gem className="h-5 w-5 text-primary" /> 月壤余额 (Lunar Soil)
+                            </CardTitle>
+                            <CardDescription>您的平台忠诚度积分，可用于平台内的多种活动。</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-4xl font-bold">
+                                {(profile?.lunarSoil || 0).toLocaleString()} <span className="text-xl text-muted-foreground">克</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
                                 <Wallet className="h-5 w-5" /> Web3 身份
                             </CardTitle>
                             <CardDescription>连接你的以太坊兼容钱包，用于接收加密货币。</CardDescription>
@@ -458,3 +473,5 @@ export default function WalletPage() {
         </div>
     );
 }
+
+    
