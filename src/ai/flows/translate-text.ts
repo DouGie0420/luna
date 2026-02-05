@@ -29,7 +29,7 @@ export async function translateText(
 
 const prompt = ai.definePrompt({
   name: 'translateTextPrompt',
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'googleai/gemini-1.5-flash',
   input: {schema: TranslateTextInputSchema},
   output: {schema: TranslateTextOutputSchema},
   prompt: `You are an expert translator. Translate the following text to {targetLanguage}. 
