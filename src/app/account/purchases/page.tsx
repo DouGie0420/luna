@@ -1,8 +1,9 @@
+
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { useUser, useCollection, useFirestore, useDoc } from "@/firebase";
-import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import React, { useMemo, useState, useEffect } from 'react';
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp, getDocs, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 
+const PAGE_SIZE = 50;
 const locales = { en: enUS, zh: zhCN, th: th };
 
 const getStatusBadgeVariant = (status: Order['status']) => {
@@ -183,22 +185,73 @@ export default function PurchasesPage() {
     const { user, loading: authLoading } = useUser();
     const db = useFirestore();
 
-    const ordersQuery = useMemo(() => {
-        if (!user?.uid || !db) return null;
-        return query(
-            collection(db, "orders"),
-            where("buyerId", "==", user.uid),
-            orderBy('createdAt', 'desc')
-        );
+    const [purchaseOrders, setPurchaseOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [error, setError] = useState<any>(null);
+
+    useEffect(() => {
+        if (!user?.uid || !db) {
+            setLoading(false);
+            return;
+        }
+
+        const fetchInitialOrders = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const q = query(
+                    collection(db, "orders"),
+                    where("buyerId", "==", user.uid),
+                    orderBy("createdAt", "desc"),
+                    limit(PAGE_SIZE)
+                );
+                const documentSnapshots = await getDocs(q);
+                const orders = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+                setPurchaseOrders(orders);
+                setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+                setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+            } catch (err) {
+                console.error(err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialOrders();
     }, [user?.uid, db]);
 
-    const { data: purchaseOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+    const handleLoadMore = async () => {
+        if (!user?.uid || !db || !lastVisible) return;
+        setLoadingMore(true);
+        try {
+            const q = query(
+                collection(db, "orders"),
+                where("buyerId", "==", user.uid),
+                orderBy("createdAt", "desc"),
+                startAfter(lastVisible),
+                limit(PAGE_SIZE)
+            );
+            const documentSnapshots = await getDocs(q);
+            const newOrders = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+            setPurchaseOrders(prev => [...prev, ...newOrders]);
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+            setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+        } catch (err) {
+            console.error(err);
+            setError(err);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
 
-    if (authLoading || (user && dataLoading)) {
+    if (authLoading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="text-muted-foreground animate-pulse">正在同步您的购买记录...</p>
             </div>
         );
     }
@@ -207,8 +260,6 @@ export default function PurchasesPage() {
         return <div className="p-20 text-center text-muted-foreground">请登录后查看您的订单。</div>;
     }
     
-    const showLoadingSkeleton = authLoading || (user && dataLoading);
-
     return (
         <div className="p-6 md:p-12 max-w-6xl mx-auto">
             <div className="flex items-center gap-3 mb-8">
@@ -224,7 +275,7 @@ export default function PurchasesPage() {
                         无法加载订单，这可能是因为数据库缺少必要的查询索引。请打开开发者控制台(F12)查看错误信息，其中通常会包含一个用于一键创建索引的链接。
                     </p>
                 </div>
-            ) : showLoadingSkeleton ? (
+            ) : loading ? (
                  <div className="grid gap-6">
                     {[...Array(3)].map((_, i) => <OrderCardSkeleton key={i} />)}
                 </div>
@@ -237,6 +288,15 @@ export default function PurchasesPage() {
                     {purchaseOrders.map((order: Order) => (
                         <PurchaseOrderCard key={order.id} order={order} />
                     ))}
+                </div>
+            )}
+
+            {hasMore && !loading && purchaseOrders.length > 0 && (
+                 <div className="mt-12 text-center">
+                    <Button onClick={handleLoadMore} disabled={loadingMore}>
+                        {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Load More
+                    </Button>
                 </div>
             )}
         </div>
