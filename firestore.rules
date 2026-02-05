@@ -42,8 +42,7 @@ service cloud.firestore {
         // Case 2: Admin/Ghost can update anything
         hasRole(['admin', 'ghost']) ||
         // Case 3: Following/Unfollowing another user.
-        // This rule allows the signed-in user to modify ONLY the follow-related fields on another user's document.
-        (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'followersCount', 'following', 'followingCount']))
+        (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['followers', 'followersCount', 'following', 'followingCount']))
       );
 
       match /notifications/{docId} {
@@ -58,8 +57,9 @@ service cloud.firestore {
     
     // --- Chat Systems ---
     match /direct_chats/{chatId} {
-      allow list: if isSignedIn(); // Broad list for queries with `where` clauses.
-      allow read, update: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow get: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow list: if isSignedIn() && request.query.limit <= 50; // Requires where clause in client
+      allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       
       match /messages/{messageId} {
@@ -110,22 +110,35 @@ service cloud.firestore {
       allow get: if true;
       allow list: if resource.data.status == 'active' || (request.auth != null);
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+      allow update: if isSignedIn() && (
+        // Authors and admins can edit anything
+        (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff'])) ||
+        // Any user can update interaction fields
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'replies', 'views']))
+      );
+
        match /comments/{commentId} {
           allow read, list: if true;
           allow create: if isSignedIn();
-          allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+          allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       }
     }
     match /products/{productId} {
       allow get: if true;
       allow list: if resource.data.status == 'active' || (request.auth != null);
       allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+      allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
+      allow update: if isSignedIn() && (
+        // Seller and admins can edit anything
+        (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff'])) ||
+        // Any user can update interaction fields
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'views']))
+      );
        match /comments/{commentId} {
           allow read, list: if true;
           allow create: if isSignedIn();
-          allow update, delete: if isSignedIn() && resource.data.authorId == request.auth.uid;
+          allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       }
     }
     match /ads/{adId} {
