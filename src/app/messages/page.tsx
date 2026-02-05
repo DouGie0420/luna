@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare } from "lucide-react";
+import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
@@ -40,16 +40,13 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
-    const [messageSearchTerm, setMessageSearchTerm] = useState('');
     const [showSearch, setShowSearch] = useState(false);
 
-    const messagesQuery = useMemo(() => {
-        if (!firestore) return null;
-        return query(
-            collection(firestore, 'direct_chats', chat.id, 'messages'),
-            orderBy('createdAt', 'asc')
-        );
-    }, [firestore, chat.id]);
+    // New search state
+    const [messageSearchTerm, setMessageSearchTerm] = useState('');
+    const debouncedMessageSearchTerm = useDebounce(messageSearchTerm, 300);
+    const [matches, setMatches] = useState<{id: string; index: number}[]>([]);
+    const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,21 +59,69 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const profileUrl = displayUser ? `/@${(displayUser as any).loginId || displayUser.uid}` : '#';
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
+    
+    const highlightText = (text: string): React.ReactNode => {
+      if (!debouncedMessageSearchTerm.trim()) return text;
+      try {
+        const regex = new RegExp(`(${debouncedMessageSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        // Quick check if there are any matches at all
+        if (!regex.test(text)) {
+            return text;
+        }
+        // Resetting index is important for 'g' flag if test() was used
+        regex.lastIndex = 0;
 
-    const highlightedMessages = useMemo(() => {
-        if (!messageSearchTerm.trim()) return [];
-        return messages
-            .filter(msg => msg.text.toLowerCase().includes(messageSearchTerm.toLowerCase()))
-            .map(msg => msg.id);
-    }, [messages, messageSearchTerm]);
-
-    const highlightText = (text: string) => {
-        if (!messageSearchTerm.trim()) return text;
-        const regex = new RegExp(`(${messageSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        return text.split(regex).map((part, index) => 
-            regex.test(part) ? <mark key={index} className="bg-yellow-400 text-black rounded-sm px-0.5">{part}</mark> : part
-        );
+        return text.split(regex).map((part, index) => {
+            // Because of the capturing group in split(), odd-indexed parts are the matches
+            if (index % 2 === 1) {
+                return <mark key={index} className="bg-yellow-400 text-black rounded-sm px-0.5">{part}</mark>;
+            }
+            return part;
+        });
+      } catch (e) {
+        console.error("Regex error in highlightText:", e);
+        return text;
+      }
     };
+    
+    useEffect(() => {
+        if (!debouncedMessageSearchTerm.trim()) {
+            setMatches([]);
+            setCurrentMatchIndex(-1);
+            return;
+        }
+        const newMatches = messages
+            .map((msg, index) => ({...msg, index}))
+            .filter(msg => msg.text.toLowerCase().includes(debouncedMessageSearchTerm.toLowerCase()))
+            .map(msg => ({ id: msg.id, index: msg.index }));
+        
+        setMatches(newMatches);
+        setCurrentMatchIndex(newMatches.length > 0 ? 0 : -1);
+    }, [debouncedMessageSearchTerm, messages]);
+
+    useEffect(() => {
+        if (currentMatchIndex !== -1 && matches[currentMatchIndex]) {
+            const matchId = matches[currentMatchIndex].id;
+            const element = document.getElementById(`msg-${matchId}`);
+            element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }, [currentMatchIndex, matches]);
+
+    const handlePrevMatch = () => {
+        setCurrentMatchIndex(prev => (prev > 0 ? prev - 1 : prev));
+    };
+
+    const handleNextMatch = () => {
+        setCurrentMatchIndex(prev => (prev < matches.length - 1 ? prev + 1 : prev));
+    };
+
+    const messagesQuery = useMemo(() => {
+        if (!firestore) return null;
+        return query(
+            collection(firestore, 'direct_chats', chat.id, 'messages'),
+            orderBy('createdAt', 'asc')
+        );
+    }, [firestore, chat.id]);
 
     useEffect(() => {
         if (!messagesQuery) return;
@@ -92,10 +137,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     }, [messagesQuery]);
     
     useEffect(() => {
-        if (scrollAreaRef.current) {
+        if (scrollAreaRef.current && !messageSearchTerm) {
             scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
         }
-    }, [messages]);
+    }, [messages, messageSearchTerm]);
 
     const handleSendMessage = async () => {
         if (!firestore || !user || !chat || !newMessage.trim()) return;
@@ -238,24 +283,39 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                     </Dialog>
                 )}
                  <div className="flex items-center gap-2">
-                    {showSearch && (
-                        <Input
-                            placeholder="Search messages..."
-                            value={messageSearchTerm}
-                            onChange={(e) => setMessageSearchTerm(e.target.value)}
-                            className="h-9 transition-all"
-                        />
-                    )}
                     <Button variant="ghost" size="icon" onClick={() => setShowSearch(!showSearch)}>
                         <Search className="h-5 w-5" />
                     </Button>
                 </div>
             </CardHeader>
+             {showSearch && (
+                <div className="flex items-center gap-2 border-b p-2 shrink-0">
+                    <Input
+                        placeholder="Search in chat..."
+                        value={messageSearchTerm}
+                        onChange={(e) => setMessageSearchTerm(e.target.value)}
+                        className="h-8"
+                    />
+                    {debouncedMessageSearchTerm && matches.length > 0 ? (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground shrink-0">
+                            <span>{currentMatchIndex + 1} / {matches.length}</span>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevMatch} disabled={currentMatchIndex <= 0}>
+                                <ChevronUp className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextMatch} disabled={currentMatchIndex >= matches.length - 1}>
+                                <ChevronDown className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : debouncedMessageSearchTerm && !loading ? (
+                         <span className="text-sm text-muted-foreground whitespace-nowrap">No results</span>
+                    ) : null}
+                </div>
+            )}
             <CardContent className="flex-grow p-6 flex flex-col">
                 <ScrollArea className="flex-grow" viewportRef={scrollAreaRef}>
                     <div className="space-y-4">
                         {loading ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
-                            <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
+                            <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                 {msg.senderId !== user?.uid && otherParticipantFromChat && (
                                     <Avatar className="h-8 w-8">
                                         <AvatarImage src={otherParticipantFromChat.photoURL} />
@@ -265,9 +325,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                 <div className={cn(
                                     `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all`,
                                     msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                    highlightedMessages.includes(msg.id) && 'ring-2 ring-yellow-400'
+                                    matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                    matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
                                 )}>
-                                    <p>{highlightText(msg.text)}</p>
+                                    <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
                                 </div>
                             </div>
                         ))}
