@@ -39,32 +39,29 @@ const getStatusTranslationKey = (status: Order['status']) => {
 function OrderCardSkeleton() {
     return (
         <Card className="overflow-hidden">
-            <div className="grid grid-cols-1 md:grid-cols-3">
-                <div className="md:col-span-1 relative aspect-video md:aspect-square">
-                    <Skeleton className="w-full h-full" />
-                </div>
-                <div className="md:col-span-2 p-4 flex flex-col justify-between">
+            <div className="flex flex-col md:flex-row">
+                <Skeleton className="md:w-48 md:h-auto aspect-video md:aspect-auto bg-muted/50" />
+                <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-3">
                         <div className="flex justify-between items-start">
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-6 w-20" />
                         </div>
-                        <Skeleton className="h-7 w-1/4" />
-                        <Separator/>
-                        <div className="flex justify-between items-center">
+                        <Skeleton className="h-4 w-1/4" />
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between items-end">
+                        <div className="space-y-2">
                             <div className="flex items-center gap-2">
                                 <Skeleton className="h-6 w-6 rounded-full" />
                                 <Skeleton className="h-4 w-24" />
                             </div>
-                            <div className="space-y-1 text-right">
-                                <Skeleton className="h-3 w-28" />
-                                <Skeleton className="h-3 w-20" />
-                            </div>
+                            <Skeleton className="h-3 w-32" />
                         </div>
-                    </div>
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Skeleton className="h-9 w-24" />
-                        <Skeleton className="h-9 w-32" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-9 w-24" />
+                            <Skeleton className="h-9 w-32" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -116,8 +113,8 @@ function PurchaseOrderCard({ order }: { order: Order }) {
 
     return (
        <Card className="overflow-hidden transition-shadow hover:shadow-lg">
-            <div className="grid grid-cols-1 md:grid-cols-3">
-                <div className="md:col-span-1 relative aspect-video md:aspect-square">
+            <div className="flex flex-col md:flex-row">
+                <div className="md:w-48 md:h-auto relative aspect-video md:aspect-auto shrink-0">
                      <Image
                         src={product?.images?.[0] || 'https://picsum.photos/seed/default-product/400/400'}
                         alt={product?.name || 'Product image'}
@@ -126,30 +123,32 @@ function PurchaseOrderCard({ order }: { order: Order }) {
                     />
                 </div>
 
-                <div className="md:col-span-2 p-4 flex flex-col justify-between">
-                    <div>
+                <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div className="space-y-2">
                         <div className="flex justify-between items-start gap-4">
-                             <Link href={`/products/${product?.id || order.productId}`}>
-                                <p className="font-semibold text-lg hover:underline leading-tight">{order.productName}</p>
+                             <Link href={`/products/${product?.id || order.productId}`} className="hover:underline">
+                                <p className="font-semibold text-lg leading-tight">{order.productName}</p>
                              </Link>
                              <Badge variant={getStatusBadgeVariant(order.status)}>
                                 {t(getStatusTranslationKey(order.status), order.status)}
                             </Badge>
                         </div>
                         
-                        <p className="text-primary text-xl font-bold mt-1">{(order.totalAmount ?? 0).toLocaleString()} {order.currency}</p>
+                        <p className="text-primary text-xl font-bold">{(order.totalAmount ?? 0).toLocaleString()} {order.currency}</p>
+                    </div>
+                    
+                    <Separator className="my-3" />
 
-                        <Separator className="my-3" />
-                        
-                        <div className="flex items-center justify-between text-sm">
-                            <Link href={`/@${seller?.loginId || seller?.uid}`} className="flex items-center gap-2 text-muted-foreground hover:underline">
+                    <div className="flex justify-between items-end">
+                         <div>
+                            <Link href={`/@${seller?.loginId || seller?.uid}`} className="flex items-center gap-2 text-sm text-muted-foreground hover:underline">
                                 <Avatar className="h-6 w-6">
                                     <AvatarImage src={seller?.photoURL} />
                                     <AvatarFallback>{seller?.displayName?.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <span>{seller?.displayName}</span>
                             </Link>
-                            <div className="text-right">
+                             <div className="text-left mt-1">
                                 <p className="text-xs text-muted-foreground">
                                     {order.createdAt?.toDate ? format(order.createdAt.toDate(), 'PPP', { locale: locales[language] }) : 'N/A'}
                                 </p>
@@ -158,32 +157,32 @@ function PurchaseOrderCard({ order }: { order: Order }) {
                                 </p>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div className="flex justify-end gap-2 mt-4">
-                        <Button size="sm" variant="outline" asChild>
-                            <Link href={`/account/purchases/${order.id}`}>
-                                <ExternalLink className="h-4 w-4 mr-1" /> View Details
-                            </Link>
-                        </Button>
-                        {order.status === 'Shipped' && (
-                            <Button size="sm" onClick={handleConfirmReceipt} disabled={isConfirming}>
-                                {isConfirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
-                                {t('orderDetails.confirmReceipt')}
-                            </Button>
-                        )}
-                        {order.status === 'Completed' && !order.buyerReviewId && (
-                            <Button size="sm" asChild>
-                                <Link href={`/account/purchases/${order.id}/review`}>
-                                    {t('orderDetails.leaveReview')}
+
+                        <div className="flex justify-end gap-2 shrink-0">
+                            <Button size="sm" variant="outline" asChild>
+                                <Link href={`/account/purchases/${order.id}`}>
+                                    <ExternalLink className="h-4 w-4 mr-1" /> View Details
                                 </Link>
                             </Button>
-                        )}
-                        {order.status === 'Completed' && order.buyerReviewId && (
-                            <Button size="sm" variant="ghost" disabled>
-                                {t('orderDetails.reviewed')}
-                            </Button>
-                        )}
+                            {order.status === 'Shipped' && (
+                                <Button size="sm" onClick={handleConfirmReceipt} disabled={isConfirming}>
+                                    {isConfirming ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 mr-1" />}
+                                    {t('orderDetails.confirmReceipt')}
+                                </Button>
+                            )}
+                            {order.status === 'Completed' && !order.buyerReviewId && (
+                                <Button size="sm" asChild>
+                                    <Link href={`/account/purchases/${order.id}/review`}>
+                                        {t('orderDetails.leaveReview')}
+                                    </Link>
+                                </Button>
+                            )}
+                            {order.status === 'Completed' && order.buyerReviewId && (
+                                <Button size="sm" variant="ghost" disabled>
+                                    {t('orderDetails.reviewed')}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -287,7 +286,7 @@ export default function PurchasesPage() {
                     </p>
                 </div>
             ) : loading ? (
-                 <div className="grid gap-6">
+                 <div className="space-y-6">
                     {[...Array(3)].map((_, i) => <OrderCardSkeleton key={i} />)}
                 </div>
             ) : !purchaseOrders || purchaseOrders.length === 0 ? (
@@ -295,7 +294,7 @@ export default function PurchasesPage() {
                     <p className="text-xl italic">空空如也，去商城看看吧</p>
                 </div>
             ) : (
-                <div className="grid gap-6">
+                <div className="space-y-6">
                     {purchaseOrders.map((order: Order) => (
                         <PurchaseOrderCard key={order.id} order={order} />
                     ))}
