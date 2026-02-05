@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
@@ -12,7 +13,7 @@ import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, S
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
@@ -322,13 +323,20 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                         <AvatarFallback>{otherParticipantFromChat.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 )}
-                                <div className={cn(
-                                    `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all`,
-                                    msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                    matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
-                                    matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
-                                )}>
-                                    <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
+                                    <div className={cn(
+                                        `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all`,
+                                        msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                        matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                        matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
+                                    )}>
+                                        <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                    </div>
+                                    {msg.createdAt?.toDate && (
+                                        <span className="text-xs text-muted-foreground px-1">
+                                            {format(msg.createdAt.toDate(), 'HH:mm')}
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -610,5 +618,3 @@ export default function MessagesPage() {
     </>
   )
 }
-
-    
