@@ -132,6 +132,17 @@ export type UserProfile = {
     displayPriority?: number;
 };
 
+export type ProApplication = {
+    id: string;
+    userId: string;
+    userName: string;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: any;
+    reviewedAt?: any;
+    reviewerId?: string;
+    plan: 'tier1' | 'tier2' | 'tier3';
+};
+
 export type PaymentChangeRequest = {
     id: string;
     userId: string;

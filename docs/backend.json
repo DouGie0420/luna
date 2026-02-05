@@ -815,6 +815,21 @@
         }
       },
       "required": ["userId", "userName", "status", "createdAt", "requestedPaymentInfo"]
+    },
+    "ProApplication": {
+      "title": "PRO Merchant Application",
+      "description": "A user's request to become a PRO merchant.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "plan": { "type": "string", "enum": ["tier1", "tier2", "tier3"] },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "reviewerId": { "type": "string" }
+      },
+      "required": ["userId", "userName", "status", "createdAt", "plan"]
     }
   },
   "auth": {
@@ -910,6 +925,10 @@
         "$ref": "#/entities/PaymentChangeRequest"
       },
       "description": "Stores user requests to change their payment information."
+    },
+    "/proApplications/{applicationId}": {
+      "schema": { "$ref": "#/entities/ProApplication" },
+      "description": "Stores user requests to become a PRO merchant."
     }
   }
 }

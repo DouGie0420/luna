@@ -1,3 +1,4 @@
+
 'use client'
 
 import * as React from 'react'
@@ -14,7 +15,8 @@ import {
   Loader2,
   Megaphone,
   MessageSquare,
-  Banknote
+  Banknote,
+  Award,
 } from 'lucide-react'
 
 import {
@@ -56,6 +58,7 @@ const pagePermissions: Record<string, Array<Role>> = {
     '/admin/orders': ['admin', 'ghost', 'staff', 'support'],
     '/admin/kyc-list': ['admin', 'ghost', 'staff', 'support'],
     '/admin/payment-requests': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/pro-applications': ['admin', 'ghost', 'staff', 'support'],
     '/admin/support': ['admin', 'ghost', 'staff', 'support'],
 };
 
@@ -211,6 +214,17 @@ export default function AdminLayout({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
             )}
+            
+            {hasRole(userRole, ['staff', 'support']) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/pro-applications')}>
+                    <Link href="/admin/pro-applications">
+                      <Award />
+                      PRO 申请
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
 
             {hasRole(userRole, ['staff', 'support']) && (
                 <SidebarMenuItem>
@@ -265,5 +279,3 @@ export default function AdminLayout({
     </SidebarProvider>
   )
 }
-
-    

@@ -51,7 +51,9 @@ service cloud.firestore {
         (request.auth.uid == userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
         // Case 2: Admin/Ghost can update anything
         hasRole(['admin', 'ghost']) ||
-        // Case 3: Following/Unfollowing another user.
+        // Case 3: Staff/Support can update anything EXCEPT role
+        (hasRole(['staff', 'support']) && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        // Case 4: Following/Unfollowing another user.
         (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['followers', 'followersCount', 'following', 'followingCount']))
       );
 
@@ -114,6 +116,13 @@ service cloud.firestore {
     match /paymentChangeRequests/{reqId} {
       allow read, list, create, update, delete: if isAdminGroup();
     }
+    
+    match /proApplications/{applicationId} {
+        allow read, list: if isAdminGroup();
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+        allow update: if isAdminGroup();
+    }
+
 
     // --- 内容管理 (社区, 广告, 问题) ---
     match /bbs/{postId} {
