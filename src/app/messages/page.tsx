@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, ThumbsUp, Meh, ThumbsDown } from "lucide-react";
+import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
@@ -21,6 +21,8 @@ import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/use-translation';
 import { UserAvatar } from '@/components/ui/user-avatar';
+import { useDebounce } from '@/hooks/use-debounce';
+import { cn } from '@/lib/utils';
 
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -38,6 +40,8 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const [messageSearchTerm, setMessageSearchTerm] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
 
     const messagesQuery = useMemo(() => {
         if (!firestore) return null;
@@ -55,10 +59,24 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
     const otherParticipantFromChat = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
     const displayUser = otherParticipantProfileData || otherParticipantFromChat;
-    const profileUrl = displayUser ? `/@${displayUser.loginId || displayUser.uid}` : '#';
+    const profileUrl = displayUser ? `/@${(displayUser as any).loginId || displayUser.uid}` : '#';
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
 
+    const highlightedMessages = useMemo(() => {
+        if (!messageSearchTerm.trim()) return [];
+        return messages
+            .filter(msg => msg.text.toLowerCase().includes(messageSearchTerm.toLowerCase()))
+            .map(msg => msg.id);
+    }, [messages, messageSearchTerm]);
+
+    const highlightText = (text: string) => {
+        if (!messageSearchTerm.trim()) return text;
+        const regex = new RegExp(`(${messageSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        return text.split(regex).map((part, index) => 
+            regex.test(part) ? <mark key={index} className="bg-yellow-400 text-black rounded-sm px-0.5">{part}</mark> : part
+        );
+    };
 
     useEffect(() => {
         if (!messagesQuery) return;
@@ -140,19 +158,19 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
     return (
         <>
-            <CardHeader className="flex flex-row items-center gap-4 border-b">
+            <CardHeader className="flex flex-row items-center justify-between gap-4 border-b">
                  {displayUser && (
                     <Dialog>
                         <DialogTrigger asChild>
                             <div className="flex items-center gap-4 cursor-pointer">
-                                <UserAvatar profile={displayUser} className="h-12 w-12" />
+                                <UserAvatar profile={displayUser as UserProfile} className="h-12 w-12" />
                                 <h2 className="text-lg font-semibold">{displayName}</h2>
                             </div>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-md">
                            <DialogHeader>
                                 <DialogTitle className="flex items-center gap-3">
-                                    <UserAvatar profile={displayUser} className="h-12 w-12" />
+                                    <UserAvatar profile={displayUser as UserProfile} className="h-12 w-12" />
                                     <div>
                                         <p className="text-xl font-bold">{displayName}</p>
                                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -219,6 +237,19 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                         </DialogContent>
                     </Dialog>
                 )}
+                 <div className="flex items-center gap-2">
+                    {showSearch && (
+                        <Input
+                            placeholder="Search messages..."
+                            value={messageSearchTerm}
+                            onChange={(e) => setMessageSearchTerm(e.target.value)}
+                            className="h-9 transition-all"
+                        />
+                    )}
+                    <Button variant="ghost" size="icon" onClick={() => setShowSearch(!showSearch)}>
+                        <Search className="h-5 w-5" />
+                    </Button>
+                </div>
             </CardHeader>
             <CardContent className="flex-grow p-6 flex flex-col">
                 <ScrollArea className="flex-grow" viewportRef={scrollAreaRef}>
@@ -231,8 +262,12 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                         <AvatarFallback>{otherParticipantFromChat.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 )}
-                                <div className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 ${msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                                    <p>{msg.text}</p>
+                                <div className={cn(
+                                    `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all`,
+                                    msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                    highlightedMessages.includes(msg.id) && 'ring-2 ring-yellow-400'
+                                )}>
+                                    <p>{highlightText(msg.text)}</p>
                                 </div>
                             </div>
                         ))}
@@ -264,71 +299,136 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 }
 
 export default function MessagesPage() {
-  const { user } = useUser();
+  const { user, profile } = useUser();
   const firestore = useFirestore();
   const searchParams = useSearchParams();
-  const initialChatId = searchParams.get('chatId');
+  const router = useRouter();
+  const { toast } = useToast();
 
   const [chats, setChats] = useState<DirectChat[]>([]);
-  const [selectedChatId, setSelectedChatId] = useState<string | null>(initialChatId);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [hasMore, setHasMore] = useState(true);
 
-  const CHATS_PAGE_SIZE = 20;
-
-  const fetchChats = useCallback(async (loadMore = false) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
+  
+  useEffect(() => {
     if (!firestore || !user) {
         setLoading(false);
         return;
     }
-    
-    if (!loadMore) setLoading(true);
-    else setLoadingMore(true);
 
-    const constraints = [
+    const q = query(
+        collection(firestore, 'direct_chats'), 
         where('participants', 'array-contains', user.uid),
-        orderBy('lastMessageTimestamp', 'desc'),
-        limit(CHATS_PAGE_SIZE)
-    ];
+        orderBy('lastMessageTimestamp', 'desc')
+    );
 
-    if (loadMore && lastVisible) {
-        constraints.push(startAfter(lastVisible));
-    }
-    
-    const q = query(collection(firestore, 'direct_chats'), ...constraints);
-    
-    try {
-        const querySnapshot = await getDocs(q);
-        const newChats = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectChat));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const fetchedChats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectChat));
+        setChats(fetchedChats);
 
-        setLastVisible(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
-        setHasMore(newChats.length === CHATS_PAGE_SIZE);
-
-        setChats(prev => loadMore ? [...prev, ...newChats] : newChats);
-        
-        if (!loadMore && !initialChatId && newChats.length > 0) {
-            setSelectedChatId(newChats[0].id);
+        if (loading) {
+            const initialId = searchParams.get('chatId');
+            if (initialId && fetchedChats.some(c => c.id === initialId)) {
+                setSelectedChatId(initialId);
+            } else if (!selectedChatId && fetchedChats.length > 0) {
+                 setSelectedChatId(fetchedChats[0].id);
+            }
+            setLoading(false);
         }
 
-    } catch (e: any) {
+    }, (err) => {
+        console.error(err);
+        setLoading(false);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: 'direct_chats',
             operation: 'list',
         }));
-    } finally {
-        setLoading(false);
-        setLoadingMore(false);
-    }
-  }, [firestore, user, lastVisible, initialChatId]);
+    });
 
+    return () => unsubscribe();
+}, [firestore, user, searchParams, loading, selectedChatId]);
+  
   useEffect(() => {
-    if (user && firestore) {
-      fetchChats(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, firestore]);
+        if (!debouncedSearchTerm.trim()) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        if (!firestore || !user) return;
+        
+        setIsSearching(true);
+        const usersRef = collection(firestore, 'users');
+        const q = query(
+            usersRef,
+            where('displayName', '>=', debouncedSearchTerm),
+            where('displayName', '<=', debouncedSearchTerm + '\uf8ff'),
+            limit(10)
+        );
+
+        getDocs(q).then(snapshot => {
+            const results = snapshot.docs
+                .map(doc => doc.data() as UserProfile)
+                .filter(p => p.uid !== user.uid);
+            setSearchResults(results);
+        }).catch(err => {
+            console.error("User search failed:", err);
+            toast({ title: 'Search failed', variant: 'destructive' });
+        }).finally(() => {
+            setIsSearching(false);
+        });
+
+    }, [debouncedSearchTerm, firestore, toast, user]);
+
+  const filteredChats = useMemo(() => {
+    if (!searchTerm.trim()) return chats;
+    return chats.filter(chat => {
+        const otherParticipantId = chat.participants.find(p => p !== user?.uid);
+        if (!otherParticipantId) return false;
+        const otherProfile = chat.participantProfiles[otherParticipantId];
+        return otherProfile?.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [chats, searchTerm, user]);
+  
+  const handleSelectUser = async (targetUser: UserProfile) => {
+        if (!user || !profile) return;
+        if (!firestore) return;
+
+        const existingChat = chats.find(c => c.participants.includes(targetUser.uid));
+        if (existingChat) {
+            setSelectedChatId(existingChat.id);
+            setSearchTerm('');
+            setSearchResults([]);
+            return;
+        }
+
+        try {
+            const newChatRef = await addDoc(collection(firestore, 'direct_chats'), {
+                participants: [user.uid, targetUser.uid],
+                participantProfiles: {
+                    [user.uid]: { displayName: profile.displayName, photoURL: profile.photoURL },
+                    [targetUser.uid]: { displayName: targetUser.displayName, photoURL: targetUser.photoURL }
+                },
+                lastMessage: `You started a conversation.`,
+                lastMessageTimestamp: serverTimestamp(),
+                isFriendMode: false,
+                hasReplied: false,
+                initiatorId: user.uid,
+                initialMessageCount: 0,
+                unreadCount: { [user.uid]: 0, [targetUser.uid]: 0 }
+            });
+            setSearchTerm('');
+            setSearchResults([]);
+            setSelectedChatId(newChatRef.id);
+        } catch (error) {
+            console.error("Failed to create chat", error);
+            toast({ title: 'Could not start chat.', variant: 'destructive' });
+        }
+    };
 
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
@@ -342,51 +442,71 @@ export default function MessagesPage() {
             <Card className="flex flex-col">
                 <CardHeader>
                     <CardTitle>私信</CardTitle>
+                     <div className="relative mt-2">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="搜索聊天或用户..."
+                            className="pl-9"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent className="p-0 flex-grow">
                     <ScrollArea className="h-full">
                         {loading ? (
-                          <div className="flex justify-center items-center h-full">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                          </div>
-                        ) : chats.length > 0 ? (
+                          <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div>
+                        ) : (
                            <>
-                            {chats.map(chat => {
-                                const otherParticipantId = chat.participants.find(p => p !== user?.uid);
-                                const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
+                            {searchTerm && (
+                                <>
+                                    <p className="px-4 pt-2 text-xs font-semibold text-muted-foreground">发起新聊天</p>
+                                    {isSearching ? (
+                                        <div className="p-4 text-center"><Loader2 className="h-4 w-4 animate-spin inline-block"/></div>
+                                    ) : searchResults.length > 0 ? (
+                                        searchResults.map(p => (
+                                             <div key={p.uid} 
+                                                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-accent/50"
+                                                onClick={() => handleSelectUser(p)}
+                                            >
+                                                <UserAvatar profile={p} className="h-12 w-12" />
+                                                <div className="flex-grow overflow-hidden">
+                                                    <p className="font-semibold truncate">{p.displayName}</p>
+                                                    <p className="text-sm text-muted-foreground truncate">@{p.loginId}</p>
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className="p-4 text-center text-sm text-muted-foreground">没有找到用户</p>
+                                    )}
+                                    <Separator className="my-2" />
+                                </>
+                            )}
+                            {filteredChats.length > 0 ? (
+                                <>
+                                    {filteredChats.map(chat => {
+                                        const otherParticipantId = chat.participants.find(p => p !== user?.uid);
+                                        const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
 
-                                return (
-                                <div key={chat.id} 
-                                    className={`flex items-center gap-4 p-4 cursor-pointer ${selectedChat?.id === chat.id ? 'bg-accent' : 'hover:bg-accent/50'}`}
-                                    onClick={() => setSelectedChatId(chat.id)}
-                                >
-                                    <Avatar className="relative h-12 w-12">
-                                        <AvatarImage src={otherParticipantProfile?.photoURL} alt={otherParticipantProfile?.displayName} />
-                                        <AvatarFallback>{otherParticipantProfile?.displayName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex-grow overflow-hidden">
-                                        <p className="font-semibold truncate">{otherParticipantProfile?.displayName}</p>
-                                        <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
-                                        <p className="text-xs text-muted-foreground/80 mt-1">{chat.lastMessageTimestamp ? formatDistanceToNow(chat.lastMessageTimestamp.toDate(), { addSuffix: true }) : ''}</p>
-                                    </div>
-                                </div>
-                                );
-                            })}
-                            {hasMore && (
-                                <div className="p-2">
-                                    <Button
-                                        variant="outline"
-                                        className="w-full"
-                                        onClick={() => fetchChats(true)}
-                                        disabled={loadingMore}
-                                    >
-                                        {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : "加载更多"}
-                                    </Button>
-                                </div>
+                                        return (
+                                        <div key={chat.id} 
+                                            className={`flex items-center gap-4 p-4 cursor-pointer ${selectedChat?.id === chat.id ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                                            onClick={() => setSelectedChatId(chat.id)}
+                                        >
+                                            <UserAvatar profile={otherParticipantProfile as UserProfile} className="h-12 w-12" />
+                                            <div className="flex-grow overflow-hidden">
+                                                <p className="font-semibold truncate">{otherParticipantProfile?.displayName}</p>
+                                                <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                                                <p className="text-xs text-muted-foreground/80 mt-1">{chat.lastMessageTimestamp ? formatDistanceToNow(chat.lastMessageTimestamp.toDate(), { addSuffix: true }) : ''}</p>
+                                            </div>
+                                        </div>
+                                        );
+                                    })}
+                                </>
+                            ) : (
+                                !searchTerm && <p className="p-4 text-center text-muted-foreground">还没有对话。</p>
                             )}
                            </>
-                        ) : (
-                          <p className="p-4 text-center text-muted-foreground">还没有对话。</p>
                         )}
                     </ScrollArea>
                 </CardContent>
@@ -396,9 +516,11 @@ export default function MessagesPage() {
                 {selectedChat ? (
                   <ChatInterface chat={selectedChat} />
                 ) : (
-                  <div className="flex items-center justify-center h-full">
-                    {loading ? <Loader2 className="h-8 w-8 animate-spin" /> : <p className="text-muted-foreground">选择一个对话开始聊天</p>}
-                  </div>
+                   <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                        <MessageSquare className="h-16 w-16 text-muted-foreground/20" />
+                        <h2 className="mt-6 text-xl font-semibold">选择一个对话</h2>
+                        <p className="mt-2 text-sm text-muted-foreground max-w-xs">从左侧选择一个现有的对话，或者使用搜索栏寻找用户并开始新的对话。</p>
+                    </div>
                 )}
             </Card>
         </div>
