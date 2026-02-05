@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 const PAGE_SIZE = 50;
 
@@ -26,6 +28,7 @@ function MerchantsPageSkeleton() {
 
 export default function AllMerchantsPage() {
     const firestore = useFirestore();
+    const { toast } = useToast();
     const [merchants, setMerchants] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingMore, setLoadingMore] = useState(false);
@@ -40,20 +43,22 @@ export default function AllMerchantsPage() {
             setLoading(true);
         }
 
-        const constraints = [where('isPro', '==', true), limit(PAGE_SIZE)];
+        const constraints = [
+            where('isPro', '==', true),
+            orderBy('displayPriority', 'desc'),
+            orderBy('lastLogin', 'desc'),
+            limit(PAGE_SIZE)
+        ];
+        
          if (loadMore && lastVisible) {
             constraints.push(startAfter(lastVisible));
         }
         
-        // The orderBy was removed from the query to avoid needing a composite index.
         const q = query(collection(firestore, 'users'), ...constraints);
 
         try {
             const documentSnapshots = await getDocs(q);
             let newMerchants = documentSnapshots.docs.map(doc => doc.data() as UserProfile);
-            
-            // Sort on the client side instead.
-            newMerchants.sort((a, b) => (b.lastLogin?.toDate().getTime() || 0) - (a.lastLogin?.toDate().getTime() || 0));
             
             setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
             setMerchants(prev => loadMore ? [...prev, ...newMerchants] : newMerchants);
@@ -61,6 +66,12 @@ export default function AllMerchantsPage() {
 
         } catch (error) {
             console.error("Error fetching merchants:", error);
+            toast({
+              variant: 'destructive',
+              title: 'Error fetching merchants',
+              description: 'This may be due to missing Firestore indexes. Please check the browser console for a link to create it.',
+              duration: 10000,
+            })
         } finally {
             setLoading(false);
             setLoadingMore(false);

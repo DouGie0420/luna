@@ -1,6 +1,5 @@
 
 
-
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -130,6 +129,7 @@ export type UserProfile = {
     bannerUrl?: string;
     featuredProductId?: string;
     preferredLanguage?: 'en' | 'zh' | 'th';
+    displayPriority?: number;
 };
 
 export type PaymentChangeRequest = {

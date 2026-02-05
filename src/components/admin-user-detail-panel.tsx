@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
-import { ShoppingBag, ShoppingCart, Users, UserPlus, AlertCircle } from 'lucide-react';
+import { ShoppingBag, ShoppingCart, Users, UserPlus, AlertCircle, Award } from 'lucide-react';
 
 type UserRole = NonNullable<UserProfile['role']>;
 type CreditLevel = NonNullable<UserProfile['creditLevel']>;
@@ -67,7 +67,7 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
         if (!firestore || modificationDisabled) return;
 
         let processedValue = value;
-        if (['creditScore', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount'].includes(field)) {
+        if (['creditScore', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount', 'displayPriority'].includes(field)) {
             processedValue = Number(value);
             if (isNaN(processedValue)) {
                 toast({ variant: "destructive", title: 'Invalid Input', description: 'Please enter a valid number.' });
@@ -262,6 +262,25 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
                             <SelectItem value="false">{t('admin.usersPage.proStatusNo')}</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+                <Separator />
+                <div className="grid gap-2">
+                    <Label htmlFor={`priority-${user.uid}`} className="flex items-center gap-2 text-xs text-muted-foreground"><Award className="h-4 w-4" /> 商户优先展示</Label>
+                    <Select
+                        value={String(user.displayPriority || 0)}
+                        onValueChange={(value) => handleFieldUpdate(user.uid, 'displayPriority', Number(value))}
+                        disabled={modificationDisabled || isSubmitting}
+                    >
+                        <SelectTrigger className="h-9">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">无</SelectItem>
+                            <SelectItem value="50">优先展示 (Top 10)</SelectItem>
+                            <SelectItem value="10">普通推荐 (Top 50)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">在“所有认证商户”页面设置展示优先级。</p>
                 </div>
             </div>
 
