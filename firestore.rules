@@ -120,11 +120,16 @@ service cloud.firestore {
     }
     
     match /proApplications/{applicationId} {
-        allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-        allow read: if isAdminGroup() || (isSignedIn() && resource.data.userId == request.auth.uid);
-        allow update: if isAdminGroup();
-        // List: Admins can list requests. Client MUST filter by status and paginate.
-        allow list: if isAdminGroup() && request.query.limit <= 50;
+      // Users can create an application for themselves.
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      // Users can get their own application, admins can get any.
+      allow get: if request.auth != null && (resource.data.userId == request.auth.uid || hasRole(['admin', 'ghost', 'staff', 'support']));
+      // Admins can list applications (client must paginate).
+      allow list: if hasRole(['admin', 'ghost', 'staff', 'support']) && request.query.limit <= 50;
+      // Only admins can approve/reject.
+      allow update: if hasRole(['admin', 'ghost', 'staff', 'support']);
+      // Only super-admins can delete.
+      allow delete: if hasRole(['admin', 'ghost']);
     }
 
 
