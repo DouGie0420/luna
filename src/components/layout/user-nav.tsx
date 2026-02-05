@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import { ethers } from 'ethers';
 import { updateUserProfile } from "@/lib/user";
@@ -24,7 +24,7 @@ import { getNftsForOwner, type SimplifiedNft } from "@/lib/alchemy";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { NotificationBell } from "@/components/notification-bell";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, onSnapshot } from "firebase/firestore";
 import { UserAvatar } from "@/components/ui/user-avatar";
 
 export function UserNav() {
@@ -42,6 +42,33 @@ export function UserNav() {
   const [isSyncingNfts, setIsSyncingNfts] = useState(false);
   const [isLinkingWallet, setIsLinkingWallet] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
+  
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  // New logic to get unread message count
+  useEffect(() => {
+    if (!firestore || !user) {
+        setUnreadMessages(0);
+        return;
+    }
+
+    const chatsRef = collection(firestore, 'direct_chats');
+    const q = query(chatsRef, where('participants', 'array-contains', user.uid));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        let totalUnread = 0;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.unreadCount && data.unreadCount[user.uid]) {
+                totalUnread += data.unreadCount[user.uid];
+            }
+        });
+        setUnreadMessages(totalUnread);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, user]);
+
 
   // 严格匹配四级管理权限
   const hasAdminAccess = profile && ['staff', 'support', 'ghost', 'admin'].includes(profile.role || '');
@@ -144,6 +171,19 @@ export function UserNav() {
             </Button>
           </div>
         )}
+        
+        {/* New Messages Button */}
+        <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
+            <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
+                <Link href="/messages">
+                    <MessageSquare className="h-5 w-5" />
+                    {unreadMessages > 0 && (
+                        <div className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-background animate-pulse" />
+                    )}
+                </Link>
+            </Button>
+        </div>
+
         <NotificationBell />
         <div className={cn("relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500", profile?.isNftVerified && 'animate-glow-pink-neon')}>
           <Button variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent" onClick={handleWalletAction} disabled={isSyncingNfts || isLinkingWallet}>
@@ -168,7 +208,6 @@ export function UserNav() {
             <DropdownMenuGroup>
               <DropdownMenuItem asChild><Link href="/account"><User className="mr-2 h-4 w-4" /><span>{t('userNav.myAccount')}</span></Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link href="/account/purchases"><ShoppingCart className="mr-2 h-4 w-4" /><span>{t('userNav.orders')}</span></Link></DropdownMenuItem>
-              <DropdownMenuItem asChild><Link href="/messages"><MessageSquare className="mr-2 h-4 w-4" /><span>{t('userNav.messages')}</span></Link></DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10"><LogOut className="mr-2 h-4 w-4" /><span>{t('userNav.logout')}</span></DropdownMenuItem>
