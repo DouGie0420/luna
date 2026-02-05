@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -10,12 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal, MessageSquare } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal, MessageSquare, ThumbsUp, Meh, ThumbsDown } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
-import type { UserProfile, Product } from "@/lib/types";
+import type { UserProfile, Product, BbsPost } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { ProductCard } from "@/components/product-card";
+import { BbsPostCard } from "@/components/bbs-post-card";
 import Link from 'next/link';
 import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
@@ -122,12 +124,19 @@ export default function UserProfilePage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [userLoading, setUserLoading] = useState(true);
     const [isReserved, setIsReserved] = useState(false);
+    const [totalFavorites, setTotalFavorites] = React.useState(0);
 
     const productsQuery = useMemo(() => {
       if (!firestore || !user) return null;
       return query(collection(firestore, 'products'), where('sellerId', '==', user.uid), where('status', '==', 'active'), limit(8));
     }, [firestore, user]);
     const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
+
+    const postsQuery = useMemo(() => {
+      if (!firestore || !user) return null;
+      return query(collection(firestore, 'bbs'), where('authorId', '==', user.uid), where('status', '==', 'active'), limit(2));
+    }, [firestore, user]);
+    const { data: userPosts, loading: postsLoading } = useCollection<BbsPost>(postsQuery);
     
     const [isFollowing, setIsFollowing] = useState(false);
 
@@ -177,6 +186,28 @@ export default function UserProfilePage() {
         fetchUser();
     }, [firestore, identifier, currentUserProfile]);
     
+    React.useEffect(() => {
+        if (!firestore || !user) return;
+        const calculateFavorites = async () => {
+            let productFavorites = 0;
+            let postFavorites = 0;
+    
+            const productsQuery = query(collection(firestore, 'products'), where('sellerId', '==', user.uid));
+            const productsSnapshot = await getDocs(productsQuery);
+            productsSnapshot.forEach(doc => {
+                productFavorites += (doc.data().favorites || 0);
+            });
+    
+            const postsQuery = query(collection(firestore, 'bbs'), where('authorId', '==', user.uid));
+            const postsSnapshot = await getDocs(postsQuery);
+            postsSnapshot.forEach(doc => {
+                postFavorites += (doc.data().favorites || 0);
+            });
+    
+            setTotalFavorites(productFavorites + postFavorites);
+        };
+        calculateFavorites();
+    }, [firestore, user]);
 
     const handleFollowToggle = async () => {
         if (!currentUser || !currentUserProfile || !user || !firestore) {
@@ -288,7 +319,6 @@ export default function UserProfilePage() {
         <PageHeaderWithBackAndClose />
         <div className="p-6 md:p-8 lg:p-12">
             <div className="grid gap-8">
-                {/* 这里的布局代码保持不变，已经正常渲染 user */}
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -308,16 +338,18 @@ export default function UserProfilePage() {
                                             <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/@${user.loginId}/listings`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.postsCount || 0}</span> {t('userProfile.posts')}
-                                        </Link>
+                                        <div className="flex items-center gap-1">
+                                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                            <span className="font-bold text-foreground">{totalFavorites}</span>
+                                            <span className="text-muted-foreground">收藏</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                              <div className="flex items-center gap-2">
                                 {currentUser && currentUser.uid !== user.uid && (
                                     <>
-                                        <Button onClick={handleSendMessage} variant="outline">
+                                        <Button onClick={handleSendMessage} variant="default" className="bg-yellow-400 text-black hover:bg-yellow-500">
                                             <MessageSquare className="mr-2 h-4 w-4" />
                                             Message
                                         </Button>
@@ -349,7 +381,7 @@ export default function UserProfilePage() {
                                 <p className="text-2xl font-bold">{user.creditScore || 0}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                 <Star className="h-6 w-6 text-primary" />
                                 <div>
@@ -358,6 +390,22 @@ export default function UserProfilePage() {
                                         {(user.rating || 0).toFixed(1)} 
                                         <span className="text-xs text-muted-foreground font-normal"> ({user.reviewsCount || 0} {t('accountPage.reviews')})</span>
                                     </p>
+                                </div>
+                            </div>
+                            <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
+                                <div className="space-y-1">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
+                                        <span className="font-medium">{user.goodReviews ?? 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
+                                        <span className="font-medium">{user.neutralReviews ?? 0}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
+                                        <span className="font-medium">{user.badReviews ?? 0}</span>
+                                    </div>
                                 </div>
                             </div>
                             <Link href={`/@${user.loginId}/listings`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
@@ -375,6 +423,33 @@ export default function UserProfilePage() {
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
                                         <p className="font-bold group-hover:underline">{user.salesCount || 0}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                            <Link href={`/bbs?author=${user.uid}`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                <div className="flex items-center gap-3 p-3">
+                                    <MessageSquare className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.posts')}</p>
+                                        <p className="font-bold group-hover:underline">{user.postsCount || 0}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                            <Link href={`/@${user.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <Users className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="font-bold">{user.followersCount || 0}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                            <Link href={`/@${user.loginId}/following`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                                <div className="flex items-center gap-3 p-3">
+                                    <UserPlus className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="font-bold">{user.followingCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -431,10 +506,26 @@ export default function UserProfilePage() {
                         </CardContent>
                     </Card>
                 )}
+                
+                {userPosts && userPosts.length > 0 && (
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <CardTitle>Latest Posts from {user.displayName}</CardTitle>
+                             <Button asChild variant="ghost">
+                                <Link href={`/bbs`}>View All</Link>
+                             </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {userPosts.map((post) => (
+                                    <BbsPostCard key={post.id} post={post} />
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
       </>
     )
 }
-
-    
