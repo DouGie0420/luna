@@ -80,6 +80,8 @@ export default function AccountProfilePage() {
     const [isUploadingBanner, setIsUploadingBanner] = useState(false);
     const [newLoginId, setNewLoginId] = useState('');
     const [isSavingId, setIsSavingId] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
 
     const [isSyncingNfts, setIsSyncingNfts] = useState(false);
@@ -111,6 +113,7 @@ export default function AccountProfilePage() {
             setLocation(profile.location || '');
             setBio(profile.bio || '');
             setBannerPreview(profile.bannerUrl || null);
+            setAvatarPreview(profile.photoURL || null);
         }
     }, [profile]);
     
@@ -209,12 +212,12 @@ export default function AccountProfilePage() {
         try {
             const compressedDataUrl = await compressImage(file);
             setBannerPreview(compressedDataUrl);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Banner compression error:', error);
             toast({
                 variant: 'destructive',
                 title: 'Image Error',
-                description: 'Failed to process image. Please try another file.',
+                description: error.message || 'Failed to process image. Please try another file.',
             });
         } finally {
             setIsUploadingBanner(false);
@@ -239,6 +242,47 @@ export default function AccountProfilePage() {
             });
         } finally {
             setIsUploadingBanner(false);
+        }
+    };
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingAvatar(true);
+        try {
+            const compressedDataUrl = await compressImage(file);
+            setAvatarPreview(compressedDataUrl);
+        } catch (error: any) {
+            console.error('Avatar compression error:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Image Error',
+                description: error.message || 'Failed to process image. Please try another file.',
+            });
+        } finally {
+            setIsUploadingAvatar(false);
+        }
+    };
+
+    const handleSaveAvatar = async () => {
+        if (!firestore || !user || !avatarPreview) return;
+        setIsUploadingAvatar(true);
+        try {
+            await updateUserProfile(firestore, user.uid, { photoURL: avatarPreview, isNftVerified: false });
+            toast({
+                title: "头像已更新",
+                description: "您的新头像已保存。",
+            });
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update avatar.'
+            });
+        } finally {
+            setIsUploadingAvatar(false);
         }
     };
     
@@ -326,6 +370,9 @@ export default function AccountProfilePage() {
         await updateUserProfile(firestore, user.uid, { displayedBadge: badge });
         toast({ title: t('accountPage.badges.update_success') });
     };
+
+    const canCustomize = profile?.isPro || ['admin', 'ghost', 'staff', 'support'].includes(profile?.role || '');
+
 
     if (loading) {
         return (
@@ -551,52 +598,91 @@ export default function AccountProfilePage() {
                     </CardContent>
                 </Card>
                 
-                {profile?.isPro && (
+                {canCustomize && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>自定义商户横幅</CardTitle>
+                            <CardTitle>自定义媒体</CardTitle>
                             <CardDescription>
-                                作为认证商户，您可以上传自定义横幅，该横幅将展示在首页的“认证商户”区域。
+                                作为认证商户或管理员，您可以上传自定义头像和商户横幅。
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="banner-upload">横幅图片 (推荐尺寸: 1080x432)</Label>
-                                {bannerPreview ? (
-                                    <div className="relative aspect-[1080/432] w-full max-w-lg">
-                                        <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-md border bg-muted/20" />
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
-                                            onClick={() => setBannerPreview(null)}
-                                            disabled={isUploadingBanner}
-                                        >
-                                            <X className="h-4 w-4" />
+                        <CardContent className="grid gap-8">
+                            {/* Avatar Upload */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                                <div className="md:col-span-1 grid gap-2">
+                                    <Label htmlFor="avatar-upload">自定义头像</Label>
+                                    <p className="text-xs text-muted-foreground">点击下方图片以上传新头像。</p>
+                                </div>
+                                <div className="md:col-span-2 grid gap-4">
+                                    <label htmlFor="avatar-upload" className="cursor-pointer w-fit">
+                                        <div className="relative h-24 w-24">
+                                            {avatarPreview ? (
+                                                <Image src={avatarPreview} alt="Avatar Preview" fill className="rounded-full object-cover border-2 border-primary" />
+                                            ) : (
+                                                <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+                                                    <UploadCloud className="h-8 w-8 text-muted-foreground" />
+                                                </div>
+                                            )}
+                                            {isUploadingAvatar && (
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </label>
+                                    <input id="avatar-upload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploadingAvatar} />
+                                    <Button onClick={handleSaveAvatar} disabled={isUploadingAvatar || !avatarPreview || avatarPreview === profile?.photoURL} className="w-fit">
+                                        {isUploadingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                        保存头像
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {profile?.isPro && <Separator />}
+                            
+                            {/* Banner Upload */}
+                            {profile?.isPro && (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                                    <div className="md:col-span-1 grid gap-2">
+                                        <Label htmlFor="banner-upload">自定义商户横幅</Label>
+                                        <p className="text-xs text-muted-foreground">推荐尺寸: 1080x432. 将展示在您的公开资料页和认证商户列表中。</p>
+                                    </div>
+                                    <div className="md:col-span-2 grid gap-4">
+                                        {bannerPreview ? (
+                                            <div className="relative aspect-[1080/432] w-full">
+                                                <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-md border bg-muted/20" />
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="icon"
+                                                    className="absolute -top-2 -right-2 h-7 w-7 rounded-full"
+                                                    onClick={() => setBannerPreview(null)}
+                                                    disabled={isUploadingBanner}
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
+                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                                    <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                                                    <p className="text-xs text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽</p>
+                                                </div>
+                                                <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
+                                            </label>
+                                        )}
+                                        {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
+                                        <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview} className="w-fit">
+                                            {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            保存横幅
                                         </Button>
                                     </div>
-                                ) : (
-                                    <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
-                                        <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
-                                            <UploadCloud className="w-10 h-10 mb-3 text-muted-foreground" />
-                                            <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽文件到此</p>
-                                            <p className="text-xs text-muted-foreground">PNG, JPG, GIF</p>
-                                        </div>
-                                        <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
-                                    </label>
-                                )}
-                                {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
-                            </div>
+                                </div>
+                            )}
                         </CardContent>
-                        <CardFooter className="border-t px-6 py-4">
-                            <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview}>
-                                {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                保存横幅
-                            </Button>
-                        </CardFooter>
                     </Card>
                 )}
+
 
                 {profile?.isPro && (
                     <Card>
