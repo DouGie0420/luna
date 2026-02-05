@@ -23,7 +23,6 @@ export default function RootLayout({
       <body className={cn("font-body", "bg-background text-foreground")}>
         <FirebaseClientProvider>
           <LanguageProvider>
-            <div className="pixel-grid-bg" />
             <div className="flex flex-col min-h-screen">
                 <Header />
                 <main className="flex-grow">{children}</main>
