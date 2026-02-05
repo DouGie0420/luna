@@ -125,6 +125,8 @@
     "reviews": "reviews",
     "sales": "Sales",
     "purchases": "Purchases",
+    "totalSpent": "Total Spent",
+    "totalSold": "Total Sold",
     "verifyEmail": "Verify Email",
     "verifyEmailSent": "Verification email sent! Check your inbox.",
     "resendIn": "Resend in",

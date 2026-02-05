@@ -125,6 +125,8 @@
     "reviews": "条评价",
     "sales": "总销量",
     "purchases": "总购买数",
+    "totalSpent": "累计消费",
+    "totalSold": "累计销售",
     "verifyEmail": "验证邮箱",
     "verifyEmailSent": "验证邮件已发送！请检查收件箱。",
     "resendIn": "秒后可重发",
@@ -296,33 +298,6 @@
     "withdraw": "提现",
     "transactionHistory": "交易记录",
     "noTransactions": "最近的交易将显示在这里。"
-  },
-  "accountKYC": {
-    "title": "KYC认证",
-    "currentStatus": "当前状态",
-    "status": {
-      "verified": "已认证",
-      "pending": "审核中",
-      "notVerified": "未认证"
-    },
-    "status.pendingDescription": "您的文件正在审核中，通常需要1-2个工作日。",
-    "status.notVerifiedDescription": "请完成认证以使用所有功能。",
-    "submitTitle": "提交您的文件",
-    "submitDescription": "请上传政府颁发的身份证件和自拍照进行验证。",
-    "idUploadLabel": "政府颁发的身份证件",
-    "idUploadDescription": "例如：护照、驾驶执照",
-    "selfieUploadLabel": "手持证件自拍",
-    "selfieUploadDescription": "请将证件放在脸旁边拍照。",
-    "submitButton": "提交以供审核"
-  },
-  "accountAddresses": {
-    "title": "我的地址",
-    "savedAddresses": "已存地址",
-    "description": "管理您的收货地址以便快速结账。",
-    "addNewAddress": "添加新地址",
-    "noAddresses": "没有已存地址。",
-    "noAddressesDescription": "添加一个地址以开始。",
-    "addFirstAddress": "添加您的第一个地址"
   },
   "productCardActions": {
     "edit": "编辑商品",

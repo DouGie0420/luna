@@ -125,6 +125,8 @@
     "reviews": "รีวิว",
     "sales": "ยอดขาย",
     "purchases": "ยอดซื้อ",
+    "totalSpent": "ยอดใช้จ่ายทั้งหมด",
+    "totalSold": "ยอดขายทั้งหมด",
     "verifyEmail": "ยืนยันอีเมล",
     "verifyEmailSent": "ส่งอีเมลยืนยันแล้ว! โปรดตรวจสอบกล่องจดหมายของคุณ",
     "resendIn": "ส่งอีกครั้งใน",
@@ -507,7 +509,7 @@
     "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว",
     "trackShipment": "ติดตามการจัดส่ง",
     "trackingInfo": "ข้อมูลการติดตาม",
-    "trackingProvider": "ผู้ให้บริการจัด送",
+    "trackingProvider": "ผู้ให้บริการจัดส่ง",
     "trackingNumber": "หมายเลขติดตาม",
     "trackingPlaceholder": "API สำหรับการติดตามสดจะถูกรวมเข้าไว้ที่นี่ในอนาคต"
   },

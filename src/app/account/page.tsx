@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Languages } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Languages, DollarSign } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -113,6 +113,10 @@ export default function AccountProfilePage() {
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [isProDialogOpen, setIsProDialogOpen] = useState(false);
 
+    const [totalPurchased, setTotalPurchased] = useState(0);
+    const [totalSold, setTotalSold] = useState(0);
+    const [loadingStats, setLoadingStats] = useState(true);
+
     useEffect(() => {
         if (fetchedProducts) {
             setUserProducts(fetchedProducts);
@@ -137,6 +141,43 @@ export default function AccountProfilePage() {
             return () => clearTimeout(timer);
         }
     }, [cooldown]);
+
+    useEffect(() => {
+        if (!firestore || !user) return;
+
+        const fetchTransactionStats = async () => {
+            setLoadingStats(true);
+            const ordersRef = collection(firestore, 'orders');
+
+            try {
+                // Fetch purchases
+                const purchasesQuery = query(ordersRef, where('buyerId', '==', user.uid), where('status', '==', 'Completed'));
+                const purchasesSnapshot = await getDocs(purchasesQuery);
+                let totalSpent = 0;
+                purchasesSnapshot.forEach(doc => {
+                    totalSpent += doc.data().totalAmount || 0;
+                });
+                setTotalPurchased(totalSpent);
+
+                // Fetch sales
+                const salesQuery = query(ordersRef, where('sellerId', '==', user.uid), where('status', '==', 'Completed'));
+                const salesSnapshot = await getDocs(salesQuery);
+                let totalEarned = 0;
+                salesSnapshot.forEach(doc => {
+                    totalEarned += doc.data().totalAmount || 0;
+                });
+                setTotalSold(totalEarned);
+            } catch(e) {
+                console.error("Error fetching transaction stats:", e);
+                // Optionally show a toast to the user
+            } finally {
+                setLoadingStats(false);
+            }
+        };
+
+        fetchTransactionStats();
+    }, [firestore, user]);
+
 
     const handleSaveChanges = async () => {
         if (!firestore || !user) return;
@@ -405,7 +446,7 @@ export default function AccountProfilePage() {
     const canCustomize = profile?.isPro || ['admin', 'ghost', 'staff', 'support'].includes(profile?.role || '');
 
 
-    if (loading) {
+    if (loading || loadingStats) {
         return (
             <div className="p-6 md:p-8 lg:p-12">
                 <h1 className="text-3xl font-headline mb-6"><Skeleton className="h-8 w-48" /></h1>
@@ -850,7 +891,7 @@ export default function AccountProfilePage() {
                                 <p className="text-2xl font-bold">{profile?.creditScore || 0}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                              <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                 <Star className="h-6 w-6 text-primary" />
                                 <div>
@@ -870,6 +911,15 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                              </Link>
+                             <Link href="/account/sales" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
+                                <div className="flex items-center gap-3 p-3">
+                                    <DollarSign className="h-6 w-6 text-primary" />
+                                    <div>
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.sales')}</p>
+                                        <p className="font-bold group-hover:underline">{profile?.salesCount || 0}</p>
+                                    </div>
+                                </div>
+                             </Link>
                             <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
@@ -879,6 +929,20 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                             </Link>
+                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                <DollarSign className="h-6 w-6 text-primary" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">{t('accountPage.totalSold')}</p>
+                                    <p className="font-bold">{totalSold.toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
+                                <DollarSign className="h-6 w-6 text-primary" />
+                                <div>
+                                    <p className="text-sm text-muted-foreground">{t('accountPage.totalSpent')}</p>
+                                    <p className="font-bold">{totalPurchased.toLocaleString()}</p>
+                                </div>
+                            </div>
                             <Link href={`/@${profile?.loginId}/followers`} className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
@@ -897,38 +961,38 @@ export default function AccountProfilePage() {
                                     </div>
                                 </div>
                             </Link>
-                             <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
-                                <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
-                                <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-                                    {profile?.isPro && (
-                                        <div className="flex items-center gap-1.5 text-yellow-400">
-                                            <ShieldCheck className="h-4 w-4" />
-                                            <span>PRO</span>
-                                        </div>
-                                    )}
-                                    {profile?.isWeb3Verified && (
-                                        <div className="flex items-center gap-1.5 text-blue-400">
-                                            <Globe className="h-4 w-4" />
-                                            <span>{t('userProfile.web3')}</span>
-                                        </div>
-                                    )}
-                                    {profile?.isNftVerified && (
-                                        <div className="flex items-center gap-1.5 text-blue-400">
-                                            <EthereumIcon className="h-4 w-4 stroke-blue-400" />
-                                            <span>NFT</span>
-                                        </div>
-                                    )}
-                                    {profile?.kycStatus === 'Verified' && (
-                                        <div className="flex items-center gap-1.5 text-yellow-400">
-                                            <Fingerprint className="h-4 w-4" />
-                                            <span>{t('userProfile.kyc')}</span>
-                                        </div>
-                                    )}
-                                    {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
-                                    {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
-                                        <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
-                                    )}
-                                </div>
+                        </div>
+                        <div className="p-3 bg-secondary/30 rounded-lg flex flex-col justify-center">
+                            <p className="text-sm text-muted-foreground mb-2">{t('userProfile.verifications')}</p>
+                            <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+                                {profile?.isPro && (
+                                    <div className="flex items-center gap-1.5 text-yellow-400">
+                                        <ShieldCheck className="h-4 w-4" />
+                                        <span>PRO</span>
+                                    </div>
+                                )}
+                                {profile?.isWeb3Verified && (
+                                    <div className="flex items-center gap-1.5 text-blue-400">
+                                        <Globe className="h-4 w-4" />
+                                        <span>{t('userProfile.web3')}</span>
+                                    </div>
+                                )}
+                                {profile?.isNftVerified && (
+                                    <div className="flex items-center gap-1.5 text-blue-400">
+                                        <EthereumIcon className="h-4 w-4 stroke-blue-400" />
+                                        <span>NFT</span>
+                                    </div>
+                                )}
+                                {profile?.kycStatus === 'Verified' && (
+                                    <div className="flex items-center gap-1.5 text-yellow-400">
+                                        <Fingerprint className="h-4 w-4" />
+                                        <span>{t('userProfile.kyc')}</span>
+                                    </div>
+                                )}
+                                {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
+                                {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
+                                    <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
+                                )}
                             </div>
                         </div>
                     </CardContent>
