@@ -466,8 +466,8 @@
     "escrowInfo": "Your payment will be held in escrow until you confirm receipt of the item."
   },
   "orderSuccess": {
-    "title": "Payment Successful!",
-    "description": "Your order is being processed. You will be redirected shortly..."
+    "title": "Order Placed Successfully!",
+    "description": "Thank you for your purchase. You can view the order details below."
   },
   "orderDetails": {
     "status": {

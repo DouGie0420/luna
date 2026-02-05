@@ -1,120 +1,70 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { useUser, useFirestore } from "@/firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
-import { Loader2, ShoppingCart, Eye } from "lucide-react";
-import { format } from "date-fns";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
+import { useRouter } from 'next/navigation';
 
-export default function AdminOrdersPage() {
-  const { profile, loading: authLoading } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
+function OrderSuccessContent() {
+  const { t } = useTranslation();
+  const searchParams = useSearchParams();
   const router = useRouter();
-
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // 严格匹配你的四级权限需求
-  const hasAccess = profile && ['admin', 'ghost', 'staff', 'support'].includes(profile.role || '');
+  const orderId = searchParams.get('orderId');
 
   useEffect(() => {
-    if (!authLoading && !hasAccess) {
-      toast({ variant: "destructive", title: "访问受限", description: "您没有权限管理订单。" });
-      router.push("/admin");
+    if (!orderId) {
+      // If there's no order ID, redirect to home after a delay
+      const timer = setTimeout(() => {
+        router.push('/');
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [profile, authLoading, hasAccess, router]);
+  }, [orderId, router]);
 
-  const fetchOrders = async () => {
-    if (!firestore) return;
-    setLoading(true);
-    try {
-      const q = query(collection(firestore, "orders"), orderBy("createdAt", "desc"));
-      const querySnapshot = await getDocs(q);
-      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setOrders(data);
-    } catch (error) {
-      console.error("Fetch orders error:", error);
-      toast({ variant: "destructive", title: "同步失败" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (hasAccess) fetchOrders();
-  }, [firestore, hasAccess]);
-
-  if (authLoading || loading) {
+  if (!orderId) {
     return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+        <Card className="w-full max-w-lg mx-auto">
+            <CardHeader className="text-center">
+                 <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
+                 <CardTitle className="mt-4 text-2xl font-bold">{t('orderSuccess.title')}</CardTitle>
+                 <CardDescription>An issue occurred, but your order may have been placed. Redirecting to home...</CardDescription>
+            </CardHeader>
+        </Card>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">订单管理</h1>
-        <Badge variant="outline">角色: {profile?.role?.toUpperCase()}</Badge>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2"><ShoppingCart className="h-5 w-5" /> 所有订单</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>买家 ID</TableHead>
-                <TableHead>卖家 ID</TableHead>
-                <TableHead>总金额</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead className="text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-mono text-xs">{order.buyerId || 'N/A'}</TableCell>
-                  <TableCell className="font-mono text-xs">{order.sellerId || 'N/A'}</TableCell>
-                  <TableCell>
-                    {/* 关键修复点：增加类型判断和兜底 */}
-                    {typeof order.totalAmount === 'number' 
-                      ? order.totalAmount.toLocaleString() 
-                      : (order.totalAmount || '0')} {order.currency || ''}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={order.status === 'Completed' ? 'default' : (order.status === 'Disputed' ? 'destructive' : 'secondary')}>
-                      {order.status || 'Unknown'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" onClick={() => router.push(`/admin/orders/${order.id}`)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
+      <Card className="w-full max-w-lg mx-auto">
+          <CardHeader className="text-center">
+              <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
+              <CardTitle className="mt-4 text-2xl font-bold">{t('orderSuccess.title')}</CardTitle>
+              <CardDescription>{t('orderSuccess.description')}</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-4">
+               <p className="text-sm text-muted-foreground">Order ID: {orderId}</p>
+              <Button asChild size="lg" className="w-full">
+                  <Link href={`/account/purchases/${orderId}`}>
+                      View Order Details
+                  </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full">
+                  <Link href="/products">Continue Shopping</Link>
+              </Button>
+          </CardContent>
       </Card>
+  );
+}
+
+export default function OrderSuccessPage() {
+  return (
+    <div className="container mx-auto flex min-h-[70vh] items-center justify-center p-4">
+        <Suspense fallback={<div>Loading...</div>}>
+            <OrderSuccessContent />
+        </Suspense>
     </div>
   );
 }
