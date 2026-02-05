@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,7 +45,6 @@ export default function AllMerchantsPage() {
         const constraints = [
             where('isPro', '==', true),
             orderBy('displayPriority', 'desc'),
-            orderBy('lastLogin', 'desc'),
             limit(PAGE_SIZE)
         ];
         
