@@ -40,11 +40,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Google</title><path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.08-2.58 2.4-5.77 2.4-4.81 0-8.73-3.86-8.73-8.71s3.92-8.71 8.73-8.71c2.73 0 4.51 1.04 5.54 2.02l2.5-2.5C20.34 1.39 17.13 0 12.48 0 5.88 0 0 5.58 0 12.42s5.88 12.42 12.48 12.42c7.2 0 12.12-4.92 12.12-12.02 0-.8-.08-1.55-.2-2.32H12.48z"/></svg>
 );
 
-const FacebookIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg role="img" viewBox="0 0 24 24" {...props} xmlns="http://www.w3.org/2000/svg"><title>Facebook</title><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-);
-
-
 export default function RegisterPage() {
   const { t } = useTranslation();
   const { user, loading: userLoading } = useUser();
@@ -275,14 +270,10 @@ export default function RegisterPage() {
                 <span className="bg-card px-2 relative text-xs text-muted-foreground z-10 flex items-center justify-center mx-auto w-fit">{t('registerPage.orRegisterWith')}</span>
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-2">
+              <div className="w-full grid grid-cols-1 gap-2">
                   <Button variant="outline" onClick={() => handleSocialLogin('google')} disabled={isLoading}>
                     <GoogleIcon className="mr-2 h-4 w-4 fill-current"/>
                     <span>Google</span>
-                  </Button>
-                  <Button variant="outline" onClick={() => handleSocialLogin('facebook')} disabled={isLoading}>
-                    <FacebookIcon className="mr-2 h-4 w-4 fill-current"/>
-                    <span>Facebook</span>
                   </Button>
               </div>
 
@@ -332,5 +323,3 @@ export default function RegisterPage() {
     </Dialog>
   );
 }
-
-    
