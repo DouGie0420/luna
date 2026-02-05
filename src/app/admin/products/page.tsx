@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useCollection, useFirestore } from "@/firebase";
-import { collection, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { useMemo, useState, useEffect } from 'react';
+import { useFirestore } from "@/firebase";
+import { collection, query, where, doc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
 import type { Product, BbsPost } from "@/lib/types";
 import {
   Table,
@@ -214,6 +214,11 @@ export default function AdminProductsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
     
+    // Local state for items
+    const [products, setProducts] = useState<Product[] | null>(null);
+    const [posts, setPosts] = useState<BbsPost[] | null>(null);
+    const [loading, setLoading] = useState(true);
+
     // Review Item State
     const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
     const [reviewReason, setReviewReason] = useState('涉黄');
@@ -223,20 +228,48 @@ export default function AdminProductsPage() {
     // Hard delete state
     const [itemToHardDelete, setItemToHardDelete] = useState<{ type: 'product' | 'post'; id: string } | null>(null);
 
-    // Product states
-    const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products'), where('status', '==', 'under_review')) : null, [firestore]);
-    const { data: products, loading: productsLoading } = useCollection<Product>(productsQuery);
+    useEffect(() => {
+        if (!firestore) return;
 
-    // Post states
-    const postsQuery = useMemo(() => firestore ? query(collection(firestore, 'bbs'), where('status', '==', 'under_review')) : null, [firestore]);
-    const { data: posts, loading: postsLoading } = useCollection<BbsPost>(postsQuery);
+        const fetchItems = async () => {
+            setLoading(true);
+            try {
+                const productsQuery = query(collection(firestore, 'products'), where('status', '==', 'under_review'));
+                const postsQuery = query(collection(firestore, 'bbs'), where('status', '==', 'under_review'));
+
+                const [productsSnapshot, postsSnapshot] = await Promise.all([
+                    getDocs(productsQuery),
+                    getDocs(postsQuery)
+                ]);
+
+                const productsData = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+                const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BbsPost));
+
+                setProducts(productsData);
+                setPosts(postsData);
+            } catch (error) {
+                console.error("Failed to fetch review items:", error);
+                toast({ variant: 'destructive', title: 'Failed to load items for review.' });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchItems();
+    }, [firestore, toast]);
 
     const handleStatusChange = async (collectionName: 'products' | 'bbs', itemId: string, status: ProductStatus | PostStatus) => {
         if (!firestore) return;
         const itemRef = doc(firestore, collectionName, itemId);
         try {
-            await updateDoc(itemRef, { status, reviewReason: null }); // Also clear the reason when approving
-            toast({ title: '状态已更新', description: `项目已设置为 "${'status'}"。` });
+            await updateDoc(itemRef, { status, reviewReason: null });
+            toast({ title: '状态已更新', description: `项目已设置为 "${status}"。` });
+            
+            if (collectionName === 'products') {
+                setProducts(prev => prev ? prev.filter(p => p.id !== itemId) : null);
+            } else {
+                setPosts(prev => prev ? prev.filter(p => p.id !== itemId) : null);
+            }
         } catch (error) {
             console.error("Failed to update status:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { status } }));
@@ -258,6 +291,11 @@ export default function AdminProductsPage() {
         try {
             await updateDoc(itemRef, { reviewReason: finalReason });
             toast({ title: '原因已记录' });
+             if (itemToReview.type === 'product') {
+                setProducts(prev => prev ? prev.map(p => p.id === itemToReview.item.id ? { ...p, reviewReason: finalReason } : p) : null);
+            } else {
+                setPosts(prev => prev ? prev.map(p => p.id === itemToReview.item.id ? { ...p, reviewReason: finalReason } : p) : null);
+            }
         } catch (error) {
             console.error("Failed to set review reason:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
@@ -280,6 +318,11 @@ export default function AdminProductsPage() {
         try {
             await deleteDoc(itemRef);
             toast({ title: '项目已彻底删除' });
+            if (type === 'product') {
+                setProducts(prev => prev ? prev.filter(p => p.id !== id) : null);
+            } else {
+                setPosts(prev => prev ? prev.filter(p => p.id !== id) : null);
+            }
         } catch (error) {
             console.error("Failed to hard delete item:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'delete' }));
@@ -299,7 +342,7 @@ export default function AdminProductsPage() {
                 <h3 className="text-2xl font-headline mb-4">待审核商品</h3>
                 <ProductTable 
                     products={products} 
-                    loading={productsLoading} 
+                    loading={loading} 
                     onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
                     onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
                     onHardDelete={(id) => setItemToHardDelete({ type: 'product', id })}
@@ -310,7 +353,7 @@ export default function AdminProductsPage() {
                 <h3 className="text-2xl font-headline mb-4">待审核帖子</h3>
                  <PostTable 
                     posts={posts} 
-                    loading={postsLoading} 
+                    loading={loading} 
                     onStatusChange={(id, status) => handleStatusChange('bbs', id, status)}
                     onSetReason={(post) => setItemToReview({ type: 'post', item: post })} 
                     onHardDelete={(id) => setItemToHardDelete({ type: 'post', id })}
