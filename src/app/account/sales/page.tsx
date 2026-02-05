@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useUser, useCollection, useFirestore } from "@/firebase";
-import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useUser, useFirestore } from "@/firebase";
+import { query, collection, where, orderBy, doc, updateDoc, serverTimestamp, getDocs, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from "firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,26 +19,52 @@ import { createNotification } from '@/lib/notifications';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
+const PAGE_SIZE = 50;
+
 export default function SalesPage() {
     const { t } = useTranslation();
     const { user, profile, loading: authLoading } = useUser();
     const db = useFirestore();
     const { toast } = useToast();
 
+    const [salesOrders, setSalesOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<any>(null);
+
     const [shippingInfo, setShippingInfo] = useState({ provider: '', trackingNumber: '' });
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const ordersQuery = useMemo(() => {
-        if (!user?.uid || !db) return null;
-        return query(
-            collection(db, "orders"),
-            where("sellerId", "==", user.uid),
-            orderBy('createdAt', 'desc')
-        );
+    React.useEffect(() => {
+        if (!user?.uid || !db) {
+            setLoading(false);
+            return;
+        }
+
+        const fetchInitialOrders = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const q = query(
+                    collection(db, "orders"),
+                    where("sellerId", "==", user.uid),
+                    orderBy("createdAt", "desc"),
+                    limit(PAGE_SIZE)
+                );
+                const documentSnapshots = await getDocs(q);
+                const orders = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() } as Order));
+                setSalesOrders(orders);
+            } catch (err) {
+                console.error(err);
+                setError(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialOrders();
     }, [user?.uid, db]);
 
-    const { data: salesOrders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
 
     const handleMarkAsShipped = (order: Order) => {
         setSelectedOrder(order);
@@ -77,6 +103,8 @@ export default function SalesPage() {
             });
             setSelectedOrder(null);
             setShippingInfo({ provider: '', trackingNumber: '' });
+            // Manually update local state to reflect change immediately
+            setSalesOrders(prev => prev.map(o => o.id === selectedOrder.id ? {...o, ...updateData} : o));
         } catch (error: any) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: orderRef.path,
@@ -93,7 +121,7 @@ export default function SalesPage() {
         return `accountPurchases.status.${camelCaseStatus}`;
     }
 
-    if (authLoading || (user && dataLoading)) {
+    if (authLoading || loading) {
         return (
             <div className="flex flex-col items-center justify-center p-20 space-y-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -118,7 +146,7 @@ export default function SalesPage() {
                     <div className="p-10 border border-destructive/20 rounded-lg bg-destructive/5 text-center">
                         <AlertCircle className="h-10 w-10 text-destructive mx-auto mb-4" />
                         <h2 className="text-destructive font-bold">连接被拦截</h2>
-                        <p className="text-sm mt-2 text-muted-foreground">请检查 Firebase 控制台的 Rules 是否已点击 Publish。</p>
+                        <p className="text-sm mt-2 text-muted-foreground">无法加载销售记录。这可能是因为缺少数据库索引。请打开开发者控制台(F12)查看错误信息，其中通常会包含一个用于一键创建索引的链接。</p>
                     </div>
                 )}
                 {!error && (!salesOrders || salesOrders.length === 0) ? (
