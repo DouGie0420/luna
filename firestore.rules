@@ -26,12 +26,9 @@ service cloud.firestore {
 
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
-      allow list: if isSignedIn() && request.query.limit <= 50 &&
-                   (
-                      (request.query.where.buyerId == request.auth.uid) || 
-                      (request.query.where.sellerId == request.auth.uid) ||
-                      (isAdminGroup())
-                   );
+      // Admins can list any orders based on their client-side query.
+      // Regular users can only list orders where they are a participant.
+      allow list: if (request.auth.uid == resource.data.buyerId || request.auth.uid == resource.data.sellerId || isAdminGroup()) && request.query.limit <= 50;
       allow get: if isSignedIn() && (
         request.auth.uid in resource.data.participants || isAdminGroup()
       );
@@ -51,8 +48,8 @@ service cloud.firestore {
         (request.auth.uid == userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
         // Case 2: Admin/Ghost can update anything
         hasRole(['admin', 'ghost']) ||
-        // Case 3: Staff/Support can update anything EXCEPT role
-        (hasRole(['staff', 'support']) && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        // Case 3: Staff can update specific fields on other users, but not roles
+        (hasRole(['staff', 'support']) && request.auth.uid != userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
         // Case 4: Following/Unfollowing another user.
         (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['followers', 'followersCount', 'following', 'followingCount']))
       );
@@ -70,7 +67,9 @@ service cloud.firestore {
     // --- Chat Systems ---
     match /direct_chats/{chatId} {
       allow get: if isSignedIn() && request.auth.uid in resource.data.participants;
-      allow list: if isSignedIn() && request.query.limit <= 50; // Requires where clause in client
+      // Allow listing chats only if the user is a participant.
+      // The client query must include `where('participants', 'array-contains', request.auth.uid)`
+      allow list: if request.auth.uid in resource.data.participants && request.query.limit <= 50;
       allow update: if isSignedIn() && request.auth.uid in resource.data.participants;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       
@@ -114,13 +113,15 @@ service cloud.firestore {
 
     // --- 其他后台管理模块 (KYC, 收款, 工单) ---
     match /paymentChangeRequests/{reqId} {
-      allow read, list, create, update, delete: if isAdminGroup();
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdminGroup();
+      allow list: if isAdminGroup() && resource.data.status == 'pending';
     }
     
     match /proApplications/{applicationId} {
-        allow read, list: if isAdminGroup();
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-        allow update: if isAdminGroup();
+        allow read, update: if isAdminGroup();
+        allow list: if isAdminGroup() && resource.data.status == 'pending';
     }
 
 
@@ -184,3 +185,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
