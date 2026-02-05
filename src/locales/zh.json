@@ -627,7 +627,12 @@
       "ticketId": "工单ID",
       "subject": "主题",
       "user": "用户",
-      "status": "状态",
+      "status": {
+        "open": "开启中",
+        "pending": "处理中",
+        "resolved": "已解决",
+        "closed": "已关闭"
+      },
       "lastUpdate": "最后更新",
       "actions": "操作",
       "statusUpdated": "状态已更新",
@@ -638,7 +643,16 @@
       "setPending": "设为待定",
       "setResolved": "设为已解决",
       "setClosed": "设为已关闭",
-      "noTickets": "当前没有待处理的支持工单。"
+      "noTickets": "当前没有待处理的支持工单。",
+      "noTicketsInCategory": "此分类下没有工单",
+      "all": "全部",
+      "selectTicketPrompt": "选择一个工单以查看详情",
+      "assignTo": "分配给",
+      "assignToStaff": "分配给客服",
+      "ticketAssigned": "工单已分配",
+      "replyPlaceholder": "输入您的回复...",
+      "sendReply": "发送回复",
+      "updated": "更新于"
     },
     "usersPage": {
       "title": "管理用户",
@@ -671,3 +685,5 @@
     }
   }
 }
+
+    

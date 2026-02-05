@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { 
   collection, 
@@ -12,7 +13,6 @@ import {
   addDoc,
   where,
   onSnapshot,
-  Timestamp,
   getDocs
 } from "firebase/firestore";
 import type { SupportTicket, ChatMessage, UserProfile } from "@/lib/types";
@@ -20,16 +20,16 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { format, formatDistanceToNow } from "date-fns";
+import { enUS, zhCN, th } from 'date-fns/locale';
 
 // UI Components
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,20 +41,30 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Icons
-import { Loader2, Send, Ticket, Clock, UserCircle, Inbox, ChevronsUpDown, CheckCircle, CircleDot, PauseCircle, Ban, LifeBuoy } from 'lucide-react';
+import { Loader2, Send, Ticket, Clock, UserCircle, Inbox, ChevronsUpDown, CheckCircle, CircleDot, PauseCircle, Ban, LifeBuoy, MoreVertical } from 'lucide-react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
+const locales = { en: enUS, zh: zhCN, th: th };
 type TicketStatus = SupportTicket['status'];
 
-const statusConfig: Record<TicketStatus, { icon: React.FC<any>, color: string }> = {
-    'Open': { icon: CircleDot, color: 'text-red-500' },
-    'Pending': { icon: PauseCircle, color: 'text-yellow-500' },
-    'Resolved': { icon: CheckCircle, color: 'text-green-500' },
-    'Closed': { icon: Ban, color: 'text-gray-500' }
+const getStatusConfig = (status: TicketStatus): { icon: React.FC<any>, color: string, variant: "destructive" | "secondary" | "default" } => {
+    switch (status) {
+        case 'Open': return { icon: CircleDot, color: 'text-red-500', variant: 'destructive' };
+        case 'Pending': return { icon: PauseCircle, color: 'text-yellow-500', variant: 'secondary' };
+        case 'Resolved': return { icon: CheckCircle, color: 'text-green-500', variant: 'default' };
+        case 'Closed': return { icon: Ban, color: 'text-gray-500', variant: 'secondary' };
+        default: return { icon: CircleDot, color: 'text-gray-500', variant: 'secondary' };
+    }
 };
 
-const TicketStats = ({ tickets }: { tickets: SupportTicket[] }) => {
+const getTicketStatusTranslationKey = (status: TicketStatus) => {
+    return `admin.supportPage.status.${status.toLowerCase()}`;
+}
+
+
+function TicketStats({ tickets }: { tickets: SupportTicket[] }) {
+    const { t } = useTranslation();
     const stats = useMemo(() => {
         return tickets.reduce((acc, ticket) => {
             acc[ticket.status] = (acc[ticket.status] || 0) + 1;
@@ -65,12 +75,12 @@ const TicketStats = ({ tickets }: { tickets: SupportTicket[] }) => {
     return (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(status => {
-                const Icon = statusConfig[status].icon;
+                const config = getStatusConfig(status);
                 return (
                     <Card key={status}>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">{status}</CardTitle>
-                            <Icon className={`h-4 w-4 text-muted-foreground ${statusConfig[status].color}`} />
+                            <CardTitle className="text-sm font-medium">{t(getTicketStatusTranslationKey(status))}</CardTitle>
+                            <config.icon className={cn('h-4 w-4 text-muted-foreground', config.color)} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{stats[status] || 0}</div>
@@ -85,15 +95,14 @@ const TicketStats = ({ tickets }: { tickets: SupportTicket[] }) => {
 function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfile: UserProfile | null }) {
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t, language } = useTranslation();
     const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-    // State for this detail view
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [reply, setReply] = useState('');
     const [isReplying, setIsReplying] = useState(false);
     const [staffMembers, setStaffMembers] = useState<UserProfile[]>([]);
     
-    // Fetch ticket, its messages, and its author's profile
     const ticketRef = useMemo(() => firestore ? doc(firestore, 'support_tickets', ticketId) : null, [firestore, ticketId]);
     const { data: ticket, loading: ticketLoading } = useDoc<SupportTicket>(ticketRef);
     
@@ -104,7 +113,7 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
         if (!firestore) return;
         const staffQuery = query(collection(firestore, 'users'), where('role', 'in', ['staff', 'support', 'admin', 'ghost']));
         getDocs(staffQuery).then(snapshot => {
-            setStaffMembers(snapshot.docs.map(doc => doc.data() as UserProfile));
+            setStaffMembers(snapshot.docs.map(doc => ({...doc.data() as UserProfile, uid: doc.id})));
         });
     }, [firestore]);
 
@@ -131,7 +140,7 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
         if (!firestore || !ticketRef) return;
         try {
             await updateDoc(ticketRef, { status, updatedAt: serverTimestamp() });
-            toast({ title: "Status Updated", description: `Ticket moved to ${status}.` });
+            toast({ title: t('admin.supportPage.statusUpdated'), description: t('admin.supportPage.statusUpdatedDesc', { ticketId: ticketId, status: t(getTicketStatusTranslationKey(status)) }) });
         } catch (e) {
             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: ticketRef.path, operation: 'update', requestResourceData: { status } }));
         }
@@ -141,7 +150,7 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
         if (!firestore || !ticketRef) return;
         try {
             await updateDoc(ticketRef, { assignedTo: staffId, updatedAt: serverTimestamp() });
-            toast({ title: "Ticket Assigned" });
+            toast({ title: t('admin.supportPage.ticketAssigned') });
         } catch (e) {
              errorEmitter.emit('permission-error', new FirestorePermissionError({ path: ticketRef.path, operation: 'update', requestResourceData: { assignedTo: staffId } }));
         }
@@ -171,48 +180,48 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
     }
 
     if (!ticket) {
-        return <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground"><Inbox className="h-12 w-12 opacity-50" /><p className="mt-4">Select a ticket to view its details</p></div>;
+        return <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground"><Inbox className="h-12 w-12 opacity-50" /><p className="mt-4">{t('admin.supportPage.selectTicketPrompt')}</p></div>;
     }
 
     const assignedToStaff = staffMembers.find(s => s.uid === ticket.assignedTo);
+    const statusConfig = getStatusConfig(ticket.status);
 
     return (
         <Card className="flex flex-col h-full">
             <CardHeader className="border-b">
                 <div className="flex justify-between items-start">
-                    <div>
-                        <div className="flex items-center gap-2">
-                             <Badge variant={ticket.status === 'Resolved' || ticket.status === 'Closed' ? 'default' : (ticket.status === 'Open' ? 'destructive' : 'secondary')}>{ticket.status}</Badge>
-                             <p className="text-sm text-muted-foreground">#{ticket.id.slice(0, 6)}</p>
-                        </div>
-                        <CardTitle className="mt-2">{ticket.subject}</CardTitle>
+                    <div className="flex items-center gap-2">
+                         <Badge variant={statusConfig.variant} className="gap-1.5 pl-2">
+                            <statusConfig.icon className={cn('h-3 w-3', statusConfig.color)} />
+                            {t(getTicketStatusTranslationKey(ticket.status))}
+                         </Badge>
+                         <p className="text-sm text-muted-foreground">#{ticket.id.slice(0, 6)}</p>
                     </div>
-                     <div className="flex gap-2">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline">Assign <ChevronsUpDown className="ml-2 h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                <DropdownMenuLabel>Assign To Staff</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                {staffMembers.map(staff => (
-                                    <DropdownMenuItem key={staff.uid} onSelect={() => handleAssign(staff.uid)}>{staff.displayName}</DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline">Set Status <ChevronsUpDown className="ml-2 h-4 w-4" /></Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                                {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(s => (
-                                    <DropdownMenuItem key={s} onSelect={() => handleStatusChange(s)}>{s}</DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </div>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuLabel>{t('admin.supportPage.assignTo')}</DropdownMenuLabel>
+                            {staffMembers.map(staff => (
+                                <DropdownMenuItem key={staff.uid} onSelect={() => handleAssign(staff.uid)} disabled={staff.uid === ticket.assignedTo}>
+                                    {staff.displayName}
+                                    {staff.uid === ticket.assignedTo && <CheckCircle className="ml-auto h-4 w-4 text-primary" />}
+                                </DropdownMenuItem>
+                            ))}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>{t('admin.supportPage.setStatus')}</DropdownMenuLabel>
+                            {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(s => (
+                                <DropdownMenuItem key={s} onSelect={() => handleStatusChange(s)} disabled={s === ticket.status}>
+                                    {t(getTicketStatusTranslationKey(s))}
+                                    {s === ticket.status && <CheckCircle className="ml-auto h-4 w-4 text-primary" />}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
+                <CardTitle className="mt-2 text-xl">{ticket.subject}</CardTitle>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-y-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
                             <AvatarImage src={userProfile?.photoURL} />
@@ -220,37 +229,53 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
                         </Avatar>
                         <span>{userProfile?.displayName || ticket.userName}</span>
                     </div>
-                    <span>{formatDistanceToNow(ticket.createdAt.toDate(), { addSuffix: true })}</span>
+                    <span>{t('admin.supportPage.updated')} {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true, locale: locales[language] })}</span>
                 </div>
                 {assignedToStaff && (
-                    <div className="mt-2 text-xs text-muted-foreground">Assigned to: <span className="font-semibold text-foreground">{assignedToStaff.displayName}</span></div>
+                    <div className="mt-2 text-xs text-muted-foreground">{t('admin.supportPage.assignTo')}: <span className="font-semibold text-foreground">{assignedToStaff.displayName}</span></div>
                 )}
             </CardHeader>
             <CardContent className="flex-grow p-0">
                 <ScrollArea className="h-[400px]" viewportRef={scrollAreaRef}>
                     <div className="p-6 space-y-6">
-                        {/* Initial request */}
                         <div className="flex items-start gap-3">
                             <Avatar><AvatarImage src={userProfile?.photoURL} /><AvatarFallback><UserCircle /></AvatarFallback></Avatar>
-                            <div className="p-3 bg-secondary rounded-lg">
-                                <p className="font-semibold">{userProfile?.displayName}</p>
-                                <p className="text-sm whitespace-pre-wrap">{ticket.description}</p>
-                                <p className="text-xs text-muted-foreground mt-1">{format(ticket.createdAt.toDate(), 'Pp')}</p>
+                            <div className="p-3 bg-secondary rounded-lg w-full">
+                                <div className="flex justify-between items-center">
+                                    <p className="font-semibold">{userProfile?.displayName}</p>
+                                    <p className="text-xs text-muted-foreground">{format((ticket.createdAt).toDate(), 'Pp', { locale: locales[language] })}</p>
+                                </div>
+                                <p className="text-sm mt-1 whitespace-pre-wrap">{ticket.description}</p>
                             </div>
                         </div>
 
-                        {/* Replies */}
                         {messages.map(msg => {
-                            const isUser = msg.senderId === ticket.userId;
-                            const senderProfile = isUser ? userProfile : adminProfile;
+                            const senderProfile = staffMembers.find(s => s.uid === msg.senderId) || userProfile;
+                            const isStaff = staffMembers.some(s => s.uid === msg.senderId);
                             return (
-                                <div key={msg.id} className={`flex items-start gap-3 ${!isUser ? 'justify-end' : ''}`}>
-                                    {!isUser && <div className="p-3 bg-primary text-primary-foreground rounded-lg"><p className="text-sm whitespace-pre-wrap">{msg.text}</p></div>}
+                                <div key={msg.id} className={cn("flex items-start gap-3", isStaff && 'justify-end')}>
+                                    {isStaff && (
+                                        <div className="p-3 bg-primary text-primary-foreground rounded-lg w-full max-w-md">
+                                             <div className="flex justify-between items-center">
+                                                <p className="font-semibold">{senderProfile?.displayName}</p>
+                                                <p className="text-xs opacity-70">{msg.createdAt && format(msg.createdAt.toDate(), 'Pp', { locale: locales[language] })}</p>
+                                            </div>
+                                            <p className="text-sm mt-1 whitespace-pre-wrap">{msg.text}</p>
+                                        </div>
+                                    )}
                                     <Avatar>
                                         <AvatarImage src={senderProfile?.photoURL} />
                                         <AvatarFallback><UserCircle /></AvatarFallback>
                                     </Avatar>
-                                    {isUser && <div className="p-3 bg-secondary rounded-lg"><p className="text-sm whitespace-pre-wrap">{msg.text}</p></div>}
+                                    {!isStaff && (
+                                        <div className="p-3 bg-secondary rounded-lg w-full max-w-md">
+                                            <div className="flex justify-between items-center">
+                                                <p className="font-semibold">{senderProfile?.displayName}</p>
+                                                <p className="text-xs text-muted-foreground">{msg.createdAt && format(msg.createdAt.toDate(), 'Pp', { locale: locales[language] })}</p>
+                                            </div>
+                                            <p className="text-sm mt-1 whitespace-pre-wrap">{msg.text}</p>
+                                        </div>
+                                    )}
                                 </div>
                             )
                         })}
@@ -260,7 +285,7 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
             <CardFooter className="border-t p-4">
                 <div className="relative w-full">
                      <Textarea 
-                        placeholder="Type your reply..." 
+                        placeholder={t('admin.supportPage.replyPlaceholder')}
                         className="pr-24"
                         value={reply}
                         onChange={(e) => setReply(e.target.value)}
@@ -271,8 +296,8 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
                         disabled={isReplying || !reply.trim()}
                         onClick={handleSendReply}
                      >
-                        {isReplying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Send Reply
+                        {isReplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        {t('admin.supportPage.sendReply')}
                      </Button>
                 </div>
             </CardFooter>
@@ -281,9 +306,9 @@ function TicketDetail({ ticketId, adminProfile }: { ticketId: string; adminProfi
 }
 
 export default function AdminSupportPage() {
-    const { user: adminUser, profile: adminProfile } = useUser();
+    const { profile: adminProfile } = useUser();
     const firestore = useFirestore();
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
 
     const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [loading, setLoading] = useState(true);
@@ -295,8 +320,8 @@ export default function AdminSupportPage() {
         
         const baseQuery = collection(firestore, 'support_tickets');
         const q = activeFilter === 'All'
-            ? query(baseQuery, orderBy('createdAt', 'desc'))
-            : query(baseQuery, where('status', '==', activeFilter), orderBy('createdAt', 'desc'));
+            ? query(baseQuery, orderBy('updatedAt', 'desc'))
+            : query(baseQuery, where('status', '==', activeFilter), orderBy('updatedAt', 'desc'));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedTickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as SupportTicket);
@@ -312,38 +337,35 @@ export default function AdminSupportPage() {
     }, [firestore, activeFilter]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-3">
+        <div className="space-y-6 h-full flex flex-col">
+            <div className="flex items-center gap-3 shrink-0">
                 <LifeBuoy className="h-8 w-8 text-primary" />
                 <h1 className="text-3xl font-bold tracking-tight">{t('admin.supportPage.title')}</h1>
             </div>
 
             <TicketStats tickets={tickets} />
             
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-22rem)]">
-                {/* Left Column: Ticket List */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow min-h-0">
                 <Card className="lg:col-span-1 flex flex-col">
                     <CardHeader>
-                       <Tabs defaultValue="All" onValueChange={(v) => setActiveFilter(v as any)}>
+                       <Tabs value={activeFilter} onValueChange={(v) => setActiveFilter(v as any)}>
                             <TabsList className="grid w-full grid-cols-5">
-                                <TabsTrigger value="All">All</TabsTrigger>
-                                <TabsTrigger value="Open">Open</TabsTrigger>
-                                <TabsTrigger value="Pending">Pending</TabsTrigger>
-                                <TabsTrigger value="Resolved">Resolved</TabsTrigger>
-                                <TabsTrigger value="Closed">Closed</TabsTrigger>
+                                <TabsTrigger value="All">{t('admin.supportPage.all')}</TabsTrigger>
+                                {(['Open', 'Pending', 'Resolved', 'Closed'] as TicketStatus[]).map(status => (
+                                    <TabsTrigger key={status} value={status}>{t(getTicketStatusTranslationKey(status))}</TabsTrigger>
+                                ))}
                             </TabsList>
                         </Tabs>
                     </CardHeader>
                     <CardContent className="flex-grow p-0">
-                        <ScrollArea className="h-full">
+                        <ScrollArea className="h-[calc(100vh-25rem)]">
                             {loading ? (
                                 <div className="p-4 space-y-2">
                                     {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
                                 </div>
                             ) : tickets.length > 0 ? (
                                 tickets.map(ticket => {
-                                    const Icon = statusConfig[ticket.status].icon;
-                                    const color = statusConfig[ticket.status].color;
+                                    const { icon, color } = getStatusConfig(ticket.status);
                                     return (
                                         <div key={ticket.id} 
                                             className={cn("p-4 border-b cursor-pointer hover:bg-accent", selectedTicketId === ticket.id && "bg-accent")}
@@ -351,11 +373,11 @@ export default function AdminSupportPage() {
                                         >
                                             <div className="flex justify-between items-start">
                                                 <p className="font-semibold truncate pr-4">{ticket.subject}</p>
-                                                <Icon className={cn("h-4 w-4 shrink-0", color)} />
+                                                <icon.icon className={cn("h-4 w-4 shrink-0", color)} />
                                             </div>
                                             <p className="text-sm text-muted-foreground">{ticket.userName}</p>
                                             <p className="text-xs text-muted-foreground mt-1">
-                                                Updated {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true })}
+                                                {t('admin.supportPage.updated')} {formatDistanceToNow((ticket.updatedAt || ticket.createdAt).toDate(), { addSuffix: true, locale: locales[language] })}
                                             </p>
                                         </div>
                                     )
@@ -363,14 +385,13 @@ export default function AdminSupportPage() {
                             ) : (
                                 <div className="flex h-full flex-col items-center justify-center text-center text-muted-foreground">
                                     <Inbox className="h-10 w-10 opacity-50" />
-                                    <p className="mt-4">No tickets in this category</p>
+                                    <p className="mt-4">{t('admin.supportPage.noTicketsInCategory')}</p>
                                 </div>
                             )}
                         </ScrollArea>
                     </CardContent>
                 </Card>
 
-                {/* Right Column: Ticket Detail */}
                 <div className="lg:col-span-2">
                     {selectedTicketId ? (
                         <TicketDetail ticketId={selectedTicketId} adminProfile={adminProfile} />
@@ -378,7 +399,7 @@ export default function AdminSupportPage() {
                         <div className="flex h-full rounded-lg border-2 border-dashed items-center justify-center">
                             <div className="text-center text-muted-foreground">
                                 <Inbox className="h-12 w-12 mx-auto opacity-50" />
-                                <p className="mt-4">Select a ticket to view its details</p>
+                                <p className="mt-4">{t('admin.supportPage.selectTicketPrompt')}</p>
                             </div>
                         </div>
                     )}
@@ -387,3 +408,5 @@ export default function AdminSupportPage() {
         </div>
     );
 }
+
+    

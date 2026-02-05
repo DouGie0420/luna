@@ -654,7 +654,12 @@
       "ticketId": "Ticket ID",
       "subject": "Subject",
       "user": "User",
-      "status": "Status",
+      "status": {
+        "open": "Open",
+        "pending": "Pending",
+        "resolved": "Resolved",
+        "closed": "Closed"
+      },
       "lastUpdate": "Last Update",
       "actions": "Actions",
       "statusUpdated": "Status Updated",
@@ -665,7 +670,16 @@
       "setPending": "Set as Pending",
       "setResolved": "Set as Resolved",
       "setClosed": "Set as Closed",
-      "noTickets": "There are no pending support tickets."
+      "noTickets": "There are no support tickets.",
+      "noTicketsInCategory": "No tickets in this category.",
+      "all": "All",
+      "selectTicketPrompt": "Select a ticket to view details",
+      "assignTo": "Assign To",
+      "assignToStaff": "Assign To Staff",
+      "ticketAssigned": "Ticket Assigned",
+      "replyPlaceholder": "Type your reply...",
+      "sendReply": "Send Reply",
+      "updated": "Updated"
     },
     "usersPage": {
       "title": "Manage Users",
@@ -698,3 +712,5 @@
     }
   }
 }
+
+    

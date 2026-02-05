@@ -282,7 +282,7 @@
     "noSalesDescription": "เมื่อมีผู้ซื้อสินค้าของคุณ รายการจะปรากฏที่นี่",
     "viewOrder": "ดูคำสั่งซื้อ",
     "markShipped": "ทำเครื่องหมายว่าจัดส่งแล้ว",
-    "shippingInfoRequired": "ต้องระบุผู้ให้บริการจัดส่งและหมายเลขติดตาม",
+    "shippingInfoRequired": "ต้องระบุผู้ให้บริการจัด送และหมายเลขติดตาม",
     "updateShipmentTitle": "อัปเดตข้อมูลการจัดส่ง",
     "updateShipmentDescription": "ป้อนรายละเอียดด้านล่างเพื่อแจ้งให้ผู้ซื้อทราบ",
     "shippingProviderLabel": "ผู้ให้บริการจัดส่ง",
@@ -298,33 +298,6 @@
     "withdraw": "ถอนเงิน",
     "transactionHistory": "ประวัติการทำธุรกรรม",
     "noTransactions": "ธุรกรรมล่าสุดจะแสดงที่นี่"
-  },
-  "accountKYC": {
-    "title": "การยืนยัน KYC",
-    "currentStatus": "สถานะปัจจุบัน",
-    "status": {
-      "verified": "ยืนยันแล้ว",
-      "pending": "รอดำเนินการ",
-      "notVerified": "ยังไม่ได้ยืนยัน"
-    },
-    "status.pendingDescription": "เอกสารของคุณอยู่ระหว่างการตรวจสอบ ซึ่งโดยปกติจะใช้เวลา 1-2 วันทำการ",
-    "status.notVerifiedDescription": "โปรดยืนยันตัวตนเพื่อเข้าถึงฟีเจอร์ทั้งหมด",
-    "submitTitle": "ส่งเอกสารของคุณ",
-    "submitDescription": "โปรดอัปโหลดบัตรประจำตัวที่ทางราชการออกให้และรูปถ่ายตนเองเพื่อการยืนยัน",
-    "idUploadLabel": "บัตรประจำตัวที่ทางราชการออกให้",
-    "idUploadDescription": "เช่น หนังสือเดินทาง, ใบขับขี่",
-    "selfieUploadLabel": "รูปถ่ายตนเองพร้อมบัตรประจำตัว",
-    "selfieUploadDescription": "ถือบัตรประจำตัวของคุณไว้ข้างใบหน้า",
-    "submitButton": "ส่งเพื่อตรวจสอบ"
-  },
-  "accountAddresses": {
-    "title": "ที่อยู่ของฉัน",
-    "savedAddresses": "ที่อยู่ที่บันทึกไว้",
-    "description": "จัดการที่อยู่สำหรับจัดส่งของคุณเพื่อการชำระเงินที่รวดเร็วยิ่งขึ้น",
-    "addNewAddress": "เพิ่มที่อยู่ใหม่",
-    "noAddresses": "ไม่มีที่อยู่ที่บันทึกไว้",
-    "noAddressesDescription": "เพิ่มที่อยู่เพื่อเริ่มต้น",
-    "addFirstAddress": "เพิ่มที่อยู่แรกของคุณ"
   },
   "productCardActions": {
     "edit": "แก้ไขรายการ",
@@ -654,7 +627,12 @@
       "ticketId": "รหัสตั๋ว",
       "subject": "หัวเรื่อง",
       "user": "ผู้ใช้",
-      "status": "สถานะ",
+      "status": {
+        "open": "เปิด",
+        "pending": "รอดำเนินการ",
+        "resolved": "แก้ไขแล้ว",
+        "closed": "ปิดแล้ว"
+      },
       "lastUpdate": "อัปเดตล่าสุด",
       "actions": "การดำเนินการ",
       "statusUpdated": "อัปเดตสถานะแล้ว",
@@ -665,7 +643,16 @@
       "setPending": "ตั้งเป็นรอดำเนินการ",
       "setResolved": "ตั้งเป็นแก้ไขแล้ว",
       "setClosed": "ตั้งเป็นปิดแล้ว",
-      "noTickets": "ไม่มีตั๋วสนับสนุนที่รอดำเนินการ"
+      "noTickets": "ไม่มีตั๋วสนับสนุนที่รอดำเนินการ",
+      "noTicketsInCategory": "ไม่มีตั๋วในหมวดหมู่นี้",
+      "all": "ทั้งหมด",
+      "selectTicketPrompt": "เลือกตั๋วเพื่อดูรายละเอียด",
+      "assignTo": "มอบหมายให้",
+      "assignToStaff": "มอบหมายให้เจ้าหน้าที่",
+      "ticketAssigned": "มอบหมายตั๋วแล้ว",
+      "replyPlaceholder": "พิมพ์คำตอบของคุณ...",
+      "sendReply": "ส่งคำตอบ",
+      "updated": "อัปเดตเมื่อ"
     },
     "usersPage": {
       "title": "จัดการผู้ใช้",
@@ -698,3 +685,5 @@
     }
   }
 }
+
+    
