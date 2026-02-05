@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
+import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown, Languages, Info } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
@@ -18,12 +18,19 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/use-translation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
+import { translateText } from '@/ai/flows/translate-text';
 
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -38,6 +45,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const { user, profile } = useUser();
     const firestore = useFirestore();
     const { t } = useTranslation();
+    const { toast } = useToast();
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -50,30 +58,69 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingMessages, setLoadingMessages] = useState(true);
+    
+    // Translation state
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [originalTextForSend, setOriginalTextForSend] = useState<string | null>(null);
 
     const otherParticipantId = chat.participants.find(p => p !== user?.uid);
-    const { data: otherParticipantProfileData } = useDoc<UserProfile>(firestore && otherParticipantId ? doc(firestore, 'users', otherParticipantId) : null);
+    const { data: otherParticipantProfileData, loading: otherParticipantLoading } = useDoc<UserProfile>(firestore && otherParticipantId ? doc(firestore, 'users', otherParticipantId) : null);
 
     const otherParticipantFromChat = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
     const displayUser = otherParticipantProfileData || otherParticipantFromChat;
-    const profileUrl = displayUser ? `/@${(displayUser as any).loginId || displayUser.uid}` : '#';
+    const profileUrl = displayUser ? `/@${(displayUser as any).loginId || (displayUser as any).uid}` : '#';
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
+
+    // --- TRANSLATION LOGIC START ---
+    const needsTranslation = useMemo(() => 
+        profile?.preferredLanguage && 
+        otherParticipantProfileData?.preferredLanguage && 
+        profile.preferredLanguage !== otherParticipantProfileData.preferredLanguage,
+    [profile, otherParticipantProfileData]);
+
+    const targetLanguage = otherParticipantProfileData?.preferredLanguage;
+    
+    const targetLanguageName = useMemo(() => {
+        if (!targetLanguage) return '';
+        switch (targetLanguage) {
+            case 'en': return 'English';
+            case 'th': return 'Thai';
+            case 'zh': return 'Chinese';
+            default: return '';
+        }
+    }, [targetLanguage]);
+    
+    const handleTranslate = async () => {
+        if (!newMessage.trim() || !targetLanguageName) return;
+        setIsTranslating(true);
+        try {
+            const result = await translateText({ text: newMessage, targetLanguage: targetLanguageName });
+            if (result.translatedText) {
+                setOriginalTextForSend(newMessage);
+                setNewMessage(result.translatedText);
+                toast({ title: `已翻译为 ${targetLanguageName}` });
+            }
+        } catch (e) {
+            console.error(e);
+            toast({ variant: 'destructive', title: '翻译失败' });
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+    // --- TRANSLATION LOGIC END ---
     
     const highlightText = (text: string): React.ReactNode => {
       if (!debouncedMessageSearchTerm.trim()) return text;
       try {
         const regex = new RegExp(`(${debouncedMessageSearchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        // Quick check if there are any matches at all
         if (!regex.test(text)) {
             return text;
         }
-        // Resetting index is important for 'g' flag if test() was used
         regex.lastIndex = 0;
 
         return text.split(regex).map((part, index) => {
-            // Because of the capturing group in split(), odd-indexed parts are the matches
             if (index % 2 === 1) {
                 return <mark key={index} className="bg-yellow-400 text-black rounded-sm px-0.5">{part}</mark>;
             }
@@ -129,10 +176,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
             const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
             setMessages(msgs);
-            setLoading(false);
+            setLoadingMessages(false);
         }, (error) => {
             console.error("Failed to listen to messages:", error);
-            setLoading(false);
+            setLoadingMessages(false);
         });
         return () => unsubscribe();
     }, [messagesQuery]);
@@ -152,10 +199,12 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         const messagesRef = collection(firestore, 'direct_chats', chat.id, 'messages');
         const newMessageDocRef = doc(messagesRef);
         
-        const messagePayload = {
+        const messagePayload: Omit<ChatMessage, 'id'> = {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
+            originalText: originalTextForSend ?? undefined,
+            isTranslated: !!originalTextForSend,
         };
 
         batch.set(newMessageDocRef, messagePayload);
@@ -189,13 +238,14 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
         try {
             await batch.commit();
-            setNewMessage('');
         } catch (e: any) {
              errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: `A message in chat ${chat.id}`,
                 operation: 'create',
             }));
         } finally {
+            setNewMessage('');
+            setOriginalTextForSend(null);
             setIsSending(false);
         }
     };
@@ -307,15 +357,16 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </div>
-                    ) : debouncedMessageSearchTerm && !loading ? (
+                    ) : debouncedMessageSearchTerm && !loadingMessages ? (
                          <span className="text-sm text-muted-foreground whitespace-nowrap">No results</span>
                     ) : null}
                 </div>
             )}
             <CardContent className="flex-grow p-6 flex flex-col">
                 <ScrollArea className="flex-grow" viewportRef={scrollAreaRef}>
+                  <TooltipProvider delayDuration={100}>
                     <div className="space-y-4">
-                        {loading ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
+                        {loadingMessages ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
                             <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
                                 {msg.senderId !== user?.uid && otherParticipantFromChat && (
                                     <Avatar className="h-8 w-8">
@@ -324,14 +375,27 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                     </Avatar>
                                 )}
                                 <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
-                                    <div className={cn(
-                                        `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all`,
-                                        msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                        matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
-                                        matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
-                                    )}>
-                                        <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
-                                    </div>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <div className={cn(
+                                            `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
+                                            msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                            matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                            matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
+                                        )}>
+                                            <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                            {msg.isTranslated && (
+                                              <Info className="absolute -bottom-1 -right-1 h-3 w-3 text-white/50" />
+                                            )}
+                                        </div>
+                                    </TooltipTrigger>
+                                    {msg.isTranslated && (
+                                      <TooltipContent>
+                                        <p className="text-xs text-muted-foreground">原文:</p>
+                                        <p>{msg.originalText}</p>
+                                      </TooltipContent>
+                                    )}
+                                  </Tooltip>
                                     {msg.createdAt?.toDate && (
                                         <span className="text-xs text-muted-foreground px-1">
                                             {format(msg.createdAt.toDate(), 'HH:mm')}
@@ -341,26 +405,45 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                             </div>
                         ))}
                     </div>
+                  </TooltipProvider>
                 </ScrollArea>
             </CardContent>
             <div className="p-4 border-t">
                 <div className="relative">
                     <Input 
                         placeholder={canSend ? "输入消息..." : "等待对方回复..."}
-                        className="pr-12"
+                        className="pr-24"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && !isSending && canSend && handleSendMessage()}
-                        disabled={isSending || !canSend}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !isSending && !isTranslating && canSend) {
+                                handleSendMessage();
+                            }
+                        }}
+                        disabled={isSending || isTranslating || !canSend}
                     />
-                    <Button 
-                        size="icon" 
-                        className="absolute top-1/2 right-1 -translate-y-1/2 h-8 w-10"
-                        onClick={handleSendMessage}
-                        disabled={isSending || !canSend || !newMessage.trim()}
-                    >
-                        {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                    <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
+                        {needsTranslation && newMessage && !originalTextForSend && (
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Button size="icon" variant="ghost" className="h-8 w-10 text-primary" onClick={handleTranslate} disabled={isTranslating}>
+                                            {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
+                                        </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent><p>翻译为 {targetLanguageName}</p></TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        )}
+                        <Button 
+                            size="icon" 
+                            className="h-8 w-10"
+                            onClick={handleSendMessage}
+                            disabled={isSending || isTranslating || !canSend || !newMessage.trim()}
+                        >
+                            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </>
