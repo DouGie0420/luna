@@ -35,7 +35,7 @@ import Link from "next/link";
 import { getNftsForOwner, SimplifiedNft } from "@/lib/alchemy";
 import { NftSelectorDialog } from "@/components/nft-selector-dialog";
 import { sendEmailVerification } from "firebase/auth";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
 import { cn } from "@/lib/utils";
 import { type BadgeType, type Product } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -51,6 +51,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,6 +114,8 @@ export default function AccountProfilePage() {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [isUpgrading, setIsUpgrading] = useState(false);
     const [isProDialogOpen, setIsProDialogOpen] = useState(false);
+    
+    const [hasPendingApplication, setHasPendingApplication] = useState(false);
 
     const [totalPurchased, setTotalPurchased] = useState(0);
     const [totalSold, setTotalSold] = useState(0);
@@ -141,6 +145,20 @@ export default function AccountProfilePage() {
             return () => clearTimeout(timer);
         }
     }, [cooldown]);
+    
+    useEffect(() => {
+        if (!firestore || !user) return;
+        const q = query(
+            collection(firestore, 'proApplications'),
+            where('userId', '==', user.uid),
+            where('status', '==', 'pending')
+        );
+        getDocs(q).then(snapshot => {
+            if (!snapshot.empty) {
+                setHasPendingApplication(true);
+            }
+        });
+    }, [firestore, user]);
 
     useEffect(() => {
         if (!firestore || !user) return;
@@ -408,16 +426,31 @@ export default function AccountProfilePage() {
     };
     
     const handleUpgrade = async () => {
-        if (!firestore || !user || !selectedPlan) return;
+        if (!firestore || !user || !profile || !selectedPlan) return;
         setIsUpgrading(true);
         try {
-            await updateUserProfile(firestore, user.uid, { isPro: true, displayedBadge: 'pro' });
-            toast({ title: "升级成功!", description: "欢迎成为PRO商户！您的专属徽章已点亮。" });
-            setIsProDialogOpen(false); // Close dialog on success
-            setSelectedPlan(null); // Reset selection
-        } catch(e) {
-            toast({ variant: 'destructive', title: '升级失败', description: '发生未知错误，请稍后再试。' });
+            // Create a new pro application document
+            const applicationData = {
+                userId: user.uid,
+                userName: profile.displayName || user.displayName || 'Anonymous User',
+                status: 'pending' as const,
+                plan: selectedPlan,
+                createdAt: serverTimestamp(),
+            };
+            await addDoc(collection(firestore, 'proApplications'), applicationData);
+            
+            toast({ title: "申请已提交", description: "您的PRO商户申请已提交审核，请耐心等待。" });
+            setIsProDialogOpen(false);
+            setSelectedPlan(null);
+            setHasPendingApplication(true);
+        } catch (e) {
             console.error(e);
+            toast({ variant: 'destructive', title: '申请失败', description: '发生未知错误，请稍后再试。' });
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: 'proApplications',
+                operation: 'create',
+                requestResourceData: { userId: user.uid, status: 'pending' },
+            }));
         } finally {
             setIsUpgrading(false);
         }
@@ -682,6 +715,14 @@ export default function AccountProfilePage() {
                                 <div>
                                     <h3 className="font-semibold text-green-300">{t('accountPage.proCertification.alreadyPro')}</h3>
                                     <p className="text-sm text-green-400/80">您已解锁所有PRO商户特权。</p>
+                                </div>
+                            </div>
+                        ) : hasPendingApplication ? (
+                            <div className="flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50">
+                                <Loader2 className="h-8 w-8 text-yellow-400 animate-spin"/>
+                                <div>
+                                    <h3 className="font-semibold text-yellow-300">您的 PRO 申请正在审核中</h3>
+                                    <p className="text-sm text-yellow-400/80">我们会在审核完成后通知您。</p>
                                 </div>
                             </div>
                         ) : (
