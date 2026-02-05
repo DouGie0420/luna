@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image'; // No longer using next/image
 import {
   Carousel,
   CarouselContent,
@@ -99,7 +99,7 @@ export function BbsPostImageGallery({ post, onLikeToggle, onFavoriteToggle }: Bb
                     {images.map((img, index) => (
                         <CarouselItem key={index}>
                         <div className="w-full h-full flex items-center justify-center">
-                            <Image src={img} alt={`${postTitle} image ${index + 1}`} width={1920} height={1080} className="object-contain max-w-full max-h-full" />
+                            <img src={img} alt={`${postTitle} image ${index + 1}`} className="object-contain max-w-full max-h-full" />
                         </div>
                         </CarouselItem>
                     ))}
@@ -116,12 +116,12 @@ export function BbsPostImageGallery({ post, onLikeToggle, onFavoriteToggle }: Bb
             {images.map((img, index) => (
               <CarouselItem key={index} onClick={openLightbox}>
                 <div className="aspect-video relative cursor-zoom-in overflow-hidden rounded-xl bg-white/10 p-2 backdrop-blur-lg ring-1 ring-inset ring-white/20 group-hover:ring-white/30 transition-all">
-                    <Image
+                    <img
                         src={img}
                         alt={`${postTitle} image ${index + 1}`}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg w-full h-full"
                         data-ai-hint={imageHints[index] || ''}
+                        loading="lazy"
                     />
                 </div>
               </CarouselItem>
@@ -162,11 +162,11 @@ export function BbsPostImageGallery({ post, onLikeToggle, onFavoriteToggle }: Bb
                     selectedIndex === index ? 'ring-primary opacity-100' : 'ring-white/20 opacity-60 hover:opacity-100'
                   )}
                 >
-                  <Image 
+                  <img
                     src={img} 
                     alt={`Thumbnail ${index + 1}`} 
-                    fill 
-                    className="object-cover rounded-md" 
+                    className="object-cover rounded-md w-full h-full"
+                    loading="lazy"
                   />
                 </div>
               </CarouselItem>
