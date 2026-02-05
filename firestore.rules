@@ -141,6 +141,12 @@ service cloud.firestore {
           allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       }
     }
+    
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if hasRole(['admin', 'ghost', 'staff']);
+    }
+
     match /ads/{adId} {
       allow read: if true;
       allow write: if hasRole(['admin', 'ghost', 'staff']);

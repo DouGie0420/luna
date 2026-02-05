@@ -1,6 +1,18 @@
 
 {
   "entities": {
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Represents a site-wide announcement banner.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The text displayed in the scrolling bar." },
+        "content": { "type": "string", "description": "The full HTML content displayed in the popup dialog." },
+        "isActive": { "type": "boolean", "description": "Whether the announcement is currently active." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "isActive", "createdAt"]
+    },
     "DirectChat": {
       "title": "Direct Chat",
       "description": "Represents a private conversation channel between two or more users.",
@@ -812,6 +824,10 @@
     ]
   },
   "firestore": {
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Stores the site-wide announcement. Only the document with ID 'live' is actively used."
+    },
     "/direct_chats/{chatId}": {
         "schema": { "$ref": "#/entities/DirectChat" },
         "description": "Stores metadata for a private conversation between users."
@@ -898,5 +914,3 @@
     }
   }
 }
-
-    

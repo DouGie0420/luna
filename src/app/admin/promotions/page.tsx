@@ -1,12 +1,13 @@
+
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Megaphone, Award, Newspaper, SlidersHorizontal, Image as ImageIcon, Video as VideoIcon } from "lucide-react";
+import { Megaphone, Award, Newspaper, SlidersHorizontal, Image as ImageIcon, Video as VideoIcon, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,13 +32,46 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useFirestore } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+
 
 export default function AdminPromotionsPage() {
-    const [announcementTitle, setAnnouncementTitle] = useState('【活动】赛博周一, 全场商品限时折扣！');
+    const [announcementTitle, setAnnouncementTitle] = useState('');
     const [announcementContent, setAnnouncementContent] = useState('');
     const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
     const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
     const [mediaUrl, setMediaUrl] = useState('');
+
+    const [isSubmittingAnnouncement, setIsSubmittingAnnouncement] = useState(false);
+    const [isLoadingAnnouncement, setIsLoadingAnnouncement] = useState(true);
+
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (!firestore) return;
+        setIsLoadingAnnouncement(true);
+        const announcementRef = doc(firestore, 'announcements', 'live');
+        getDoc(announcementRef).then(docSnap => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setAnnouncementTitle(data.title);
+                setAnnouncementContent(data.content);
+            }
+        }).catch(error => {
+            console.error("Failed to fetch announcement:", error);
+            toast({
+                variant: 'destructive',
+                title: '加载通知失败',
+                description: '请检查您的网络连接或权限。'
+            });
+        }).finally(() => {
+            setIsLoadingAnnouncement(false);
+        });
+    }, [firestore, toast]);
+
 
     const [carouselCount, setCarouselCount] = useState('10');
 
@@ -57,15 +91,60 @@ export default function AdminPromotionsPage() {
         });
     };
 
+    const handlePublishAnnouncement = async () => {
+        if (!firestore) return;
+        if (!announcementTitle.trim() || !announcementContent.trim()) {
+            toast({
+                variant: 'destructive',
+                title: '内容不能为空',
+                description: '请填写标题和内容后发布。'
+            });
+            return;
+        }
+
+        setIsSubmittingAnnouncement(true);
+        try {
+            const announcementRef = doc(firestore, 'announcements', 'live');
+            await setDoc(announcementRef, {
+                title: announcementTitle,
+                content: announcementContent,
+                isActive: true,
+                createdAt: serverTimestamp(),
+            }, { merge: true });
+            toast({
+                title: '通知已发布',
+                description: '顶部滚动通知已更新。'
+            });
+        } catch (error) {
+            console.error("Failed to publish announcement:", error);
+            toast({
+                variant: 'destructive',
+                title: '发布失败',
+                description: '请检查您的网络连接或权限。'
+            });
+        } finally {
+            setIsSubmittingAnnouncement(false);
+        }
+    };
+
     const handleInsertMedia = (type: 'image' | 'video') => {
         if (!mediaUrl) return;
         
         let textToInsert = '';
         if (type === 'image') {
-            textToInsert = `\n![image](${mediaUrl})\n`;
+            textToInsert = `\n<img src="${mediaUrl}" alt="announcement image" style="margin-top: 1rem; margin-bottom: 1rem; border-radius: 0.5rem;" />\n`;
             setIsImageDialogOpen(false);
         } else if (type === 'video') {
-            textToInsert = `\n[video](${mediaUrl})\n`;
+            let videoEmbedUrl = mediaUrl;
+            const youtubeMatch = mediaUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (youtubeMatch && youtubeMatch[1]) {
+              videoEmbedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+              textToInsert = `\n<iframe width="100%" src="${videoEmbedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen style="margin-top: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; aspect-ratio: 16 / 9;"></iframe>\n`;
+            } else {
+                 toast({ variant: 'destructive', title: '无效的YouTube链接' });
+                 return;
+            }
+
             setIsVideoDialogOpen(false);
         }
         
@@ -95,6 +174,7 @@ export default function AdminPromotionsPage() {
                                 placeholder="输入当前的公告标题..." 
                                 value={announcementTitle}
                                 onChange={(e) => setAnnouncementTitle(e.target.value)}
+                                disabled={isLoadingAnnouncement || isSubmittingAnnouncement}
                             />
                         </div>
                         <div className="grid gap-2">
@@ -105,6 +185,7 @@ export default function AdminPromotionsPage() {
                                 value={announcementContent}
                                 onChange={(e) => setAnnouncementContent(e.target.value)}
                                 rows={5}
+                                disabled={isLoadingAnnouncement || isSubmittingAnnouncement}
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -128,7 +209,7 @@ export default function AdminPromotionsPage() {
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>插入视频链接 (YouTube/TikTok)</DialogTitle>
+                                        <DialogTitle>插入视频链接 (YouTube)</DialogTitle>
                                     </DialogHeader>
                                     <Input placeholder="https://www.youtube.com/watch?v=..." value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} />
                                     <DialogFooter>
@@ -138,7 +219,10 @@ export default function AdminPromotionsPage() {
                             </Dialog>
                         </div>
                         <div className="flex justify-end">
-                            <Button>发布通知</Button>
+                            <Button onClick={handlePublishAnnouncement} disabled={isLoadingAnnouncement || isSubmittingAnnouncement}>
+                                {isSubmittingAnnouncement && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                发布通知
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>
