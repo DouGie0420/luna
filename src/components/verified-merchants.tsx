@@ -13,20 +13,15 @@ import Autoplay from "embla-carousel-autoplay";
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from '@/hooks/use-translation';
-import { useFirestore, useCollection, useUser } from '@/firebase';
+import { useFirestore, useCollection } from '@/firebase';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
 
 export function VerifiedMerchants() {
     const { t } = useTranslation();
     const firestore = useFirestore();
-    const { user } = useUser();
-    const router = useRouter();
-    const { toast } = useToast();
 
     const proUsersQuery = useMemo(() => {
         if (!firestore) return null;
@@ -35,23 +30,12 @@ export function VerifiedMerchants() {
 
     const { data: proUsers, loading: isLoading } = useCollection<UserProfile>(proUsersQuery);
     
-    const handleGuestClick = (e: React.MouseEvent) => {
-        if (!user) {
-            e.preventDefault();
-            toast({
-                title: '需要认证',
-                description: '请先登录或注册以访问更多内容。',
-                variant: 'destructive'
-            });
-        }
-    }
-
     return (
         <section className="container mx-auto px-4 py-12 md:py-16">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="font-headline text-3xl font-semibold">{t('homePage.verifiedMerchants')}</h2>
                  <Button asChild variant="ghost">
-                    <Link href="/merchants" onClick={handleGuestClick}>
+                    <Link href="/merchants">
                         View All <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                 </Button>

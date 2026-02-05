@@ -54,23 +54,6 @@ const FeaturedProductPreview = ({ productId }: { productId: string }) => {
     );
 };
 
-const DefaultFeaturedPreview = () => {
-    return (
-        <div className="mt-4 pt-4 border-t border-border/50">
-            <div className="aspect-square relative w-full overflow-hidden rounded-md">
-                 <Image 
-                    src="https://picsum.photos/seed/LUNA-moon/400/400"
-                    alt="LUNA Official Selection"
-                    fill
-                    className="object-cover"
-                    data-ai-hint="moon planet"
-                />
-            </div>
-            <p className="text-xs font-semibold mt-2 truncate">LUNA Official Selection</p>
-        </div>
-    );
-};
-
 
 export function MerchantCard({ user, className }: MerchantCardProps) {
   const { t } = useTranslation();
@@ -111,9 +94,23 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
             </div>
             <h3 className="font-headline text-lg mt-2 truncate">{user.displayName}</h3>
             {user.featuredProductId ? (
-                <FeaturedProductPreview productId={user.featuredProductId} />
+              <FeaturedProductPreview productId={user.featuredProductId} />
             ) : (
-                <DefaultFeaturedPreview />
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <div className="aspect-square relative w-full overflow-hidden rounded-md">
+                  <Image
+                    src="https://picsum.photos/seed/luna-default/400/400"
+                    alt="Explore the LUNA ecosystem"
+                    fill
+                    className="object-cover"
+                    data-ai-hint="moon landscape"
+                  />
+                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <p className="text-white font-headline text-center text-xs">Explore LUNA</p>
+                    </div>
+                </div>
+                <p className="text-xs font-semibold mt-2 truncate text-muted-foreground italic">No featured item</p>
+              </div>
             )}
         </CardContent>
       </Card>
