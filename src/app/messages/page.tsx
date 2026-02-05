@@ -447,11 +447,14 @@ export default function MessagesPage() {
 
   const filteredChats = useMemo(() => {
     if (!searchTerm.trim()) return chats;
+    const searchTermLower = searchTerm.toLowerCase();
     return chats.filter(chat => {
         const otherParticipantId = chat.participants.find(p => p !== user?.uid);
         if (!otherParticipantId) return false;
         const otherProfile = chat.participantProfiles[otherParticipantId];
-        return otherProfile?.displayName.toLowerCase().includes(searchTerm.toLowerCase());
+        const nameMatch = otherProfile?.displayName.toLowerCase().includes(searchTermLower);
+        const messageMatch = chat.lastMessage?.toLowerCase().includes(searchTermLower);
+        return nameMatch || messageMatch;
     });
   }, [chats, searchTerm, user]);
   
@@ -495,6 +498,24 @@ export default function MessagesPage() {
     return chats.find(c => c.id === selectedChatId) || null;
   }, [chats, selectedChatId]);
   
+   const highlight = (text: string, term: string) => {
+      if (!term.trim() || !text) return text;
+      try {
+          const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+          if (!regex.test(text)) {
+            return text;
+          }
+          regex.lastIndex = 0;
+          return text.split(regex).map((part, index) => 
+              index % 2 === 1 ? <mark key={index} className="bg-primary/30 text-foreground rounded-sm px-0.5">{part}</mark> : part
+          );
+      } catch (e) {
+          console.error("Regex error in highlight:", e);
+          return text;
+      }
+  };
+
+
   return (
     <>
       <PageHeaderWithBackAndClose />
@@ -506,7 +527,7 @@ export default function MessagesPage() {
                      <div className="relative mt-2">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input 
-                            placeholder="搜索聊天或用户..."
+                            placeholder="搜索用户或最近消息..."
                             className="pl-9"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -556,8 +577,8 @@ export default function MessagesPage() {
                                         >
                                             <UserAvatar profile={otherParticipantProfile as UserProfile} className="h-12 w-12" />
                                             <div className="flex-grow overflow-hidden">
-                                                <p className="font-semibold truncate">{otherParticipantProfile?.displayName}</p>
-                                                <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
+                                                <p className="font-semibold truncate">{highlight(otherParticipantProfile?.displayName || '', searchTerm)}</p>
+                                                <p className="text-sm text-muted-foreground truncate">{highlight(chat.lastMessage, searchTerm)}</p>
                                                 <p className="text-xs text-muted-foreground/80 mt-1">{chat.lastMessageTimestamp ? formatDistanceToNow(chat.lastMessageTimestamp.toDate(), { addSuffix: true }) : ''}</p>
                                             </div>
                                         </div>
@@ -589,3 +610,5 @@ export default function MessagesPage() {
     </>
   )
 }
+
+    
