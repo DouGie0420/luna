@@ -4,7 +4,6 @@
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useRouter, useParams, notFound } from 'next/navigation';
 import React, { useEffect, useState, useMemo } from 'react';
-import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -251,7 +250,7 @@ export default function EditBbsPostPage() {
                             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-4">
                                 {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative aspect-square">
-                                        <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
+                                        <img src={src} alt={`preview ${index}`} className="rounded-md object-cover w-full h-full" loading="lazy" />
                                         <Button
                                             type="button"
                                             size="icon"
