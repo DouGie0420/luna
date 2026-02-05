@@ -332,12 +332,12 @@ export default function UserProfilePage() {
                                     </div>
                                     <Separator className="my-1.5" />
                                     <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
-                                        <Link href={`/@${user.loginId}/followers`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.followersCount || 0}</span> {t('userProfile.followers')}
+                                        <Link href={`/@${user.loginId}/followers`} className="group">
+                                            <span className="font-bold text-foreground group-hover:underline">{user.followersCount || 0}</span> {t('userProfile.followers')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <Link href={`/@${user.loginId}/following`} className="hover:underline">
-                                            <span className="font-bold text-foreground">{user.followingCount || 0}</span> {t('userProfile.following')}
+                                        <Link href={`/@${user.loginId}/following`} className="group">
+                                            <span className="font-bold text-foreground group-hover:underline">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
                                         <div className="flex items-center gap-1">
@@ -415,7 +415,7 @@ export default function UserProfilePage() {
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold">{user.onSaleCount ?? 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.onSaleCount ?? 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -424,7 +424,7 @@ export default function UserProfilePage() {
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.sold')}</p>
-                                        <p className="font-bold">{user.salesCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.salesCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -433,7 +433,7 @@ export default function UserProfilePage() {
                                     <MessageSquare className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.posts')}</p>
-                                        <p className="font-bold">{user.postsCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{user.postsCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -441,8 +441,8 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.followers')}</p>
-                                        <p className="font-bold">{user.followersCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="font-bold group-hover:underline">{user.followersCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -450,8 +450,8 @@ export default function UserProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.following')}</p>
-                                        <p className="font-bold">{user.followingCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="font-bold group-hover:underline">{user.followingCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>

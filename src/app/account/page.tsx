@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -860,21 +861,21 @@ export default function AccountProfilePage() {
                                     </p>
                                 </div>
                             </div>
-                             <Link href="/account/listings" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                             <Link href="/account/listings" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingBag className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                        <p className="font-bold">{profile?.onSaleCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{profile?.onSaleCount || 0}</p>
                                     </div>
                                 </div>
                              </Link>
-                            <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors">
+                            <Link href="/account/purchases" className="block bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors group">
                                 <div className="flex items-center gap-3 p-3">
                                     <ShoppingCart className="h-6 w-6 text-primary" />
                                     <div>
                                         <p className="text-sm text-muted-foreground">{t('accountPage.purchases')}</p>
-                                        <p className="font-bold">{profile?.purchasesCount || 0}</p>
+                                        <p className="font-bold group-hover:underline">{profile?.purchasesCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -882,8 +883,8 @@ export default function AccountProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <Users className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.followers')}</p>
-                                        <p className="font-bold">{profile?.followersCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                        <p className="font-bold group-hover:underline">{profile?.followersCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>
@@ -891,8 +892,8 @@ export default function AccountProfilePage() {
                                 <div className="flex items-center gap-3 p-3">
                                     <UserPlus className="h-6 w-6 text-primary" />
                                     <div>
-                                        <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.following')}</p>
-                                        <p className="font-bold">{profile?.followingCount || 0}</p>
+                                        <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                        <p className="font-bold group-hover:underline">{profile?.followingCount || 0}</p>
                                     </div>
                                 </div>
                             </Link>

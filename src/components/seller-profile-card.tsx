@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -119,17 +120,17 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         <Link href={`${profileUrl}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
                             <ShoppingBag className="h-6 w-6 text-primary" />
                             <div>
-                                <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.onSale')}</p>
-                                <p className="font-bold">
+                                <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                <p className="font-bold group-hover:underline">
                                     {onSaleCount}
                                 </p>
                             </div>
                         </Link>
-                        <Link href={`${profileUrl}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
+                         <Link href={`${profileUrl}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
                             <ShoppingCart className="h-6 w-6 text-primary" />
                             <div>
-                                <p className="text-sm text-muted-foreground group-hover:underline">{t('sellerProfile.sold')}</p>
-                                <p className="font-bold">
+                                <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
+                                <p className="font-bold group-hover:underline">
                                     {displayUser.salesCount ?? 0}
                                 </p>
                             </div>
@@ -137,15 +138,15 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         <Link href={`${profileUrl}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
                             <Users className="h-6 w-6 text-primary" />
                             <div>
-                                <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.followers')}</p>
-                                <p className="font-bold">{displayUser.followersCount || 0}</p>
+                                <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                <p className="font-bold group-hover:underline">{displayUser.followersCount || 0}</p>
                             </div>
                         </Link>
                         <Link href={`${profileUrl}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
                             <UserPlus className="h-6 w-6 text-primary" />
                             <div>
-                                <p className="text-sm text-muted-foreground group-hover:underline">{t('userProfile.following')}</p>
-                                <p className="font-bold">{displayUser.followingCount || 0}</p>
+                                <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                <p className="font-bold group-hover:underline">{displayUser.followingCount || 0}</p>
                             </div>
                         </Link>
                     </div>
