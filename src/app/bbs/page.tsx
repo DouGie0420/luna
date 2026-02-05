@@ -8,7 +8,7 @@ import { BbsPostCard } from '@/components/bbs-post-card';
 import { Button } from '@/components/ui/button';
 import type { BbsPost, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { Plus, Flame, Sparkles, Star, MapPin, Loader2 } from 'lucide-react';
+import { Plus, Flame, Sparkles, Star, MapPin, Loader2, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
 import { X } from 'lucide-react';
@@ -65,6 +65,7 @@ function BbsPageContent() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [hasMore, setHasMore] = useState(true);
+    const [fetchError, setFetchError] = useState<any>(null);
 
     const [activeFilter, setActiveFilter] = useState<'newest' | 'trending' | 'featured' | 'nearest'>('newest');
     const [searchTerm, setSearchTerm] = useState('');
@@ -75,65 +76,81 @@ function BbsPageContent() {
         firestore && authorId ? doc(firestore, 'users', authorId) : null
     );
     
-    const fetchPosts = useCallback(async (loadMore = false) => {
-        if (!firestore) return;
-        if (loadMore) setLoadingMore(true);
-        else setLoading(true);
+    const buildQuery = useCallback((startAfterDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
+        if (!firestore) return null;
 
-        let constraints: any[] = [where('status', '==', 'active')];
-
+        let q = query(collection(firestore, 'bbs'));
+        
+        // Filtering
         if (authorId) {
-            constraints.push(where('authorId', '==', authorId));
+            q = query(q, where('authorId', '==', authorId));
+        }
+        q = query(q, where('status', '==', 'active'));
+
+        if (activeFilter === 'featured' && !authorId) {
+            q = query(q, where('isFeatured', '==', true));
         }
 
-        // Add ordering. Note: Queries with `where` on a different field than `orderBy` require a composite index.
-        if (authorId || activeFilter === 'newest') {
-             constraints.push(orderBy('createdAt', 'desc'));
-        } else if (activeFilter === 'featured') {
-             constraints.push(where('isFeatured', '==', true));
-             constraints.push(orderBy('createdAt', 'desc'));
-        } else if (activeFilter === 'trending') {
-            // For trending/popular, we fetch by newest and sort on client
-            constraints.push(orderBy('createdAt', 'desc'));
-        } else {
-            // Default for nearest or other cases
-             constraints.push(orderBy('createdAt', 'desc'));
+        // Ordering
+        q = query(q, orderBy('createdAt', 'desc'));
+
+        // Pagination
+        if (startAfterDoc) {
+            q = query(q, startAfter(startAfterDoc));
         }
+        q = query(q, limit(PAGE_SIZE));
+        
+        return q;
+    }, [firestore, authorId, activeFilter]);
+    
+    // Effect for initial fetch and when filters change
+    useEffect(() => {
+        const fetchInitialPosts = async () => {
+            const q = buildQuery();
+            if (!q) return;
 
-        constraints.push(limit(PAGE_SIZE));
+            setLoading(true);
+            setFetchError(null);
+            
+            try {
+                const documentSnapshots = await getDocs(q);
+                const newPosts = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }) as BbsPost);
+                
+                setPosts(newPosts);
+                setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
+                setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
+            } catch (error: any) {
+                console.error("Error fetching initial posts:", error);
+                setFetchError(error);
+                toast({ variant: 'destructive', title: 'Failed to fetch posts.' });
+            } finally {
+                setLoading(false);
+            }
+        };
 
-        if (loadMore && lastVisible) {
-            constraints.push(startAfter(lastVisible));
-        }
+        fetchInitialPosts();
+    }, [buildQuery, toast]);
+    
+    const handleLoadMore = useCallback(async () => {
+        const q = buildQuery(lastVisible);
+        if (!q) return;
 
-        const q = query(collection(firestore, 'bbs'), ...constraints);
-
+        setLoadingMore(true);
         try {
             const documentSnapshots = await getDocs(q);
             const newPosts = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }) as BbsPost);
-
-            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
-            setPosts(prev => loadMore ? [...prev, ...newPosts] : newPosts);
+            
+            setPosts(prev => [...prev, ...newPosts]);
+            setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1] || null);
             setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
         } catch (error: any) {
-            console.error("Error fetching posts:", error);
-            toast({ 
-                variant: 'destructive', 
-                title: 'Failed to fetch posts.', 
-                description: 'An error occurred while fetching the posts. Please try again later.'
-            });
+            console.error("Error loading more posts:", error);
+            setFetchError(error);
+            toast({ variant: 'destructive', title: 'Failed to load more posts.' });
         } finally {
-            setLoading(false);
             setLoadingMore(false);
         }
-    }, [firestore, authorId, lastVisible, toast, activeFilter]);
-
-    useEffect(() => {
-        setPosts([]);
-        setLastVisible(null);
-        setHasMore(true);
-        fetchPosts(false);
-    }, [authorId, activeFilter, fetchPosts]);
+    }, [buildQuery, lastVisible, toast]);
 
 
     const handleNearestFilter = () => {
@@ -182,27 +199,25 @@ function BbsPageContent() {
             });
         }
 
-        // 2. Apply client-side sorting for filters that don't use indexes
-        if (!authorId) {
-            switch (activeFilter) {
-                case 'trending':
-                    processedPosts.sort((a, b) => ((b.likes || 0) + (b.replies * 2)) - ((a.likes || 0) + (a.replies * 2)));
-                    break;
-                case 'nearest':
-                    if (userLocation) {
-                        processedPosts.sort((a, b) => {
-                            const distA = a.location ? haversineDistance(userLocation, a.location) : Infinity;
-                            const distB = b.location ? haversineDistance(userLocation, b.location) : Infinity;
-                            return distA - distB;
-                        });
-                    }
-                    break;
-            }
+        // 2. Apply client-side sorting for filters that need it
+        switch (activeFilter) {
+            case 'trending':
+                processedPosts.sort((a, b) => ((b.likes || 0) + (b.replies * 2)) - ((a.likes || 0) + (a.replies * 2)));
+                break;
+            case 'nearest':
+                if (userLocation) {
+                    processedPosts.sort((a, b) => {
+                        const distA = a.location ? haversineDistance(userLocation, a.location) : Infinity;
+                        const distB = b.location ? haversineDistance(userLocation, b.location) : Infinity;
+                        return distA - distB;
+                    });
+                }
+                break;
         }
         
         return processedPosts;
 
-    }, [debouncedSearchTerm, activeFilter, posts, userLocation, authorId]);
+    }, [debouncedSearchTerm, activeFilter, posts, userLocation]);
 
     // Helper for Haversine distance
     function haversineDistance(coords1: { lat: number; lng: number }, coords2: { lat: number; lng: number }): number {
@@ -216,6 +231,31 @@ function BbsPageContent() {
 
     if (loading || (authorId && authorLoading)) {
         return <BbsPageSkeleton />;
+    }
+
+    if (fetchError) {
+        let createIndexUrl = null;
+        if (fetchError.code === 'failed-precondition' && fetchError.message.includes('https://console.firebase.google.com')) {
+            createIndexUrl = fetchError.message.match(/https:\/\/console\.firebase\.google\.com\S+/)?.[0] || null;
+        }
+
+        return (
+            <div className="container mx-auto px-4 py-12 text-center">
+                <div className="max-w-2xl mx-auto p-8 border border-destructive/50 bg-destructive/10 rounded-lg">
+                    <AlertCircle className="mx-auto h-12 w-12 text-destructive" />
+                    <h1 className="mt-4 text-2xl font-bold text-destructive-foreground">Failed to Load Posts</h1>
+                    <p className="mt-2 text-muted-foreground">The database query failed. This often means a composite index is required.</p>
+                    {createIndexUrl && (
+                        <div className="mt-4">
+                            <p className="text-sm text-muted-foreground">Click the button below to create the necessary index in your Firebase console.</p>
+                            <Button asChild className="mt-2">
+                                <a href={createIndexUrl} target="_blank" rel="noopener noreferrer">Create Database Index</a>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -301,7 +341,7 @@ function BbsPageContent() {
 
                 {hasMore && (
                     <div className="mt-12 text-center">
-                        <Button onClick={() => fetchPosts(true)} disabled={loadingMore}>
+                        <Button onClick={handleLoadMore} disabled={loadingMore}>
                             {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Load More
                         </Button>
