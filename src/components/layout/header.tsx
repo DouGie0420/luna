@@ -12,7 +12,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background relative border-b border-white/5">
-      <GlowingPixelGrid className="-z-10" />
+      <GlowingPixelGrid seed={user?.uid || ''} className="-z-10" />
       <div className="container mx-auto flex h-20 items-center justify-between gap-8 px-4">
         {/* 左侧 Logo */}
         <Logo />

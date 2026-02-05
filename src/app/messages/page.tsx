@@ -8,18 +8,33 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Loader2 } from "lucide-react";
-import { useUser, useFirestore } from '@/firebase';
+import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, ThumbsUp, Meh, ThumbsDown } from "lucide-react";
+import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
 import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
 import { formatDistanceToNow } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
+import { useTranslation } from '@/hooks/use-translation';
+import { UserAvatar } from '@/components/ui/user-avatar';
+
+
+const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 1.75l-6.172 9.5L12 17.5l6.172-6.25L12 1.75z"/>
+        <path d="M5.828 12.5L12 22.25l6.172-9.75L12 17.5 5.828 12.5z"/>
+    </svg>
+);
+
 
 function ChatInterface({ chat }: { chat: DirectChat }) {
     const { user, profile } = useUser();
     const firestore = useFirestore();
+    const { t } = useTranslation();
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -34,6 +49,16 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const otherParticipantId = chat.participants.find(p => p !== user?.uid);
+    const { data: otherParticipantProfileData } = useDoc<UserProfile>(firestore && otherParticipantId ? doc(firestore, 'users', otherParticipantId) : null);
+
+    const otherParticipantFromChat = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
+    const displayUser = otherParticipantProfileData || otherParticipantFromChat;
+    const profileUrl = displayUser ? `/@${displayUser.loginId || displayUser.uid}` : '#';
+    const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
+    const displayName = displayUser?.displayName || "User";
+
 
     useEffect(() => {
         if (!messagesQuery) return;
@@ -111,22 +136,88 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         }
     };
     
-    const otherParticipantId = chat.participants.find(p => p !== user?.uid);
-    const otherParticipantProfile = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
-
     const canSend = chat.isFriendMode || chat.hasReplied || (user?.uid === chat.initiatorId && (chat.initialMessageCount || 0) < 5) || (user?.uid !== chat.initiatorId && !chat.hasReplied);
 
     return (
         <>
             <CardHeader className="flex flex-row items-center gap-4 border-b">
-                {otherParticipantProfile && (
-                    <>
-                        <Avatar>
-                            <AvatarImage src={otherParticipantProfile.photoURL} alt={otherParticipantProfile.displayName} />
-                            <AvatarFallback>{otherParticipantProfile.displayName?.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <h2 className="text-lg font-semibold">{otherParticipantProfile.displayName}</h2>
-                    </>
+                 {displayUser && (
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <div className="flex items-center gap-4 cursor-pointer">
+                                <UserAvatar profile={displayUser} className="h-12 w-12" />
+                                <h2 className="text-lg font-semibold">{displayName}</h2>
+                            </div>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                           <DialogHeader>
+                                <DialogTitle className="flex items-center gap-3">
+                                    <UserAvatar profile={displayUser} className="h-12 w-12" />
+                                    <div>
+                                        <p className="text-xl font-bold">{displayName}</p>
+                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                            <Star className="h-4 w-4 fill-primary text-primary" />
+                                            <span>{(displayUser.rating || 0).toFixed(1)} ({displayUser.reviewsCount || 0} {t('sellerProfile.reviews')})</span>
+                                        </div>
+                                    </div>
+                                </DialogTitle>
+                            </DialogHeader>
+                             <div className="grid gap-4 py-4">
+                                <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg animate-glow">
+                                    <Gem className="h-10 w-10 text-primary" />
+                                    <div className="flex-1">
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
+                                        <p className="text-2xl font-bold">{displayUser.creditLevel || 'Newcomer'}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
+                                        <p className="text-2xl font-bold">{displayUser.creditScore || 0}</p>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Link href={`${profileUrl}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                                        <ShoppingBag className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
+                                            <p className="font-bold hover:underline">{onSaleCount}</p>
+                                        </div>
+                                    </Link>
+                                     <Link href={`${profileUrl}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                                        <ShoppingCart className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
+                                            <p className="font-bold hover:underline">{displayUser.salesCount ?? 0}</p>
+                                        </div>
+                                    </Link>
+                                    <Link href={`${profileUrl}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                                        <Users className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
+                                            <p className="font-bold hover:underline">{displayUser.followersCount || 0}</p>
+                                        </div>
+                                    </Link>
+                                    <Link href={`${profileUrl}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors">
+                                        <UserPlus className="h-6 w-6 text-primary" />
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
+                                            <p className="font-bold hover:underline">{displayUser.followingCount || 0}</p>
+                                        </div>
+                                    </Link>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-semibold mb-2">{t('userProfile.verifications')}</h4>
+                                    <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
+                                        {displayUser.isPro && (<div className="flex items-center gap-1.5 text-green-500"><ShieldCheck className="h-4 w-4" /><span>{t('userProfile.pro')}</span></div>)}
+                                        {displayUser.isWeb3Verified && (<div className="flex items-center gap-1.5 text-blue-400"><Globe className="h-4 w-4" /><span>WEB3</span></div>)}
+                                        {displayUser.isNftVerified && (<div className="flex items-center gap-1.5 text-blue-400"><EthereumIcon className="h-4 w-4 stroke-blue-400" /><span>NFT</span></div>)}
+                                        {displayUser.kycStatus === 'Verified' && (<div className="flex items-center gap-1.5 text-yellow-400"><Fingerprint className="h-4 w-4" /><span>{t('userProfile.kyc')}</span></div>)}
+                                        {!displayUser.isPro && !displayUser.isWeb3Verified && !displayUser.isNftVerified && displayUser.kycStatus !== 'Verified' && (<p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>)}
+                                    </div>
+                                </div>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 )}
             </CardHeader>
             <CardContent className="flex-grow p-6 flex flex-col">
@@ -134,10 +225,10 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                     <div className="space-y-4">
                         {loading ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
                             <div key={msg.id} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
-                                {msg.senderId !== user?.uid && otherParticipantProfile && (
+                                {msg.senderId !== user?.uid && otherParticipantFromChat && (
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage src={otherParticipantProfile.photoURL} />
-                                        <AvatarFallback>{otherParticipantProfile.displayName?.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={otherParticipantFromChat.photoURL} />
+                                        <AvatarFallback>{otherParticipantFromChat.displayName?.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                 )}
                                 <div className={`max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 ${msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
