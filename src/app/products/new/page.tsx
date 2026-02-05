@@ -326,26 +326,11 @@ export default function NewProductPage() {
                   </div>
                 </div>
 
-                 <div className="grid gap-2">
+                <div className="grid gap-2">
                     <Label>{t('newProductPage.images')}</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center">
-                        <Input
-                            id="image-upload"
-                            type="file"
-                            className="sr-only"
-                            onChange={handleImageUpload}
-                            accept="image/*"
-                            multiple
-                        />
-                        <label htmlFor="image-upload" className="cursor-pointer">
-                            <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-                            <p className="mt-2 text-sm text-muted-foreground">{t('newProductPage.dragAndDrop')}</p>
-                            <Button asChild variant="outline" className="mt-4 pointer-events-none">
-                                <span>{t('newProductPage.selectFiles')}</span>
-                            </Button>
-                        </label>
+                    <div className="border-2 border-dashed border-border rounded-lg p-4 space-y-4">
                         {imagePreviews.length > 0 && (
-                            <div className="mt-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                                 {imagePreviews.map((src, index) => (
                                     <div key={index} className="relative aspect-square">
                                         <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
@@ -361,6 +346,27 @@ export default function NewProductPage() {
                                     </div>
                                 ))}
                             </div>
+                        )}
+                        {imagePreviews.length < 9 ? (
+                             <div>
+                                <Input
+                                    id="image-upload"
+                                    type="file"
+                                    className="sr-only"
+                                    onChange={handleImageUpload}
+                                    accept="image/*"
+                                    multiple
+                                />
+                                 <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center text-center p-6 border-dashed border rounded-md hover:bg-accent transition-colors">
+                                     <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
+                                     <p className="mt-2 text-sm text-muted-foreground">{imagePreviews.length === 0 ? t('newProductPage.dragAndDrop') : `Add more images (${imagePreviews.length}/9)`}</p>
+                                     <Button asChild variant="outline" className="mt-4 pointer-events-none">
+                                         <span>{t('newProductPage.selectFiles')}</span>
+                                     </Button>
+                                 </label>
+                            </div>
+                        ) : (
+                            <p className="text-center text-sm text-muted-foreground">Maximum of 9 images reached.</p>
                         )}
                     </div>
                 </div>
