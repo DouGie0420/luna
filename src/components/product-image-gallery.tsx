@@ -38,15 +38,18 @@ export function ProductImageGallery({ product, isLiked, isFavorited, onLikeToggl
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const images = React.useMemo(() => {
-    const baseImage = product.images[0] || `https://picsum.photos/seed/${product.id}/1080/720`;
-    const additionalImages = Array.from({ length: 8 }, (_, i) => `https://picsum.photos/seed/${product.id}-${i + 1}/1080/720`);
-    return [baseImage, ...additionalImages];
+    if (product.images && product.images.length > 0) {
+      return product.images;
+    }
+    return [`https://picsum.photos/seed/${product.id}/1080/720`];
   }, [product.id, product.images]);
 
   const imageHints = React.useMemo(() => {
-    const baseHint = product.imageHints[0] || 'product image';
-    return Array(9).fill(baseHint);
-  }, [product.imageHints]);
+    if (product.imageHints && product.imageHints.length > 0) {
+        return product.imageHints;
+    }
+    return Array(images.length).fill('product image');
+  }, [product.imageHints, images.length]);
 
   // Sync main carousel and thumbnails
   useEffect(() => {
