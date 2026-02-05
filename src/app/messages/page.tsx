@@ -30,7 +30,6 @@ import { useTranslation } from '@/hooks/use-translation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
-import { translateText } from '@/ai/flows/translate-text';
 
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -60,10 +59,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [loadingMessages, setLoadingMessages] = useState(true);
     
-    // Translation state
-    const [isTranslating, setIsTranslating] = useState(false);
-    const [originalTextForSend, setOriginalTextForSend] = useState<string | null>(null);
-
     const otherParticipantId = chat.participants.find(p => p !== user?.uid);
     const { data: otherParticipantProfileData, loading: otherParticipantLoading } = useDoc<UserProfile>(firestore && otherParticipantId ? doc(firestore, 'users', otherParticipantId) : null);
 
@@ -73,44 +68,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
 
-    // --- TRANSLATION LOGIC START ---
-    const needsTranslation = useMemo(() => 
-        profile?.preferredLanguage && 
-        otherParticipantProfileData?.preferredLanguage && 
-        profile.preferredLanguage !== otherParticipantProfileData.preferredLanguage,
-    [profile, otherParticipantProfileData]);
-
-    const targetLanguage = otherParticipantProfileData?.preferredLanguage;
-    
-    const targetLanguageName = useMemo(() => {
-        if (!targetLanguage) return '';
-        switch (targetLanguage) {
-            case 'en': return 'English';
-            case 'th': return 'Thai';
-            case 'zh': return 'Chinese';
-            default: return '';
-        }
-    }, [targetLanguage]);
-    
-    const handleTranslate = async () => {
-        if (!newMessage.trim() || !targetLanguageName) return;
-        setIsTranslating(true);
-        try {
-            const result = await translateText({ text: newMessage, targetLanguage: targetLanguageName });
-            if (result.translatedText) {
-                setOriginalTextForSend(newMessage);
-                setNewMessage(result.translatedText);
-                toast({ title: `已翻译为 ${targetLanguageName}` });
-            }
-        } catch (e) {
-            console.error(e);
-            toast({ variant: 'destructive', title: '翻译失败' });
-        } finally {
-            setIsTranslating(false);
-        }
-    };
-    // --- TRANSLATION LOGIC END ---
-    
     const highlightText = (text: string): React.ReactNode => {
       if (!debouncedMessageSearchTerm.trim()) return text;
       try {
@@ -203,7 +160,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             senderId: user.uid,
             text: newMessage.trim(),
             createdAt: serverTimestamp(),
-            ...(originalTextForSend && { originalText: originalTextForSend, isTranslated: true }),
         };
 
         batch.set(newMessageDocRef, messagePayload);
@@ -244,7 +200,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
             }));
         } finally {
             setNewMessage('');
-            setOriginalTextForSend(null);
             setIsSending(false);
         }
     };
@@ -374,27 +329,14 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                     </Avatar>
                                 )}
                                 <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className={cn(
-                                            `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
-                                            msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                            matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
-                                            matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
-                                        )}>
-                                            <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
-                                            {msg.isTranslated && (
-                                              <Info className="absolute -bottom-1 -right-1 h-3 w-3 text-white/50" />
-                                            )}
-                                        </div>
-                                    </TooltipTrigger>
-                                    {msg.isTranslated && (
-                                      <TooltipContent>
-                                        <p className="text-xs text-muted-foreground">原文:</p>
-                                        <p>{msg.originalText}</p>
-                                      </TooltipContent>
-                                    )}
-                                  </Tooltip>
+                                    <div className={cn(
+                                        `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
+                                        msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                        matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                        matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500'
+                                    )}>
+                                        <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                    </div>
                                     {msg.createdAt?.toDate && (
                                         <span className="text-xs text-muted-foreground px-1">
                                             {format(msg.createdAt.toDate(), 'HH:mm')}
@@ -411,34 +353,22 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                 <div className="relative">
                     <Input 
                         placeholder={canSend ? "输入消息..." : "等待对方回复..."}
-                        className="pr-24"
+                        className="pr-12"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !isSending && !isTranslating && canSend) {
+                            if (e.key === 'Enter' && !isSending && canSend) {
                                 handleSendMessage();
                             }
                         }}
-                        disabled={isSending || isTranslating || !canSend}
+                        disabled={isSending || !canSend}
                     />
                     <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
-                        {needsTranslation && newMessage && !originalTextForSend && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button size="icon" variant="ghost" className="h-8 w-10 text-primary" onClick={handleTranslate} disabled={isTranslating}>
-                                            {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Languages className="h-4 w-4" />}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent><p>翻译为 {targetLanguageName}</p></TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        )}
                         <Button 
                             size="icon" 
                             className="h-8 w-10"
                             onClick={handleSendMessage}
-                            disabled={isSending || isTranslating || !canSend || !newMessage.trim()}
+                            disabled={isSending || !canSend || !newMessage.trim()}
                         >
                             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                         </Button>
