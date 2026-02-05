@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -512,7 +513,7 @@ export default function UserProfilePage() {
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>Latest Posts from {user.displayName}</CardTitle>
                              <Button asChild variant="ghost">
-                                <Link href={`/bbs`}>View All</Link>
+                                <Link href={`/bbs?author=${user.uid}`}>View All</Link>
                              </Button>
                         </CardHeader>
                         <CardContent>

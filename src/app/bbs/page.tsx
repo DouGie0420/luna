@@ -1,11 +1,12 @@
 
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { BbsPostCard } from '@/components/bbs-post-card';
 import { Button } from '@/components/ui/button';
-import type { BbsPost } from '@/lib/types';
+import type { BbsPost, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { Plus, Flame, Sparkles, Star, MapPin, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -15,8 +16,9 @@ import Link from 'next/link';
 import { Input } from '@/components/ui/input';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import { useUser, useFirestore, useDoc } from '@/firebase';
+import { collection, query, where, orderBy, limit, getDocs, startAfter, DocumentData, QueryDocumentSnapshot, doc } from 'firebase/firestore';
+import { useSearchParams } from 'next/navigation';
 
 const PAGE_SIZE = 100;
 
@@ -51,10 +53,12 @@ function BbsPageSkeleton() {
     )
 }
 
-export default function BbsPage() {
+function BbsPageContent() {
     const { t } = useTranslation();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const searchParams = useSearchParams();
+    const authorId = searchParams.get('author');
 
     const [posts, setPosts] = useState<BbsPost[]>([]);
     const [loading, setLoading] = useState(true);
@@ -66,13 +70,38 @@ export default function BbsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
     const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+    const { data: authorProfile, loading: authorLoading } = useDoc<UserProfile>(
+        firestore && authorId ? doc(firestore, 'users', authorId) : null
+    );
     
-    const fetchPosts = async (loadMore = false) => {
+    const fetchPosts = useCallback(async (loadMore = false) => {
         if (!firestore) return;
         if (loadMore) setLoadingMore(true);
         else setLoading(true);
 
-        const constraints = [where('status', '==', 'active'), limit(PAGE_SIZE)];
+        let constraints: any[] = [where('status', '==', 'active')];
+
+        if (authorId) {
+            constraints.push(where('authorId', '==', authorId));
+        }
+
+        // Add ordering. Note: Queries with `where` on a different field than `orderBy` require a composite index.
+        if (authorId || activeFilter === 'newest') {
+             constraints.push(orderBy('createdAt', 'desc'));
+        } else if (activeFilter === 'featured') {
+             constraints.push(where('isFeatured', '==', true));
+             constraints.push(orderBy('createdAt', 'desc'));
+        } else if (activeFilter === 'trending') {
+            // For trending/popular, we fetch by newest and sort on client
+            constraints.push(orderBy('createdAt', 'desc'));
+        } else {
+            // Default for nearest or other cases
+             constraints.push(orderBy('createdAt', 'desc'));
+        }
+
+        constraints.push(limit(PAGE_SIZE));
+
         if (loadMore && lastVisible) {
             constraints.push(startAfter(lastVisible));
         }
@@ -86,18 +115,27 @@ export default function BbsPage() {
             setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length - 1]);
             setPosts(prev => loadMore ? [...prev, ...newPosts] : newPosts);
             setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching posts:", error);
-            toast({ variant: 'destructive', title: 'Failed to fetch posts.' });
+            toast({ 
+                variant: 'destructive', 
+                title: 'Failed to fetch posts.', 
+                description: error.message.includes('requires an index') 
+                    ? 'A database index is required. Please check the browser console for a link to create it.'
+                    : error.message
+            });
         } finally {
             setLoading(false);
             setLoadingMore(false);
         }
-    };
+    }, [firestore, authorId, lastVisible, toast, activeFilter]);
 
     useEffect(() => {
-        fetchPosts();
-    }, [firestore]);
+        setPosts([]);
+        setLastVisible(null);
+        setHasMore(true);
+        fetchPosts(false);
+    }, [authorId, activeFilter, fetchPosts]);
 
 
     const handleNearestFilter = () => {
@@ -146,36 +184,27 @@ export default function BbsPage() {
             });
         }
 
-        // 2. Filter/Sort by activeFilter
-        switch (activeFilter) {
-            case 'trending':
-                processedPosts.sort((a, b) => (b.likes + b.replies * 2) - (a.likes + a.replies * 2));
-                break;
-            case 'featured':
-                 processedPosts = processedPosts.filter(p => p.isFeatured).sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
-                break;
-            case 'nearest':
-                if (userLocation) {
-                    processedPosts.sort((a, b) => {
-                        const distA = a.location ? haversineDistance(userLocation, a.location) : Infinity;
-                        const distB = b.location ? haversineDistance(userLocation, b.location) : Infinity;
-                        return distA - distB;
-                    });
-                }
-                break;
-            case 'newest':
-            default:
-                processedPosts.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
-                break;
+        // 2. Apply client-side sorting for filters that don't use indexes
+        if (!authorId) {
+            switch (activeFilter) {
+                case 'trending':
+                    processedPosts.sort((a, b) => (b.likes + b.replies * 2) - (a.likes + a.replies * 2));
+                    break;
+                case 'nearest':
+                    if (userLocation) {
+                        processedPosts.sort((a, b) => {
+                            const distA = a.location ? haversineDistance(userLocation, a.location) : Infinity;
+                            const distB = b.location ? haversineDistance(userLocation, b.location) : Infinity;
+                            return distA - distB;
+                        });
+                    }
+                    break;
+            }
         }
-
+        
         return processedPosts;
 
-    }, [debouncedSearchTerm, activeFilter, posts, userLocation]);
-
-    if (loading) {
-        return <BbsPageSkeleton />;
-    }
+    }, [debouncedSearchTerm, activeFilter, posts, userLocation, authorId]);
 
     // Helper for Haversine distance
     function haversineDistance(coords1: { lat: number; lng: number }, coords2: { lat: number; lng: number }): number {
@@ -185,6 +214,10 @@ export default function BbsPage() {
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(coords1.lat * (Math.PI / 180)) * Math.cos(coords2.lat * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
+    }
+
+    if (loading || (authorId && authorLoading)) {
+        return <BbsPageSkeleton />;
     }
 
     return (
@@ -208,50 +241,65 @@ export default function BbsPage() {
                 </div>
             </div>
             <div className="container mx-auto px-4 py-12">
-                <div className="relative text-center mb-12 py-16 overflow-hidden rounded-lg border border-primary/20 bg-card/50">
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-card via-transparent to-transparent z-10" />
-                    <Image src="https://picsum.photos/seed/lacus-somniorum-bg/1920/400" alt="Lacus Somniorum background" fill className="object-cover opacity-20" />
-                    <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary animate-glow [text-shadow:0_0_15px_hsl(var(--primary))] relative z-20">
-                        {t('bbsPage.title')}
-                    </h1>
-                    <p className="mt-4 text-xl text-foreground/80 max-w-2xl mx-auto relative z-20">
-                        {t('bbsPage.description')}
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
-                    <div className="flex items-center gap-2">
-                         <Button variant={activeFilter === 'newest' ? 'default' : 'outline'} onClick={() => setActiveFilter('newest')}>
-                            <Sparkles />
-                            {t('bbsPage.filterNewest')}
-                        </Button>
-                        <Button variant={activeFilter === 'trending' ? 'default' : 'outline'} onClick={() => setActiveFilter('trending')}>
-                            <Flame />
-                            {t('bbsPage.filterTrending')}
-                        </Button>
-                        <Button variant={activeFilter === 'featured' ? 'default' : 'outline'} onClick={() => setActiveFilter('featured')}>
-                            <Star />
-                            {t('bbsPage.filterFeatured')}
-                        </Button>
-                        <Button variant={activeFilter === 'nearest' ? 'default' : 'outline'} onClick={handleNearestFilter}>
-                            <MapPin />
-                           {t('bbsPage.filterNearest')}
-                        </Button>
+                {authorId ? (
+                     <div className="flex items-center gap-4 mb-8">
+                        <h1 className="font-headline text-3xl md:text-5xl font-bold text-primary">
+                            Posts by {authorProfile?.displayName || '...'}
+                        </h1>
                     </div>
-                    <Button asChild>
-                       <Link href="/bbs/new">
-                           <Plus className="mr-2 h-4 w-4" />
-                           {t('bbsPage.newPost')}
-                       </Link>
-                    </Button>
-                </div>
+                ) : (
+                    <>
+                        <div className="relative text-center mb-12 py-16 overflow-hidden rounded-lg border border-primary/20 bg-card/50">
+                            <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-card via-transparent to-transparent z-10" />
+                            <Image src="https://picsum.photos/seed/lacus-somniorum-bg/1920/400" alt="Lacus Somniorum background" fill className="object-cover opacity-20" />
+                            <h1 className="font-headline text-5xl md:text-7xl font-bold text-primary animate-glow [text-shadow:0_0_15px_hsl(var(--primary))] relative z-20">
+                                {t('bbsPage.title')}
+                            </h1>
+                            <p className="mt-4 text-xl text-foreground/80 max-w-2xl mx-auto relative z-20">
+                                {t('bbsPage.description')}
+                            </p>
+                        </div>
+                        <div className="flex flex-wrap justify-between items-center gap-4 mb-8">
+                            <div className="flex items-center gap-2">
+                                <Button variant={activeFilter === 'newest' ? 'default' : 'outline'} onClick={() => setActiveFilter('newest')}>
+                                    <Sparkles />
+                                    {t('bbsPage.filterNewest')}
+                                </Button>
+                                <Button variant={activeFilter === 'trending' ? 'default' : 'outline'} onClick={() => setActiveFilter('trending')}>
+                                    <Flame />
+                                    {t('bbsPage.filterTrending')}
+                                </Button>
+                                <Button variant={activeFilter === 'featured' ? 'default' : 'outline'} onClick={() => setActiveFilter('featured')}>
+                                    <Star />
+                                    {t('bbsPage.filterFeatured')}
+                                </Button>
+                                <Button variant={activeFilter === 'nearest' ? 'default' : 'outline'} onClick={handleNearestFilter}>
+                                    <MapPin />
+                                {t('bbsPage.filterNearest')}
+                                </Button>
+                            </div>
+                            <Button asChild>
+                            <Link href="/bbs/new">
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t('bbsPage.newPost')}
+                            </Link>
+                            </Button>
+                        </div>
+                    </>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {filteredAndSortedPosts.map((post) => (
                         <BbsPostCard key={post.id} post={post} />
                     ))}
                 </div>
+                
+                {filteredAndSortedPosts.length === 0 && !loading && (
+                    <div className="text-center py-20 border-2 border-dashed rounded-lg col-span-full">
+                        <p className="text-muted-foreground">{authorId ? 'This user has no posts.' : 'No posts match your criteria.'}</p>
+                    </div>
+                )}
 
                 {hasMore && (
                     <div className="mt-12 text-center">
@@ -264,4 +312,12 @@ export default function BbsPage() {
             </div>
         </>
     )
+}
+
+export default function BbsPage() {
+    return (
+        <Suspense fallback={<BbsPageSkeleton />}>
+            <BbsPageContent />
+        </Suspense>
+    );
 }
