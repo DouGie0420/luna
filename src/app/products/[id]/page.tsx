@@ -89,7 +89,7 @@ export default function ProductPage() {
 
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
+    const [productDeletionState, setProductDeletionState] = useState<'idle' | 'deleting' | 'success'>('idle');
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -178,7 +178,7 @@ export default function ProductPage() {
 
     const handleDeleteProduct = async () => {
         if (!product || !firestore) return;
-        setIsSubmittingDelete(true);
+        setProductDeletionState('deleting');
     
         const productRef = doc(firestore, "products", product.id);
         const updateData = { status: 'under_review' as const };
@@ -189,9 +189,8 @@ export default function ProductPage() {
                 title: "商品已提交审核",
                 description: "该商品已从前台隐藏，等待管理员审核。",
             });
-            setIsDeleteDialogOpen(false);
-            // Allow dialog to close before navigating
-            setTimeout(() => router.push('/products'), 150);
+            setProductDeletionState('success');
+            setIsDeleteDialogOpen(false); // Triggers onOpenChange
         } catch (serverError) {
             const permissionError = new FirestorePermissionError({
                 path: productRef.path,
@@ -199,7 +198,7 @@ export default function ProductPage() {
                 requestResourceData: updateData,
             });
             errorEmitter.emit('permission-error', permissionError);
-            setIsSubmittingDelete(false);
+            setProductDeletionState('idle');
             setIsDeleteDialogOpen(false);
         }
     };
@@ -257,8 +256,8 @@ export default function ProductPage() {
                                         </DialogTrigger>
                                     )}
                                     {hasAdminAccess && !isOwner && (
-                                        <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)} disabled={isSubmittingDelete}>
-                                            {isSubmittingDelete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                                        <Button variant="destructive" className="rounded-full h-9 px-4" onClick={() => setIsDeleteDialogOpen(true)} disabled={productDeletionState === 'deleting'}>
+                                            {productDeletionState === 'deleting' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
                                             删除商品
                                         </Button>
                                     )}
@@ -317,7 +316,22 @@ export default function ProductPage() {
                     </div>
                 </div>
             </div>
-             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+             <AlertDialog 
+                open={isDeleteDialogOpen} 
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsDeleteDialogOpen(false);
+                        if (productDeletionState === 'success') {
+                            router.push('/products');
+                        }
+                         if (productDeletionState === 'deleting') {
+                            setProductDeletionState('idle');
+                        }
+                    } else {
+                        setIsDeleteDialogOpen(true);
+                    }
+                }}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>
@@ -326,9 +340,9 @@ export default function ProductPage() {
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProduct} disabled={isSubmittingDelete} className="bg-destructive hover:bg-destructive/90">
-                           {isSubmittingDelete && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        <AlertDialogCancel disabled={productDeletionState === 'deleting'}>取消</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteProduct} disabled={productDeletionState === 'deleting'} className="bg-destructive hover:bg-destructive/90">
+                           {productDeletionState === 'deleting' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                            确认提交
                         </AlertDialogAction>
                     </AlertDialogFooter>
