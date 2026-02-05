@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown, Languages, Info, Translate } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
-import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot, updateDoc } from 'firebase/firestore';
 import { formatDistanceToNow, format } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -438,41 +438,52 @@ export default function MessagesPage() {
   
   useEffect(() => {
     if (!firestore || !user) {
-        setLoading(false);
-        return;
+      setLoading(false);
+      return;
     }
 
     const q = query(
-        collection(firestore, 'direct_chats'), 
-        where('participants', 'array-contains', user.uid),
-        orderBy('lastMessageTimestamp', 'desc')
+      collection(firestore, 'direct_chats'),
+      where('participants', 'array-contains', user.uid),
+      orderBy('lastMessageTimestamp', 'desc')
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-        const fetchedChats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectChat));
-        setChats(fetchedChats);
+      const fetchedChats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectChat));
+      setChats(fetchedChats);
 
-        if (loading) {
-            const initialId = searchParams.get('chatId');
-            if (initialId && fetchedChats.some(c => c.id === initialId)) {
-                setSelectedChatId(initialId);
-            } else if (!selectedChatId && fetchedChats.length > 0) {
-                 setSelectedChatId(fetchedChats[0].id);
-            }
-            setLoading(false);
+      if (loading) {
+        const initialId = searchParams.get('chatId');
+        if (initialId && fetchedChats.some(c => c.id === initialId)) {
+          setSelectedChatId(initialId);
+        } else if (fetchedChats.length > 0) {
+          setSelectedChatId(currentId => currentId ?? fetchedChats[0].id);
         }
-
-    }, (err) => {
-        console.error(err);
         setLoading(false);
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'direct_chats',
-            operation: 'list',
-        }));
+      }
+    }, (err) => {
+      console.error(err);
+      setLoading(false);
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: 'direct_chats',
+        operation: 'list',
+      }));
     });
 
     return () => unsubscribe();
-}, [firestore, user, searchParams, loading, selectedChatId]);
+  }, [firestore, user]);
+
+  useEffect(() => {
+    if (!firestore || !user?.uid || !selectedChatId || !chats.length) return;
+
+    const chat = chats.find(c => c.id === selectedChatId);
+    if (chat?.unreadCount?.[user.uid] > 0) {
+      const chatRef = doc(firestore, 'direct_chats', selectedChatId);
+      updateDoc(chatRef, {
+        [`unreadCount.${user.uid}`]: 0
+      }).catch(err => console.error("Failed to mark messages as read:", err));
+    }
+  }, [selectedChatId, user?.uid, firestore, chats]);
   
   useEffect(() => {
         if (!debouncedSearchTerm.trim()) {
@@ -636,7 +647,12 @@ export default function MessagesPage() {
                                             className={`flex items-center gap-4 p-4 cursor-pointer ${selectedChat?.id === chat.id ? 'bg-accent' : 'hover:bg-accent/50'}`}
                                             onClick={() => setSelectedChatId(chat.id)}
                                         >
-                                            <UserAvatar profile={otherParticipantProfile as UserProfile} className="h-12 w-12" />
+                                            <div className="relative">
+                                                <UserAvatar profile={otherParticipantProfile as UserProfile} className="h-12 w-12" />
+                                                {chat.unreadCount?.[user?.uid ?? ''] > 0 && (
+                                                    <div className="absolute top-0 right-0 h-3 w-3 rounded-full bg-red-500 border-2 border-card" />
+                                                )}
+                                            </div>
                                             <div className="flex-grow overflow-hidden">
                                                 <p className="font-semibold truncate">{highlight(otherParticipantProfile?.displayName || '', searchTerm)}</p>
                                                 <p className="text-sm text-muted-foreground truncate">{highlight(chat.lastMessage, searchTerm)}</p>
