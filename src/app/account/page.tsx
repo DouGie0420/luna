@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Languages } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -79,6 +79,8 @@ export default function AccountProfilePage() {
     const [isUploadingBanner, setIsUploadingBanner] = useState(false);
     const [newLoginId, setNewLoginId] = useState('');
     const [isSavingId, setIsSavingId] = useState(false);
+    const [preferredLanguage, setPreferredLanguage] = useState('zh');
+
 
     const [isSyncingNfts, setIsSyncingNfts] = useState(false);
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
@@ -109,6 +111,7 @@ export default function AccountProfilePage() {
             setLocation(profile.location || '');
             setBio(profile.bio || '');
             setBannerPreview(profile.bannerUrl || null);
+            setPreferredLanguage(profile.preferredLanguage || 'zh');
         }
     }, [profile]);
     
@@ -126,6 +129,7 @@ export default function AccountProfilePage() {
             gender,
             location,
             bio,
+            preferredLanguage,
         };
         try {
             await updateUserProfile(firestore, user.uid, dataToUpdate);
@@ -467,6 +471,22 @@ export default function AccountProfilePage() {
                                 maxLength={200}
                             />
                             <p className="text-xs text-muted-foreground text-right">{bio.length} / 200</p>
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="preferredLanguage" className="flex items-center gap-2">
+                                <Languages className="h-4 w-4" />
+                                偏好语言 (用于聊天翻译)
+                            </Label>
+                            <Select value={preferredLanguage} onValueChange={(value: 'en' | 'zh' | 'th') => setPreferredLanguage(value)}>
+                                <SelectTrigger id="preferredLanguage">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="zh">中文</SelectItem>
+                                    <SelectItem value="en">English</SelectItem>
+                                    <SelectItem value="th">ไทย</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <Separator />
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -40,7 +40,15 @@
         "senderId": { "type": "string", "description": "The UID of the user who sent the message." },
         "text": { "type": "string", "description": "The text content of the message." },
         "createdAt": { "type": "string", "format": "date-time" },
-        "imageUrl": { "type": "string", "format": "uri", "description": "URL for an image sent in the chat." }
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL for an image sent in the chat." },
+        "originalText": {
+          "type": "string",
+          "description": "The original, untranslated text of the message, if translation occurred."
+        },
+        "isTranslated": {
+            "type": "boolean",
+            "description": "Set to true if the 'text' field is a translation."
+        }
       },
       "required": ["senderId", "text", "createdAt"]
     },
@@ -314,6 +322,12 @@
         },
         "postsCount": {
           "type": "number"
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "The user's preferred language for translation.",
+          "enum": ["en", "zh", "th"],
+          "default": "zh"
         }
       },
       "required": [

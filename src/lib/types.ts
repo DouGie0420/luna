@@ -1,5 +1,6 @@
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -128,6 +129,7 @@ export type UserProfile = {
     paymentInfo?: PaymentInfo;
     bannerUrl?: string;
     featuredProductId?: string;
+    preferredLanguage?: 'en' | 'zh' | 'th';
 };
 
 export type PaymentChangeRequest = {
@@ -300,4 +302,6 @@ export type ChatMessage = {
   text: string;
   createdAt: any;
   imageUrl?: string;
+  originalText?: string;
+  isTranslated?: boolean;
 };

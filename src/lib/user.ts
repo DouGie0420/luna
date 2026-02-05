@@ -69,6 +69,7 @@ export async function upsertUserProfile(
             role: user.emailVerified ? 'user' : 'guest',
             postsCount: 0,
             displayedBadge: 'none',
+            preferredLanguage: 'zh',
             ...additionalData
         };
         const dataToSet = { ...newUserProfile, uid: user.uid };
@@ -128,6 +129,7 @@ export async function upsertWalletUser(db: Firestore, address: string): Promise<
             role: 'user',
             postsCount: 0,
             displayedBadge: 'web3',
+            preferredLanguage: 'zh',
         };
         const dataToSet = { ...newUserProfile, uid: address };
         try {
