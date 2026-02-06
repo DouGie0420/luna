@@ -20,6 +20,17 @@ import { updateUserProfile } from '@/lib/user';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
+const MetaMaskIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 100 100" {...props}><path d="M83.43,26.28,62.26,13.41a4.21,4.21,0,0,0-4-.09L43.83,21.58,36.5,26,25.9,32.45,21.4,35.1l-2.65,1.52L16,38.16a2.4,2.4,0,0,0-1.14,2.12V59.83a2.39,2.b 9,2.39,0,0,0,1.14,2.12l2.74,1.57,11.23,6.48,7.34,4.24,14.67,8.47a4.23,4.23,0,0,0,4,0L78,74.24l13.8-8a2.39,2.39,0,0,0,1.2-2.09V34.59a2.42,2.42,0,0,0-1.19-2.12ZM35.3,49.44,27.18,54.32l-6.23-3.6V43.23l6.23-3.6,8.12,4.88ZM58.31,23.3,62.25,21,73,27.32,62.26,33.57,51.83,27.53Zm-15.6,0,10.43-6.24L62.26,22.8,53,28.24,42.71,22.25Zm-3.11,8.1,9-5.18,10.15,5.92-3.1,1.8-6.88-4.11-8.31,4.86Zm-2.8,1.6,9.15-5.28,3.24,1.87-9.15,5.28Zm13,29.35-10.16-5.9,3.11-1.79,7.05,4.14,8-4.63-3.11-1.79Zm-1.85-20.17,8-4.63,6.23,3.6-8,4.63Zm18.89,12.06L52.06,78.56,42.71,73.1l-6.4-3.79V61.19L42.71,56l14.88,8.63L73,56l-6.23-3.6,6.23-3.6,8.12,4.88v9.42Z" fill="#e57a3b"/></svg>
+);
+const PhantomIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 20 20" fill="currentColor" {...props}><path fillRule="evenodd" d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zm0 2a8 8 0 100 16 8 8 0 000-16zM6 6a4 4 0 014 4h2a6 6 0 10-6-6v2zm1.757 7.071a1 1 0 011.414 0l1.414-1.414a3 3 0 10-4.242 4.242l1.414-1.414a1 1 0 010-1.414zm6.586-4.242a1 1 0 010 1.414l-1.414 1.414a3 3 0 104.242-4.242l-1.414 1.414a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg>
+);
+const BinanceIcon = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 2L6 8l6 6 6-6-6-6z" fill="#F0B90B"></path><path d="M2 12l6 6 6-6-6-6-6 6z" fill="#F0B90B"></path><path d="M12 22l6-6-6-6-6 6 6 6z" fill="#F0B90B"></path><path d="M16.5 12l-4.5 4.5-4.5-4.5 4.5-4.5 4.5 4.5z" fill="#F0B90B"></path><path d="M22 12l-6 6-1.5-1.5 4.5-4.5L16 7.5l6 4.5z" fill="#F0B90B"></path></svg>
+);
+
+
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
     <div className="flex justify-between items-center text-sm">
         <p className="text-muted-foreground">{label}</p>
@@ -121,6 +132,7 @@ export default function WalletPage() {
 
     // --- Web3 State ---
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
     
     // --- Change Request State ---
     const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
@@ -152,15 +164,29 @@ export default function WalletPage() {
     }
 
     // --- Web3 Logic ---
-    const connectWeb3 = async () => {
+    const handleConnect = async (walletType: 'metamask' | 'phantom' | 'binance') => {
         if (!firestore || !user) return;
-        if (typeof window === 'undefined' || !(window as any).ethereum) {
-            toast({ variant: "destructive", title: "未检测到插件", description: "请安装 MetaMask" });
+    
+        let injectedProvider;
+        const providers: {[key: string]: any} = {
+            metamask: (window as any).ethereum,
+            phantom: (window as any).phantom?.ethereum,
+            binance: (window as any).BinanceChain,
+        }
+
+        injectedProvider = providers[walletType];
+
+        if (!injectedProvider) {
+            toast({ variant: "destructive", title: "Wallet not found", description: "Please install the selected wallet extension or choose another." });
             return;
         }
+
+        const provider = new ethers.BrowserProvider(injectedProvider);
+        
         setIsConnecting(true);
+        setIsWalletSelectorOpen(false);
+
         try {
-            const provider = new ethers.BrowserProvider((window as any).ethereum);
             const accounts = await provider.send("eth_requestAccounts", []);
             const walletAddress = accounts[0];
             
@@ -339,15 +365,20 @@ export default function WalletPage() {
                             <CardDescription>连接你的以太坊兼容钱包，用于接收加密货币。</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="p-4 bg-secondary/30 rounded-lg border flex justify-between items-center">
+                             <div className="p-4 bg-secondary/30 rounded-lg border flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm font-bold">USDT收款地址 (TRC20)</p>
+                                    <p className="text-sm font-bold">EVM 钱包地址</p>
                                     <p className="font-mono text-sm opacity-70 break-all">{profile?.walletAddress || '未连接'}</p>
                                 </div>
-                                {!profile?.isWeb3Verified && (
-                                    <Button variant="outline" onClick={connectWeb3} disabled={isConnecting}>
+                                {profile?.isWeb3Verified ? (
+                                     <Button variant="outline" onClick={() => setIsWalletSelectorOpen(true)} disabled={isConnecting}>
                                         {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                                        {profile?.walletAddress ? "更换钱包" : "连接钱包"}
+                                        更换钱包
+                                    </Button>
+                                ) : (
+                                    <Button variant="outline" onClick={() => setIsWalletSelectorOpen(true)} disabled={isConnecting}>
+                                        {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                                        连接钱包
                                     </Button>
                                 )}
                             </div>
@@ -470,7 +501,32 @@ export default function WalletPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+             <Dialog open={isWalletSelectorOpen} onOpenChange={setIsWalletSelectorOpen}>
+                <DialogContent className="sm:max-w-xs">
+                    <DialogHeader>
+                        <DialogTitle>连接您的钱包</DialogTitle>
+                        <DialogDescription>选择一个钱包提供商以继续。</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <Button variant="outline" className="h-14 text-base justify-start" onClick={() => handleConnect('metamask')}>
+                            <MetaMaskIcon className="mr-4 h-8 w-8" />
+                            MetaMask
+                        </Button>
+                        <Button variant="outline" className="h-14 text-base justify-start" onClick={() => handleConnect('phantom')}>
+                            <PhantomIcon className="mr-4 h-8 w-8" />
+                            Phantom
+                        </Button>
+                         <Button variant="outline" className="h-14 text-base justify-start" onClick={() => handleConnect('binance')}>
+                            <BinanceIcon className="mr-4 h-8 w-8" />
+                            Binance Wallet
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
+    
+
     
