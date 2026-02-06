@@ -1,5 +1,6 @@
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -34,6 +35,40 @@ export type Product = {
   createdAt?: any;
   sellerId?: string;
   acceptedPaymentMethods?: PaymentMethod[];
+};
+
+export type RentalProperty = {
+    id: string;
+    title: string;
+    description: string;
+    images: string[];
+    ownerId: string;
+    location: {
+        lat: number;
+        lng: number;
+        city?: string;
+        country?: string;
+        countryCode?: string;
+        address?: string;
+    };
+    pricePerDay: number;
+    maxGuests: number;
+    propertyType: string; // e.g., '1室1厅', '整套公寓'
+    amenities: string[];
+    createdAt?: any;
+};
+
+export type Booking = {
+    id: string;
+    propertyId: string;
+    userId: string;
+    ownerId: string;
+    checkIn: any;
+    checkOut: any;
+    totalPrice: number;
+    guests: number;
+    status: 'pending' | 'confirmed' | 'cancelled';
+    createdAt: any;
 };
 
 export type User = {
@@ -322,5 +357,3 @@ export type GlobalSettings = {
   isAiAnalysisEnabled: boolean;
   isProApplicationEnabled: boolean;
 };
-
-    

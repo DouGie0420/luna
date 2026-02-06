@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Sparkles, Loader2 } from "lucide-react"
+import { Upload, ShieldAlert, X, Sparkles, Loader2, Home } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -293,7 +293,21 @@ export default function NewProductPage() {
         </div>
       </div>
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-3xl mx-auto space-y-8">
+          {profile?.isPro && (
+            <Card className="border-primary animate-glow-border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3"><Home className="text-primary"/> PRO商户专属</CardTitle>
+                <CardDescription>作为PRO商户，您可以选择发布更复杂的商品类型。</CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <Button asChild size="lg" className="w-full">
+                    <Link href="/products/new/rental">发布房屋出租信息</Link>
+                 </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle className="text-3xl font-headline">{t('newProductPage.title')}</CardTitle>
@@ -330,7 +344,7 @@ export default function NewProductPage() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
-                  <div className="relative">
+                   <div className="relative">
                     <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
                      {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                   </div>
@@ -522,5 +536,3 @@ export default function NewProductPage() {
     </>
   )
 }
-
-    

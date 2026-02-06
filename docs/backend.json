@@ -1,6 +1,50 @@
 
 {
   "entities": {
+    "RentalProperty": {
+        "title": "Rental Property",
+        "description": "Represents a property listed for short-term rental.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+            "ownerId": { "type": "string" },
+            "location": {
+                "type": "object",
+                "properties": {
+                    "lat": { "type": "number" },
+                    "lng": { "type": "number" },
+                    "city": { "type": "string" },
+                    "country": { "type": "string" },
+                    "countryCode": { "type": "string" }
+                }
+            },
+            "pricePerDay": { "type": "number" },
+            "maxGuests": { "type": "number" },
+            "propertyType": { "type": "string" },
+            "amenities": { "type": "array", "items": { "type": "string" } },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["title", "ownerId", "location", "pricePerDay", "maxGuests"]
+    },
+    "Booking": {
+        "title": "Booking",
+        "description": "Represents a reservation for a rental property.",
+        "type": "object",
+        "properties": {
+            "propertyId": { "type": "string" },
+            "userId": { "type": "string" },
+            "ownerId": { "type": "string" },
+            "checkIn": { "type": "string", "format": "date" },
+            "checkOut": { "type": "string", "format": "date" },
+            "totalPrice": { "type": "number" },
+            "guests": { "type": "number" },
+            "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["propertyId", "userId", "ownerId", "checkIn", "checkOut", "totalPrice", "status", "createdAt"]
+    },
     "Announcement": {
       "title": "Announcement",
       "description": "Represents a site-wide announcement banner.",
@@ -838,6 +882,14 @@
     ]
   },
   "firestore": {
+    "/rentalProperties/{propertyId}": {
+        "schema": { "$ref": "#/entities/RentalProperty" },
+        "description": "Stores rental property listings."
+    },
+    "/rentalProperties/{propertyId}/bookings/{bookingId}": {
+        "schema": { "$ref": "#/entities/Booking" },
+        "description": "Stores bookings for a rental property."
+    },
     "/announcements/{announcementId}": {
       "schema": { "$ref": "#/entities/Announcement" },
       "description": "Stores the site-wide announcement. Only the document with ID 'live' is actively used."
@@ -950,6 +1002,3 @@
     }
   }
 }
-
-
-    

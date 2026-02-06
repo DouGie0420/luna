@@ -24,6 +24,24 @@ service cloud.firestore {
       return hasRole(['admin', 'ghost', 'staff', 'support']);
     }
 
+    // --- 新增: 房屋租赁 (Rental Properties) ---
+    match /rentalProperties/{propertyId} {
+      allow read: if true;
+      allow create: if isSignedIn(); // UI should enforce PRO status
+      allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdminGroup());
+
+      match /bookings/{bookingId} {
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+        allow read, update: if isSignedIn() && (
+            request.auth.uid == resource.data.userId || 
+            get(/databases/$(database)/documents/rentalProperties/$(propertyId)).data.ownerId == request.auth.uid ||
+            isAdminGroup()
+        );
+        allow delete: if isAdminGroup();
+      }
+    }
+
+
     // --- 订单集合 (orders) ---
     match /orders/{orderId} {
       // List: Any signed-in user can list orders, but the client query MUST be secured and paginated.
@@ -198,7 +216,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
-
-    
