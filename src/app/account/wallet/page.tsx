@@ -3,9 +3,9 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { useUser, useFirestore, useCollection } from "@/firebase";
-import { collection, query, where, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { ethers } from 'ethers';
-import type { PaymentChangeRequest, PaymentInfo } from '@/lib/types';
+import type { PaymentChangeRequest, PaymentInfo, UserProfile } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import Image from 'next/image';
 import { updateUserProfile } from '@/lib/user';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { useTranslation } from '@/hooks/use-translation';
 
 const MetaMaskIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 100 100" {...props}><path d="M83.43,26.28,62.26,13.41a4.21,4.21,0,0,0-4-.09L43.83,21.58,36.5,26,25.9,32.45,21.4,35.1l-2.65,1.52L16,38.16a2.4,2.4,0,0,0-1.14,2.12V59.83a2.39,2.b 9,2.39,0,0,0,1.14,2.12l2.74,1.57,11.23,6.48,7.34,4.24,14.67,8.47a4.23,4.23,0,0,0,4,0L78,74.24l13.8-8a2.39,2.39,0,0,0,1.2-2.09V34.59a2.42,2.42,0,0,0-1.19-2.12ZM35.3,49.44,27.18,54.32l-6.23-3.6V43.23l6.23-3.6,8.12,4.88ZM58.31,23.3,62.25,21,73,27.32,62.26,33.57,51.83,27.53Zm-15.6,0,10.43-6.24L62.26,22.8,53,28.24,42.71,22.25Zm-3.11,8.1,9-5.18,10.15,5.92-3.1,1.8-6.88-4.11-8.31,4.86Zm-2.8,1.6,9.15-5.28,3.24,1.87-9.15,5.28Zm13,29.35-10.16-5.9,3.11-1.79,7.05,4.14,8-4.63-3.11-1.79Zm-1.85-20.17,8-4.63,6.23,3.6-8,4.63Zm18.89,12.06L52.06,78.56,42.71,73.1l-6.4-3.79V61.19L42.71,56l14.88,8.63L73,56l-6.23-3.6,6.23-3.6,8.12,4.88v9.42Z" fill="#e57a3b"/></svg>
@@ -129,6 +130,7 @@ export default function WalletPage() {
     const { user, profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     // --- Web3 State ---
     const [isConnecting, setIsConnecting] = useState(false);
@@ -188,8 +190,17 @@ export default function WalletPage() {
 
         try {
             const accounts = await provider.send("eth_requestAccounts", []);
-            const walletAddress = accounts[0];
+            const walletAddress = accounts[0].toLowerCase();
             
+            const q = query(collection(firestore, 'users'), where("walletAddress", "==", walletAddress));
+            const querySnapshot = await getDocs(q);
+      
+            if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
+                toast({ variant: "destructive", title: t('userNav.walletAlreadyLinkedTitle'), description: t('userNav.walletAlreadyLinkedDesc') });
+                setIsConnecting(false);
+                return;
+            }
+
             await updateUserProfile(firestore, user.uid, { walletAddress, isWeb3Verified: true });
             
             toast({ title: "Web3 钱包已链接", description: `地址已成功绑定。` });
