@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { MODEL_NAME } from '@/ai/config';
 import {z} from 'genkit';
 
 const TranslateTextInputSchema = z.object({
@@ -29,7 +30,7 @@ export async function translateText(
 
 const prompt = ai.definePrompt({
   name: 'translateTextPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: MODEL_NAME,
   input: {schema: TranslateTextInputSchema},
   output: {schema: TranslateTextOutputSchema},
   prompt: `You are an expert translator. Translate the following text to {targetLanguage}. 

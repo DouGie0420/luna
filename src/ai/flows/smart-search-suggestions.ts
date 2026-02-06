@@ -11,6 +11,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { MODEL_NAME } from '@/ai/config';
 import {z} from 'genkit';
 
 const SmartSearchInputSchema = z.object({
@@ -34,7 +35,7 @@ export async function smartSearchSuggestions(input: SmartSearchInput): Promise<S
 
 const prompt = ai.definePrompt({
   name: 'smartSearchSuggestionsPrompt',
-  model: 'googleai/gemini-1.5-flash',
+  model: MODEL_NAME,
   input: {schema: SmartSearchInputSchema},
   output: {schema: SmartSearchOutputSchema},
   prompt: `You are an AI assistant that suggests search terms to the user as they type.

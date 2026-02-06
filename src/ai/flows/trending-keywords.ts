@@ -1,7 +1,8 @@
 'use server';
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { MODEL_NAME } from '@/ai/config';
+import { z } from 'zod';
 
 const TrendingKeywordsOutputSchema = z.object({
   keywords: z
@@ -24,7 +25,7 @@ export async function getTrendingKeywords(
  */
 const prompt = ai.definePrompt({
   name: 'trendingKeywordsPrompt',
-  model: 'googleai/gemini-1.5-flash', 
+  model: MODEL_NAME, 
   input: { schema: z.object({ count: z.number() }) },
   output: { schema: TrendingKeywordsOutputSchema },
   prompt: `You are an e-commerce platform's AI assistant. Generate a list of {{count}} trending search keywords related to Cyberpunk, Futuristic technology, and Neon aesthetics. Respond with only a JSON formatted output.`,

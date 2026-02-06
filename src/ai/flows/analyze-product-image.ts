@@ -8,6 +8,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { MODEL_NAME } from '@/ai/config';
 import {z} from 'genkit';
 
 const AnalyzeProductImageInputSchema = z.object({
@@ -34,7 +35,7 @@ export async function analyzeProductImage(
 const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
   // 核心修复：将已失效的 gemini-pro-vision 更改为 gemini-1.5-flash
-  model: 'googleai/gemini-1.5-flash',
+  model: MODEL_NAME,
   input: {schema: AnalyzeProductImageInputSchema},
   output: {schema: AnalyzeProductImageOutputSchema},
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
