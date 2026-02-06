@@ -1,4 +1,3 @@
-'use server';
 
 /**
  * @fileoverview Centralized configuration for AI models used in Genkit flows.
