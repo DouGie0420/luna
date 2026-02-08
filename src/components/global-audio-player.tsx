@@ -138,7 +138,7 @@ export function GlobalAudioPlayer() {
             <div className="flex h-full items-center">
               <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 shrink-0">
                 <img 
-                  src={channelIcon || 'https://picsum.photos/seed/lunaradio/64/64'} 
+                  src={channelIcon || 'https://picsum.photos/seed/red_cyber/64/64'} 
                   className="object-cover w-full h-full" 
                   alt={stationName || 'Luna Labs Radio'} 
                 />
