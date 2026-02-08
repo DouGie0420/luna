@@ -24,13 +24,8 @@ service cloud.firestore {
 
     // --- 1. 播放器与全局配置 ---
     match /configs/{configId} {
-      // 显式允许 get 和 list，确保 snapshot listener (监听器) 能正常工作
       allow get, list: if true; 
-      
-      // 只有管理员可以写入 [cite: 2026-02-03]
-      allow write: if isSignedIn() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ghost']
-      );
+      allow write: if hasRole(['admin', 'ghost']);
     }
     match /settings/{settingsId} {
       allow get, list: if true;
@@ -48,7 +43,6 @@ service cloud.firestore {
     // --- 2. 用户集合 (users) ---
     match /users/{userId} {
       allow get: if true;
-      // Admin/staff can list all users for management, others must paginate.
       allow list: if hasRole(['admin', 'ghost', 'staff']) || request.query.limit <= 50;
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow delete: if hasRole(['admin', 'ghost']);
@@ -120,7 +114,7 @@ service cloud.firestore {
       }
     }
      match /reviews/{reviewId} {
-      allow get, list: if true;
+      allow get: if true;
       allow write: if isSignedIn() && (request.resource.data.reviewerId == request.auth.uid || isAdminGroup());
       allow list: if isSignedIn() && request.query.limit <= 50;
     }
