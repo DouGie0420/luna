@@ -199,6 +199,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if hasRole(['admin', 'ghost']);
     }
+    
+    match /configs/{configId} {
+        allow read: if true;
+        allow write: if hasRole(['admin', 'ghost']);
+    }
 
     match /ads/{adId} {
       allow read: if true;

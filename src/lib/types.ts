@@ -2,6 +2,7 @@
 
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -358,4 +359,32 @@ export type GlobalSettings = {
   isAiAnalysisEnabled: boolean;
   isProApplicationEnabled: boolean;
   isRentalEnabled: boolean;
+};
+
+export type GlobalAudioPlayerConfig = {
+  id: string;
+  display_logic: {
+    isVisible: boolean;
+    isMinimized: boolean;
+    enableOnMobile: boolean;
+  };
+  content_source: {
+    platform: 'youtube_live';
+    videoId: string;
+    fallbackUrl?: string;
+    autoPlay: boolean;
+  };
+  ui_customization: {
+    position: 'bottom-left';
+    theme: 'cyberpunk_neon';
+    primaryColor: string;
+    secondaryColor: string;
+    opacity: number;
+    blur: string;
+    showLiveBadge: boolean;
+  };
+  metadata: {
+    stationName: string;
+    channelIcon?: string;
+  };
 };

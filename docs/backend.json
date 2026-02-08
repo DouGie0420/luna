@@ -874,6 +874,49 @@
         "reviewerId": { "type": "string" }
       },
       "required": ["userId", "userName", "status", "createdAt", "plan"]
+    },
+    "GlobalAudioPlayerConfig": {
+      "title": "Global Audio Player Configuration",
+      "description": "Settings for the site-wide floating audio player.",
+      "type": "object",
+      "properties": {
+        "display_logic": {
+          "type": "object",
+          "properties": {
+            "isVisible": { "type": "boolean" },
+            "isMinimized": { "type": "boolean" },
+            "enableOnMobile": { "type": "boolean" }
+          }
+        },
+        "content_source": {
+          "type": "object",
+          "properties": {
+            "platform": { "type": "string", "enum": ["youtube_live"] },
+            "videoId": { "type": "string" },
+            "fallbackUrl": { "type": "string" },
+            "autoPlay": { "type": "boolean" }
+          }
+        },
+        "ui_customization": {
+          "type": "object",
+          "properties": {
+            "position": { "type": "string", "enum": ["bottom-left"] },
+            "theme": { "type": "string", "enum": ["cyberpunk_neon"] },
+            "primaryColor": { "type": "string" },
+            "secondaryColor": { "type": "string" },
+            "opacity": { "type": "number" },
+            "blur": { "type": "string" },
+            "showLiveBadge": { "type": "boolean" }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "stationName": { "type": "string" },
+            "channelIcon": { "type": "string", "format": "uri" }
+          }
+        }
+      }
     }
   },
   "auth": {
@@ -1003,6 +1046,10 @@
         }
       },
       "description": "Contains global settings for the app. Typically only the 'global' document is used."
+    },
+    "/configs/{configId}": {
+        "schema": { "$ref": "#/entities/GlobalAudioPlayerConfig" },
+        "description": "Stores global configuration documents, like for the audio player."
     }
   }
 }

@@ -10,6 +10,7 @@ import { LanguageProvider } from '@/context/language-provider';
 import { SettingsProvider } from '@/context/settings-provider';
 import { FloatingSupportButton } from '@/components/floating-support-button';
 import { BackgroundSnake } from '@/components/background-snake';
+import { GlobalAudioPlayer } from '@/components/global-audio-player';
 
 export default function RootLayout({
   children,
@@ -37,6 +38,7 @@ export default function RootLayout({
               <Toaster />
               <FirebaseErrorListener />
               <FloatingSupportButton />
+              <GlobalAudioPlayer />
             </LanguageProvider>
           </SettingsProvider>
         </FirebaseClientProvider>
