@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { MerchantCard } from "./merchant-card";
 import {
   Carousel,
@@ -13,8 +13,8 @@ import Autoplay from "embla-carousel-autoplay";
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from '@/hooks/use-translation';
-import { useFirestore, useCollection, useUser } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -27,14 +27,41 @@ export function VerifiedMerchants() {
     const { user } = useUser();
     const router = useRouter();
     const { toast } = useToast();
-
+    
+    const [proUsers, setProUsers] = useState<UserProfile[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const proUsersQuery = useMemo(() => {
         if (!firestore) return null;
         return query(collection(firestore, 'users'), where('isPro', '==', true), limit(30));
     }, [firestore]);
 
-    const { data: proUsers, loading: isLoading } = useCollection<UserProfile>(proUsersQuery);
+    useEffect(() => {
+        if (!proUsersQuery) {
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+        getDocs(proUsersQuery)
+            .then(snapshot => {
+                const users = snapshot.docs.map(doc => doc.data() as UserProfile);
+                setProUsers(users);
+            })
+            .catch(err => {
+                console.error("Error fetching pro users:", err);
+                toast({
+                    title: 'Could not load merchants',
+                    description: err.message,
+                    variant: 'destructive',
+                });
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
+
+    }, [proUsersQuery, toast]);
+
 
     const handleGuestClick = (e: React.MouseEvent) => {
         if (!user) {
