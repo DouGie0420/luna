@@ -743,7 +743,7 @@ export default function BbsPostPage() {
                             </div>
                         )}
 
-                        <div className="space-y-2 text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                        <div className="font-sans space-y-2 text-foreground/90 whitespace-pre-wrap leading-relaxed">
                             {post.content.split('\n').map((line, index) => (
                             <p key={index}>{line}</p>
                             ))}

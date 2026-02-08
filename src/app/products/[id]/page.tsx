@@ -266,7 +266,7 @@ export default function ProductPage() {
                                 </div>
                             </CardHeader>
                             <CardContent>
-                                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
+                                <p className="font-sans text-muted-foreground leading-relaxed whitespace-pre-wrap">{product.description}</p>
                             </CardContent>
                         </Card>
                         {isOwner && (

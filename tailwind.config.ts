@@ -20,6 +20,7 @@ export default {
       fontFamily: {
         body: ['"Press Start 2P"', 'sans-serif'],
         headline: ['"Press Start 2P"', 'sans-serif'],
+        sans: ['"Neue Helvetica"', 'Arial', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {
