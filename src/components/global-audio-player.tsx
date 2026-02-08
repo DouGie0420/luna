@@ -104,10 +104,11 @@ export function GlobalAudioPlayer() {
 
     return (
       <div 
-        className={`fixed z-[9999] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl
-          ${position === 'bottom-left' ? 'bottom-6 left-6' : 'bottom-6 right-6'}
-          ${isMinimized ? 'w-12 h-12 rounded-full' : 'w-72 h-auto rounded-2xl'}
-        `}
+        className={cn(
+          'fixed z-[9999] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl',
+          'bottom-6 left-6', // Hardcoded to bottom-left to fix overlap issue
+          isMinimized ? 'w-12 h-12 rounded-full' : 'w-72 h-auto rounded-2xl'
+        )}
         style={{
           backgroundColor: `${primaryColor}1a`,
           borderColor: primaryColor,
