@@ -77,7 +77,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
         </div>
         <CardContent className="relative p-4 pt-0 -mt-10 flex-grow flex flex-col">
             <div className="flex items-end gap-4">
-                <UserAvatar profile={user} className="h-20 w-20 border-4 border-card group-hover:border-primary/50 transition-colors" />
+                <UserAvatar profile={user} className="h-20 w-20" />
                 <div className="flex-1 pb-2">
                     <Badge variant="default" className="mb-1 bg-primary/80 border-primary/50">
                         <ShieldCheck className="h-3 w-3 mr-1" />
