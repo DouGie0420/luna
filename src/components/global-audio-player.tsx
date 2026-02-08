@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -107,15 +108,13 @@ export function GlobalAudioPlayer() {
         className={cn(
           'fixed z-[9999] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl',
           'bottom-6 left-6', // Hardcoded to bottom-left to fix overlap issue
+          'border animate-glow-border-white-yellow', // New classes for border and animation
           isMinimized ? 'w-12 h-12 rounded-full' : 'w-72 h-auto rounded-2xl'
         )}
         style={{
           backgroundColor: `${primaryColor}1a`,
-          borderColor: primaryColor,
-          borderWidth: '1px',
           backdropFilter: `blur(${blur})`,
           opacity: opacity,
-          borderStyle: 'solid',
         }}
       >
         <div className="hidden">
@@ -139,7 +138,7 @@ export function GlobalAudioPlayer() {
             <div className="flex h-full items-center">
               <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 shrink-0">
                 <img 
-                  src={channelIcon || 'https://picsum.photos/seed/lunaradio/64/64'} 
+                  src={channelIcon || 'https://images.unsplash.com/photo-1593817929447-81a742d46e33?w=64&h=64&fit=crop&q=80'} 
                   className="object-cover w-full h-full" 
                   alt="Station" 
                 />

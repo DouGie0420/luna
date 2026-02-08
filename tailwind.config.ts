@@ -141,6 +141,16 @@ export default {
             boxShadow: '0 0 16px 2px hsl(var(--primary))',
           },
         },
+        'glow-border-white-yellow': {
+          '0%, 100%': {
+            borderColor: 'hsl(48 96% 53%)',
+            boxShadow: '0 0 8px hsl(48 96% 53% / 0.7)',
+          },
+          '50%': {
+            borderColor: 'hsl(0 0% 100%)',
+            boxShadow: '0 0 16px 2px hsl(0 0% 100% / 0.6)',
+          },
+        },
         'glow-pink-neon': {
           '0%, 100%': {
             borderColor: 'hsl(310 100% 60% / 0.7)',
@@ -184,6 +194,7 @@ export default {
         'glow-green': 'glow-green 2.5s ease-in-out infinite',
         'glow-border-muted': 'glow-border-muted 4s ease-in-out infinite',
         'glow-border-primary': 'glow-border-primary 2.5s ease-in-out infinite',
+        'glow-border-white-yellow': 'glow-border-white-yellow 3s ease-in-out infinite',
         'glow-pink-neon': 'glow-pink-neon 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
