@@ -61,7 +61,7 @@ service cloud.firestore {
     // --- 3. 内容集合 (products, bbs) ---
     match /products/{productId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active' || (request.auth != null);
+      allow list: if true; // FIX: Allow public list operations
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
@@ -77,7 +77,7 @@ service cloud.firestore {
     }
     match /bbs/{postId} {
       allow get: if true;
-      allow list: if resource.data.status == 'active' || (request.auth != null);
+      allow list: if true; // FIX: Allow public list operations
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
