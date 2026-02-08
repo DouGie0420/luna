@@ -441,25 +441,27 @@ export default function MessagesPage() {
       setLoading(false);
       return;
     }
-
+  
     const q = query(
       collection(firestore, 'direct_chats'),
       where('participants', 'array-contains', user.uid),
       orderBy('lastMessageTimestamp', 'desc')
     );
-
+  
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedChats = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as DirectChat));
       setChats(fetchedChats);
-
-      if (loading) {
-        const initialId = searchParams.get('chatId');
-        if (initialId && fetchedChats.some(c => c.id === initialId)) {
-          setSelectedChatId(initialId);
-        } else if (fetchedChats.length > 0) {
-          setSelectedChatId(currentId => currentId ?? fetchedChats[0].id);
-        }
-        setLoading(false);
+      setLoading(false);
+  
+      const chatIdFromUrl = searchParams.get('chatId');
+      
+      // If a chat from the URL exists in the newly fetched list, select it.
+      if (chatIdFromUrl && fetchedChats.some(c => c.id === chatIdFromUrl)) {
+        setSelectedChatId(chatIdFromUrl);
+      } 
+      // If no chat is selected yet (and none from URL), default to the first chat.
+      else if (!selectedChatId && fetchedChats.length > 0) {
+        setSelectedChatId(fetchedChats[0].id);
       }
     }, (err) => {
       console.error(err);
@@ -469,9 +471,10 @@ export default function MessagesPage() {
         operation: 'list',
       }));
     });
-
+  
     return () => unsubscribe();
-  }, [firestore, user]);
+  }, [firestore, user, searchParams, selectedChatId]);
+  
 
   useEffect(() => {
     if (!firestore || !user?.uid || !selectedChatId || !chats.length) return;
