@@ -85,7 +85,7 @@ export function GlobalAudioPlayer() {
         setIsMuted(!isMuted);
     };
 
-    if (loading || !config?.display_logic?.isVisible || (isMobile && !config?.display_logic?.enableOnMobile)) {
+    if (loading || !config?.display_logic?.isVisible || (isMobile && !config.display_logic.enableOnMobile)) {
         return null;
     }
 
@@ -139,7 +139,7 @@ export function GlobalAudioPlayer() {
             <div className="flex h-full items-center">
               <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 shrink-0">
                 <img 
-                  src={channelIcon || '/default-icon.png'} 
+                  src={channelIcon || 'https://picsum.photos/seed/lunaradio/64/64'} 
                   className="object-cover w-full h-full" 
                   alt="Station" 
                 />
@@ -150,7 +150,7 @@ export function GlobalAudioPlayer() {
 
               <div className="ml-4 flex-1 overflow-hidden">
                 <h4 className="text-white text-xs font-bold truncate tracking-widest uppercase" style={{ color: secondaryColor }}>
-                  {stationName || 'Zaliens Radio'}
+                  {stationName || 'Luna Labs Radio'}
                 </h4>
                 <div className="flex items-end space-x-0.5 h-4 mt-2">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -159,12 +159,14 @@ export function GlobalAudioPlayer() {
                 </div>
               </div>
 
-              <button 
-                onClick={() => setIsMinimized(true)} 
-                className="absolute -top-1 -right-1 text-white/40 hover:text-white text-lg px-1"
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMinimized(true)}
+                className="absolute top-1 right-1 h-6 w-6 rounded-full text-white/60 hover:text-white hover:bg-white/10"
               >
-                <X className="h-4 w-4"/>
-              </button>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
             
             <div className="mt-4 flex items-center gap-2">

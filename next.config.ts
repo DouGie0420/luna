@@ -91,6 +91,12 @@ const nextConfig: NextConfig = {
         hostname: 'goop-img.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
