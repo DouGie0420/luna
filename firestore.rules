@@ -24,19 +24,19 @@ service cloud.firestore {
 
     // --- 1. 播放器与全局配置 ---
     match /configs/{configId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if hasRole(['admin', 'ghost']);
     }
     match /settings/{settingsId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if hasRole(['admin', 'ghost']);
     }
     match /announcements/{announcementId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if hasRole(['admin', 'ghost', 'staff']);
     }
     match /promos/{promoId} {
-        allow read: if true;
+        allow get, list: if true;
         allow write: if hasRole(['admin', 'ghost', 'staff']);
     }
 
@@ -100,7 +100,7 @@ service cloud.firestore {
       allow delete: if isAdminGroup();
     }
     match /rentalProperties/{propertyId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn();
       allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdminGroup());
       match /bookings/{bookingId} {
@@ -114,7 +114,7 @@ service cloud.firestore {
       }
     }
      match /reviews/{reviewId} {
-      allow read: if true;
+      allow get, list: if true;
       allow write: if isSignedIn() && (request.resource.data.reviewerId == request.auth.uid || isAdminGroup());
       allow list: if isSignedIn() && request.query.limit <= 50;
     }
