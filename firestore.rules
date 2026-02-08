@@ -48,7 +48,8 @@ service cloud.firestore {
     // --- 2. 用户集合 (users) ---
     match /users/{userId} {
       allow get: if true;
-      allow list: if request.query.limit <= 50;
+      // Admin/staff can list all users for management, others must paginate.
+      allow list: if hasRole(['admin', 'ghost', 'staff']) || request.query.limit <= 50;
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow delete: if hasRole(['admin', 'ghost']);
       allow update: if isSignedIn() && (
