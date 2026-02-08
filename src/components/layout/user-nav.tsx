@@ -202,7 +202,7 @@ export function UserNav() {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="text-sm font-medium">{profile?.displayName || user.displayName || "User"}</span>
+                <span className="text-sm font-headline">{profile?.displayName || user.displayName || "User"}</span>
                 <span className="text-xs text-muted-foreground uppercase">{profile?.role || 'user'}</span>
               </div>
             </DropdownMenuLabel>
@@ -222,5 +222,3 @@ export function UserNav() {
     </>
   );
 }
-
-    

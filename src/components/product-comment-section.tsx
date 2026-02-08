@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -116,7 +117,7 @@ const CommentItem = ({
         <div className="flex-1">
             <div className="flex items-center justify-between">
                 <div>
-                    <span className="font-semibold text-foreground">{authorName}</span>
+                    <span className="font-headline font-semibold text-foreground">{authorName}</span>
                 </div>
                 <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
                     <Button

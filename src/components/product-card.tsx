@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -147,7 +148,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           </CardTitle>
            <div className="flex items-end gap-2 text-xs text-muted-foreground mb-2">
                 <UserAvatar profile={{ displayName: product.seller.name, photoURL: product.seller.avatarUrl, displayedBadge: product.seller.displayedBadge }} className="h-5 w-5" />
-                <span>{product.seller.name}</span>
+                <span className="font-headline">{product.seller.name}</span>
             </div>
           <div className="flex items-center gap-2 flex-wrap mt-1">
             {product.isConsignment && (

@@ -328,7 +328,7 @@ export default function UserProfilePage() {
                                 <UserAvatar profile={user} className="h-20 w-20" />
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
-                                        <CardTitle>{user.displayName}</CardTitle>
+                                        <CardTitle className="font-headline">{user.displayName}</CardTitle>
                                     </div>
                                     <Separator className="my-1.5" />
                                     <div className="flex items-center gap-x-3 text-sm text-muted-foreground">

@@ -174,7 +174,7 @@ export default function UserFollowingPage() {
                                 <AvatarImage src={followedUser.photoURL} alt={followedUser.displayName} />
                                 <AvatarFallback>{followedUser.displayName.charAt(0)}</AvatarFallback>
                             </Avatar>
-                            <p className="font-semibold hover:underline">{followedUser.displayName}</p>
+                            <p className="font-headline font-semibold hover:underline">{followedUser.displayName}</p>
                         </Link>
                          {currentUser?.uid !== followedUser.uid && (
                             <Button 

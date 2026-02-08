@@ -18,9 +18,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['"Press Start 2P"', 'sans-serif'],
-        headline: ['"Press Start 2P"', 'sans-serif'],
-        sans: ['"Neue Helvetica"', 'Arial', 'sans-serif'],
+        headline: ['"Press Start 2P"', 'sans-serif'], // For Logo & Nicknames
+        sans: ['"Inter"', 'sans-serif'], // For Body Text
+        serif: ['"Playfair Display"', 'serif'], // For Headings
         code: ['monospace'],
       },
       colors: {

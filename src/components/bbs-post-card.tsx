@@ -322,7 +322,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                                 )}
                             </div>
                             <div>
-                                <p className="text-sm font-semibold text-foreground">{post.author.name}</p>
+                                <p className="text-sm font-headline text-foreground">{post.author.name}</p>
                                 <p className="text-xs text-muted-foreground">
                                     {timeAgo}{post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
                                 </p>

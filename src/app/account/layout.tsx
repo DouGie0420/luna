@@ -79,7 +79,7 @@ export default function AccountLayout({
             <div className="flex flex-col items-center gap-2 p-4">
               <UserAvatar profile={profile} className="h-20 w-20" />
               <div className="text-center group-data-[collapsible=icon]:hidden">
-                <p className="font-semibold">
+                <p className="font-headline font-semibold">
                   {profile?.displayName || user?.displayName || 'User'}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -181,5 +181,3 @@ export default function AccountLayout({
     </>
   )
 }
-
-    

@@ -51,7 +51,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                         <div className="flex items-start gap-4">
                             <UserAvatar profile={displayUser} className="h-16 w-16" />
                             <div className="flex-1">
-                                <p className="font-bold text-lg">{displayName}</p>
+                                <p className="font-headline font-bold text-lg">{displayName}</p>
                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                     <Star className="h-4 w-4 fill-primary text-primary" />
                                     <span>{(displayUser.rating || 0).toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
@@ -96,7 +96,7 @@ export function SellerProfileCard({ product }: { product: Product }) {
                     <DialogTitle className="flex items-center gap-3">
                         <UserAvatar profile={displayUser} className="h-12 w-12" />
                         <div>
-                            <p className="text-xl font-bold">{displayName}</p>
+                            <p className="text-xl font-headline font-bold">{displayName}</p>
                             <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Star className="h-4 w-4 fill-primary text-primary" />
                                 <span>{(displayUser.rating || 0).toFixed(1)} ({displayUser.reviewsCount || 0} {t('sellerProfile.reviews')})</span>
