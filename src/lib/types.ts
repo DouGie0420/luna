@@ -1,6 +1,7 @@
 
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -356,4 +357,5 @@ export type GlobalSettings = {
   id?: string;
   isAiAnalysisEnabled: boolean;
   isProApplicationEnabled: boolean;
+  isRentalEnabled: boolean;
 };

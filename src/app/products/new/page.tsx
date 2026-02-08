@@ -66,6 +66,7 @@ export default function NewProductPage() {
   const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
   const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
   const isAiFeatureEnabled = globalSettings?.isAiAnalysisEnabled ?? false;
+  const isRentalEnabled = globalSettings?.isRentalEnabled ?? false;
 
   useEffect(() => {
       if (!loading && !user) {
@@ -220,7 +221,7 @@ export default function NewProductPage() {
   };
 
 
-  if (loading || !user) {
+  if (loading || !user || settingsLoading) {
       return (
         <div className="container mx-auto px-4 py-12">
             <div className="max-w-3xl mx-auto space-y-6">
@@ -294,7 +295,7 @@ export default function NewProductPage() {
       </div>
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-3xl mx-auto space-y-8">
-          {profile?.isPro && (
+          {profile?.isPro && isRentalEnabled && (
             <Card className="border-primary animate-glow-border-primary">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3"><Home className="text-primary"/> PRO商户专属</CardTitle>

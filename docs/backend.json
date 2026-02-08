@@ -995,6 +995,10 @@
           "isProApplicationEnabled": {
             "type": "boolean",
             "description": "Toggles the ability for users to apply for PRO merchant status."
+          },
+          "isRentalEnabled": {
+            "type": "boolean",
+            "description": "Toggles the ability for PRO users to post rental properties."
           }
         }
       },

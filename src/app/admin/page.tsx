@@ -222,6 +222,21 @@ export default function AdminDashboardPage() {
                                 />
                             )}
                         </div>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="rental-toggle" className="flex items-center gap-2 text-base"><Award className="h-4 w-4 text-primary"/> 房屋租赁功能</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    开启或关闭PRO商户发布房屋租赁信息的功能。
+                                </p>
+                            </div>
+                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
+                                <Switch
+                                    id="rental-toggle"
+                                    checked={globalSettings?.isRentalEnabled ?? false}
+                                    onCheckedChange={(checked) => handleSettingToggle('isRentalEnabled', checked)}
+                                />
+                            )}
+                        </div>
                     </CardContent>
                 </CardHeader>
              </Card>
@@ -260,5 +275,3 @@ export default function AdminDashboardPage() {
         </div>
     );
 }
-
-    
