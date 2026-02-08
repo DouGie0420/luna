@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Banknote,
   Award,
+  Radio,
 } from 'lucide-react'
 
 import {
@@ -60,6 +61,7 @@ const pagePermissions: Record<string, Array<Role>> = {
     '/admin/payment-requests': ['admin', 'ghost', 'staff', 'support'],
     '/admin/pro-applications': ['admin', 'ghost', 'staff', 'support'],
     '/admin/support': ['admin', 'ghost', 'staff', 'support'],
+    '/admin/live-settings': ['admin', 'ghost'],
 };
 
 
@@ -191,6 +193,17 @@ export default function AdminLayout({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </>
+            )}
+            
+            {hasRole(userRole, []) && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/live-settings')}>
+                    <Link href="/admin/live-settings">
+                      <Radio />
+                      {t('admin.layout.liveSettings')}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
             )}
 
             {hasRole(userRole, ['staff', 'support']) && (

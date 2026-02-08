@@ -560,7 +560,8 @@
       "goHome": "返回首页",
       "verifyEmailPrompt": "请先验证邮箱以激活管理权限",
       "verifyEmailCTA": "一封验证链接已发送至您的邮箱，请检查收件箱（以及垃圾邮件文件夹）。",
-      "paymentRequests": "收款申请"
+      "paymentRequests": "收款申请",
+      "liveSettings": "直播源管理"
     },
     "dashboardPage": {
       "totalUsers": "总用户数",
@@ -701,5 +702,3 @@
     }
   }
 }
-
-    

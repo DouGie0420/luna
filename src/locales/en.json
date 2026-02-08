@@ -587,7 +587,8 @@
       "goHome": "Go back to Home",
       "verifyEmailPrompt": "Please verify your email to activate admin privileges.",
       "verifyEmailCTA": "A verification link has been sent to your email. Please check your inbox (and spam folder).",
-      "paymentRequests": "Payment Requests"
+      "paymentRequests": "Payment Requests",
+      "liveSettings": "Live Source"
     },
     "dashboardPage": {
       "totalUsers": "Total Users",
@@ -728,5 +729,3 @@
     }
   }
 }
-
-    
