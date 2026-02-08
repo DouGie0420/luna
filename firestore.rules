@@ -61,7 +61,7 @@ service cloud.firestore {
     // --- 3. 内容集合 (products, bbs) ---
     match /products/{productId} {
       allow get: if true;
-      allow list: if true; // FIX: Allow public list operations
+      allow list: if true;
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
@@ -77,7 +77,7 @@ service cloud.firestore {
     }
     match /bbs/{postId} {
       allow get: if true;
-      allow list: if true; // FIX: Allow public list operations
+      allow list: if true;
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
@@ -93,7 +93,7 @@ service cloud.firestore {
 
     // --- 4. 交易与租赁 (orders, rentalProperties, reviews) ---
     match /orders/{orderId} {
-      allow list: if isSignedIn() && request.query.limit <= 50;
+      allow list: if isAdminGroup() || (isSignedIn() && request.query.limit <= 50);
       allow get: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
       allow create: if isSignedIn();
       allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
@@ -155,12 +155,12 @@ service cloud.firestore {
     match /paymentChangeRequests/{reqId} {
         allow create: if isSignedIn();
         allow read, update, delete: if isAdminGroup();
-        allow list: if isAdminGroup() && request.query.limit <= 50;
+        allow list: if isAdminGroup();
     }
     match /proApplications/{applicationId} {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow get: if request.auth != null && (resource.data.userId == request.auth.uid || isAdminGroup());
-      allow list: if isAdminGroup() && request.query.limit <= 50;
+      allow list: if isAdminGroup();
       allow update: if isAdminGroup();
       allow delete: if hasRole(['admin', 'ghost']);
     }
