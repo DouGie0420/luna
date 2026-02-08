@@ -2,9 +2,9 @@
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, Loader2, DollarSign, Activity, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award } from "lucide-react";
+import { Users, ShieldCheck, Loader2, DollarSign, Activity, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award, Radio } from "lucide-react";
 import { useFirestore, useDoc } from "@/firebase";
-import { collection, getDocs, query, where, Timestamp, doc, setDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, Timestamp, doc, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import Link from "next/link";
@@ -18,7 +18,7 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { GlobalSettings } from "@/lib/types";
+import type { GlobalSettings, GlobalAudioPlayerConfig } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 
 type Stats = {
@@ -58,6 +58,10 @@ export default function AdminDashboardPage() {
 
     const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
     const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
+
+    const audioConfigRef = useMemo(() => firestore ? doc(firestore, 'configs', 'global_audio_player') : null, [firestore]);
+    const { data: globalAudioPlayerConfig, loading: audioConfigLoading } = useDoc<GlobalAudioPlayerConfig>(audioConfigRef);
+
 
     useEffect(() => {
         if (!firestore) return;
@@ -105,6 +109,17 @@ export default function AdminDashboardPage() {
         } catch (error) {
             console.error("Failed to update setting:", error);
             toast({ variant: 'destructive', title: 'Update failed' });
+        }
+    };
+
+    const handleAudioPlayerToggle = async (value: boolean) => {
+        if (!audioConfigRef) return;
+        try {
+            await updateDoc(audioConfigRef, { 'display_logic.isVisible': value });
+            toast({ title: '播放器设置已更新' });
+        } catch (error) {
+            console.error("Failed to update audio player setting:", error);
+            toast({ variant: 'destructive', title: '更新失败' });
         }
     };
 
@@ -237,6 +252,21 @@ export default function AdminDashboardPage() {
                                 />
                             )}
                         </div>
+                        <div className="flex items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <Label htmlFor="audio-player-toggle" className="flex items-center gap-2 text-base"><Radio className="h-4 w-4 text-primary"/> 全局音乐播放器</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    在全站右下角启用或禁用背景音乐直播浮动窗口。
+                                </p>
+                            </div>
+                            {audioConfigLoading ? <Skeleton className="h-6 w-10" /> : (
+                                <Switch
+                                    id="audio-player-toggle"
+                                    checked={globalAudioPlayerConfig?.display_logic?.isVisible ?? false}
+                                    onCheckedChange={handleAudioPlayerToggle}
+                                />
+                            )}
+                        </div>
                     </CardContent>
                 </CardHeader>
              </Card>
@@ -275,3 +305,6 @@ export default function AdminDashboardPage() {
         </div>
     );
 }
+
+
+    
