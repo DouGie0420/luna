@@ -24,8 +24,13 @@ service cloud.firestore {
 
     // --- 1. 播放器与全局配置 ---
     match /configs/{configId} {
-      allow get, list: if true;
-      allow write: if hasRole(['admin', 'ghost']);
+      // 显式允许 get 和 list，确保 snapshot listener (监听器) 能正常工作
+      allow get, list: if true; 
+      
+      // 只有管理员可以写入 [cite: 2026-02-03]
+      allow write: if isSignedIn() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'ghost']
+      );
     }
     match /settings/{settingsId} {
       allow get, list: if true;
