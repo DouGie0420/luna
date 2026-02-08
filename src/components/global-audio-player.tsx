@@ -138,9 +138,9 @@ export function GlobalAudioPlayer() {
             <div className="flex h-full items-center">
               <div className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 shrink-0">
                 <img 
-                  src={channelIcon || 'https://images.unsplash.com/photo-1593817929447-81a742d46e33?w=64&h=64&fit=crop&q=80'} 
+                  src={channelIcon || 'https://picsum.photos/seed/lunaradio/64/64'} 
                   className="object-cover w-full h-full" 
-                  alt="Station" 
+                  alt={stationName || 'Luna Labs Radio'} 
                 />
                 {showLiveBadge && (
                   <div className="absolute top-1 left-1 px-1 bg-red-600 text-[8px] text-white font-bold rounded animate-pulse">LIVE</div>
@@ -162,7 +162,7 @@ export function GlobalAudioPlayer() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsMinimized(true)}
-                className="absolute top-1 right-1 h-6 w-6 rounded-full text-white/60 hover:text-white hover:bg-white/10"
+                className="absolute top-2 right-2 h-7 w-7 rounded-full text-white/60 hover:text-white hover:bg-white/10"
               >
                 <X className="h-4 w-4" />
               </Button>
