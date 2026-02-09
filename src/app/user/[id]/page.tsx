@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -24,7 +25,7 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, writeBatch } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -98,30 +99,42 @@ export default function UserProfilePage() {
             toast({ variant: 'destructive', title: t('common.loginToInteract') });
             return;
         }
-
+    
+        const newFollowingState = !isFollowing;
+    
+        // Optimistic UI update
+        setIsFollowing(newFollowingState);
+    
         const currentUserRef = doc(firestore, 'users', currentUser.uid);
         const targetUserRef = doc(firestore, 'users', user.uid);
-        const newFollowingState = !isFollowing;
-
+        
+        const batch = writeBatch(firestore);
+    
         try {
-            await updateDoc(currentUserRef, {
+            // Update current user's following list and count
+            batch.update(currentUserRef, {
                 following: newFollowingState ? arrayUnion(user.uid) : arrayRemove(user.uid),
                 followingCount: increment(newFollowingState ? 1 : -1)
             });
-            await updateDoc(targetUserRef, {
+    
+            // Update target user's followers list and count
+            batch.update(targetUserRef, {
                 followers: newFollowingState ? arrayUnion(currentUser.uid) : arrayRemove(currentUser.uid),
                 followersCount: increment(newFollowingState ? 1 : -1)
             });
             
-            setIsFollowing(newFollowingState);
+            await batch.commit();
+            
             toast({ title: newFollowingState ? t('userProfile.followedSuccess') : t('userProfile.unfollowedSuccess') });
-
+    
         } catch (error) {
+            // Revert optimistic update on error
+            setIsFollowing(!newFollowingState);
+            
             console.error("Failed to update follow status:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: `users/${user.uid}`,
+                path: `users/${user.uid} or users/${currentUser.uid}`,
                 operation: 'update',
-                requestResourceData: { followers: '...', followersCount: '...' }
             }));
         }
     };

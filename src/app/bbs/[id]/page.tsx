@@ -484,35 +484,34 @@ export default function BbsPostPage() {
         }
 
         const commentRef = doc(firestore, 'bbs', post.id, 'comments', commentId);
-        let likeIncrement = 0;
-        let dislikeIncrement = 0;
+        
+        const updateData: { [key: string]: any } = {};
 
         if (type === 'like') {
-            if (isLiked) {
-                likeIncrement = -1;
-            } else {
-                likeIncrement = 1;
-                if (isDisliked) dislikeIncrement = -1;
+            updateData.likedBy = isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid);
+            updateData.likes = increment(isLiked ? -1 : 1);
+            if (isDisliked) {
+                updateData.dislikedBy = arrayRemove(user.uid);
+                updateData.dislikes = increment(-1);
             }
         } else { // dislike
-            if (isDisliked) {
-                dislikeIncrement = -1;
-            } else {
-                dislikeIncrement = 1;
-                if (isLiked) likeIncrement = -1;
+            updateData.dislikedBy = isDisliked ? arrayRemove(user.uid) : arrayUnion(user.uid);
+            updateData.dislikes = increment(isDisliked ? -1 : 1);
+            if (isLiked) {
+                updateData.likedBy = arrayRemove(user.uid);
+                updateData.likes = increment(-1);
             }
         }
 
-        try {
-            await updateDoc(commentRef, {
-                likedBy: type === 'like' && !isLiked ? arrayUnion(user.uid) : arrayRemove(user.uid),
-                dislikedBy: type === 'dislike' && !isDisliked ? arrayUnion(user.uid) : arrayRemove(user.uid),
-                ...(likeIncrement !== 0 && { likes: increment(likeIncrement) }),
-                ...(dislikeIncrement !== 0 && { dislikes: increment(dislikeIncrement) }),
+        updateDoc(commentRef, updateData)
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: commentRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
             });
-        } catch (error) {
-            console.error("Failed to update comment interaction:", error);
-        }
     };
     
      const handlePostInteraction = async (type: 'like' | 'favorite') => {

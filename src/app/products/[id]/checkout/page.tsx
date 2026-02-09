@@ -24,6 +24,8 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddressForm } from '@/components/address-form';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const SHIPPING_FEES = {
@@ -215,33 +217,34 @@ export default function CheckoutPage() {
         paymentMethod: paymentMethod,
     };
     
-    try {
-        const batch = writeBatch(firestore);
+    const batch = writeBatch(firestore);
 
-        // 1. Create the order
-        const orderRef = doc(collection(firestore, 'orders'));
-        batch.set(orderRef, orderData);
-        
-        // 2. Lock the product by changing its status
-        const productRef = doc(firestore, 'products', product.id);
-        batch.update(productRef, { status: 'under_review' });
+    // 1. Create the order
+    const orderRef = doc(collection(firestore, 'orders'));
+    batch.set(orderRef, orderData);
+    
+    // 2. Lock the product by changing its status
+    const productDocRef = doc(firestore, 'products', product.id);
+    batch.update(productDocRef, { status: 'under_review' });
 
-        await batch.commit();
-
+    batch.commit()
+      .then(() => {
         toast({
             title: "Order Placed!",
             description: "Your order is now pending payment.",
         });
         router.push(`/account/purchases/${orderRef.id}`);
-    } catch(e) {
-        console.error(e);
-        toast({
-            variant: "destructive",
-            title: "Order Failed",
-            description: "There was an error creating your order. Please try again.",
-        });
+      })
+      .catch((e) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: 'orders or products',
+            operation: 'create',
+            requestResourceData: { order: orderData, productUpdate: { status: 'under_review' } }
+        }));
+      })
+      .finally(() => {
         setIsProcessing(false);
-    }
+      });
   };
 
   const handleEditAddress = (addressId: string) => {

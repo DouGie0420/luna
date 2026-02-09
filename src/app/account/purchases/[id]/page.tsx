@@ -23,6 +23,8 @@ import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -85,34 +87,45 @@ export default function OrderDetailPage() {
     const handleConfirmReceipt = async () => {
         if (!firestore || !order) return;
         setIsProcessing(true);
-        try {
-            await updateDoc(doc(firestore, 'orders', order.id), {
-                status: 'Completed',
-                completedAt: serverTimestamp()
+        const orderDocRef = doc(firestore, 'orders', order.id);
+        const updateData = { status: 'Completed' as const, completedAt: serverTimestamp() };
+
+        updateDoc(orderDocRef, updateData)
+            .then(() => {
+                toast({ title: t('orderDetails.receiptConfirmed') });
+            })
+            .catch((e) => {
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: orderDocRef.path,
+                    operation: 'update',
+                    requestResourceData: { status: 'Completed' }
+                }));
+            })
+            .finally(() => {
+                setIsProcessing(false);
             });
-            toast({ title: t('orderDetails.receiptConfirmed') });
-        } catch (e) {
-            console.error(e);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to confirm receipt.' });
-        } finally {
-            setIsProcessing(false);
-        }
     };
     
     const handleConfirmPayment = async () => {
         if (!firestore || !order) return;
         setIsProcessing(true);
-        try {
-            await updateDoc(doc(firestore, 'orders', order.id), {
-                status: 'In Escrow'
+        const orderDocRef = doc(firestore, 'orders', order.id);
+        const updateData = { status: 'In Escrow' as const };
+        
+        updateDoc(orderDocRef, updateData)
+            .then(() => {
+                toast({ title: t('orderDetails.paymentSuccess') });
+            })
+            .catch((e) => {
+                 errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: orderDocRef.path,
+                    operation: 'update',
+                    requestResourceData: updateData
+                }));
+            })
+            .finally(() => {
+                setIsProcessing(false);
             });
-            toast({ title: t('orderDetails.paymentSuccess') });
-        } catch (e) {
-            console.error(e);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
-        } finally {
-            setIsProcessing(false);
-        }
     };
 
     const handleRemindSeller = async () => {

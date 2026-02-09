@@ -18,6 +18,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const PAGE_SIZE = 50;
 const locales = { en: enUS, zh: zhCN, th: th };
@@ -84,25 +86,29 @@ function PurchaseOrderCard({ order }: { order: Order }) {
     
     const [isConfirming, setIsConfirming] = useState(false);
 
-    const handleConfirmReceipt = async (e: React.MouseEvent) => {
+    const handleConfirmReceipt = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
         if (!firestore) return;
 
         setIsConfirming(true);
-        const orderRef = doc(firestore, 'orders', order.id);
-        try {
-            await updateDoc(orderRef, {
-                status: 'Completed',
-                completedAt: serverTimestamp()
+        const orderDocRef = doc(firestore, 'orders', order.id);
+        const updateData = { status: 'Completed' as const, completedAt: serverTimestamp() };
+
+        updateDoc(orderDocRef, updateData)
+            .then(() => {
+                toast({ title: t('orderDetails.receiptConfirmed') });
+            })
+            .catch((error) => {
+                 errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: orderDocRef.path,
+                    operation: 'update',
+                    requestResourceData: { status: 'Completed' }
+                }));
+            })
+            .finally(() => {
+                setIsConfirming(false);
             });
-            toast({ title: t('orderDetails.receiptConfirmed') });
-        } catch (error) {
-            console.error("Failed to confirm receipt:", error);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
-        } finally {
-            setIsConfirming(false);
-        }
     };
     
     const isLoading = productLoading || sellerLoading;
