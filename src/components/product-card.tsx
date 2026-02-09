@@ -119,7 +119,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.id}`} className="group h-full" onClick={handleGuestClick}>
-      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border hover:shadow-primary/20 hover:shadow-lg hover:border-primary/50 animate-glow-border-white", className)}>
+      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border border-foreground/40 hover:shadow-primary/20 hover:shadow-lg", className)}>
         <CardHeader className="p-0">
           <div className="aspect-[4/3] relative overflow-hidden">
             <Image

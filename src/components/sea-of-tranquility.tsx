@@ -173,7 +173,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
     return (
-        <Card className="relative flex h-full flex-col justify-between bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border hover:border-primary/50 animate-glow-border-white">
+        <Card className="relative flex h-full flex-col justify-between bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border border-foreground/40">
             {hasAdminAccess && (
                 <div className="absolute top-2 right-2 z-20">
                     <DropdownMenu>
