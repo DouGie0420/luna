@@ -153,12 +153,12 @@ export default {
         },
         'glow-border-white': {
           '0%, 100%': {
-            borderColor: 'hsla(0, 0%, 100%, 0.2)',
-            boxShadow: '0 0 5px hsla(0, 0%, 100%, 0.1)',
+            borderColor: 'hsla(0, 0%, 100%, 0.3)',
+            boxShadow: '0 0 6px hsla(0, 0%, 100%, 0.2)',
           },
           '50%': {
             borderColor: 'hsla(0, 0%, 100%, 0.7)',
-            boxShadow: '0 0 12px hsla(0, 0%, 100%, 0.3)',
+            boxShadow: '0 0 10px hsla(0, 0%, 100%, 0.4)',
           },
         },
         'glow-pink-neon': {
@@ -205,7 +205,7 @@ export default {
         'glow-border-muted': 'glow-border-muted 4s ease-in-out infinite',
         'glow-border-primary': 'glow-border-primary 2.5s ease-in-out infinite',
         'glow-border-white-yellow': 'glow-border-white-yellow 3s ease-in-out infinite',
-        'glow-border-white': 'glow-border-white 4s ease-in-out infinite',
+        'glow-border-white': 'glow-border-white 6s ease-in-out infinite',
         'glow-pink-neon': 'glow-pink-neon 2.5s ease-in-out infinite',
         'glow-line': 'glow-line 4s linear infinite',
         'hue-rotate': 'hue-rotate 5s linear infinite',
