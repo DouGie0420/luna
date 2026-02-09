@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard } from 'lucide-react';
+import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard, Wallet } from 'lucide-react';
 import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -99,7 +99,7 @@ export default function OrderDetailPage() {
         }
     };
     
-    const handleSimulatePayment = async () => {
+    const handleConfirmPayment = async () => {
         if (!firestore || !order) return;
         setIsProcessing(true);
         try {
@@ -109,7 +109,7 @@ export default function OrderDetailPage() {
             toast({ title: t('orderDetails.paymentSuccess') });
         } catch (e) {
             console.error(e);
-            toast({ variant: 'destructive', title: 'Error', description: 'Failed to simulate payment.' });
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update order status.' });
         } finally {
             setIsProcessing(false);
         }
@@ -217,11 +217,17 @@ export default function OrderDetailPage() {
                                 {t('orderDetails.remindSeller')}
                             </Button>
                        )}
-                       {isBuyer && order.status === 'Pending' && (
-                           <Button onClick={handleSimulatePayment} disabled={isProcessing}>
+                       {isBuyer && order.status === 'Pending' && order.paymentMethod === 'USDT' ? (
+                           <Button onClick={handleConfirmPayment} disabled={isProcessing}>
+                               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                               <Wallet className="mr-2 h-4 w-4" />
+                               Pay with Wallet (Escrow)
+                           </Button>
+                       ) : isBuyer && order.status === 'Pending' && (
+                           <Button onClick={handleConfirmPayment} disabled={isProcessing}>
                                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                <CreditCard className="mr-2 h-4 w-4" />
-                               {t('orderDetails.simulatePayment')}
+                               I Have Paid
                            </Button>
                        )}
                        {canConfirmReceipt && (

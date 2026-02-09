@@ -519,12 +519,20 @@
           "type": "number",
           "description": "The calculated shipping fee."
         },
+        "platformFee": {
+            "type": "number",
+            "description": "The fee collected by the platform for the transaction."
+        },
         "totalAmount": {
           "type": "number",
           "description": "The total amount (price + shippingFee)."
         },
         "currency": {
           "type": "string"
+        },
+        "paymentMethod": {
+            "type": "string",
+            "enum": ["THB", "USDT", "Alipay", "WeChat", "PromptPay"]
         },
         "status": {
           "type": "string",
@@ -537,6 +545,10 @@
             "Disputed",
             "Cancelled"
           ]
+        },
+        "disputeReason": {
+            "type": "string",
+            "description": "The reason provided if the order is disputed."
         },
         "createdAt": {
           "type": "string",
@@ -620,7 +632,8 @@
         "status",
         "createdAt",
         "shippingAddress",
-        "shippingMethod"
+        "shippingMethod",
+        "paymentMethod"
       ]
     },
     "Review": {

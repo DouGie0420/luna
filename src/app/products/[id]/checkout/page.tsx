@@ -42,6 +42,10 @@ function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, 
         return null;
     }
 
+    if (method === 'USDT') {
+        return null; // Don't show direct payment details for USDT Escrow
+    }
+
     let content = null;
     let title = '';
 
@@ -57,11 +61,6 @@ function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, 
         case 'PromptPay':
              title = 'PromptPay 收款码';
             content = seller.paymentInfo.promptPayQrUrl ? <Image src={seller.paymentInfo.promptPayQrUrl} alt="PromptPay QR Code" width={200} height={200} className="rounded-md" /> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
-            break;
-        case 'USDT':
-            title = 'USDT (TRC20) 收款地址';
-            // USDT address is now the walletAddress on the user's profile
-            content = seller.walletAddress ? <p className="font-mono text-sm break-all">{seller.walletAddress}</p> : <p className="text-muted-foreground">卖家未提供此收款方式</p>;
             break;
         case 'THB':
             title = '银行转账 (THB)';
@@ -209,10 +208,11 @@ export default function CheckoutPage() {
         shippingFee: shippingFee,
         totalAmount: totalAmount,
         currency: product.currency,
-        status: 'Pending' as const, // Create as Pending first
+        status: 'Pending' as const,
         createdAt: serverTimestamp(),
         shippingAddress: shippingAddress,
         shippingMethod: shippingMethod,
+        paymentMethod: paymentMethod,
     };
     
     try {

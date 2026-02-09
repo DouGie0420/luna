@@ -225,9 +225,12 @@ export type Order = {
   participants: string[];
   price: number;
   shippingFee: number;
+  platformFee?: number;
   totalAmount: number;
   currency: string;
+  paymentMethod: PaymentMethod;
   status: OrderStatus;
+  disputeReason?: string;
   createdAt: any;
   completedAt?: any;
   buyerReviewId?: string;
