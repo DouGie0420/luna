@@ -29,6 +29,7 @@ export default function LiveStreamSettingsPage() {
   const [formData, setFormData] = useState({
     videoId: '',
     stationName: '',
+    channelId: '',
     isVisible: false,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +39,7 @@ export default function LiveStreamSettingsPage() {
       setFormData({
         videoId: liveConfig.content_source?.videoId || '',
         stationName: liveConfig.metadata?.stationName || '',
+        channelId: liveConfig.metadata?.channelId || '',
         isVisible: liveConfig.display_logic?.isVisible || false,
       });
     }
@@ -50,6 +52,7 @@ export default function LiveStreamSettingsPage() {
       await updateDoc(configRef, {
         'content_source.videoId': formData.videoId,
         'metadata.stationName': formData.stationName,
+        'metadata.channelId': formData.channelId,
         'display_logic.isVisible': formData.isVisible,
       });
       toast({
@@ -130,6 +133,18 @@ export default function LiveStreamSettingsPage() {
                         onChange={(e) => setFormData({ ...formData, stationName: e.target.value })}
                         disabled={isSubmitting}
                     />
+                </div>
+                
+                <div className="grid gap-2">
+                    <Label htmlFor="channelId">YouTube Channel ID</Label>
+                    <Input 
+                        id="channelId"
+                        placeholder="例如: UC..."
+                        value={formData.channelId}
+                        onChange={(e) => setFormData({ ...formData, channelId: e.target.value })}
+                        disabled={isSubmitting}
+                    />
+                     <p className="text-xs text-muted-foreground">用于未来可能的 API 自动关联。</p>
                 </div>
 
                 <div className="flex justify-end">

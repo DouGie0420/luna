@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -228,6 +222,7 @@ export type Order = {
   productName: string;
   buyerId: string;
   sellerId: string;
+  participants: string[];
   price: number;
   shippingFee: number;
   totalAmount: number;
@@ -388,5 +383,6 @@ export type GlobalAudioPlayerConfig = {
   metadata: {
     stationName: string;
     channelIcon?: string;
+    channelId?: string;
   };
 };

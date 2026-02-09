@@ -25,7 +25,7 @@ service cloud.firestore {
     // --- 1. 播放器与全局配置 ---
     match /configs/{configId} {
       allow get, list: if true; 
-      allow write: if hasRole(['admin', 'ghost']);
+      allow write: if hasRole(['admin', 'ghost', 'staff']);
     }
     match /settings/{settingsId} {
       allow get, list: if true;
@@ -60,7 +60,7 @@ service cloud.firestore {
 
     // --- 3. 内容集合 (products, bbs) ---
     match /products/{productId} {
-      allow get, list: if true;
+      allow read, list: if true;
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
@@ -75,7 +75,7 @@ service cloud.firestore {
       }
     }
     match /bbs/{postId} {
-      allow get, list: if true;
+      allow read, list: if true;
       allow create: if isSignedIn();
       allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || hasRole(['admin', 'ghost', 'staff']));
       allow update: if isSignedIn() && (
