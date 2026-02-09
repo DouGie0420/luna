@@ -35,8 +35,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 
 function ProductPageSkeleton() {
@@ -160,13 +158,9 @@ export default function ProductPage() {
             };
         }
         
-        updateDoc(productRef, updateData).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: productRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+        updateDoc(productRef, updateData).catch(error => {
+            console.error(`Failed to update ${type}:`, error);
+            toast({ variant: 'destructive', title: `Failed to update ${type}` });
         });
     };
 
@@ -179,30 +173,27 @@ export default function ProductPage() {
     const handleDeleteProduct = async () => {
         if (!product || !firestore) return;
         setIsSubmittingDelete(true);
-    
-        const productRef = doc(firestore, "products", product.id);
-        const updateData = { status: 'under_review' as const };
-        
-        updateDoc(productRef, updateData)
-            .then(() => {
-                toast({
-                    title: "商品已提交审核",
-                    description: "该商品已从前台隐藏，等待管理员审核。",
-                });
-                setIsDeleteDialogOpen(false);
-                setTimeout(() => {
-                    window.location.href = '/products';
-                }, 300);
-            })
-            .catch(serverError => {
-                const permissionError = new FirestorePermissionError({
-                    path: productRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                setIsSubmittingDelete(false);
+        try {
+            const productRef = doc(firestore, "products", product.id);
+            await updateDoc(productRef, { status: 'under_review' });
+            toast({
+                title: "商品已提交审核",
+                description: "该商品已从前台隐藏，等待管理员审核。",
             });
+            setIsDeleteDialogOpen(false);
+             // Use window.location to force a full reload and redirect.
+            setTimeout(() => {
+                window.location.href = '/products';
+            }, 300);
+        } catch(e) {
+            console.error(e);
+            toast({
+                title: 'Error',
+                description: 'Failed to submit for review.',
+                variant: 'destructive',
+            });
+            setIsSubmittingDelete(false);
+        }
     };
 
 

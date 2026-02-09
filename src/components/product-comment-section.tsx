@@ -28,8 +28,6 @@ import {
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { collection, query, orderBy, addDoc, updateDoc, deleteDoc, serverTimestamp, increment, arrayUnion, arrayRemove, doc } from 'firebase/firestore';
 import type { Comment as CommentType, UserProfile } from '@/lib/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { User as FirebaseUser } from 'firebase/auth';
 
 type NestedComment = CommentType & {
@@ -215,31 +213,29 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
         setIsSubmitting(true);
         
-        const commentData = {
-            authorId: user.uid,
-            text: newComment,
-            createdAt: serverTimestamp(),
-            parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
-            likes: 0,
-            dislikes: 0,
-            likedBy: [],
-            dislikedBy: [],
-        };
-        const commentsRef = collection(firestore, 'products', productId, 'comments');
-        
         try {
-            await addDoc(commentsRef, commentData);
+            await addDoc(collection(firestore, 'products', productId, 'comments'), {
+                authorId: user.uid,
+                text: newComment,
+                createdAt: serverTimestamp(),
+                parentId: replyingTo?.id === 'root' ? null : replyingTo.id,
+                likes: 0,
+                dislikes: 0,
+                likedBy: [],
+                dislikedBy: [],
+            });
             setNewComment('');
             setReplyingTo(null);
             toast({
                 title: t('productComments.commentPosted'),
             });
         } catch(e) {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: commentsRef.path,
-                operation: 'create',
-                requestResourceData: commentData
-            }));
+            console.error(e);
+            toast({
+                title: 'Error',
+                description: 'Failed to post comment.',
+                variant: 'destructive'
+            });
         } finally {
             setIsSubmitting(false);
         }
@@ -248,13 +244,13 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     const handleDeleteComment = async () => {
         if (!commentToDelete || !firestore) return;
         
-        const commentRef = doc(firestore, 'products', productId, 'comments', commentToDelete);
         try {
-            await deleteDoc(commentRef);
+            await deleteDoc(doc(firestore, 'products', productId, 'comments', commentToDelete));
             setCommentToDelete(null);
             toast({ title: t('productComments.commentDeleted') });
         } catch (e) {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: commentRef.path, operation: 'delete' }));
+            console.error(e);
+            toast({ title: 'Failed to delete comment', variant: 'destructive'});
         }
     };
 
@@ -291,7 +287,12 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         try {
             await updateDoc(commentRef, updateData);
         } catch (e) {
-             errorEmitter.emit('permission-error', new FirestorePermissionError({ path: commentRef.path, operation: 'update', requestResourceData: updateData }));
+             console.error(e);
+             toast({
+                title: 'Error',
+                description: 'Failed to update like/dislike status.',
+                variant: 'destructive'
+            });
         }
     };
 

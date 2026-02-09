@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -10,8 +11,6 @@ import type { Order, Product, UserProfile, Rating } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, addDoc, collection, serverTimestamp, increment, getDoc, writeBatch } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -102,7 +101,8 @@ export default function LeaveReviewPage() {
         
         try {
             // 1. Create the review document
-            const reviewData = {
+            const newReviewRef = doc(collection(firestore, 'reviews'));
+            batch.set(newReviewRef, {
                 orderId: order.id,
                 reviewerId: currentUser.uid,
                 revieweeId: seller.uid,
@@ -110,9 +110,7 @@ export default function LeaveReviewPage() {
                 rating: selectedRating,
                 comment: comment,
                 createdAt: serverTimestamp(),
-            };
-            const newReviewRef = doc(collection(firestore, 'reviews'));
-            batch.set(newReviewRef, reviewData);
+            });
 
             // 2. Link the review to the order
             batch.update(orderRef, { buyerReviewId: newReviewRef.id });
@@ -145,13 +143,6 @@ export default function LeaveReviewPage() {
         } catch (error: any) {
             console.error("Failed to submit review:", error);
             toast({ variant: 'destructive', title: 'Error', description: 'Failed to submit review. Please try again.' });
-            // Let a global handler show permission errors if applicable
-            if (!error.message.includes('permission-denied')) {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: `/reviews or /orders/${order.id}`,
-                    operation: 'create',
-                }));
-            }
         } finally {
             setIsSubmitting(false);
         }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -28,8 +29,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 function AddressCard({ address, onDeleteClick }: { address: UserAddress; onDeleteClick: (addressId: string) => void; }) {
     return (
@@ -101,7 +100,7 @@ export default function AddressesPage() {
 
   const { data: addresses, loading: addressesLoading } = useCollection<UserAddress>(addressesCollectionQuery);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!user || !addressToDelete) return;
 
     // Mock for test user to prevent permission errors
@@ -116,20 +115,19 @@ export default function AddressesPage() {
     
     if (!firestore) return;
     
-    const addressRef = doc(firestore, 'users', user.uid, 'addresses', addressToDelete);
-    deleteDoc(addressRef)
-        .then(() => {
-            toast({ title: 'Address Deleted' });
-            setAddressToDelete(null);
-        })
-        .catch((serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: addressRef.path,
-                operation: 'delete',
-            });
-            errorEmitter.emit('permission-error', permissionError);
-            setAddressToDelete(null); // Also close dialog on error.
+    try {
+        await deleteDoc(doc(firestore, 'users', user.uid, 'addresses', addressToDelete));
+        toast({ title: 'Address Deleted' });
+        setAddressToDelete(null);
+    } catch (error) {
+        console.error("Failed to delete address:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not delete address. Please check your permissions.",
         });
+        setAddressToDelete(null);
+    }
   };
 
   const isLoading = userLoading || addressesLoading;

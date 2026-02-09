@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from "react";
@@ -37,20 +38,14 @@ const statusMap: OrderStatus[] = [
   'Shipped',
   'Awaiting Confirmation',
   'Completed',
-  'Disputed',
-  'Released',
-  'Refunded',
   'Cancelled'
 ];
 
 const getStatusBadgeVariant = (status: OrderStatus) => {
     switch (status) {
         case 'Completed':
-        case 'Released':
              return 'default';
-        case 'Disputed':
         case 'Cancelled':
-        case 'Refunded':
              return 'destructive';
         default: return 'secondary';
     }
@@ -100,19 +95,6 @@ export default function AdminOrdersPage() {
     } finally {
         setProcessingId(null);
     }
-  };
-
-  const handleResolveDisputeClick = async (order: Order, releaseToSeller: boolean) => {
-    setProcessingId(order.id);
-    toast({ title: "Simulating Blockchain Transaction...", description: "Please wait." });
-    
-    // Simulate a delay for blockchain transaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Update the status in Firestore to show the result of the mock transaction
-    await handleStatusUpdate(order.id, releaseToSeller ? 'Released' : 'Refunded');
-    
-    // No need to setProcessingId(null) here because handleStatusUpdate does it.
   };
 
   if (authLoading || dataLoading) {
@@ -234,26 +216,6 @@ export default function AdminOrdersPage() {
                                             {t(getStatusTranslationKey(status), status)}
                                           </DropdownMenuItem>
                                         ))}
-                                    {(order.status === 'In Escrow' || order.status === 'Shipped') && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => handleStatusUpdate(order.id, 'Disputed')}>
-                                                Open Dispute Case
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
-                                    {order.status === 'Disputed' && (
-                                        <>
-                                            <DropdownMenuSeparator />
-                                            <DropdownMenuLabel className="text-amber-500">Dispute Actions</DropdownMenuLabel>
-                                            <DropdownMenuItem className="focus:bg-green-500/20" onSelect={() => handleResolveDisputeClick(order, true)}>
-                                                Release to Seller
-                                            </DropdownMenuItem>
-                                            <DropdownMenuItem className="focus:bg-red-500/20" onSelect={() => handleResolveDisputeClick(order, false)}>
-                                                Refund to Buyer
-                                            </DropdownMenuItem>
-                                        </>
-                                    )}
                                   </DropdownMenuContent>
                                 </DropdownMenu>
                               </TableCell>
@@ -269,5 +231,3 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
-
-    

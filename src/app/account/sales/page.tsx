@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -16,8 +17,6 @@ import Link from 'next/link';
 import type { Order } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createNotification } from '@/lib/notifications';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PAGE_SIZE = 50;
@@ -139,14 +138,12 @@ export default function SalesPage() {
         }
 
         setIsSubmitting(true);
-        const orderRef = doc(db, 'orders', selectedOrder.id);
-        const updateData = {
-            status: 'Shipped' as const,
-            shippingProvider: shippingInfo.provider,
-            trackingNumber: shippingInfo.trackingNumber
-        };
         try {
-            await updateDoc(orderRef, updateData);
+            await updateDoc(doc(db, 'orders', selectedOrder.id), {
+                status: 'Shipped',
+                shippingProvider: shippingInfo.provider,
+                trackingNumber: shippingInfo.trackingNumber
+            });
             await createNotification(db, selectedOrder.buyerId, {
                 type: 'shipped',
                 actor: profile,
@@ -160,14 +157,11 @@ export default function SalesPage() {
             });
             setSelectedOrder(null);
             setShippingInfo({ provider: '', trackingNumber: '' });
-            // Manually update local state to reflect change immediately
-            setSalesOrders(prev => prev.map(o => o.id === selectedOrder.id ? {...o, ...updateData} : o));
-        } catch (error: any) {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: orderRef.path,
-                operation: 'update',
-                requestResourceData: updateData
-            }));
+            // Refetch or update state locally
+            setSalesOrders(prev => prev.map(o => o.id === selectedOrder.id ? {...o, status: 'Shipped'} : o));
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Update Failed' });
         } finally {
             setIsSubmitting(false);
         }
@@ -297,4 +291,3 @@ export default function SalesPage() {
         </Dialog>
     );
 }
-    

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -32,8 +33,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { createNotification } from '@/lib/notifications';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -68,30 +67,25 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             .trim();
     }, [post.content, post.contentKey, t]);
     
-    const handleMarkForReview = () => {
+    const handleMarkForReview = async () => {
         if (!firestore) return;
-        setIsDeleteDialogOpen(false); // Close dialog immediately to prevent UI freeze
-
-        const postRef = doc(firestore, 'bbs', post.id);
-        const updateData = { status: 'under_review' as const };
-
-        updateDoc(postRef, updateData)
-            .then(() => {
-                setTimeout(() => { // Defer toast to avoid render-while-rendering error
-                    toast({
-                        title: "帖子已提交审核",
-                        description: "该帖子现在将在后台等待最终审核。",
-                    });
-                }, 0);
-            })
-            .catch(serverError => {
-                const permissionError = new FirestorePermissionError({
-                    path: postRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
+        
+        try {
+            const postRef = doc(firestore, 'bbs', post.id);
+            await updateDoc(postRef, { status: 'under_review' });
+            setIsDeleteDialogOpen(false);
+            toast({
+                title: "帖子已提交审核",
+                description: "该帖子现在将在后台等待最终审核。",
             });
+        } catch (error) {
+            console.error("Error marking post for review:", error);
+            toast({
+                title: "操作失败",
+                description: "无法提交审核，请稍后再试。",
+                variant: "destructive",
+            });
+        }
     };
     
     const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
@@ -124,12 +118,11 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             }
           } catch (error) {
             console.error("Error updating feature status:", error);
-            const permissionError = new FirestorePermissionError({
-              path: postRef.path,
-              operation: 'update',
-              requestResourceData: { isFeatured: newFeaturedState },
+            toast({
+              title: "操作失败",
+              description: "更新精华状态时出错。",
+              variant: "destructive",
             });
-            errorEmitter.emit('permission-error', permissionError);
           }
       } else {
         toast({
@@ -181,13 +174,13 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post });
                 }
             })
-            .catch(serverError => {
-                const permissionError = new FirestorePermissionError({
-                    path: postRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData,
+            .catch(error => {
+                console.error(`Failed to update ${type}:`, error);
+                toast({
+                    title: "操作失败",
+                    description: `无法更新${type === 'like' ? '点赞' : '收藏'}状态。`,
+                    variant: "destructive",
                 });
-                errorEmitter.emit('permission-error', permissionError);
             });
     };
 
@@ -228,7 +221,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 </AlertDialogContent>
             </AlertDialog>
             <Link href={`/bbs/${post.id}`} className="group block h-full">
-                <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border-2 border-foreground/60 hover:border-primary">
+                <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border-2 border-white/60 hover:border-primary">
                     <CardHeader className="p-0 relative">
                         <div className="aspect-[1.8/1] relative overflow-hidden">
                             <img

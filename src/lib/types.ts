@@ -1,4 +1,5 @@
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -200,7 +201,7 @@ export type Promo = {
   featuredProductIds: string[];
 };
 
-export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Disputed' | 'Released' | 'Refunded' | 'Cancelled';
+export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Cancelled';
 export type Rating = 'Good' | 'Neutral' | 'Bad';
 
 export type UserAddress = {
@@ -225,12 +226,9 @@ export type Order = {
   participants: string[];
   price: number;
   shippingFee: number;
-  platformFee?: number;
   totalAmount: number;
   currency: string;
-  paymentMethod: PaymentMethod;
   status: OrderStatus;
-  disputeReason?: string;
   createdAt: any;
   completedAt?: any;
   buyerReviewId?: string;
@@ -239,7 +237,7 @@ export type Order = {
   shippingMethod: 'Seller Pays' | 'Buyer Pays' | 'In-person';
   shippingProvider?: string;
   trackingNumber?: string;
-  paymentTransactionId?: string;
+  paymentMethod?: PaymentMethod;
 };
 
 export type Review = {
@@ -389,5 +387,3 @@ export type GlobalAudioPlayerConfig = {
     channelId?: string;
   };
 };
-
-    

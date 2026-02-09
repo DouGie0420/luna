@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -50,8 +51,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -450,11 +449,6 @@ export default function AccountProfilePage() {
         } catch (e) {
             console.error(e);
             toast({ variant: 'destructive', title: '申请失败', description: '发生未知错误，请稍后再试。' });
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: 'proApplications',
-                operation: 'create',
-                requestResourceData: { userId: user.uid, status: 'pending' },
-            }));
         } finally {
             setIsUpgrading(false);
         }
@@ -1062,5 +1056,3 @@ export default function AccountProfilePage() {
         </>
     )
 }
-
-    

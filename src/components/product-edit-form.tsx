@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,8 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 interface ProductEditFormProps {
   product: Product;
@@ -70,13 +69,13 @@ export function ProductEditForm({ product, onSave }: ProductEditFormProps) {
         // We call onSave to close the dialog.
         onSave(formData);
       })
-      .catch((serverError) => {
-        const permissionError = new FirestorePermissionError({
-            path: productRef.path,
-            operation: 'update',
-            requestResourceData: dataToUpdate,
+      .catch((error) => {
+        console.error("Failed to update product:", error);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: "Could not save changes. Please try again.",
         });
-        errorEmitter.emit('permission-error', permissionError);
       })
       .finally(() => {
         setIsSubmitting(false);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useState } from 'react';
@@ -18,13 +19,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard, Wallet } from 'lucide-react';
+import { Loader2, CheckCircle2, Clock, Truck, MapPin, Package, AlertCircle, BellRing, CreditCard } from 'lucide-react';
 import { format, formatDistanceToNow, addDays } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 const locales = { en: enUS, zh: zhCN, th: th };
 
@@ -87,45 +86,44 @@ export default function OrderDetailPage() {
     const handleConfirmReceipt = async () => {
         if (!firestore || !order) return;
         setIsProcessing(true);
-        const orderDocRef = doc(firestore, 'orders', order.id);
-        const updateData = { status: 'Completed' as const, completedAt: serverTimestamp() };
-
-        updateDoc(orderDocRef, updateData)
-            .then(() => {
-                toast({ title: t('orderDetails.receiptConfirmed') });
-            })
-            .catch((e) => {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: orderDocRef.path,
-                    operation: 'update',
-                    requestResourceData: { status: 'Completed' }
-                }));
-            })
-            .finally(() => {
-                setIsProcessing(false);
+        try {
+            const orderDocRef = doc(firestore, 'orders', order.id);
+            await updateDoc(orderDocRef, {
+                status: 'Completed',
+                completedAt: serverTimestamp()
             });
+            toast({ title: t('orderDetails.receiptConfirmed') });
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to confirm receipt.'
+            });
+        } finally {
+            setIsProcessing(false);
+        }
     };
     
     const handleConfirmPayment = async () => {
         if (!firestore || !order) return;
         setIsProcessing(true);
-        const orderDocRef = doc(firestore, 'orders', order.id);
-        const updateData = { status: 'In Escrow' as const };
-        
-        updateDoc(orderDocRef, updateData)
-            .then(() => {
-                toast({ title: t('orderDetails.paymentSuccess') });
-            })
-            .catch((e) => {
-                 errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: orderDocRef.path,
-                    operation: 'update',
-                    requestResourceData: updateData
-                }));
-            })
-            .finally(() => {
-                setIsProcessing(false);
+        try {
+            const orderDocRef = doc(firestore, 'orders', order.id);
+            await updateDoc(orderDocRef, {
+                status: 'In Escrow'
             });
+            toast({ title: t('orderDetails.paymentSuccess') });
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to confirm payment.'
+            });
+        } finally {
+            setIsProcessing(false);
+        }
     };
 
     const handleRemindSeller = async () => {
@@ -230,13 +228,7 @@ export default function OrderDetailPage() {
                                 {t('orderDetails.remindSeller')}
                             </Button>
                        )}
-                       {isBuyer && order.status === 'Pending' && order.paymentMethod === 'USDT' ? (
-                           <Button onClick={handleConfirmPayment} disabled={isProcessing}>
-                               {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                               <Wallet className="mr-2 h-4 w-4" />
-                               Pay with Wallet (Escrow)
-                           </Button>
-                       ) : isBuyer && order.status === 'Pending' && (
+                       {isBuyer && order.status === 'Pending' && (
                            <Button onClick={handleConfirmPayment} disabled={isProcessing}>
                                {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                <CreditCard className="mr-2 h-4 w-4" />

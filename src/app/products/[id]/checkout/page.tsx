@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -24,8 +25,6 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddressForm } from '@/components/address-form';
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const SHIPPING_FEES = {
@@ -45,7 +44,20 @@ function SellerPaymentDetails({ seller, method }: { seller: UserProfile | null, 
     }
 
     if (method === 'USDT') {
-        return null; // Don't show direct payment details for USDT Escrow
+        return (
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Wallet /> {t('checkoutPage.paymentMethod')}: USDT</CardTitle>
+                    <CardDescription>付款将通过智能合约担保进行。</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="p-4 bg-secondary/30 rounded-lg border border-primary/20 text-sm text-muted-foreground space-y-2">
+                        <p className="flex items-start gap-2"><Info className="h-4 w-4 mt-1 shrink-0 text-primary"/><span>点击“确认购买”后，将调用您的钱包完成USDT托管转账。</span></p>
+                        <p className="flex items-start gap-2"><Info className="h-4 w-4 mt-1 shrink-0 text-primary"/><span>资金将安全地锁定在智能合约中，直到您确认收货。</span></p>
+                    </div>
+                </CardContent>
+            </Card>
+        )
     }
 
     let content = null;
@@ -217,34 +229,28 @@ export default function CheckoutPage() {
         paymentMethod: paymentMethod,
     };
     
-    const batch = writeBatch(firestore);
+    try {
+        const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
+        
+        // This part would typically be in a Cloud Function triggered by order creation
+        // For client-side simulation, we do it here.
+        await updateDoc(doc(firestore, 'products', product.id), { status: 'under_review' });
 
-    // 1. Create the order
-    const orderRef = doc(collection(firestore, 'orders'));
-    batch.set(orderRef, orderData);
-    
-    // 2. Lock the product by changing its status
-    const productDocRef = doc(firestore, 'products', product.id);
-    batch.update(productDocRef, { status: 'under_review' });
-
-    batch.commit()
-      .then(() => {
         toast({
             title: "Order Placed!",
             description: "Your order is now pending payment.",
         });
         router.push(`/account/purchases/${orderRef.id}`);
-      })
-      .catch((e) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: 'orders or products',
-            operation: 'create',
-            requestResourceData: { order: orderData, productUpdate: { status: 'under_review' } }
-        }));
-      })
-      .finally(() => {
+    } catch(e) {
+        console.error("Failed to place order:", e);
+        toast({
+            variant: "destructive",
+            title: "Order Failed",
+            description: "Could not place your order. Please check permissions or try again later.",
+        });
+    } finally {
         setIsProcessing(false);
-      });
+    }
   };
 
   const handleEditAddress = (addressId: string) => {
