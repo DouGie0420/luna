@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -125,17 +126,6 @@ export default function LiveStreamSettingsPage() {
                 </div>
                 
                 <div className="grid gap-2">
-                    <Label htmlFor="stationName">直播间名称</Label>
-                    <Input 
-                        id="stationName"
-                        placeholder="例如: Luna Labs Radio"
-                        value={formData.stationName}
-                        onChange={(e) => setFormData({ ...formData, stationName: e.target.value })}
-                        disabled={isSubmitting}
-                    />
-                </div>
-                
-                <div className="grid gap-2">
                     <Label htmlFor="channelId">YouTube Channel ID</Label>
                     <Input 
                         id="channelId"
@@ -145,6 +135,17 @@ export default function LiveStreamSettingsPage() {
                         disabled={isSubmitting}
                     />
                      <p className="text-xs text-muted-foreground">用于未来可能的 API 自动关联。</p>
+                </div>
+                
+                <div className="grid gap-2">
+                    <Label htmlFor="stationName">直播间名称</Label>
+                    <Input 
+                        id="stationName"
+                        placeholder="例如: Luna Labs Radio"
+                        value={formData.stationName}
+                        onChange={(e) => setFormData({ ...formData, stationName: e.target.value })}
+                        disabled={isSubmitting}
+                    />
                 </div>
 
                 <div className="flex justify-end">
@@ -158,3 +159,4 @@ export default function LiveStreamSettingsPage() {
     </div>
   );
 }
+
