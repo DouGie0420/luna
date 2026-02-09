@@ -229,7 +229,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                 </AlertDialogContent>
             </AlertDialog>
             <Link href={`/bbs/${post.id}`} className="group block h-full">
-                <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-foreground/10 hover:border-primary/50">
+                <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border border-foreground hover:border-primary/50">
                     <CardHeader className="p-0 relative">
                         <div className="aspect-[1.8/1] relative overflow-hidden">
                             <img
