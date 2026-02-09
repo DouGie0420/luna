@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -61,7 +60,7 @@ export function MerchantCard({ user, className }: MerchantCardProps) {
 
   return (
     <Link href={`/@${user.loginId || user.uid}`} className="group block h-full">
-      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border border-foreground/40", className)}>
+      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border-2 border-foreground/60 hover:border-primary", className)}>
         <div className="relative h-24 w-full">
             {user.bannerUrl ? (
                 <Image 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -119,7 +118,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.id}`} className="group h-full" onClick={handleGuestClick}>
-      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border border-foreground/40 hover:shadow-primary/20 hover:shadow-lg", className)}>
+      <Card className={cn("overflow-hidden h-full flex flex-col transition-all duration-200 border-2 border-foreground/60 hover:border-primary hover:shadow-primary/20 hover:shadow-lg", className)}>
         <CardHeader className="p-0">
           <div className="aspect-[4/3] relative overflow-hidden">
             <Image
