@@ -200,7 +200,7 @@ export type Promo = {
   featuredProductIds: string[];
 };
 
-export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Disputed' | 'Cancelled';
+export type OrderStatus = 'Pending' | 'In Escrow' | 'Shipped' | 'Awaiting Confirmation' | 'Completed' | 'Disputed' | 'Released' | 'Refunded' | 'Cancelled';
 export type Rating = 'Good' | 'Neutral' | 'Bad';
 
 export type UserAddress = {
@@ -389,3 +389,5 @@ export type GlobalAudioPlayerConfig = {
     channelId?: string;
   };
 };
+
+    

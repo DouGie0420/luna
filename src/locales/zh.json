@@ -262,6 +262,8 @@
       "awaitingConfirmation": "等待确认",
       "completed": "已完成",
       "disputed": "争议中",
+      "released": "已放款",
+      "refunded": "已退款",
       "cancelled": "已取消"
     },
     "orderCard": {
@@ -702,3 +704,5 @@
     }
   }
 }
+
+    

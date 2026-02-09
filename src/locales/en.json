@@ -262,6 +262,8 @@
       "awaitingConfirmation": "Awaiting Confirmation",
       "completed": "Completed",
       "disputed": "Disputed",
+      "released": "Released",
+      "refunded": "Refunded",
       "cancelled": "Cancelled"
     },
     "orderCard": {
@@ -729,3 +731,5 @@
     }
   }
 }
+
+    

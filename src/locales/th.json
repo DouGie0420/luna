@@ -262,6 +262,8 @@
       "awaitingConfirmation": "รอการยืนยัน",
       "completed": "เสร็จสมบูรณ์",
       "disputed": "มีข้อพิพาท",
+      "released": "ปล่อยเงินแล้ว",
+      "refunded": "คืนเงินแล้ว",
       "cancelled": "ยกเลิกแล้ว"
     },
     "orderCard": {
@@ -702,3 +704,5 @@
     }
   }
 }
+
+    
