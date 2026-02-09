@@ -233,7 +233,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                         <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="text-xs">
-                        <p className="font-semibold text-foreground truncate">{post.author.name}</p>
+                        <p className="font-headline font-semibold text-foreground truncate">{post.author.name}</p>
                         <p className="text-muted-foreground truncate">
                             {timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}
                         </p>
@@ -272,7 +272,7 @@ export function SeaOfTranquility() {
             e.preventDefault();
             toast({
                 title: '需要认证',
-                description: '请先登录或注册以访问更多内容。',
+                description: '请先登录或注册以访问梦境之湖。',
                 variant: 'destructive'
             });
         }
