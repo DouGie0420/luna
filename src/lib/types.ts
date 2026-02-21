@@ -1,5 +1,6 @@
 
 
+
 export type BadgeType = 'none' | 'kyc' | 'web3' | 'pro' | 'nft' | 'email' | 'influencer' | 'contributor' | 'admin';
 
 export type PaymentMethod = 'THB' | 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
@@ -14,12 +15,13 @@ export type Product = {
   imageHints: string[];
   seller: User;
   location: {
-    city: string;
-    country: string;
-    countryCode: string;
+    city?: string;
+    country?: string;
+    countryCode?: string;
     lat: number;
     lng: number;
   };
+  locationHidden?: boolean;
   category: string;
   isConsignment?: boolean;
   shippingMethod?: 'Seller Pays' | 'Buyer Pays';

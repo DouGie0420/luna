@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useUser, useFirestore, useDoc } from '@/firebase';
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Sparkles, Loader2, Home } from "lucide-react"
+import { Upload, ShieldAlert, X, Sparkles, Loader2, Home, MapPin } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -39,7 +40,6 @@ import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from '
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
-import { ContentPreviewRenderer } from '@/components/content-preview-renderer';
 
 
 export default function NewProductPage() {
@@ -64,6 +64,10 @@ export default function NewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
 
+  const [location, setLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [shareLocation, setShareLocation] = useState(true);
+
   const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
   const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
   const isAiFeatureEnabled = globalSettings?.isAiAnalysisEnabled ?? false;
@@ -75,6 +79,37 @@ export default function NewProductPage() {
       }
   }, [user, loading, router]);
   
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setLocationError(null);
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          setLocationError("Could not get location. Please enable location permissions to post.");
+          toast({
+            variant: "destructive",
+            title: "Location Error",
+            description: "Could not get location. Please enable location permissions to post.",
+            duration: 10000,
+          });
+        }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by this browser.");
+      toast({
+        variant: "destructive",
+        title: "Location Error",
+        description: "Geolocation is not supported by this browser.",
+      });
+    }
+  }, [toast]);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -131,7 +166,7 @@ export default function NewProductPage() {
   const removeImage = (indexToRemove: number) => {
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
-
+  
   const handleAcceptedMethodsChange = (checked: boolean | string, method: PaymentMethod) => {
     setAcceptedMethods(prev => {
         if (checked) {
@@ -146,6 +181,10 @@ export default function NewProductPage() {
     e.preventDefault();
     if (!user || !profile || !firestore) {
       toast({ variant: 'destructive', title: 'Please login to list an item.'});
+      return;
+    }
+     if (!location) {
+      toast({ variant: 'destructive', title: 'Location Required', description: 'Waiting for location data. Please ensure location permissions are enabled.'});
       return;
     }
     setIsSubmitting(true);
@@ -181,7 +220,8 @@ export default function NewProductPage() {
       imageHints: ['user uploaded'],
       seller: sellerData,
       sellerId: user.uid,
-      location: sellerData.location,
+      location: location,
+      locationHidden: !shareLocation,
       category: category || 'Electronics',
       isConsignment,
       shippingMethod,
@@ -343,7 +383,6 @@ export default function NewProductPage() {
                         </p>
                     </div>
                 </div>
-
                 <div className="grid gap-2">
                   <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
                    <div className="relative">
@@ -353,7 +392,6 @@ export default function NewProductPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
-                  <div className="relative overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
                     <Textarea
                         id="description"
                         placeholder={t('newProductPage.descriptionPlaceholder')}
@@ -361,16 +399,9 @@ export default function NewProductPage() {
                         onChange={(e) => setDescription(e.target.value)}
                         required
                         disabled={isAiLoading}
-                        rows={10}
-                        className="border-0 rounded-b-none focus-visible:ring-0 focus-visible:ring-offset-0 resize-y"
+                        rows={15}
+                        className="border rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
                     />
-                    {isAiLoading && (
-                        <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />
-                    )}
-                    {description && (
-                        <ContentPreviewRenderer content={description} onRemove={() => {}} />
-                    )}
-                  </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -522,6 +553,14 @@ export default function NewProductPage() {
                         </RadioGroup>
                     </div>
                 )}
+                
+                <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
+                    <Checkbox id="share-location" checked={shareLocation} onCheckedChange={(checked) => setShareLocation(!!checked)} />
+                    <div className="grid gap-1.5 leading-none">
+                        <Label htmlFor="share-location" className="text-base font-medium">展示我的商品位置</Label>
+                        <p className="text-sm text-muted-foreground">允许后，我们将在发布时记录您当前的精确位置，并在商品页面上展示地图。</p>
+                    </div>
+                </div>
 
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
                     <Checkbox id="consignment" checked={isConsignment} onCheckedChange={checked => setIsConsignment(!!checked)} />
@@ -538,8 +577,15 @@ export default function NewProductPage() {
                     </div>
                 </div>
                
-                <div className="flex justify-end">
-                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                <div className="flex justify-end items-center gap-4">
+                    {locationError ? (
+                        <p className="text-sm text-destructive flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
+                    ) : !location ? (
+                        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Acquiring location...</p>
+                    ) : (
+                        <p className="text-sm text-green-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Location Acquired</p>
+                    )}
+                    <Button type="submit" size="lg" disabled={isSubmitting || !name.trim() || !description.trim() || !price || !location}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {t('newProductPage.listItem')}
                     </Button>

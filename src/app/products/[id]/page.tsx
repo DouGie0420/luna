@@ -274,15 +274,17 @@ export default function ProductPage() {
                         )}
                     </Dialog>
                     
-                    <Card>
-                      <CardHeader>
-                          <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Location</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                          <p className="text-muted-foreground mb-4">{product.location.city}, {product.location.country}</p>
-                          <MapComponent center={product.location} marker={product.location} />
-                      </CardContent>
-                    </Card>
+                    {product.location && !product.locationHidden && (
+                        <Card>
+                          <CardHeader>
+                              <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Location</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                              {product.location.city && <p className="text-muted-foreground mb-4">{product.location.city}, {product.location.country}</p>}
+                              <MapComponent center={product.location} marker={product.location} />
+                          </CardContent>
+                        </Card>
+                    )}
 
                     <ProductCommentSection productId={product.id} />
                 </div>

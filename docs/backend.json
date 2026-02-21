@@ -170,6 +170,10 @@
           },
           "required": ["lat", "lng"]
         },
+        "locationHidden": {
+            "type": "boolean",
+            "description": "Whether the user has chosen to hide the precise location of the product."
+        },
         "views": {
           "type": "number",
           "description": "Total number of views."
