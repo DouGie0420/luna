@@ -112,7 +112,7 @@ export default function NewProductPage() {
     } else {
       setLocationError("Geolocation is not supported by this browser.");
     }
-  }, []);
+  }, [toast]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -387,6 +387,24 @@ export default function NewProductPage() {
                         </p>
                     </div>
                 </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="category">{t('newProductPage.category')}</Label>
+                    <Select value={category} onValueChange={(v: any) => setCategory(v)}>
+                        <SelectTrigger>
+                            <SelectValue placeholder={t('newProductPage.selectCategory')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
+                            <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
+                            <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
+                            <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
+                            <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
+                            <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
                    <div className="relative">
@@ -394,6 +412,7 @@ export default function NewProductPage() {
                      {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                   </div>
                 </div>
+
                 <div className="grid gap-2">
                   <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
                     <Textarea
@@ -406,6 +425,61 @@ export default function NewProductPage() {
                         rows={15}
                         className="border rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
                     />
+                </div>
+                
+                <div className="grid gap-2">
+                    <Label>商品所在位置</Label>
+                    <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
+                        <DialogTrigger asChild>
+                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                {productLocation ? `纬度: ${productLocation.lat.toFixed(4)}, 经度: ${productLocation.lng.toFixed(4)}` : "点击设置商品位置"}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl h-[80vh]">
+                            <DialogHeader>
+                                <DialogTitle>设置商品位置</DialogTitle>
+                                <DialogDescription>在地图上点击或拖动图钉以确定商品的精确位置。</DialogDescription>
+                            </DialogHeader>
+                            {currentUserLocation ? (
+                                <LocationPicker 
+                                initialCenter={currentUserLocation}
+                                onConfirm={(newLocation) => {
+                                    setProductLocation(newLocation);
+                                    setIsLocationPickerOpen(false);
+                                }}
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                    <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                                    <p>正在获取您的当前位置...</p>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
+                    {locationError && <p className="text-xs text-destructive">{locationError}</p>}
+                </div>
+                
+                <div className="p-4 border rounded-lg bg-secondary/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="price">{t('newProductPage.price')}</Label>
+                            <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
+                            <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t('newProductPage.selectCurrency')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
+                                    <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
+                                    <SelectItem value="RMB">RMB (人民币)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="grid gap-2">
@@ -452,27 +526,7 @@ export default function NewProductPage() {
                         )}
                     </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="price">{t('newProductPage.price')}</Label>
-                        <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
-                        <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={t('newProductPage.selectCurrency')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
-                                <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
-                                <SelectItem value="RMB">RMB (人民币)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-
+                
                 <div className="grid gap-2">
                   <Label>接受的付款方式</Label>
                   <p className="text-sm text-muted-foreground">选择您为此商品接受的付款方式。此处仅显示您在钱包中已配置的方式。</p>
@@ -513,56 +567,6 @@ export default function NewProductPage() {
                 </div>
 
                 <div className="grid gap-2">
-                    <Label htmlFor="category">{t('newProductPage.category')}</Label>
-                    <Select value={category} onValueChange={(v: any) => setCategory(v)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder={t('newProductPage.selectCategory')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
-                            <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
-                            <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
-                            <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
-                            <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
-                            <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-
-                <div className="grid gap-2">
-                    <Label>商品所在位置</Label>
-                    <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
-                        <DialogTrigger asChild>
-                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                {productLocation ? `纬度: ${productLocation.lat.toFixed(4)}, 经度: ${productLocation.lng.toFixed(4)}` : "点击设置商品位置"}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl h-[80vh]">
-                            <DialogHeader>
-                                <DialogTitle>设置商品位置</DialogTitle>
-                                <DialogDescription>在地图上点击或拖动图钉以确定商品的精确位置。</DialogDescription>
-                            </DialogHeader>
-                            {currentUserLocation ? (
-                                <LocationPicker 
-                                initialCenter={currentUserLocation}
-                                onConfirm={(newLocation) => {
-                                    setProductLocation(newLocation);
-                                    setIsLocationPickerOpen(false);
-                                }}
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                    <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                                    <p>正在获取您的当前位置...</p>
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
-                    {locationError && <p className="text-xs text-destructive">{locationError}</p>}
-                </div>
-                
-                 <div className="grid gap-2">
                     <Label>{t('newProductPage.shippingMethod')}</Label>
                     <RadioGroup value={shippingMethod} onValueChange={(v: any) => setShippingMethod(v)} className="flex gap-4">
                         <div className="flex items-center space-x-2">
@@ -608,6 +612,13 @@ export default function NewProductPage() {
                 </div>
                
                 <div className="flex justify-end items-center gap-4">
+                     {locationError ? (
+                        <p className="text-sm text-destructive flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
+                     ) : !productLocation ? (
+                        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Acquiring location...</p>
+                     ) : (
+                        <p className="text-sm text-green-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Location Acquired</p>
+                     )}
                     <Button type="submit" size="lg" disabled={isSubmitting || !name.trim() || !description.trim() || !price || !productLocation}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {t('newProductPage.listItem')}
