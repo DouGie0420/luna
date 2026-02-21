@@ -86,29 +86,31 @@ export function UserNav() {
   const handleLinkWallet = async () => {
     if (!firestore || !user || !auth) return;
     if (typeof window.ethereum === 'undefined') {
-      toast({ variant: "destructive", title: "MetaMask Not Found", description: "Please install MetaMask." });
-      return;
+        toast({ variant: "destructive", title: "MetaMask Not Found", description: "Please install MetaMask to use this feature." });
+        return;
     }
     setIsLinkingWallet(true);
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const address = (await signer.getAddress()).toLowerCase();
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const address = (await signer.getAddress()).toLowerCase();
 
-      const q = query(collection(firestore, 'users'), where("walletAddress", "==", address));
-      const querySnapshot = await getDocs(q);
-      
-      if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
-        toast({ variant: "destructive", title: t('userNav.walletAlreadyLinkedTitle') });
-        return;
-      }
+        const q = query(collection(firestore, 'users'), where("walletAddress", "==", address));
+        const querySnapshot = await getDocs(q);
 
-      await updateUserProfile(firestore, user.uid, { walletAddress: address, isWeb3Verified: true });
-      toast({ title: "Wallet Linked!" });
+        if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
+            toast({ variant: "destructive", title: t('userNav.walletAlreadyLinkedTitle') });
+            setIsLinkingWallet(false);
+            return;
+        }
+        
+        await updateUserProfile(firestore, user.uid, { walletAddress: address, isWeb3Verified: true });
+        toast({ title: "Wallet Linked!" });
     } catch (error: any) {
-      toast({ variant: "destructive", title: "Wallet Link Failed", description: error.message });
+        console.error("Failed to link wallet:", error);
+        toast({ variant: "destructive", title: "Wallet Link Failed", description: error.message });
     } finally {
-      setIsLinkingWallet(false);
+        setIsLinkingWallet(false);
     }
   };
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ethers } from 'ethers';
@@ -24,39 +25,30 @@ export async function signInWithMetaMask(firestore: Firestore): Promise<UserProf
     throw new Error('MetaMask is not installed. Please install it to use this feature.');
   }
 
-  // Use ethers to wrap the window.ethereum provider
-  const provider = new ethers.BrowserProvider(window.ethereum);
-
   try {
-    // 1. Get user's wallet address
+    // Use ethers to wrap the window.ethereum provider
+    const provider = new ethers.BrowserProvider(window.ethereum);
+
+    // 1. Request account access first using provider.getSigner()
     const signer = await provider.getSigner();
-    const address = await signer.getAddress();
-    const lowerCaseAddress = address.toLowerCase();
+    const address = (await signer.getAddress()).toLowerCase();
 
     // 2. Generate and sign a nonce (client-side for this prototype)
     const nonce = generateNonce();
-    let signature;
-    try {
-      signature = await signer.signMessage(nonce);
-    } catch (error: any) {
-      if (error.code === 'ACTION_REJECTED') {
-        throw new Error('You rejected the signature request. Please try again.');
-      }
-      throw new Error(`Signature failed: ${error.message}`);
-    }
+    await signer.signMessage(nonce);
 
     // --- In a real app, you would now call your backend 'verifySignature' function ---
-    // const customToken = await verifySignatureOnBackend(lowerCaseAddress, nonce, signature);
+    // const customToken = await verifySignatureOnBackend(address, nonce, signature);
     // await signInWithCustomToken(auth, customToken);
     //
     // For this prototype, we will skip backend verification and simulate the login.
 
     // 3. Create or update user profile in Firestore
-    const profile = await upsertWalletUser(firestore, lowerCaseAddress);
+    const profile = await upsertWalletUser(firestore, address);
 
     // 4. Simulate login by storing user info in localStorage
     const walletUser = {
-        uid: lowerCaseAddress,
+        uid: address,
         displayName: profile.displayName,
         photoURL: profile.photoURL,
         isWeb3: true,

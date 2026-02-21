@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -14,6 +13,21 @@ import { Card, CardContent } from './ui/card';
 import { Music, Play, Pause, X, Volume2, VolumeX, Radio } from 'lucide-react';
 import { Slider } from './ui/slider';
 
+// Helper function to extract video ID from various YouTube URL formats
+function extractVideoId(urlOrId: string): string {
+    if (!urlOrId) return '';
+    // Regular expression to find the video ID
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = urlOrId.match(regex);
+    // If a match is found, return the video ID (group 1)
+    if (match && match[1]) {
+        return match[1];
+    }
+    // If no match, assume the input is already the video ID
+    return urlOrId;
+}
+
+
 export function GlobalAudioPlayer() {
     const firestore = useFirestore();
     const configRef = useMemo(() => firestore ? doc(firestore, 'configs', 'global_audio_player') : null, [firestore]);
@@ -26,6 +40,8 @@ export function GlobalAudioPlayer() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+
+    const videoId = useMemo(() => extractVideoId(config?.content_source?.videoId || ''), [config?.content_source?.videoId]);
 
     useEffect(() => {
         if (config?.display_logic) {
@@ -86,13 +102,13 @@ export function GlobalAudioPlayer() {
         setIsMuted(!isMuted);
     };
 
-    if (loading || !config?.display_logic?.isVisible || (isMobile && !config.display_logic.enableOnMobile)) {
+    if (loading || !config?.display_logic?.isVisible || !videoId || (isMobile && !config.display_logic.enableOnMobile)) {
         return null;
     }
 
     const { position, primaryColor, secondaryColor, opacity, blur, showLiveBadge } = config.ui_customization;
     const { stationName, channelIcon } = config.metadata;
-    const { videoId, autoPlay } = config.content_source;
+    const { autoPlay } = config.content_source;
 
     const youtubeOpts = {
       height: '0', width: '0',
@@ -118,7 +134,8 @@ export function GlobalAudioPlayer() {
         }}
       >
         <div className="hidden">
-          <YouTube 
+          <YouTube
+            key={videoId} 
             videoId={videoId} 
             opts={youtubeOpts} 
             onReady={onPlayerReady}

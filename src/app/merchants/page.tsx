@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { MerchantCard } from '@/components/merchant-card';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -41,10 +42,11 @@ export default function AllMerchantsPage() {
             setError(null);
 
             try {
-                // 1. Simple query to fetch all pro merchants without ordering
+                // 1. Query pro merchants with a limit to satisfy security rules for non-admin users.
                 const q = query(
                     collection(firestore, 'users'),
-                    where('isPro', '==', true)
+                    where('isPro', '==', true),
+                    limit(PAGE_SIZE)
                 );
                 
                 const documentSnapshots = await getDocs(q);

@@ -102,16 +102,6 @@ export default function AddressesPage() {
 
   const handleDelete = async () => {
     if (!user || !addressToDelete) return;
-
-    // Mock for test user to prevent permission errors
-    if (user.uid === 'test-user-uid') {
-        toast({ 
-            title: 'Address Deleted',
-            description: 'This is a mock action. The list will not visually update for the test user.'
-        });
-        setAddressToDelete(null);
-        return;
-    }
     
     if (!firestore) return;
     

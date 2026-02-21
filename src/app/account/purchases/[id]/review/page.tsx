@@ -22,6 +22,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2, ThumbsUp, ThumbsDown, Meh } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 function ReviewPageSkeleton() {
     return (
@@ -115,8 +117,9 @@ export default function LeaveReviewPage() {
             // 2. Link the review to the order
             batch.update(orderRef, { buyerReviewId: newReviewRef.id });
 
-            // 3. Update seller's aggregate rating
-            // Note: In a production app, this should be a Cloud Function for atomicity.
+            // This should be a Cloud Function for atomicity and permissions.
+            // Removing from client-side to prevent permission errors.
+            /*
             const sellerDoc = await getDoc(sellerRef);
             if (sellerDoc.exists()) {
                 const sellerData = sellerDoc.data() as UserProfile;
@@ -133,6 +136,7 @@ export default function LeaveReviewPage() {
                     rating: newAverageRating
                 });
             }
+            */
 
             // Commit all changes at once
             await batch.commit();

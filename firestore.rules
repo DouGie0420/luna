@@ -48,12 +48,17 @@ service cloud.firestore {
       allow delete: if hasRole(['admin', 'ghost']);
       allow update: if isSignedIn() && (
         (request.auth.uid == userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
-        hasRole(['admin', 'ghost']) ||
-        (hasRole(['staff', 'support']) && request.auth.uid != userId && !('role' in request.resource.data.diff(resource.data).affectedKeys())) ||
+        (request.auth.uid != userId && (
+          (hasRole(['admin', 'ghost'])) ||
+          (hasRole(['staff', 'support']) && !('role' in request.resource.data.diff(resource.data).affectedKeys()))
+        )) ||
         (request.auth.uid != userId && request.resource.data.diff(resource.data).affectedKeys().hasAny(['followers', 'followersCount', 'following', 'followingCount']))
       );
 
-      match /notifications/{docId} { allow read, write, list: if isSignedIn() && request.auth.uid == userId; }
+      match /notifications/{notificationId} { 
+        allow read, list, update, delete: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn();
+      }
       match /addresses/{addressId} { allow read, list, create, update, delete: if isSignedIn() && request.auth.uid == userId; }
       match /lunarSoilLedger/{ledgerEntryId} { allow read, write: if isSignedIn() && request.auth.uid == userId; }
     }
@@ -169,5 +174,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

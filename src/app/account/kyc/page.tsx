@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,6 +12,9 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from '@/lib/user';
 import Image from 'next/image';
+import { compressImage } from '@/lib/image-compressor';
+
+export const dynamic = 'force-dynamic';
 
 const FileUploader = ({ preview, onFileChange, onRemove, id, title, description, disabled }: {
     preview: string | null;
@@ -76,32 +80,39 @@ export default function KYCPage() {
         }
     }
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'id' | 'selfie') => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'id' | 'selfie') => {
         const file = e.target.files ? e.target.files[0] : null;
         
-        if (type === 'id') {
-            setIdFile(file);
-        } else {
-            setSelfieFile(file);
-        }
-
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const result = reader.result as string;
-                if (type === 'id') {
-                    setIdPreview(result);
-                } else {
-                    setSelfiePreview(result);
-                }
-            };
-            reader.readAsDataURL(file);
-        } else {
-             if (type === 'id') {
+        if (!file) {
+            if (type === 'id') {
+                setIdFile(null);
                 setIdPreview(null);
             } else {
+                setSelfieFile(null);
                 setSelfiePreview(null);
             }
+            return;
+        }
+
+        setIsSubmitting(true); // Show a general loading state for compression
+        try {
+            const compressedDataUrl = await compressImage(file);
+            if (type === 'id') {
+                setIdFile(file);
+                setIdPreview(compressedDataUrl);
+            } else {
+                setSelfieFile(file);
+                setSelfiePreview(compressedDataUrl);
+            }
+        } catch (error: any) {
+            console.error("Image processing error:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Image Error',
+                description: error.message || 'Failed to process image. Please try another file.',
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
     
@@ -135,13 +146,16 @@ export default function KYCPage() {
                 title: "Documents Submitted",
                 description: "Your documents are now under review.",
             });
-            // The UI will update automatically thanks to the useUser hook.
-        } catch (error) {
+        } catch (error: any) {
             console.error("KYC submission error:", error);
+            let description = "An error occurred while submitting your documents. Please try again.";
+            if (error.code === 'invalid-argument') {
+                description = "The uploaded image files are too large, even after compression. Please use smaller files and try again.";
+            }
             toast({
                 variant: "destructive",
                 title: "Submission Failed",
-                description: "An error occurred. Please try again.",
+                description: description,
             });
         } finally {
             setIsSubmitting(false);

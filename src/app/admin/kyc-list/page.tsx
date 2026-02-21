@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser, useFirestore } from '@/firebase';
-import { collection, query, where, getDocs, updateDoc, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, addDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import type { UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -41,6 +41,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslation } from '@/hooks/use-translation';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function KycListPage() {
   const { user, loading: userLoading } = useUser();
@@ -51,6 +53,7 @@ export default function KycListPage() {
   const [applications, setApplications] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
   
   const [rejectionTarget, setRejectionTarget] = useState<UserProfile | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -59,6 +62,7 @@ export default function KycListPage() {
     if (!firestore || !user) return;
     
     setLoading(true);
+    setError(null);
     const q = query(collection(firestore, 'users'), where('kycStatus', '==', 'Pending'));
     
     getDocs(q)
@@ -68,6 +72,7 @@ export default function KycListPage() {
       })
       .catch(error => {
         console.error("Error fetching KYC applications: ", error);
+        setError(error);
         toast({
           variant: "destructive",
           title: "Error",
@@ -81,13 +86,16 @@ export default function KycListPage() {
   const handleApprove = async (targetUid: string) => {
     setProcessingId(targetUid);
     
-    if (!firestore) return;
+    if (!firestore || !user) return;
 
     try {
+      const batch = writeBatch(firestore);
+
       const userRef = doc(firestore, 'users', targetUid);
-      await updateDoc(userRef, { kycStatus: 'Verified' });
+      batch.update(userRef, { kycStatus: 'Verified' });
       
       const notificationsCollection = collection(firestore, 'users', targetUid, 'notifications');
+      const notificationRef = doc(notificationsCollection); // auto-generate ID
       const notification = {
             title: t('admin.kycListPage.userStatusUpdated', { status: 'Verified' }),
             message: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
@@ -95,8 +103,9 @@ export default function KycListPage() {
             createdAt: serverTimestamp(),
             type: 'success' as const
           };
+      batch.set(notificationRef, notification);
 
-      await addDoc(notificationsCollection, notification);
+      await batch.commit();
 
       setApplications(prev => prev.filter(app => app.uid !== targetUid));
       toast({
@@ -105,27 +114,29 @@ export default function KycListPage() {
       });
     } catch (error) {
       console.error("Error approving user: ", error);
-      toast({
-        variant: "destructive",
-        title: t('admin.kycListPage.actionFailed'),
-        description: t('admin.kycListPage.actionFailedDesc'),
-      });
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: `/users/${targetUid} or its subcollections`,
+          operation: 'update',
+      }));
     } finally {
       setProcessingId(null);
     }
   };
 
   const handleReject = async () => {
-    if (!rejectionTarget || !rejectionReason.trim() || !firestore) return;
+    if (!rejectionTarget || !rejectionReason.trim() || !firestore || !user) return;
 
     const targetUid = rejectionTarget.uid;
     setProcessingId(targetUid);
 
     try {
+      const batch = writeBatch(firestore);
+
       const userRef = doc(firestore, 'users', targetUid);
-      await updateDoc(userRef, { kycStatus: 'Not Verified' });
+      batch.update(userRef, { kycStatus: 'Not Verified' });
 
       const notificationsCollection = collection(firestore, 'users', targetUid, 'notifications');
+      const notificationRef = doc(notificationsCollection);
       const notification = {
             title: t('admin.kycListPage.userStatusUpdated', { status: 'Not Verified' }),
             message: t('admin.kycListPage.kycRejectedNotification', { reason: rejectionReason }),
@@ -133,21 +144,21 @@ export default function KycListPage() {
             createdAt: serverTimestamp(),
             type: 'error' as const
           };
-      await addDoc(notificationsCollection, notification);
+      batch.set(notificationRef, notification);
       
+      await batch.commit();
+
       setApplications(prev => prev.filter(app => app.uid !== targetUid));
       toast({
           title: t('admin.kycListPage.userStatusUpdated', { status: 'Not Verified' }),
           description: t('admin.kycListPage.userStatusUpdatedDesc', { uid: targetUid.slice(0, 8) }),
       });
 
-    } catch (error) {
-       console.error("Error rejecting user: ", error);
-      toast({
-        variant: "destructive",
-        title: t('admin.kycListPage.actionFailed'),
-        description: t('admin.kycListPage.actionFailedDesc'),
-      });
+    } catch (error: any) {
+         errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `/users/${targetUid} or its subcollections`,
+            operation: 'update',
+        }));
     } finally {
       setProcessingId(null);
       setRejectionTarget(null);
@@ -159,6 +170,31 @@ export default function KycListPage() {
     return <div className="flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   
+  if (error) {
+      let createIndexUrl = null;
+      if (error.code === 'failed-precondition' && error.message.includes('https://console.firebase.google.com')) {
+          createIndexUrl = error.message.match(/https:\/\/console\.firebase\.google\.com\S+/)?.[0] || null;
+      }
+      return (
+          <div className="flex h-[60vh] flex-col items-center justify-center gap-4 p-6 text-center">
+              <AlertCircle className="h-12 w-12 text-destructive" />
+              <h2 className="text-xl font-bold text-destructive">数据库查询失败</h2>
+              <p className="text-muted-foreground max-w-md">无法加载KYC申请列表。这很可能是因为缺少数据库索引。</p>
+              {createIndexUrl ? (
+                  <>
+                  <p className="mt-2 text-xs text-muted-foreground">请点击下方按钮前往 Firebase 控制台，一键创建所需的复合索引。</p>
+                  <Button asChild className="mt-2">
+                      <a href={createIndexUrl} target="_blank" rel="noopener noreferrer">创建数据库索引</a>
+                  </Button>
+                  </>
+              ) : (
+                  <p className="mt-2 text-xs text-muted-foreground">请打开浏览器开发者控制台（通常是F12）查看详细错误信息。</p>
+              )}
+              <pre className="mt-4 p-4 text-xs bg-muted rounded-md text-left overflow-auto max-w-full">{error.message}</pre>
+          </div>
+      );
+  }
+
   return (
     <div>
       <h2 className="text-3xl font-headline mb-6">{t('admin.kycListPage.title')}</h2>

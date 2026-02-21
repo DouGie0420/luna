@@ -3,12 +3,12 @@
 
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1080;
-const MAX_SIZE_KB = 800;
+const MAX_SIZE_KB = 300; // Reduced from 800KB to 300KB to avoid Firestore document size limits
 const MAX_INPUT_SIZE_MB = 50;
 
 /**
  * Compresses an image file to a data URL string.
- * It resizes the image to 1080p and compresses it to be under 800KB.
+ * It resizes the image to 1080p and compresses it to be under 300KB.
  * @param file The image file to compress.
  * @returns A promise that resolves with the compressed image as a data URL.
  */
@@ -48,7 +48,7 @@ export function compressImage(file: File): Promise<string> {
         }
         ctx.drawImage(img, 0, 0, width, height);
 
-        // Compression logic to under 800KB
+        // Compression logic to under the specified size
         const tryCompress = (quality: number) => {
           canvas.toBlob(
             (blob) => {

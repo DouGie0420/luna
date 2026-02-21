@@ -15,15 +15,16 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Separator } from "@/components/ui/separator"
-import { useAuth, useUser, useFirestore } from "@/firebase" 
+import { useUser } from "@/firebase/auth/use-user";
 import { GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth"
+import { useFirestore, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation"
 import { upsertUserProfile } from "@/lib/user"
 import { useToast } from "@/hooks/use-toast"
-import { X, Loader2 } from "lucide-react"
+import { X, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 import type { UserProfile } from "@/lib/types";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, limit } from "firebase/firestore";
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,9 @@ export default function RegisterPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
+  const [isCheckingId, setIsCheckingId] = useState(false);
+  const [idCheckResult, setIdCheckResult] = useState<'available' | 'taken' | 'invalid' | null>(null);
+
   useEffect(() => {
     if (!userLoading && user) {
       router.push('/');
@@ -66,9 +70,45 @@ export default function RegisterPage() {
   const handleLoginIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/[^0-9]/g, ''); // Only allow numbers
     setLoginId(value);
+    setIdCheckResult(null); // Reset check result on change
   }
 
-  const handleEmailRegister = async (e: React.MouseEvent) => {
+  const handleCheckLoginId = async () => {
+    if (!firestore) return;
+    
+    if (!loginId.match(/^[0-9]{3,}$/)) {
+        setIdCheckResult('invalid');
+        return;
+    }
+    
+    const RESERVED_IDS = ['admin', 'staff', 'pay', 'root', 'luna'];
+    if (RESERVED_IDS.includes(loginId.toLowerCase())) {
+        setIdCheckResult('taken');
+        return;
+    }
+
+    setIsCheckingId(true);
+    setIdCheckResult(null);
+
+    try {
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('loginId', '==', loginId), limit(1));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+            setIdCheckResult('available');
+        } else {
+            setIdCheckResult('taken');
+        }
+    } catch (error) {
+        console.error("Error checking login ID:", error);
+        toast({ variant: 'destructive', title: '查询失败', description: '无法检查ID可用性，请稍后再试。' });
+    } finally {
+        setIsCheckingId(false);
+    }
+  };
+
+  const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth || !firestore) {
       toast({ variant: 'destructive', title: 'Error', description: 'Firebase not ready. Please try again.' });
@@ -97,7 +137,7 @@ export default function RegisterPage() {
     setIsLoading(true);
     try {
       // Check if loginId is unique
-      const loginIdQuery = query(collection(firestore, 'users'), where('loginId', '==', loginId));
+      const loginIdQuery = query(collection(firestore, 'users'), where('loginId', '==', loginId), limit(1));
       const querySnapshot = await getDocs(loginIdQuery);
       if (!querySnapshot.empty) {
         toast({ variant: 'destructive', title: 'Login ID Taken', description: '此专属ID已被使用，请选择其他ID。' });
@@ -204,11 +244,22 @@ export default function RegisterPage() {
                 {t('registerPage.description')}
               </CardDescription>
             </CardHeader>
+            <form onSubmit={handleEmailRegister}>
             <CardContent className="grid gap-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 <div className="grid gap-2">
                   <Label htmlFor="loginId">自定义专属ID (纯数字)</Label>
-                  <Input id="loginId" placeholder="一个独特的数字ID" required value={loginId} onChange={handleLoginIdChange} />
+                   <div className="flex items-center gap-2">
+                    <Input id="loginId" placeholder="一个独特的数字ID" required value={loginId} onChange={handleLoginIdChange} />
+                    <Button type="button" className="bg-yellow-400 text-black hover:bg-yellow-500" onClick={handleCheckLoginId} disabled={isCheckingId || !loginId.trim()}>
+                        {isCheckingId ? <Loader2 className="h-4 w-4 animate-spin" /> : '查询'}
+                    </Button>
+                  </div>
+                   <div className="h-5">
+                     {idCheckResult === 'available' && <p className="text-xs text-green-500 flex items-center gap-1"><CheckCircle className="h-3 w-3"/>恭喜！此ID可用。</p>}
+                     {idCheckResult === 'taken' && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3"/>此ID已被占用。</p>}
+                     {idCheckResult === 'invalid' && <p className="text-xs text-destructive flex items-center gap-1"><AlertCircle className="h-3 w-3"/>ID必须是3位或更长的纯数字。</p>}
+                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="displayName">{t('registerPage.usernameLabel')}</Label>
@@ -260,7 +311,7 @@ export default function RegisterPage() {
 
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full" onClick={handleEmailRegister} disabled={isLoading || !termsAccepted}>
+              <Button type="submit" className="w-full" disabled={isLoading || !termsAccepted}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <span>{t('registerPage.createAccount')}</span>
               </Button>
@@ -284,6 +335,7 @@ export default function RegisterPage() {
                 </Link>
               </div>
             </CardFooter>
+            </form>
           </Card>
       </div>
 

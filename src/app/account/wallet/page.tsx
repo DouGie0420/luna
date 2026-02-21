@@ -48,21 +48,10 @@ const QrCodeDisplay = ({ label, qrUrl }: { label: string, qrUrl: string | null |
         <p className="font-medium">{label}</p>
         {qrUrl ? (
             <Dialog>
-                <DialogTrigger asChild>
-                    <Button variant="secondary" size="sm">查看二维码</Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-xs">
-                    <DialogHeader>
-                        <DialogTitle>{label}</DialogTitle>
-                    </DialogHeader>
-                    <div className="relative aspect-square w-full">
-                        <Image src={qrUrl} alt={`${label} QR Code`} fill className="object-contain rounded-md" />
-                    </div>
-                </DialogContent>
+                <DialogTrigger asChild><Button variant="secondary" size="sm">查看二维码</Button></DialogTrigger>
+                <DialogContent className="max-w-xs"><DialogHeader><DialogTitle>{label}</DialogTitle></DialogHeader><div className="relative aspect-square w-full"><Image src={qrUrl} alt={`${label} QR Code`} fill className="object-contain rounded-md" /></div></DialogContent>
             </Dialog>
-        ) : (
-             <p className="text-sm text-muted-foreground/70">未设置</p>
-        )}
+        ) : ( <p className="text-sm text-muted-foreground/70">未提供</p> )}
     </div>
 );
 
@@ -169,28 +158,26 @@ export default function WalletPage() {
     const handleConnect = async (walletType: 'metamask' | 'phantom' | 'binance') => {
         if (!firestore || !user) return;
     
-        let injectedProvider;
         const providers: {[key: string]: any} = {
             metamask: (window as any).ethereum,
             phantom: (window as any).phantom?.ethereum,
             binance: (window as any).BinanceChain,
         }
 
-        injectedProvider = providers[walletType];
+        const injectedProvider = providers[walletType];
 
         if (!injectedProvider) {
             toast({ variant: "destructive", title: "Wallet not found", description: "Please install the selected wallet extension or choose another." });
             return;
         }
 
-        const provider = new ethers.BrowserProvider(injectedProvider);
-        
         setIsConnecting(true);
         setIsWalletSelectorOpen(false);
 
         try {
-            const accounts = await provider.send("eth_requestAccounts", []);
-            const walletAddress = accounts[0].toLowerCase();
+            const provider = new ethers.BrowserProvider(injectedProvider);
+            const signer = await provider.getSigner();
+            const walletAddress = (await signer.getAddress()).toLowerCase();
             
             const q = query(collection(firestore, 'users'), where("walletAddress", "==", walletAddress));
             const querySnapshot = await getDocs(q);
@@ -538,6 +525,3 @@ export default function WalletPage() {
         </div>
     );
 }
-    
-
-    

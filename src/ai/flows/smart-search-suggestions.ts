@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -57,7 +58,14 @@ const smartSearchSuggestionsFlow = ai.defineFlow(
     outputSchema: SmartSearchOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      // If AI returns no suggestions, provide an empty array to prevent errors.
+      return output || { suggestions: [] };
+    } catch (error) {
+      console.error("AI flow 'smartSearchSuggestionsFlow' failed:", error);
+      // On error, return empty suggestions to avoid breaking the search bar.
+      return { suggestions: [] };
+    }
   }
 );

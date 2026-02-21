@@ -12,7 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, Loader2, Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Globe, Fingerprint, Search, MessageSquare, ChevronUp, ChevronDown, Languages, Info, Translate } from "lucide-react";
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import type { UserProfile, DirectChat, ChatMessage } from '@/lib/types';
-import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot, updateDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, addDoc, serverTimestamp, doc, writeBatch, increment, getDocs, limit, startAfter, QueryDocumentSnapshot, DocumentData, onSnapshot, updateDoc, Timestamp } from 'firebase/firestore';
 import { formatDistanceToNow, format } from 'date-fns';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -30,8 +30,9 @@ import { useTranslation } from '@/hooks/use-translation';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { cn } from '@/lib/utils';
-// import { translateText } from '@/ai/flows/translate-text';
+import { translateText } from '@/ai/flows/translate-text';
 
+const PAGE_SIZE = 50;
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -51,7 +52,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const scrollAreaRef = useRef<HTMLDivElement>(null);
     const [showSearch, setShowSearch] = useState(false);
     
-    // const [isTranslating, setIsTranslating] = useState(false);
+    const [translatingMessageId, setTranslatingMessageId] = useState<string | null>(null);
 
     // New search state
     const [messageSearchTerm, setMessageSearchTerm] = useState('');
@@ -60,18 +61,21 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
     const [currentMatchIndex, setCurrentMatchIndex] = useState(-1);
 
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [loadingMessages, setLoadingMessages] = useState(true);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [oldestMessageDoc, setOldestMessageDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [hasMoreToLoad, setHasMoreToLoad] = useState(true);
     
     const otherParticipantId = chat.participants.find(p => p !== user?.uid);
     const { data: otherParticipantProfileData, loading: otherParticipantLoading } = useDoc<UserProfile>(firestore && otherParticipantId ? doc(firestore, 'users', otherParticipantId) : null);
 
     const otherParticipantFromChat = otherParticipantId ? chat.participantProfiles[otherParticipantId] : null;
-    const displayUser = otherParticipantProfileData || otherParticipantFromChat;
+    const displayUser = !otherParticipantLoading && otherParticipantProfileData ? otherParticipantProfileData : otherParticipantFromChat;
     const profileUrl = displayUser ? `/@${(displayUser as any).loginId || (displayUser as any).uid}` : '#';
     const onSaleCount = otherParticipantProfileData?.onSaleCount ?? 0;
     const displayName = displayUser?.displayName || "User";
 
-    // const needsTranslation = profile && otherParticipantProfileData && profile.preferredLanguage !== otherParticipantProfileData.preferredLanguage;
+    const needsTranslation = profile && otherParticipantProfileData && profile.preferredLanguage && otherParticipantProfileData.preferredLanguage && profile.preferredLanguage !== otherParticipantProfileData.preferredLanguage;
 
     const highlightText = (text: string): React.ReactNode => {
       if (!debouncedMessageSearchTerm.trim()) return text;
@@ -125,46 +129,94 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
         setCurrentMatchIndex(prev => (prev < matches.length - 1 ? prev + 1 : prev));
     };
 
-    const messagesQuery = useMemo(() => {
+    const messagesCollectionRef = useMemo(() => {
         if (!firestore) return null;
-        return query(
-            collection(firestore, 'direct_chats', chat.id, 'messages'),
-            orderBy('createdAt', 'asc')
-        );
+        return collection(firestore, 'direct_chats', chat.id, 'messages');
     }, [firestore, chat.id]);
 
+    const handleLoadMore = useCallback(async () => {
+        if (!messagesCollectionRef || !oldestMessageDoc || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const q = query(
+                messagesCollectionRef,
+                orderBy('createdAt', 'desc'),
+                startAfter(oldestMessageDoc),
+                limit(PAGE_SIZE)
+            );
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                const olderMsgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage)).reverse();
+                setMessages(prev => [...olderMsgs, ...prev]);
+                setOldestMessageDoc(snapshot.docs[snapshot.docs.length - 1]);
+                setHasMoreToLoad(snapshot.docs.length === PAGE_SIZE);
+            } else {
+                setHasMoreToLoad(false);
+            }
+        } catch (error) {
+            console.error("Error loading more messages:", error);
+            toast({ title: 'Error loading older messages.', variant: 'destructive' });
+        } finally {
+            setLoadingMore(false);
+        }
+    }, [messagesCollectionRef, oldestMessageDoc, loadingMore, toast]);
+
     useEffect(() => {
-        if (!messagesQuery) return;
-        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage));
+        if (!messagesCollectionRef) return;
+
+        setLoadingInitial(true);
+        setMessages([]);
+
+        // Listen for new messages in real-time
+        const q = query(
+            messagesCollectionRef,
+            orderBy('createdAt', 'desc'),
+            limit(PAGE_SIZE)
+        );
+
+        const unsubscribe = onSnapshot(q, snapshot => {
+            const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ChatMessage)).reverse();
             setMessages(msgs);
-            setLoadingMessages(false);
-        }, (error) => {
-            console.error("Failed to listen to messages:", error);
-            setLoadingMessages(false);
+            setOldestMessageDoc(snapshot.docs[snapshot.docs.length - 1] ?? null);
+            setHasMoreToLoad(snapshot.docs.length === PAGE_SIZE);
+            setLoadingInitial(false);
+        }, error => {
+            console.error("Error fetching messages:", error);
+            setLoadingInitial(false);
         });
+
         return () => unsubscribe();
-    }, [messagesQuery]);
+    }, [messagesCollectionRef]);
     
     useEffect(() => {
         if (scrollAreaRef.current && !messageSearchTerm) {
-            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+            scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'auto' });
         }
-    }, [messages, messageSearchTerm]);
+    }, [messages.length, messageSearchTerm]); // Trigger on message length change instead of messages object
     
-    //  const handleTranslate = async () => {
-    //     if (!newMessage.trim() || !otherParticipantProfileData?.preferredLanguage) return;
-    //     setIsTranslating(true);
-    //     try {
-    //         const result = await translateText({ text: newMessage, targetLanguage: otherParticipantProfileData.preferredLanguage });
-    //         setNewMessage(result.translatedText);
-    //     } catch (error) {
-    //         console.error("Translation failed:", error);
-    //         toast({ variant: 'destructive', title: 'Translation failed' });
-    //     } finally {
-    //         setIsTranslating(false);
-    //     }
-    // };
+    const handleTranslateMessage = async (message: ChatMessage) => {
+        if (!firestore || !profile?.preferredLanguage || message.senderId === user?.uid || message.isTranslated || translatingMessageId) return;
+    
+        setTranslatingMessageId(message.id);
+        try {
+            const result = await translateText({ text: message.text, targetLanguage: profile.preferredLanguage });
+            const messageRef = doc(firestore, 'direct_chats', chat.id, 'messages', message.id);
+            await updateDoc(messageRef, {
+                text: result.translatedText,
+                originalText: message.text,
+                isTranslated: true,
+            });
+        } catch (error) {
+            console.error('Translation failed:', error);
+            toast({
+                title: 'Translation Failed',
+                description: 'Could not translate the message.',
+                variant: 'destructive',
+            });
+        } finally {
+            setTranslatingMessageId(null);
+        }
+    };
 
     const handleSendMessage = async () => {
         if (!firestore || !user || !chat || !newMessage.trim()) return;
@@ -330,7 +382,7 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                                 <ChevronDown className="h-4 w-4" />
                             </Button>
                         </div>
-                    ) : debouncedMessageSearchTerm && !loadingMessages ? (
+                    ) : debouncedMessageSearchTerm && !loadingInitial ? (
                          <span className="text-sm text-muted-foreground whitespace-nowrap">No results</span>
                     ) : null}
                 </div>
@@ -339,41 +391,68 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                 <ScrollArea className="h-full" viewportRef={scrollAreaRef}>
                   <TooltipProvider delayDuration={100}>
                     <div className="p-6 space-y-4">
-                        {loadingMessages ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : messages?.map(msg => (
-                            <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
-                                {msg.senderId !== user?.uid && otherParticipantFromChat && (
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={otherParticipantFromChat.photoURL} />
-                                        <AvatarFallback>{otherParticipantFromChat.displayName?.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                        {loadingInitial ? <div className="flex justify-center items-center h-full"><Loader2 className="h-6 w-6 animate-spin" /></div> : (
+                            <>
+                                {hasMoreToLoad && (
+                                    <div className="text-center">
+                                        <Button variant="link" size="sm" onClick={handleLoadMore} disabled={loadingMore}>
+                                            {loadingMore ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                            加载更早的消息
+                                        </Button>
+                                    </div>
                                 )}
-                                <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <div className={cn(
-                                                `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
-                                                msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
-                                                matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
-                                                matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500',
-                                                msg.isTranslated && "border-dashed border-primary"
-                                            )}>
-                                                <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
-                                            </div>
-                                        </TooltipTrigger>
-                                        {msg.isTranslated && msg.originalText && (
-                                            <TooltipContent>
-                                                <p><strong>Original:</strong> {msg.originalText}</p>
-                                            </TooltipContent>
+                                {messages?.map(msg => (
+                                    <div key={msg.id} id={`msg-${msg.id}`} className={`flex items-end gap-2 ${msg.senderId === user?.uid ? 'justify-end' : 'justify-start'}`}>
+                                        {msg.senderId !== user?.uid && otherParticipantFromChat && (
+                                            <Avatar className="h-8 w-8">
+                                                <AvatarImage src={otherParticipantFromChat.photoURL} />
+                                                <AvatarFallback>{otherParticipantFromChat.displayName?.charAt(0)}</AvatarFallback>
+                                            </Avatar>
                                         )}
-                                    </Tooltip>
-                                    {msg.createdAt?.toDate && (
-                                        <span className="text-xs text-muted-foreground px-1">
-                                            {format(msg.createdAt.toDate(), 'HH:mm')}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        ))}
+                                        <div className={`flex flex-col gap-1 ${msg.senderId === user?.uid ? 'items-end' : 'items-start'}`}>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className={cn(
+                                                        `max-w-xs md:max-w-md lg:max-w-lg rounded-lg px-4 py-2 transition-all relative`,
+                                                        msg.senderId === user?.uid ? 'bg-primary text-primary-foreground' : 'bg-secondary',
+                                                        matches.some(m => m.id === msg.id) && 'ring-1 ring-yellow-400/50',
+                                                        matches[currentMatchIndex]?.id === msg.id && 'ring-2 ring-yellow-500',
+                                                        msg.isTranslated && "border-dashed border-primary"
+                                                    )}>
+                                                        <p className="whitespace-pre-wrap break-words">{highlightText(msg.text)}</p>
+                                                        {needsTranslation && msg.senderId !== user?.uid && !msg.isTranslated && (
+                                                            <Button
+                                                                size="icon"
+                                                                variant="ghost"
+                                                                className="absolute -bottom-2 -right-2 h-6 w-6 rounded-full opacity-70 hover:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm"
+                                                                onClick={() => handleTranslateMessage(msg)}
+                                                                disabled={!!translatingMessageId}
+                                                            >
+                                                                {translatingMessageId === msg.id ? (
+                                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                                ) : (
+                                                                    <Languages className="h-3 w-3" />
+                                                                )}
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </TooltipTrigger>
+                                                {msg.isTranslated && msg.originalText && (
+                                                    <TooltipContent>
+                                                        <p><strong>Original:</strong> {msg.originalText}</p>
+                                                    </TooltipContent>
+                                                )}
+                                            </Tooltip>
+                                            {msg.createdAt?.toDate && (
+                                                <span className="text-xs text-muted-foreground px-1">
+                                                    {format(msg.createdAt.toDate(), 'HH:mm')}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
                     </div>
                   </TooltipProvider>
                 </ScrollArea>
@@ -393,18 +472,6 @@ function ChatInterface({ chat }: { chat: DirectChat }) {
                         disabled={isSending || !canSend}
                     />
                     <div className="absolute top-1/2 right-1 -translate-y-1/2 flex items-center">
-                        {/* {needsTranslation && (
-                            <Button 
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                onClick={handleTranslate}
-                                disabled={isTranslating || !newMessage.trim()}
-                                title="Translate"
-                            >
-                                {isTranslating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Translate className="h-4 w-4" />}
-                            </Button>
-                        )} */}
                         <Button 
                             size="icon" 
                             className="h-8 w-10"
@@ -690,3 +757,5 @@ export default function MessagesPage() {
     </div>
   )
 }
+
+    

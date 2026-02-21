@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
@@ -18,14 +19,12 @@ import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 import { Button } from './ui/button';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
 export function VerifiedMerchants() {
     const { t } = useTranslation();
     const firestore = useFirestore();
     const { user } = useUser();
-    const router = useRouter();
     const { toast } = useToast();
     
     const [proUsers, setProUsers] = useState<UserProfile[]>([]);
