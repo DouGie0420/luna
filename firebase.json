@@ -1,13 +1,18 @@
 {
   "hosting": {
-    "authDomain": "lunas.top",
     "source": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
-    "frameworksBackend": {}
+    "frameworksBackend": {},
+    "rewrites": [
+      {
+        "source": "/__/auth/**",
+        "destination": "https://studio-5896500485-92a21.firebaseapp.com/__/auth/**"
+      }
+    ]
   },
   "firestore": {
     "rules": "firestore.rules"
