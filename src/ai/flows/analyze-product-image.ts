@@ -36,19 +36,11 @@ const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
   model: 'googleai/gemini-1.5-flash',
   input: {schema: AnalyzeProductImageInputSchema},
-  config: {
-    generation_config: {
-      response_mime_type: "application/json",
-    },
-  },
-  prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
+  prompt: `You are an expert e-commerce copywriter. Analyze the product in the image and return the result in JSON format.
+You MUST only output a pure JSON string, without \`\`\`json tags or any other extra explanations.
+The format must be: {"title": "a short, catchy, and descriptive title", "description": "a detailed and appealing description in Chinese"}.
 
-Image: {{media url=imageDataUri}}
-
-Based on the image, generate a short, catchy, and descriptive title for the product listing.
-Then, write a detailed and appealing description in Chinese. Mention what the item appears to be, its potential features, style, and condition. Be creative and engaging.
-
-Respond with only a JSON formatted output. The JSON object must contain a "title" field (string) and a "description" field (string).`,
+Image: {{media url=imageDataUri}}`,
 });
 
 const analyzeProductImageFlow = ai.defineFlow(
@@ -61,7 +53,6 @@ const analyzeProductImageFlow = ai.defineFlow(
     const response = await prompt(input);
     const jsonString = response.text;
     
-    // 增加一个简单的错误防御逻辑
     if (!jsonString) {
       throw new Error("AI 无法识别该图片内容，请重试。");
     }
@@ -75,4 +66,3 @@ const analyzeProductImageFlow = ai.defineFlow(
     }
   }
 );
-
