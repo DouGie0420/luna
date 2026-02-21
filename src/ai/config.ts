@@ -6,4 +6,4 @@
 // This is the primary model used for most generative AI tasks in the application.
 // By centralizing it here, we can easily swap it out for a different model in the future
 // across all flows. For example, you could change this to 'googleai/gemini-1.5-pro'.
-export const MODEL_NAME = 'googleai/gemini-1.5-flash-latest';
+export const MODEL_NAME = 'googleai/gemini-1.5-flash';
