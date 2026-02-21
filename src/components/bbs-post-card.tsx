@@ -4,9 +4,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Eye, Star, ShieldCheck, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin, Share2 } from 'lucide-react';
+import { MessageSquare, Eye, Star, MoreHorizontal, TrendingUp, Edit, Trash2, Heart, MapPin, Share2 } from 'lucide-react';
 import type { BbsPost, UserProfile } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
 import { formatDistanceToNow } from 'date-fns';
@@ -34,12 +33,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { createNotification } from '@/lib/notifications';
+import { UserAvatar } from './ui/user-avatar';
 
-const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12.038 24l7.07-13.34-7.07 4.545-7.07-4.545L12.038 24zM12.038 0L4.968 10.66l7.07 4.545 7.07-4.545L12.038 0z"/>
-    </svg>
-);
 
 export function BbsPostCard({ post }: { post: BbsPost }) {
     const { t } = useTranslation();
@@ -295,28 +290,12 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                                     router.push(authorProfileUrl);
                                 }}
                             >
-                                <Avatar className="h-8 w-8">
-                                    <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                                    <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                {post.author.isNftVerified ? (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <EthereumIcon className="h-3 w-3 text-cyan-400" />
-                                    </div>
-                                ) : post.author.isWeb3Verified ? (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <ShieldCheck className="h-3 w-3 text-blue-400" />
-                                    </div>
-                                ) : post.author.kycStatus === 'Verified' && (
-                                    <div className="absolute -bottom-1 -right-1 z-10 rounded-full bg-black/80 p-0.5 backdrop-blur-sm">
-                                        <ShieldCheck className="h-3 w-3 text-cyan-400" />
-                                    </div>
-                                )}
+                                <UserAvatar profile={post.author} className="h-8 w-8" />
                             </div>
                             <div>
                                 <p className="text-sm font-headline text-foreground">{post.author.name}</p>
                                 <p className="text-xs text-muted-foreground">
-                                    {timeAgo}{post.location?.city && ` · ${post.location.city}, ${post.location.countryCode}`}
+                                    {timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}
                                 </p>
                             </div>
                         </div>

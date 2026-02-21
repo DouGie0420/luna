@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
@@ -15,7 +16,6 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { cn } from '@/lib/utils';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createNotification } from '@/lib/notifications';
+import { UserAvatar } from './ui/user-avatar';
 
 
 const locales = { en: enUS, zh: zhCN, th: th };
@@ -123,35 +124,35 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     };
 
     const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-        if (!firestore || !profile) return;
+      if (!firestore || !profile) return;
 
-        if (action === 'edit') {
-            router.push(`/bbs/edit/${post.id}`);
-        } else if (action === 'feature') {
-            const postRef = doc(firestore, 'bbs', post.id);
-            const newFeaturedState = !post.isFeatured;
-            try {
-                await updateDoc(postRef, { isFeatured: newFeaturedState });
-                toast({
-                    title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
-                });
-                 if (newFeaturedState) {
-                    createNotification(firestore, post.authorId, { type: 'feature', actor: profile, post });
-                }
-            } catch (error) {
-                console.error("Error updating feature status:", error);
-                toast({
-                    title: "操作失败",
-                    description: "更新精华状态时出错。",
-                    variant: "destructive",
-                });
-            }
-        } else {
+      if (action === 'edit') {
+          router.push(`/bbs/edit/${post.id}`);
+      } else if (action === 'feature') {
+          const postRef = doc(firestore, 'bbs', post.id);
+          const newFeaturedState = !post.isFeatured;
+          try {
+            await updateDoc(postRef, { isFeatured: newFeaturedState });
             toast({
-                title: `Admin Action: ${action}`,
-                description: "This feature is in development.",
+                title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
             });
-        }
+             if (newFeaturedState) {
+                createNotification(firestore, post.authorId, { type: 'feature', actor: profile, post });
+            }
+          } catch (error) {
+            console.error("Error updating feature status:", error);
+            toast({
+                title: "操作失败",
+                description: "更新精华状态时出错。",
+                variant: "destructive",
+            });
+          }
+      } else {
+        toast({
+          title: `Admin Action: ${action}`,
+          description: "This feature is in development.",
+        });
+      }
     };
 
     const summary = useMemo(() => {
@@ -228,10 +229,7 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
             </Link>
             <CardFooter className="p-5 pt-0 flex justify-between items-center">
                  <div className="flex items-center gap-2 overflow-hidden">
-                    <Avatar className="h-6 w-6">
-                        <AvatarImage src={post.author.avatarUrl} alt={post.author.name} />
-                        <AvatarFallback>{post.author.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                    <UserAvatar profile={post.author} className="h-6 w-6" />
                     <div className="text-xs">
                         <p className="font-headline font-semibold text-foreground truncate">{post.author.name}</p>
                         <p className="text-muted-foreground truncate">
