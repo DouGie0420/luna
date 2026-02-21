@@ -92,6 +92,7 @@ export function UserNav() {
     setIsLinkingWallet(true);
     try {
         const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []); // Explicitly request connection
         const signer = await provider.getSigner();
         const address = (await signer.getAddress()).toLowerCase();
 

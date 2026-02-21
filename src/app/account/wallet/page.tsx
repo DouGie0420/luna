@@ -176,6 +176,7 @@ export default function WalletPage() {
 
         try {
             const provider = new ethers.BrowserProvider(injectedProvider);
+            await provider.send("eth_requestAccounts", []); // Explicitly request connection
             const signer = await provider.getSigner();
             const walletAddress = (await signer.getAddress()).toLowerCase();
             

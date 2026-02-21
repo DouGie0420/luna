@@ -28,12 +28,15 @@ export async function signInWithMetaMask(firestore: Firestore): Promise<UserProf
   try {
     // Use ethers to wrap the window.ethereum provider
     const provider = new ethers.BrowserProvider(window.ethereum);
+    
+    // 1. Explicitly request accounts to trigger MetaMask prompt
+    await provider.send("eth_requestAccounts", []);
 
-    // 1. Request account access first using provider.getSigner()
+    // 2. Get the signer after connection is approved
     const signer = await provider.getSigner();
     const address = (await signer.getAddress()).toLowerCase();
 
-    // 2. Generate and sign a nonce (client-side for this prototype)
+    // 3. Generate and sign a nonce (client-side for this prototype)
     const nonce = generateNonce();
     await signer.signMessage(nonce);
 
@@ -43,10 +46,10 @@ export async function signInWithMetaMask(firestore: Firestore): Promise<UserProf
     //
     // For this prototype, we will skip backend verification and simulate the login.
 
-    // 3. Create or update user profile in Firestore
+    // 4. Create or update user profile in Firestore
     const profile = await upsertWalletUser(firestore, address);
 
-    // 4. Simulate login by storing user info in localStorage
+    // 5. Simulate login by storing user info in localStorage
     const walletUser = {
         uid: address,
         displayName: profile.displayName,
@@ -55,13 +58,10 @@ export async function signInWithMetaMask(firestore: Firestore): Promise<UserProf
     };
     localStorage.setItem('walletUser', JSON.stringify(walletUser));
 
-    // NOTE: The next step is to create a placeholder for associating an NFT avatar.
-    // This would likely happen on the user profile page after login.
-    // e.g., a function like `updateAvatarToNFT(address)` would be called there.
-
     return profile;
   } catch (error: any) {
     // Forward the error to be displayed in a toast by the caller
+    console.error("Error in signInWithMetaMask:", error);
     throw error;
   }
 }
