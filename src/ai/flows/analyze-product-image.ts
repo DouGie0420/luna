@@ -37,8 +37,8 @@ const prompt = ai.definePrompt({
   model: 'googleai/gemini-1.5-flash',
   input: {schema: AnalyzeProductImageInputSchema},
   config: {
-    generationConfig: {
-      responseMimeType: "application/json",
+    generation_config: {
+      response_mime_type: "application/json",
     },
   },
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
@@ -75,3 +75,4 @@ const analyzeProductImageFlow = ai.defineFlow(
     }
   }
 );
+
