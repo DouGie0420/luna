@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -14,9 +15,20 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+// This type accepts shapes from both UserProfile and the simpler User type
+// used in nested objects like post.author.
+type AvatarProfile = {
+  photoURL?: string | null;
+  avatarUrl?: string | null;
+  displayName?: string | null;
+  name?: string | null;
+  displayedBadge?: BadgeType;
+  isPro?: boolean;
+} | null;
+
 
 interface UserAvatarProps {
-    profile: (UserProfile | null) | { photoURL?: string | null; displayName?: string | null; displayedBadge?: BadgeType; isPro?: boolean };
+    profile: AvatarProfile;
     className?: string;
 }
 
@@ -49,11 +61,15 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
         
     const badgeSize = 'h-4 w-4';
 
+    // Handle different property names for the same data
+    const imageUrl = profile?.photoURL || (profile as any)?.avatarUrl;
+    const name = profile?.displayName || (profile as any)?.name;
+
     return (
         <div className={cn("relative", className)}>
             <Avatar className="h-full w-full">
-                <AvatarImage src={profile?.photoURL || undefined} alt={profile?.displayName || 'User'} />
-                <AvatarFallback>{profile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarImage src={imageUrl || undefined} alt={name || 'User'} />
+                <AvatarFallback>{name?.charAt(0) || 'U'}</AvatarFallback>
             </Avatar>
             
             {displayedBadge === 'pro' ? (
