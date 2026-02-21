@@ -2,10 +2,6 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button';
-import { X, Youtube, Film } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 export const ContentPreviewRenderer = ({ content, onRemove }: { content: string; onRemove: (line: string) => void }) => {
     

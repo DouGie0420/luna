@@ -39,6 +39,7 @@ import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from '
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
+import { ContentPreviewRenderer } from '@/components/content-preview-renderer';
 
 
 export default function NewProductPage() {
@@ -352,9 +353,23 @@ export default function NewProductPage() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
-                  <div className="relative">
-                    <Textarea id="description" placeholder={t('newProductPage.descriptionPlaceholder')} value={description} onChange={(e) => setDescription(e.target.value)} required disabled={isAiLoading} />
-                    {isAiLoading && <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />}
+                  <div className="relative overflow-hidden rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                    <Textarea
+                        id="description"
+                        placeholder={t('newProductPage.descriptionPlaceholder')}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                        disabled={isAiLoading}
+                        rows={10}
+                        className="border-0 rounded-b-none focus-visible:ring-0 focus-visible:ring-offset-0 resize-y"
+                    />
+                    {isAiLoading && (
+                        <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin" />
+                    )}
+                    {description && (
+                        <ContentPreviewRenderer content={description} onRemove={() => {}} />
+                    )}
                   </div>
                 </div>
 
