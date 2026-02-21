@@ -50,6 +50,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { LocationPicker } from '@/components/location-picker';
+import { Separator } from '@/components/ui/separator';
+
 
 export default function NewProductPage() {
   const { user, profile, loading } = useUser();
@@ -387,7 +389,7 @@ export default function NewProductPage() {
                         </p>
                     </div>
                 </div>
-
+                
                 <div className="grid gap-2">
                     <Label htmlFor="category">{t('newProductPage.category')}</Label>
                     <Select value={category} onValueChange={(v: any) => setCategory(v)}>
@@ -411,20 +413,6 @@ export default function NewProductPage() {
                     <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
                      {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                   </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
-                    <Textarea
-                        id="description"
-                        placeholder={t('newProductPage.descriptionPlaceholder')}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                        disabled={isAiLoading}
-                        rows={15}
-                        className="border rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
-                    />
                 </div>
                 
                 <div className="grid gap-2">
@@ -459,26 +447,83 @@ export default function NewProductPage() {
                     </Dialog>
                     {locationError && <p className="text-xs text-destructive">{locationError}</p>}
                 </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
+                    <Textarea
+                        id="description"
+                        placeholder={t('newProductPage.descriptionPlaceholder')}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        required
+                        disabled={isAiLoading}
+                        rows={15}
+                        className="border rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
+                    />
+                </div>
                 
-                <div className="p-4 border rounded-lg bg-secondary/30">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="price">{t('newProductPage.price')}</Label>
-                            <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
+                <div className="p-4 border rounded-lg bg-secondary/30 space-y-6">
+                    <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="price">{t('newProductPage.price')}</Label>
+                                <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
+                                <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder={t('newProductPage.selectCurrency')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
+                                        <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
+                                        <SelectItem value="RMB">RMB (人民币)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
-                            <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder={t('newProductPage.selectCurrency')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
-                                    <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
-                                    <SelectItem value="RMB">RMB (人民币)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="grid gap-2">
+                      <Label>接受的付款方式</Label>
+                      <p className="text-sm text-muted-foreground">选择您为此商品接受的付款方式。此处仅显示您在钱包中已配置的方式。</p>
+                      <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                        {(!profile?.paymentInfo && !profile?.walletAddress) && <p className="text-muted-foreground col-span-2 text-center">请先在您的钱包中配置付款方式。</p>}
+                        
+                        {profile?.paymentInfo?.bankAccount?.accountNumber && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accept-thb" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'THB')} />
+                                <Label htmlFor="accept-thb" className="font-normal">银行转账 (THB)</Label>
+                            </div>
+                        )}
+                        {profile?.walletAddress && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accept-usdt" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'USDT')} />
+                                <Label htmlFor="accept-usdt" className="font-normal">USDT</Label>
+                            </div>
+                        )}
+                        {profile?.paymentInfo?.alipayQrUrl && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accept-alipay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'Alipay')} />
+                                <Label htmlFor="accept-alipay" className="font-normal">支付宝 (Alipay)</Label>
+                            </div>
+                        )}
+                        {profile?.paymentInfo?.wechatPayQrUrl && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accept-wechat" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'WeChat')} />
+                                <Label htmlFor="accept-wechat" className="font-normal">微信支付 (WeChat Pay)</Label>
+                            </div>
+                        )}
+                        {profile?.paymentInfo?.promptPayQrUrl && (
+                            <div className="flex items-center space-x-2">
+                                <Checkbox id="accept-promptpay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'PromptPay')} />
+                                <Label htmlFor="accept-promptpay" className="font-normal">PromptPay</Label>
+                            </div>
+                        )}
+                      </div>
                     </div>
                 </div>
 
@@ -527,45 +572,6 @@ export default function NewProductPage() {
                     </div>
                 </div>
                 
-                <div className="grid gap-2">
-                  <Label>接受的付款方式</Label>
-                  <p className="text-sm text-muted-foreground">选择您为此商品接受的付款方式。此处仅显示您在钱包中已配置的方式。</p>
-                  <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
-                    {(!profile?.paymentInfo && !profile?.walletAddress) && <p className="text-muted-foreground col-span-2 text-center">请先在您的钱包中配置付款方式。</p>}
-                    
-                    {profile?.paymentInfo?.bankAccount?.accountNumber && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="accept-thb" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'THB')} />
-                            <Label htmlFor="accept-thb" className="font-normal">银行转账 (THB)</Label>
-                        </div>
-                    )}
-                    {profile?.walletAddress && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="accept-usdt" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'USDT')} />
-                            <Label htmlFor="accept-usdt" className="font-normal">USDT</Label>
-                        </div>
-                    )}
-                    {profile?.paymentInfo?.alipayQrUrl && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="accept-alipay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'Alipay')} />
-                            <Label htmlFor="accept-alipay" className="font-normal">支付宝 (Alipay)</Label>
-                        </div>
-                    )}
-                    {profile?.paymentInfo?.wechatPayQrUrl && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="accept-wechat" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'WeChat')} />
-                            <Label htmlFor="accept-wechat" className="font-normal">微信支付 (WeChat Pay)</Label>
-                        </div>
-                    )}
-                    {profile?.paymentInfo?.promptPayQrUrl && (
-                        <div className="flex items-center space-x-2">
-                            <Checkbox id="accept-promptpay" onCheckedChange={(checked) => handleAcceptedMethodsChange(checked as boolean, 'PromptPay')} />
-                            <Label htmlFor="accept-promptpay" className="font-normal">PromptPay</Label>
-                        </div>
-                    )}
-                  </div>
-                </div>
-
                 <div className="grid gap-2">
                     <Label>{t('newProductPage.shippingMethod')}</Label>
                     <RadioGroup value={shippingMethod} onValueChange={(v: any) => setShippingMethod(v)} className="flex gap-4">
@@ -632,3 +638,5 @@ export default function NewProductPage() {
     </>
   )
 }
+
+    
