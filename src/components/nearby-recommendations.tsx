@@ -15,13 +15,18 @@ import Autoplay from "embla-carousel-autoplay";
 import { useTranslation } from '@/hooks/use-translation';
 import { useFirestore, useCollection } from '@/firebase';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/firebase';
 
-
-export function NearbyRecommendations() {
+export function TrendingProducts() {
   const { t } = useTranslation();
   const firestore = useFirestore();
+  const { user } = useUser();
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const recsQuery = useMemo(() => {
+  const productsQuery = useMemo(() => {
     if (!firestore) return null;
     return query(
       collection(firestore, 'products'), 
@@ -31,11 +36,23 @@ export function NearbyRecommendations() {
     );
   }, [firestore]);
 
-  const { data: recommendations, loading: isLoading } = useCollection<Product>(recsQuery);
+  const { data: recommendations, loading: isLoading } = useCollection<Product>(productsQuery);
+
+  const handleGuestClick = (e: React.MouseEvent) => {
+      if (!user) {
+          e.preventDefault();
+          toast({
+              title: '需要认证',
+              description: '请先登录或注册以访问更多内容。',
+              variant: 'destructive'
+          });
+      }
+  }
+
 
   return (
     <section>
-      <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.recommendedForYou')}</h2>
+      <h2 className="font-headline text-3xl font-semibold mb-6">{t('homePage.trendingProducts')}</h2>
       <div className="p-6">
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">

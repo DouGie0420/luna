@@ -327,7 +327,7 @@
   "homePage": {
     "verifiedMerchants": "ร้านค้าที่ยืนยันแล้ว",
     "canyonOfTheMoon": "Lunar Vale",
-    "recommendedForYou": "แนะนำสำหรับคุณ"
+    "trendingProducts": "สินค้าที่กำลังนิยม"
   },
   "seaOfTranquility": {
     "title": "ทะเลสาบแห่งความฝัน",
@@ -484,7 +484,7 @@
     "reminderSent": "ส่งการแจ้งเตือนไปยังผู้ขายแล้ว",
     "trackShipment": "ติดตามการจัดส่ง",
     "trackingInfo": "ข้อมูลการติดตาม",
-    "trackingProvider": "ผู้ให้บริการจัดส่ง",
+    "trackingProvider": "ผู้ให้บริการจัด送",
     "trackingNumber": "หมายเลขติดตาม",
     "trackingPlaceholder": "API สำหรับการติดตามสดจะถูกรวมเข้าไว้ที่นี่ในอนาคต"
   },
@@ -684,7 +684,7 @@
       "updateSuccessTitle": "อัปเดตผู้ใช้แล้ว",
       "updateSuccessDescription": "ฟิลด์ {fieldName} สำหรับผู้ใช้ {userName} ถูกตั้งค่าเป็น {value}"
     },
-    "userFields": {
+     "userFields": {
       "loginId": "รหัสเข้าสู่ระบบ",
       "creditLevel": "ระดับเครดิต",
       "creditScore": "คะแนนเครดิต",

@@ -3,7 +3,7 @@
 import { PromoCarousel } from '@/components/promo-carousel';
 import { SearchBar } from '@/components/layout/search-bar';
 import { Button } from '@/components/ui/button';
-import { NearbyRecommendations } from '@/components/nearby-recommendations';
+import { TrendingProducts } from '@/components/nearby-recommendations';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { VerifiedMerchants } from '@/components/verified-merchants';
@@ -55,7 +55,7 @@ export default function HomePage() {
       <SeaOfTranquility />
 
       <div className="container mx-auto px-4 pb-16">
-        <NearbyRecommendations />
+        <TrendingProducts />
       </div>
     </>
   );

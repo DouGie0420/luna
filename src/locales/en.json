@@ -354,7 +354,7 @@
   "homePage": {
     "verifiedMerchants": "Verified Merchants",
     "canyonOfTheMoon": "Lunar Vale",
-    "recommendedForYou": "Recommended For You"
+    "trendingProducts": "Trending Products"
   },
   "seaOfTranquility": {
     "title": "Lacus Somniorum",
@@ -711,7 +711,7 @@
       "updateSuccessTitle": "User Updated",
       "updateSuccessDescription": "{fieldName} for user {userName} has been set to {value}."
     },
-    "userFields": {
+     "userFields": {
       "loginId": "Login ID",
       "creditLevel": "Credit Level",
       "creditScore": "Credit Score",
