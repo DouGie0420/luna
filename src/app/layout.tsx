@@ -11,6 +11,7 @@ import { SettingsProvider } from '@/context/settings-provider';
 import { FloatingSupportButton } from '@/components/floating-support-button';
 import { BackgroundSnake } from '@/components/background-snake';
 import { GlobalAudioPlayer } from '@/components/global-audio-player';
+import { MapProvider } from '@/components/map-provider';
 
 export default function RootLayout({
   children,
@@ -28,17 +29,19 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <SettingsProvider>
             <LanguageProvider>
-              <div className="pixel-grid-bg" />
-              <BackgroundSnake />
-              <div className="flex flex-col min-h-screen">
-                  <Header />
-                  <main className="flex-grow flex flex-col">{children}</main>
-                  <Footer />
-              </div>
-              <Toaster />
-              <FirebaseErrorListener />
-              <FloatingSupportButton />
-              <GlobalAudioPlayer />
+              <MapProvider>
+                <div className="pixel-grid-bg" />
+                <BackgroundSnake />
+                <div className="flex flex-col min-h-screen">
+                    <Header />
+                    <main className="flex-grow flex flex-col">{children}</main>
+                    <Footer />
+                </div>
+                <Toaster />
+                <FirebaseErrorListener />
+                <FloatingSupportButton />
+                <GlobalAudioPlayer />
+              </MapProvider>
             </LanguageProvider>
           </SettingsProvider>
         </FirebaseClientProvider>

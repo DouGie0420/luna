@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { UserProductsMap } from '@/components/user-products-map';
 
 // --- 赛博朋克保留域名界面 ---
 function ReservedDomainUI({ loginId }: { loginId: string }) {
@@ -292,9 +293,10 @@ export default function UserProfilePage() {
                         photoURL: user.photoURL,
                     }
                 },
-                lastMessage: '',
+                lastMessage: `Regarding your item: ${product.name}`,
                 lastMessageTimestamp: serverTimestamp(),
-                isFriendMode: false, 
+                // Default settings for a new chat
+                isFriendMode: false, // You can add logic to check mutual follow
                 hasReplied: false,
                 initiatorId: currentUser.uid,
                 initialMessageCount: 0,
@@ -505,6 +507,17 @@ export default function UserProfilePage() {
                                     <ProductCard key={product.id} product={product} />
                                 ))}
                             </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {products && products.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Item Locations</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <UserProductsMap products={products} />
                         </CardContent>
                     </Card>
                 )}

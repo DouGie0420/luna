@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, Loader2 } from "lucide-react";
+import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, Loader2, MapPin } from "lucide-react";
 import Link from "next/link";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -218,6 +218,9 @@ export function UserNav() {
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10"><LogOut className="mr-2 h-4 w-4" /><span>{t('userNav.logout')}</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Button asChild variant="outline" className="hidden md:flex rounded-full h-10 px-4">
+            <Link href="/nearby"><MapPin className="mr-2 h-4 w-4" /> Nearby</Link>
+        </Button>
         <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 text-primary-foreground h-10 px-4 font-bold">
           <Link href="/products/new" onClick={handleListProductClick}><PlusCircle className="mr-2 h-4 w-4" />{t('userNav.listAnItem')}</Link>
         </Button>

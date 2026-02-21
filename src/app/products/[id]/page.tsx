@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Loader2, MapPin } from 'lucide-react';
 import { ProductEditForm } from '@/components/product-edit-form';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
@@ -35,6 +35,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, orderBy, limit, getDocs } from 'firebase/firestore';
+import { MapComponent } from '@/components/map';
 
 
 function ProductPageSkeleton() {
@@ -273,6 +274,16 @@ export default function ProductPage() {
                         )}
                     </Dialog>
                     
+                    <Card>
+                      <CardHeader>
+                          <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5" /> Location</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                          <p className="text-muted-foreground mb-4">{product.location.city}, {product.location.country}</p>
+                          <MapComponent center={product.location} marker={product.location} />
+                      </CardContent>
+                    </Card>
+
                     <ProductCommentSection productId={product.id} />
                 </div>
 
