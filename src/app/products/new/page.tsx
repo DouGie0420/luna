@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Sparkles, Loader2, Home, MapPin } from "lucide-react"
+import { Upload, ShieldAlert, X, Sparkles, Loader2, Home, MapPin, Link as LinkIcon, Video } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -36,11 +36,20 @@ import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
 import type { User, PaymentMethod, GlobalSettings } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
-import { addDoc, collection, doc, increment, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { cn } from '@/lib/utils';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { LocationPicker } from '@/components/location-picker';
 
 export default function NewProductPage() {
   const { user, profile, loading } = useUser();
@@ -64,9 +73,15 @@ export default function NewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
 
-  const [location, setLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [currentUserLocation, setCurrentUserLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [productLocation, setProductLocation] = useState<{lat: number; lng: number} | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
-  const [shareLocation, setShareLocation] = useState(true);
+  const [isLocationPickerOpen, setIsLocationPickerOpen] = useState(false);
+
+  const [isImageURLDialogOpen, setIsImageURLDialogOpen] = useState(false);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
 
   const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
   const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
@@ -83,7 +98,7 @@ export default function NewProductPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setLocation({
+          setCurrentUserLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
@@ -92,23 +107,12 @@ export default function NewProductPage() {
         (error) => {
           console.error("Geolocation error:", error);
           setLocationError("Could not get location. Please enable location permissions to post.");
-          toast({
-            variant: "destructive",
-            title: "Location Error",
-            description: "Could not get location. Please enable location permissions to post.",
-            duration: 10000,
-          });
         }
       );
     } else {
       setLocationError("Geolocation is not supported by this browser.");
-      toast({
-        variant: "destructive",
-        title: "Location Error",
-        description: "Geolocation is not supported by this browser.",
-      });
     }
-  }, [toast]);
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -183,8 +187,8 @@ export default function NewProductPage() {
       toast({ variant: 'destructive', title: 'Please login to list an item.'});
       return;
     }
-     if (!location) {
-      toast({ variant: 'destructive', title: 'Location Required', description: 'Waiting for location data. Please ensure location permissions are enabled.'});
+     if (!productLocation) {
+      toast({ variant: 'destructive', title: 'Location Required', description: 'Please set the product location on the map.'});
       return;
     }
     setIsSubmitting(true);
@@ -220,8 +224,8 @@ export default function NewProductPage() {
       imageHints: ['user uploaded'],
       seller: sellerData,
       sellerId: user.uid,
-      location: location,
-      locationHidden: !shareLocation,
+      location: productLocation,
+      locationHidden: false,
       category: category || 'Electronics',
       isConsignment,
       shippingMethod,
@@ -524,6 +528,40 @@ export default function NewProductPage() {
                         </SelectContent>
                     </Select>
                 </div>
+
+                <div className="grid gap-2">
+                    <Label>商品所在位置</Label>
+                    <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
+                        <DialogTrigger asChild>
+                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                {productLocation ? `纬度: ${productLocation.lat.toFixed(4)}, 经度: ${productLocation.lng.toFixed(4)}` : "点击设置商品位置"}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl h-[80vh]">
+                            <DialogHeader>
+                                <DialogTitle>设置商品位置</DialogTitle>
+                                <DialogDescription>在地图上点击或拖动图钉以确定商品的精确位置。</DialogDescription>
+                            </DialogHeader>
+                            {currentUserLocation ? (
+                                <LocationPicker 
+                                initialCenter={currentUserLocation}
+                                onConfirm={(newLocation) => {
+                                    setProductLocation(newLocation);
+                                    setIsLocationPickerOpen(false);
+                                }}
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                                    <Loader2 className="h-8 w-8 animate-spin mb-4" />
+                                    <p>正在获取您的当前位置...</p>
+                                </div>
+                            )}
+                        </DialogContent>
+                    </Dialog>
+                    {locationError && <p className="text-xs text-destructive">{locationError}</p>}
+                </div>
+                
                  <div className="grid gap-2">
                     <Label>{t('newProductPage.shippingMethod')}</Label>
                     <RadioGroup value={shippingMethod} onValueChange={(v: any) => setShippingMethod(v)} className="flex gap-4">
@@ -555,14 +593,6 @@ export default function NewProductPage() {
                 )}
                 
                 <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
-                    <Checkbox id="share-location" checked={shareLocation} onCheckedChange={(checked) => setShareLocation(!!checked)} />
-                    <div className="grid gap-1.5 leading-none">
-                        <Label htmlFor="share-location" className="text-base font-medium">展示我的商品位置</Label>
-                        <p className="text-sm text-muted-foreground">允许后，我们将在发布时记录您当前的精确位置，并在商品页面上展示地图。</p>
-                    </div>
-                </div>
-
-                <div className="items-top flex space-x-3 rounded-lg border border-input p-4">
                     <Checkbox id="consignment" checked={isConsignment} onCheckedChange={checked => setIsConsignment(!!checked)} />
                     <div className="grid gap-1.5 leading-none">
                     <Label
@@ -578,14 +608,7 @@ export default function NewProductPage() {
                 </div>
                
                 <div className="flex justify-end items-center gap-4">
-                    {locationError ? (
-                        <p className="text-sm text-destructive flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
-                    ) : !location ? (
-                        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Acquiring location...</p>
-                    ) : (
-                        <p className="text-sm text-green-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Location Acquired</p>
-                    )}
-                    <Button type="submit" size="lg" disabled={isSubmitting || !name.trim() || !description.trim() || !price || !location}>
+                    <Button type="submit" size="lg" disabled={isSubmitting || !name.trim() || !description.trim() || !price || !productLocation}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {t('newProductPage.listItem')}
                     </Button>
