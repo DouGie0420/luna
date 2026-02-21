@@ -1,4 +1,14 @@
 {
+  "hosting": {
+    "authDomain": "lunas.top",
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {}
+  },
   "firestore": {
     "rules": "firestore.rules"
   }
