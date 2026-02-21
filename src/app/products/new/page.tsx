@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/dialog"
 import { LocationPicker } from '@/components/location-picker';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 
 export default function NewProductPage() {
@@ -71,6 +72,8 @@ export default function NewProductPage() {
   
   const [isAiAnalysisEnabled, setIsAiAnalysisEnabled] = useState(false);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
@@ -100,21 +103,23 @@ export default function NewProductPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setCurrentUserLocation({
+          const userLoc = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          });
+          };
+          setCurrentUserLocation(userLoc);
+          setProductLocation(userLoc); // Default product location to user's current location
           setLocationError(null);
         },
         (error) => {
           console.error("Geolocation error:", error);
-          setLocationError("Could not get location. Please enable location permissions to post.");
+          setLocationError("无法获取位置。请在浏览器中开启定位权限后才能发布。");
         }
       );
     } else {
-      setLocationError("Geolocation is not supported by this browser.");
+      setLocationError("此浏览器不支持地理位置功能。");
     }
-  }, [toast]);
+  }, []);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -173,6 +178,43 @@ export default function NewProductPage() {
     setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
   };
   
+  const handleAddImageUrl = () => {
+    if (imageUrl && imagePreviews.length < 9) {
+        try {
+            new URL(imageUrl);
+            setImagePreviews(prev => [...prev, imageUrl]);
+            setImageUrl('');
+            setIsImageURLDialogOpen(false);
+        } catch (_) {
+            toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid image URL.' });
+        }
+    } else if (imagePreviews.length >= 9) {
+        toast({ variant: 'destructive', title: 'Maximum 9 images allowed.' });
+    }
+  };
+
+  const handleAddVideoUrl = () => {
+    if (videoUrl) {
+        let embedUrl = videoUrl;
+        const youtubeMatch = videoUrl.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+        if (youtubeMatch && youtubeMatch[1]) {
+            embedUrl = `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+        }
+        
+        if (embedUrl) {
+            setVideoUrls(prev => [...prev, embedUrl]);
+            setVideoUrl('');
+            setIsVideoDialogOpen(false);
+        } else {
+            toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid YouTube or TikTok share link.' });
+        }
+    }
+  };
+  
+  const handleRemoveVideo = (indexToRemove: number) => {
+    setVideoUrls(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
   const handleAcceptedMethodsChange = (checked: boolean | string, method: PaymentMethod) => {
     setAcceptedMethods(prev => {
         if (checked) {
@@ -389,99 +431,128 @@ export default function NewProductPage() {
                         </p>
                     </div>
                 </div>
-                
-                <div className="grid gap-2">
-                    <Label htmlFor="category">{t('newProductPage.category')}</Label>
-                    <Select value={category} onValueChange={(v: any) => setCategory(v)}>
-                        <SelectTrigger>
-                            <SelectValue placeholder={t('newProductPage.selectCategory')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
-                            <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
-                            <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
-                            <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
-                            <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
-                            <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
-                   <div className="relative">
-                    <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
-                     {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid gap-2">
+                        <Label htmlFor="category">{t('newProductPage.category')}</Label>
+                        <Select value={category} onValueChange={(v: any) => setCategory(v)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder={t('newProductPage.selectCategory')} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
+                                <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
+                                <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
+                                <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
+                                <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
+                                <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
+                        <div className="relative">
+                            <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
+                            {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
+                        </div>
+                    </div>
                 </div>
                 
                 <div className="grid gap-2">
-                    <Label>商品所在位置</Label>
-                    <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
-                        <DialogTrigger asChild>
-                            <Button type="button" variant="outline" className="w-full justify-start text-left font-normal flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                {productLocation ? `纬度: ${productLocation.lat.toFixed(4)}, 经度: ${productLocation.lng.toFixed(4)}` : "点击设置商品位置"}
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl h-[80vh]">
-                            <DialogHeader>
-                                <DialogTitle>设置商品位置</DialogTitle>
-                                <DialogDescription>在地图上点击或拖动图钉以确定商品的精确位置。</DialogDescription>
-                            </DialogHeader>
-                            {currentUserLocation ? (
-                                <LocationPicker 
-                                initialCenter={currentUserLocation}
-                                onConfirm={(newLocation) => {
-                                    setProductLocation(newLocation);
-                                    setIsLocationPickerOpen(false);
-                                }}
-                                />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                                    <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                                    <p>正在获取您的当前位置...</p>
-                                </div>
-                            )}
-                        </DialogContent>
-                    </Dialog>
-                    {locationError && <p className="text-xs text-destructive">{locationError}</p>}
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="description">{t('newProductPage.descriptionLabel')}</Label>
-                    <Textarea
-                        id="description"
-                        placeholder={t('newProductPage.descriptionPlaceholder')}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        required
-                        disabled={isAiLoading}
-                        rows={15}
-                        className="border rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 resize-y"
-                    />
+                    <Label>内容 (描述、图片、视频)</Label>
+                    <Card className="overflow-hidden">
+                        <CardContent className="p-0">
+                            <Textarea
+                                id="description"
+                                placeholder={t('newProductPage.descriptionPlaceholder')}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                required
+                                disabled={isAiLoading}
+                                rows={15}
+                                className="border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 resize-y p-4"
+                            />
+                             <Tabs defaultValue="images" className="p-4 pt-0">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="images">图片</TabsTrigger>
+                                    <TabsTrigger value="videos">视频</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="images">
+                                    <div className="border-2 border-dashed border-border rounded-lg p-4 space-y-4 mt-2">
+                                        {imagePreviews.length > 0 && (
+                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                                                {imagePreviews.map((src, index) => (
+                                                    <div key={index} className="relative aspect-square">
+                                                        <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
+                                                        <Button type="button" size="icon" variant="destructive" className="absolute -top-2 -right-2 h-6 w-6 rounded-full" onClick={() => removeImage(index)}>
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {imagePreviews.length < 9 && (
+                                            <div>
+                                                <Input id="image-upload" type="file" className="sr-only" onChange={handleImageUpload} accept="image/*" multiple />
+                                                <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center text-center p-6 border-dashed border rounded-md hover:bg-accent transition-colors">
+                                                    <Upload className="h-8 w-8 text-muted-foreground" />
+                                                    <p className="mt-2 text-xs text-muted-foreground">{imagePreviews.length === 0 ? "上传图片" : `继续添加 (${imagePreviews.length}/9)`}</p>
+                                                </label>
+                                            </div>
+                                        )}
+                                    </div>
+                                </TabsContent>
+                                <TabsContent value="videos">
+                                    <div className="border-2 border-dashed border-border rounded-lg p-4 space-y-4 mt-2">
+                                        {videoUrls.map((url, index) => (
+                                            <div key={index} className="relative group p-2 rounded-md bg-secondary/50">
+                                                <p className="text-xs text-muted-foreground truncate">{url}</p>
+                                                <Button type="button" size="icon" variant="destructive" className="absolute top-1 right-1 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100" onClick={() => handleRemoveVideo(index)}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button type="button" variant="outline" className="w-full">
+                                                    <Video className="mr-2 h-4 w-4" /> 添加视频链接
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Add Video from URL</DialogTitle>
+                                                    <DialogDescription>Paste a YouTube or TikTok share link.</DialogDescription>
+                                                </DialogHeader>
+                                                <Input value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+                                                <DialogFooter><Button onClick={handleAddVideoUrl}>Add Video</Button></DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
+                        </CardContent>
+                    </Card>
                 </div>
                 
-                <div className="p-4 border rounded-lg bg-secondary/30 space-y-6">
-                    <div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="price">{t('newProductPage.price')}</Label>
-                                <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
-                                <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={t('newProductPage.selectCurrency')} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
-                                        <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
-                                        <SelectItem value="RMB">RMB (人民币)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                <Card className="p-4 border rounded-lg bg-secondary/30">
+                  <CardContent className="p-2 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="price">{t('newProductPage.price')}</Label>
+                            <Input id="price" type="number" placeholder={t('newProductPage.pricePlaceholder')} value={price} onChange={e => setPrice(e.target.value)} required />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="currency">{t('newProductPage.currency')}</Label>
+                            <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder={t('newProductPage.selectCurrency')} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="THB">{t('newProductPage.thb')}</SelectItem>
+                                    <SelectItem value="USDT">{t('newProductPage.usdt')}</SelectItem>
+                                    <SelectItem value="RMB">RMB (人民币)</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
@@ -490,7 +561,7 @@ export default function NewProductPage() {
                     <div className="grid gap-2">
                       <Label>接受的付款方式</Label>
                       <p className="text-sm text-muted-foreground">选择您为此商品接受的付款方式。此处仅显示您在钱包中已配置的方式。</p>
-                      <div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
+                      <div className="grid grid-cols-2 gap-4 rounded-lg border border-border p-4">
                         {(!profile?.paymentInfo && !profile?.walletAddress) && <p className="text-muted-foreground col-span-2 text-center">请先在您的钱包中配置付款方式。</p>}
                         
                         {profile?.paymentInfo?.bankAccount?.accountNumber && (
@@ -525,52 +596,8 @@ export default function NewProductPage() {
                         )}
                       </div>
                     </div>
-                </div>
-
-                <div className="grid gap-2">
-                    <Label>{t('newProductPage.images')}</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-4 space-y-4">
-                        {imagePreviews.length > 0 && (
-                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                {imagePreviews.map((src, index) => (
-                                    <div key={index} className="relative aspect-square">
-                                        <Image src={src} alt={`preview ${index}`} fill className="rounded-md object-cover" />
-                                        <Button
-                                            type="button"
-                                            size="icon"
-                                            variant="destructive"
-                                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-                                            onClick={() => removeImage(index)}
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {imagePreviews.length < 9 ? (
-                             <div>
-                                <Input
-                                    id="image-upload"
-                                    type="file"
-                                    className="sr-only"
-                                    onChange={handleImageUpload}
-                                    accept="image/*"
-                                    multiple
-                                />
-                                 <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center justify-center text-center p-6 border-dashed border rounded-md hover:bg-accent transition-colors">
-                                     <Upload className="h-12 w-12 text-muted-foreground mx-auto" />
-                                     <p className="mt-2 text-sm text-muted-foreground">{imagePreviews.length === 0 ? t('newProductPage.dragAndDrop') : `Add more images (${imagePreviews.length}/9)`}</p>
-                                     <Button asChild variant="outline" className="mt-4 pointer-events-none">
-                                         <span>{t('newProductPage.selectFiles')}</span>
-                                     </Button>
-                                 </label>
-                            </div>
-                        ) : (
-                            <p className="text-center text-sm text-muted-foreground">Maximum of 9 images reached.</p>
-                        )}
-                    </div>
-                </div>
+                  </CardContent>
+                </Card>
                 
                 <div className="grid gap-2">
                     <Label>{t('newProductPage.shippingMethod')}</Label>
