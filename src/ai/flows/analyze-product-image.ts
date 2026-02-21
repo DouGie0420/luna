@@ -36,7 +36,11 @@ const prompt = ai.definePrompt({
   name: 'analyzeProductImagePrompt',
   model: 'googleai/gemini-1.5-flash',
   input: {schema: AnalyzeProductImageInputSchema},
-  output: {schema: AnalyzeProductImageOutputSchema},
+  config: {
+    generationConfig: {
+      responseMimeType: "application/json",
+    },
+  },
   prompt: `You are an expert e-commerce copywriter. Analyze the product in the following image.
 
 Image: {{media url=imageDataUri}}
@@ -44,7 +48,7 @@ Image: {{media url=imageDataUri}}
 Based on the image, generate a short, catchy, and descriptive title for the product listing.
 Then, write a detailed and appealing description in Chinese. Mention what the item appears to be, its potential features, style, and condition. Be creative and engaging.
 
-Respond with only a JSON formatted output.`,
+Respond with only a JSON formatted output. The JSON object must contain a "title" field (string) and a "description" field (string).`,
 });
 
 const analyzeProductImageFlow = ai.defineFlow(
@@ -54,13 +58,20 @@ const analyzeProductImageFlow = ai.defineFlow(
     outputSchema: AnalyzeProductImageOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
+    const response = await prompt(input);
+    const jsonString = response.text;
     
     // 增加一个简单的错误防御逻辑
-    if (!output) {
+    if (!jsonString) {
       throw new Error("AI 无法识别该图片内容，请重试。");
     }
-    
-    return output;
+
+    try {
+      // The flow's outputSchema will validate the parsed object.
+      return JSON.parse(jsonString);
+    } catch (e) {
+      console.error("Failed to parse AI JSON response:", jsonString);
+      throw new Error("AI 返回了无效的数据格式，请重试。");
+    }
   }
 );
