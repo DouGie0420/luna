@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -125,6 +126,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
               {user && (
                 <Button asChild className="h-full shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground hover:bg-primary/90">
                   <Link href="/nearby">
+                    <MapPin className="mr-2 h-5 w-5" />
                     Nearby
                   </Link>
                 </Button>
