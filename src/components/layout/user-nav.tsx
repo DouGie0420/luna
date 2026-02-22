@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, Loader2 } from "lucide-react";
+import { LogOut, LayoutDashboard, User, MessageSquare, ShoppingCart, PlusCircle, Wallet, Loader2, Star } from "lucide-react";
 import Link from "next/link";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -213,6 +213,7 @@ export function UserNav() {
             <DropdownMenuGroup>
               <DropdownMenuItem asChild><Link href="/account"><User className="mr-2 h-4 w-4" /><span>{t('userNav.myAccount')}</span></Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link href="/account/purchases"><ShoppingCart className="mr-2 h-4 w-4" /><span>{t('userNav.orders')}</span></Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/account/favorites"><Star className="mr-2 h-4 w-4" /><span>{t('userNav.myFavorites')}</span></Link></DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10"><LogOut className="mr-2 h-4 w-4" /><span>{t('userNav.logout')}</span></DropdownMenuItem>

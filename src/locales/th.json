@@ -60,6 +60,7 @@
   "userNav": {
     "myAccount": "บัญชีของฉัน",
     "myListings": "รายการของฉัน",
+    "myFavorites": "รายการโปรดของฉัน",
     "kycVerification": "การยืนยัน KYC",
     "logout": "ออกจากระบบ",
     "listAnItem": "ลงรายการ",
@@ -229,6 +230,7 @@
     "profile": "โปรไฟล์",
     "myListings": "รายการของฉัน",
     "myPurchases": "การซื้อของฉัน",
+    "myFavorites": "รายการโปรดของฉัน",
     "wallet": "กระเป๋าเงิน",
     "kycVerification": "การยืนยัน KYC",
     "settings": "ตั้งค่า",

@@ -13,6 +13,7 @@ import {
   Settings,
   MapPin,
   DollarSign,
+  Star,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -128,6 +129,14 @@ export default function AccountLayout({
                   <Link href="/account/sales">
                     <DollarSign />
                     {t('accountLayout.mySales')}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/account/favorites')}>
+                  <Link href="/account/favorites">
+                    <Star />
+                    {t('accountLayout.myFavorites')}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

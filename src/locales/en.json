@@ -60,6 +60,7 @@
   "userNav": {
     "myAccount": "My Account",
     "myListings": "My Listings",
+    "myFavorites": "My Favorites",
     "kycVerification": "KYC Verification",
     "logout": "Logout",
     "listAnItem": "List Item",
@@ -229,6 +230,7 @@
     "profile": "Profile",
     "myListings": "My Listings",
     "myPurchases": "My Purchases",
+    "myFavorites": "My Favorites",
     "wallet": "Wallet",
     "kycVerification": "KYC Verification",
     "settings": "Settings",
