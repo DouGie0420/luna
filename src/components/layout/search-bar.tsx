@@ -123,7 +123,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
             className="group relative flex h-16 items-center rounded-full border bg-transparent text-xl overflow-hidden animate-glow-border-primary"
             >
               {user && (
-                <Button asChild className="h-full w-40 shrink-0 rounded-none bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 px-10 text-xl text-primary-foreground font-bold transition-transform duration-300 hover:scale-105 animate-hue-rotate">
+                <Button asChild className="h-full w-40 shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground font-bold transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50 hover:scale-105">
                   <Link href="/nearby">
                     <MapPin className="mr-2 h-5 w-5" />
                     Nearby
@@ -146,7 +146,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
                     )}
                 />
               </div>
-              <Button onClick={() => handleSearch(searchTerm)} className="h-full w-40 shrink-0 rounded-none bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 px-10 text-xl text-primary-foreground font-bold transition-transform duration-300 hover:scale-105 animate-hue-rotate">
+              <Button onClick={() => handleSearch(searchTerm)} className="h-full w-40 shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground font-bold transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50 hover:scale-105">
                   <Search className="mr-2 h-5 w-5" />
                   搜索
               </Button>
