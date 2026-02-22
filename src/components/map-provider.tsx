@@ -13,5 +13,5 @@ export function MapProvider({ children }: { children: React.ReactNode }) {
     return <div className='p-4 text-center text-destructive bg-destructive/10 border border-destructive rounded-md'>Google Maps cannot be loaded. API key is missing.</div>;
   }
 
-  return <APIProvider apiKey={apiKey}>{children}</APIProvider>;
+  return <APIProvider apiKey={apiKey} libraries={['places']}>{children}</APIProvider>;
 }
