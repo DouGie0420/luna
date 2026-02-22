@@ -24,7 +24,7 @@ import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, getDocs, limit, writeBatch, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
+import { doc, collection, query, where, updateDoc, increment, arrayUnion, arrayRemove, writeBatch, addDoc, serverTimestamp, getDoc } from "firebase/firestore";
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { UserProductsMap } from '@/components/user-products-map';
@@ -329,10 +329,10 @@ export default function UserProfilePage() {
                             <div className="flex items-center gap-4">
                                 <UserAvatar profile={user} className="h-20 w-20" />
                                 <div>
-                                    <div className="flex items-baseline gap-x-4">
-                                        <CardTitle className="font-headline">{user.displayName}</CardTitle>
+                                    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                                        <CardTitle className="font-headline text-2xl">{user.displayName}</CardTitle>
                                         {user.location && (
-                                            <div className="flex items-center gap-1 text-muted-foreground">
+                                            <div className="flex items-center gap-1.5 text-base text-muted-foreground">
                                                 <MapPin className="h-4 w-4" />
                                                 <span>{user.location}</span>
                                             </div>

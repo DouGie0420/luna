@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -29,7 +28,7 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
 
 export function SellerProfileCard({ product }: { product: Product }) {
     const { t } = useTranslation();
-    const { seller, location } = product;
+    const { seller } = product;
     const firestore = useFirestore();
 
     const sellerProfileRef = useMemo(() => 
@@ -41,9 +40,8 @@ export function SellerProfileCard({ product }: { product: Product }) {
     const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
     const displayName = displayUser.displayName || displayUser.name;
     const profileUrl = `/@${displayUser.loginId || displayUser.id}`;
-
-    const locationDisplay = [location.city, location.countryCode].filter(Boolean).join(', ');
-
+    
+    const locationDisplay = sellerProfile?.location;
 
     return (
         <Dialog>
