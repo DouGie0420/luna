@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useUser, useFirestore, useDoc } from '@/firebase';
@@ -25,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Upload, ShieldAlert, X, Sparkles, Loader2, Home, MapPin, Link as LinkIcon, Video } from "lucide-react"
+import { Upload, ShieldAlert, X, Sparkles, Loader2, Home, MapPin, Link as LinkIcon, Video, AlertCircle } from "lucide-react"
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/back-button';
@@ -433,28 +432,54 @@ export default function NewProductPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="grid gap-2">
-                        <Label htmlFor="category">{t('newProductPage.category')}</Label>
-                        <Select value={category} onValueChange={(v: any) => setCategory(v)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder={t('newProductPage.selectCategory')} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
-                                <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
-                                <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
-                                <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
-                                <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
-                                <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
-                        <div className="relative">
-                            <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} disabled={isAiLoading} required />
-                            {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
-                        </div>
+                  <div className="grid gap-2">
+                      <Label htmlFor="category">{t('newProductPage.category')}</Label>
+                      <Select value={category} onValueChange={(v: any) => setCategory(v)}>
+                          <SelectTrigger>
+                              <SelectValue placeholder={t('newProductPage.selectCategory')} />
+                          </SelectTrigger>
+                          <SelectContent>
+                              <SelectItem value="electronics">{t('newProductPage.electronics')}</SelectItem>
+                              <SelectItem value="accessories">{t('newProductPage.accessories')}</SelectItem>
+                              <SelectItem value="home-goods">{t('newProductPage.homeGoods')}</SelectItem>
+                              <SelectItem value="sports-outdoors">{t('newProductPage.sportsOutdoors')}</SelectItem>
+                              <SelectItem value="fashion">{t('newProductPage.fashion')}</SelectItem>
+                              <SelectItem value="musical-instruments">{t('newProductPage.musicalInstruments')}</SelectItem>
+                          </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="grid gap-2">
+                      <Label>商品所在位置</Label>
+                      <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left font-normal">
+                            {productLocation ? (
+                              <span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" /> Location Set</span>
+                            ) : locationError ? (
+                              <span className="text-destructive flex items-center gap-2"><AlertCircle className="h-4 w-4" /> {locationError}</span>
+                            ) : !currentUserLocation ? (
+                              <span className="text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> Acquiring...</span>
+                            ) : (
+                              <span className="text-muted-foreground">Click to set location</span>
+                            )}
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[625px]">
+                          <DialogHeader>
+                            <DialogTitle>Set Product Location</DialogTitle>
+                            <DialogDescription>Click on the map or drag the pin to set the exact location.</DialogDescription>
+                          </DialogHeader>
+                          {currentUserLocation && <LocationPicker initialCenter={currentUserLocation} onConfirm={(loc) => { setProductLocation(loc); setIsLocationPickerOpen(false); }} />}
+                        </DialogContent>
+                      </Dialog>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                    <Label htmlFor="name">{t('newProductPage.itemName')}</Label>
+                    <div className="relative">
+                        <Input id="name" placeholder={t('newProductPage.itemNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required disabled={isAiLoading} />
+                        {isAiLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                     </div>
                 </div>
                 
@@ -645,12 +670,8 @@ export default function NewProductPage() {
                 </div>
                
                 <div className="flex justify-end items-center gap-4">
-                     {locationError ? (
-                        <p className="text-sm text-destructive flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
-                     ) : !productLocation ? (
-                        <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Acquiring location...</p>
-                     ) : (
-                        <p className="text-sm text-green-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Location Acquired</p>
+                     {locationError && !productLocation && (
+                        <p className="text-sm text-destructive flex items-center gap-2"><AlertCircle className="h-4 w-4" /> {locationError}</p>
                      )}
                     <Button type="submit" size="lg" disabled={isSubmitting || !name.trim() || !description.trim() || !price || !productLocation}>
                         {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -665,5 +686,3 @@ export default function NewProductPage() {
     </>
   )
 }
-
-    
