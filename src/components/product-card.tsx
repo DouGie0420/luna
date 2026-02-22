@@ -16,9 +16,6 @@ import { UserAvatar } from './ui/user-avatar';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { createNotification } from '@/lib/notifications';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-
 
 interface ProductCardProps {
   product: Product;
@@ -31,17 +28,25 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { user, profile } = useUser();
   const firestore = useFirestore();
 
-  const isLiked = user && product.likedBy?.includes(user.uid);
-  const isFavorited = user && product.favoritedBy?.includes(user.uid);
-  
-  const [isRecommended, setIsRecommended] = useState(false);
+  // Local state for optimistic UI updates
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoritesCount, setFavoritesCount] = useState(0);
 
+  const [isRecommended, setIsRecommended] = useState(false);
   const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
   useEffect(() => {
+    setIsLiked(!!user && !!product.likedBy?.includes(user.uid));
+    setLikesCount(product.likes || 0);
+    setIsFavorited(!!user && !!product.favoritedBy?.includes(user.uid));
+    setFavoritesCount(product.favorites || 0);
+    
     const recommendedItems = JSON.parse(localStorage.getItem('recommended_products') || '[]');
     setIsRecommended(recommendedItems.includes(product.id));
-  }, [product.id]);
+  }, [product, user]);
+
 
   const handleGuestClick = (e: React.MouseEvent) => {
       if (!user) {
@@ -64,37 +69,62 @@ export function ProductCard({ product, className }: ProductCardProps) {
       }
       
       const productRef = doc(firestore, 'products', product.id);
+      let updateData: any;
 
-      let updateData = {};
       if (type === 'like') {
+          const newLikedState = !isLiked;
+          const originalLikesCount = likesCount;
+          
+          // Optimistic update
+          setLikesCount(prev => prev + (newLikedState ? 1 : -1));
+          setIsLiked(newLikedState);
+
           updateData = {
-              likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-              likes: increment(isLiked ? -1 : 1)
+              likedBy: newLikedState ? arrayUnion(user.uid) : arrayRemove(user.uid),
+              likes: increment(newLikedState ? 1 : -1)
           };
-      } else { // favorite
-          updateData = {
-              favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
-              favorites: increment(isFavorited ? -1 : 1)
-          };
-      }
-      
-      updateDoc(productRef, updateData)
-        .then(() => {
-            if (type === 'like' && !isLiked) {
-                createNotification(firestore, product.seller.id, { type: 'like-product', actor: profile, product: product });
-            }
-            if (type === 'favorite' && !isFavorited) {
-                toast({ title: t('productCardActions.addedToFavorites') });
-            }
-        })
-        .catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: productRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
+          
+          updateDoc(productRef, updateData)
+            .then(() => {
+                if (newLikedState) {
+                    createNotification(firestore, product.seller.id, { type: 'like-product', actor: profile, product: product });
+                }
+            })
+            .catch(serverError => {
+                // Revert UI on error
+                setIsLiked(!newLikedState);
+                setLikesCount(originalLikesCount);
+                console.error(`Failed to update like:`, serverError);
+                toast({ variant: 'destructive', title: `Failed to update like` });
             });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+
+      } else { // favorite
+          const newFavoritedState = !isFavorited;
+          const originalFavoritesCount = favoritesCount;
+
+          // Optimistic update
+          setFavoritesCount(prev => prev + (newFavoritedState ? 1 : -1));
+          setIsFavorited(newFavoritedState);
+          
+          updateData = {
+              favoritedBy: newFavoritedState ? arrayUnion(user.uid) : arrayRemove(user.uid),
+              favorites: increment(newFavoritedState ? 1 : -1)
+          };
+
+          updateDoc(productRef, updateData)
+            .then(() => {
+                if (newFavoritedState) {
+                    toast({ title: t('productCardActions.addedToFavorites') });
+                }
+            })
+            .catch(serverError => {
+                // Revert UI on error
+                setIsFavorited(!newFavoritedState);
+                setFavoritesCount(originalFavoritesCount);
+                console.error(`Failed to update favorite:`, serverError);
+                toast({ variant: 'destructive', title: `Failed to update favorite` });
+            });
+      }
   };
 
   const handleRecommend = (e: React.MouseEvent) => {
@@ -183,7 +213,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 onClick={(e) => handleInteraction(e, 'like')}
             >
                 <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                <span>{product.likes || 0}</span>
+                <span>{likesCount}</span>
             </Button>
             <Button
                 variant="ghost"
@@ -192,7 +222,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 onClick={(e) => handleInteraction(e, 'favorite')}
             >
                 <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
-                <span>{product.favorites || 0}</span>
+                <span>{favoritesCount}</span>
             </Button>
           </div>
         </CardFooter>
