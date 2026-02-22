@@ -301,6 +301,33 @@
     "transactionHistory": "交易记录",
     "noTransactions": "最近的交易将显示在这里。"
   },
+  "accountKYC": {
+    "title": "KYC认证",
+    "currentStatus": "当前状态",
+    "status": {
+      "verified": "已认证",
+      "pending": "审核中",
+      "notVerified": "未认证"
+    },
+    "status.pendingDescription": "您的文件正在审核中，通常需要1-2个工作日。",
+    "status.notVerifiedDescription": "请完成认证以解锁所有功能。",
+    "submitTitle": "提交您的文件",
+    "submitDescription": "请上传政府颁发的身份证件和自拍照以进行验证。",
+    "idUploadLabel": "政府颁发的身份证件",
+    "idUploadDescription": "例如：护照、驾照",
+    "selfieUploadLabel": "手持证件自拍",
+    "selfieUploadDescription": "将您的证件放在脸旁边",
+    "submitButton": "提交以供审核"
+  },
+  "accountAddresses": {
+    "title": "我的地址",
+    "savedAddresses": "已保存地址",
+    "description": "管理您的收货地址，以便更快结账。",
+    "addNewAddress": "添加新地址",
+    "noAddresses": "没有已保存的地址。",
+    "noAddressesDescription": "添加一个地址以开始。",
+    "addFirstAddress": "添加您的第一个地址"
+  },
   "productCardActions": {
     "edit": "编辑商品",
     "delete": "删除商品",
@@ -510,7 +537,7 @@
     "collapse": "收起",
     "previous": "上一页",
     "next": "下一页",
-    "placeholder": "在皎洁的月光下留下你的痕迹。",
+    "placeholder": "Share a thought",
     "tooltip": "点击留言",
     "submit": "发布",
     "cannotCommentTitle": "无法评论",
@@ -682,7 +709,7 @@
       "viewPasswordNotImplemented": "出于安全原因，无法执行此操作。",
       "manualBadges": "手动授予徽章",
       "updateSuccessTitle": "用户已更新",
-      "updateSuccessDescription": "用户 {userName} 的 {fieldName} 已更新为 {value}。"
+      "updateSuccessDescription": "{fieldName} for user {userName} has been set to {value}."
     },
      "userFields": {
       "loginId": "专属ID",
