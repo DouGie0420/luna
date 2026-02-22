@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -114,6 +115,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
     localStorage.setItem('recommended_products', JSON.stringify(newRecommended));
     setIsRecommended(!isCurrentlyRecommended);
   };
+  
+  const locationDisplay = [product.location?.city, product.location?.countryCode].filter(Boolean).join(', ');
 
 
   return (
@@ -165,10 +168,12 @@ export function ProductCard({ product, className }: ProductCardProps) {
               {product.price.toLocaleString()}
               <span className="text-xs text-muted-foreground ml-1">{product.currency}</span>
             </p>
-            <div className="flex items-center text-xs text-muted-foreground mt-1">
-              <MapPin className="h-3 w-3 mr-1" />
-              <span>{product.location.city}, {product.location.countryCode}</span>
-            </div>
+            {locationDisplay && (
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                    <MapPin className="h-3 w-3 mr-1" />
+                    <span>{locationDisplay}</span>
+                </div>
+            )}
           </div>
           <div className="flex items-center gap-1">
             <Button
