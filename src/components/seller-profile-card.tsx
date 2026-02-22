@@ -42,6 +42,8 @@ export function SellerProfileCard({ product }: { product: Product }) {
     const displayName = displayUser.displayName || displayUser.name;
     const profileUrl = `/@${displayUser.loginId || displayUser.id}`;
 
+    const locationDisplay = [location.city, location.countryCode].filter(Boolean).join(', ');
+
 
     return (
         <Dialog>
@@ -56,10 +58,12 @@ export function SellerProfileCard({ product }: { product: Product }) {
                                     <Star className="h-4 w-4 fill-primary text-primary" />
                                     <span>{(displayUser.rating || 0).toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
                                 </div>
+                                {locationDisplay && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
                                     <MapPin className="h-4 w-4" />
-                                    <span>{location.city}, {location.countryCode}</span>
+                                    <span>{locationDisplay}</span>
                                 </div>
+                                )}
                             </div>
                             <div className="flex flex-col items-start gap-1 text-sm font-medium">
                                 {displayUser.isPro && (

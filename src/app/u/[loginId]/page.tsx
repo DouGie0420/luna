@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal, MessageSquare, ThumbsUp, Meh, ThumbsDown } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Plus, Check, Globe, Fingerprint, Lock, Terminal, MessageSquare, ThumbsUp, Meh, ThumbsDown, MapPin } from "lucide-react";
 import { notFound, useParams, useRouter } from "next/navigation";
 import type { UserProfile, Product, BbsPost } from "@/lib/types";
 import { PageHeaderWithBackAndClose } from "@/components/page-header-with-back-and-close";
@@ -246,7 +246,7 @@ export default function UserProfilePage() {
     
         } catch (error) {
             // Revert optimistic update on error
-            setIsFollowing(!newFollowingState);
+            setIsFollowing(!isFollowingState);
             
             console.error("Failed to update follow status:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -293,7 +293,7 @@ export default function UserProfilePage() {
                         photoURL: user.photoURL,
                     }
                 },
-                lastMessage: `Regarding your item: ${product.name}`,
+                lastMessage: `You started a conversation.`,
                 lastMessageTimestamp: serverTimestamp(),
                 // Default settings for a new chat
                 isFriendMode: false, // You can add logic to check mutual follow
@@ -331,6 +331,12 @@ export default function UserProfilePage() {
                                 <div>
                                     <div className="flex items-baseline gap-x-4">
                                         <CardTitle className="font-headline">{user.displayName}</CardTitle>
+                                        {user.location && (
+                                            <div className="flex items-center gap-1 text-muted-foreground">
+                                                <MapPin className="h-4 w-4" />
+                                                <span>{user.location}</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <Separator className="my-1.5" />
                                     <div className="flex items-center gap-x-3 text-sm text-muted-foreground">
@@ -342,11 +348,9 @@ export default function UserProfilePage() {
                                             <span className="font-bold text-foreground group-hover:underline">{user.followingCount || 0}</span> {t('userProfile.following')}
                                         </Link>
                                         <span>&middot;</span>
-                                        <div className="flex items-center gap-1">
-                                            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                            <span className="font-bold text-foreground">{totalFavorites}</span>
-                                            <span className="text-muted-foreground">收藏</span>
-                                        </div>
+                                        <Link href={`/bbs?author=${user.uid}`} className="hover:underline">
+                                            <span className="font-bold text-foreground group-hover:underline">{user.postsCount || 0}</span> {t('userProfile.posts')}
+                                        </Link>
                                     </div>
                                 </div>
                             </div>
@@ -385,7 +389,7 @@ export default function UserProfilePage() {
                                 <p className="text-2xl font-bold">{user.creditScore || 0}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                              <div className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg">
                                 <Star className="h-6 w-6 text-primary" />
                                 <div>
