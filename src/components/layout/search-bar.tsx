@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/popover';
 import { smartSearchSuggestions } from '@/ai/flows/smart-search-suggestions';
 import { useDebounce } from '@/hooks/use-debounce';
+import Link from 'next/link';
+import { useUser } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface SearchBarProps {
   placeholderKeywords?: string[];
@@ -19,6 +23,8 @@ interface SearchBarProps {
 
 export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
   const router = useRouter();
+  const { user } = useUser();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -115,20 +121,32 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
         <PopoverTrigger asChild>
           <div
             className="group relative flex h-16 items-center rounded-full border bg-transparent text-xl overflow-hidden animate-glow-border-primary"
-            onClick={() => {
-              if (suggestions.length > 0 || (searchTerm.length > 1 && !isLoading)) setIsPopoverOpen(true)
-            }}
             >
-              <Input
-                  ref={inputRef}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
-                  placeholder={placeholder}
-                  className="h-full w-full appearance-none rounded-none border-0 bg-transparent pl-8 pr-2 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0"
-              />
+              {user && (
+                <Button asChild className="h-full shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground hover:bg-primary/90">
+                  <Link href="/nearby">
+                    Nearby
+                  </Link>
+                </Button>
+              )}
+              <div className="relative flex-grow h-full" onClick={() => {
+                if (suggestions.length > 0 || (searchTerm.length > 1 && !isLoading)) setIsPopoverOpen(true)
+              }}>
+                {!user && <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground pointer-events-none" />}
+                <Input
+                    ref={inputRef}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch(searchTerm)}
+                    placeholder={placeholder}
+                    className={cn(
+                      "h-full w-full appearance-none rounded-none border-0 bg-transparent pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0",
+                      user ? "pl-4" : "pl-12"
+                    )}
+                />
+              </div>
               <Button onClick={() => handleSearch(searchTerm)} className="h-full shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground hover:bg-primary/90">
-                  <Search className="mr-2 h-7 w-7" />
+                  <Search className="mr-2 h-5 w-5" />
                   搜索
               </Button>
           </div>
