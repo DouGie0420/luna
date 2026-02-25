@@ -1,99 +1,112 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 export function GlobalFluidBackground() {
     const pathname = usePathname();
     const [isMounted, setIsMounted] = useState(false);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
+    useEffect(() => { setIsMounted(true); }, []);
+
+    // 🐍 边缘巡逻像素蛇引擎 (低功耗，保持不变)
     useEffect(() => {
-        setIsMounted(true);
-    }, []);
+        if (!isMounted) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-    // 🛑 路由嗅探器：如果是 SANCTUM 房源相关页面，休眠引擎
-    // 同时也防止服务端渲染时的闪烁
-    if (!isMounted || pathname?.includes('/products/rental')) {
-        return null;
-    }
+        let width = (canvas.width = window.innerWidth);
+        let height = (canvas.height = window.innerHeight);
+        let snakeLength = 20;
+        let snakeNodes = Array.from({length: snakeLength}, () => ({x: -100, y: -100}));
+        let progress = 0;
+        const speed = 2.0; 
+
+        const animate = () => {
+            const perimeter = (width + height) * 2;
+            progress = (progress + speed) % perimeter;
+            let curX = 0, curY = 0;
+            const offset = 4;
+
+            if (progress < width) { curX = progress; curY = offset; }
+            else if (progress < width + height) { curX = width - offset; curY = progress - width; }
+            else if (progress < 2 * width + height) { curX = width - (progress - (width + height)); curY = height - offset; }
+            else { curX = offset; curY = height - (progress - (2 * width + height)); }
+
+            ctx.clearRect(0, 0, width, height);
+            snakeNodes.unshift({x: curX, y: curY});
+            if (snakeNodes.length > snakeLength) snakeNodes.pop();
+
+            snakeNodes.forEach((p, i) => {
+                const alpha = (1 - i / snakeLength) * 0.15; 
+                ctx.fillStyle = `rgba(168, 85, 247, ${alpha})`;
+                ctx.fillRect(p.x - 6, p.y - 6, 12, 12);
+            });
+            requestAnimationFrame(animate);
+        };
+
+        animate();
+        const handleResize = () => { width = canvas.width = window.innerWidth; height = canvas.height = window.innerHeight; };
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [isMounted]);
+
+    if (!isMounted || pathname?.includes('/products/rental')) return null;
 
     return (
-        // 🚀 外层容器：沉入最底层 (z-index: -50)，设置深色背景基调
-        <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#030305]" style={{ zIndex: -50 }}>
+        <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#020203]" style={{ zIndex: -50 }}>
+            
+            {/* 🔳 1. 最底层：精密白色像素格基底 (Pixel Grid Base) - z-0 */}
+            {/* 修改点：将 rgba 透明度从 0.4 降至 0.25 */}
+            <div className="absolute inset-0 z-0" style={{
+                backgroundImage: `
+                    linear-gradient(rgba(255, 255, 255, 0.25) 1.2px, transparent 1.2px), 
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1.2px, transparent 1.2px)
+                `,
+                backgroundSize: '28px 28px',
+                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.9) 100%)' 
+            }} />
 
-            {/* 🌊 流体特效容器：应用 SVG Gooey 滤镜的核心区域 */}
-            {/* mix-blend-screen 让光斑更亮，opacity 控制整体强度 */}
-            <div className="absolute inset-0 filter-[url(#goo)] opacity-60 mix-blend-screen transform-gpu">
+            {/* 🌊 2. 中间层：全屏灵动流体 (Fluid Overlay) - z-10 */}
+            <div className="absolute inset-0 z-10 opacity-40 transform-gpu scale-110" style={{ filter: 'url(#goo-refined)' }}>
+                {/* --- 侧翼流体 --- */}
+                <div className="absolute top-[-10%] left-[-20%] w-[55vw] h-[55vw] bg-purple-900/50 rounded-full animate-fluid-morph-slow" />
+                <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vw] bg-blue-900/40 rounded-full animate-fluid-morph-slower" style={{ animationDelay: '-12s' }} />
                 
-                {/* 这里的几个 div 是流动的色块来源。
-                    关键点：我们不仅移动它们的位置，还动态改变它们的 border-radius (圆角)，让它们看起来在不断变形。
-                */}
-
-                {/* 紫色主能量流 */}
-                <div className="absolute top-[10%] left-[15%] w-[45vw] h-[45vw] bg-purple-700/50 rounded-full animate-fluid-morph-slow will-change-transform" style={{ animationDelay: '0s' }} />
-                
-                {/* 蓝色深渊流 */}
-                <div className="absolute bottom-[20%] right-[10%] w-[55vw] h-[55vw] bg-blue-800/40 rounded-full animate-fluid-morph-slower will-change-transform" style={{ animationDelay: '-15s' }} />
-                
-                {/* 粉色活跃流 */}
-                <div className="absolute top-[40%] right-[30%] w-[35vw] h-[35vw] bg-pink-700/30 rounded-full animate-fluid-morph-medium will-change-transform" style={{ animationDelay: '-7s' }} />
-                
-                 {/* 青色补充流 - 增加色彩丰富度 */}
-                <div className="absolute -bottom-[10%] -left-[10%] w-[50vw] h-[50vw] bg-cyan-800/30 rounded-full animate-fluid-morph-slow will-change-transform" style={{ animationDelay: '-25s', animationDuration: '60s' }} />
+                {/* --- 🚀 新增：中央核心流体 --- */}
+                <div className="absolute top-[25%] left-[35%] w-[40vw] h-[40vw] bg-purple-800/30 rounded-full animate-fluid-morph-medium" style={{ animationDelay: '-5s' }} />
+                <div className="absolute bottom-[30%] right-[40%] w-[35vw] h-[35vw] bg-pink-800/25 rounded-full animate-fluid-morph-slow" style={{ animationDelay: '-18s' }} />
             </div>
 
-            {/* 🔮 SVG 滤镜定义 (隐藏在 DOM 中) - 这是实现液体融合魔术的核心 */}
-            {/* 警告：不要随意修改矩阵参数，这是调出来的最佳粘稠度 */}
-            <svg xmlns="http://www.w3.org/2000/svg" version="1.1" className="hidden">
+            {/* 🐍 3. 上层：边缘巡逻蛇 - z-20 */}
+            <canvas ref={canvasRef} className="absolute inset-0 z-20" />
+
+            {/* 🔦 4. 顶层：底部沉浸式暗场遮罩 - z-30 */}
+            <div className="absolute inset-0 z-30 bg-gradient-to-t from-[#020203] via-transparent to-transparent opacity-70" />
+
+            {/* 🔮 SVG 滤镜 */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="hidden">
                 <defs>
-                    <filter id="goo">
-                        {/* 1. 高斯模糊：极大程度地把所有色块糊在一起，stdDeviation 控制模糊程度 */}
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="60" result="blur" />
-                        {/* 2. 颜色矩阵：提高对比度，把模糊的边缘重新变锋利，形成液体的张力感 */}
-                        {/* 最后一行两个数是关键：放大 alpha 通道然后减去一个阈值 */}
-                        <feColorMatrix in="blur" mode="matrix" values="
-                            1 0 0 0 0
-                            0 1 0 0 0
-                            0 0 1 0 0
-                            0 0 0 30 -12" result="goo" />
+                    <filter id="goo-refined">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="50" result="blur" />
+                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 30 -10" result="goo" />
                         <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
                     </filter>
                 </defs>
             </svg>
 
             <style jsx>{`
-                /* 定义极其缓慢、复杂的变形动画 
-                   不仅改变位置 (translate)，还改变形状 (border-radius) 和角度 (rotate)
-                */
                 @keyframes fluid-morph {
-                    0%, 100% { 
-                        transform: translate(0, 0) scale(1) rotate(0deg); 
-                        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; 
-                    }
-                    25% { 
-                        transform: translate(8vw, -10vh) scale(1.1) rotate(45deg); 
-                        border-radius: 40% 60% 70% 30% / 50% 60% 30% 60%; 
-                    }
-                    50% { 
-                        transform: translate(15vw, 5vh) scale(0.9) rotate(90deg); 
-                        border-radius: 70% 30% 50% 50% / 30% 50% 60% 40%; 
-                    }
-                    75% { 
-                        transform: translate(-5vw, 15vh) scale(1.05) rotate(135deg); 
-                        border-radius: 30% 70% 60% 40% / 60% 40% 50% 50%; 
-                    }
+                    0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                    33% { transform: translate(5vw, -5vh) rotate(120deg) scale(1.1); border-radius: 40% 60% 70% 30% / 50% 60% 30% 60%; }
+                    66% { transform: translate(-5vw, 5vh) rotate(240deg) scale(0.9); border-radius: 30% 70% 60% 40% / 60% 40% 50% 50%; }
                 }
-
-                /* 应用不同时长和方向的动画，制造混沌感 */
-                .animate-fluid-morph-slow {
-                    animation: fluid-morph 40s infinite alternate ease-in-out;
-                }
-                .animate-fluid-morph-slower {
-                    animation: fluid-morph 60s infinite alternate-reverse ease-in-out;
-                }
-                .animate-fluid-morph-medium {
-                    animation: fluid-morph 30s infinite reverse ease-in-out;
-                }
+                .animate-fluid-morph-slow { animation: fluid-morph 60s infinite linear; }
+                .animate-fluid-morph-slower { animation: fluid-morph 90s infinite linear reverse; }
+                .animate-fluid-morph-medium { animation: fluid-morph 50s infinite linear; }
             `}</style>
         </div>
     );

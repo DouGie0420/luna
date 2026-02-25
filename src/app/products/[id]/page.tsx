@@ -5,7 +5,16 @@ import Image from 'next/image';
 import { notFound, useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import type { Product } from '@/lib/types';
+
+// 🚀 内置类型声明，防止因外部文件缺失导致的编译报错
+interface GlobalSettings {
+  paymentMethods?: {
+    usdt: boolean;
+    alipay: boolean;
+    wechat: boolean;
+    promptpay: boolean;
+  };
+}
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
@@ -18,7 +27,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Loader2, MapPin, Sparkles, ShieldAlert, Zap, UserPlus, MessageSquare, TerminalSquare } from 'lucide-react';
+import { 
+  Edit, Trash2, Loader2, MapPin, Sparkles, ShieldAlert, 
+  Zap, UserPlus, MessageSquare, TerminalSquare,
+  Wallet, QrCode, Smartphone, CreditCard, ShieldCheck 
+} from 'lucide-react';
 import { ProductEditForm } from '@/components/product-edit-form';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
@@ -34,8 +47,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, limit, getDocs, getDoc } from 'firebase/firestore';
 import { MapComponent } from '@/components/map';
-// 🚀 修复了这里的拼写错误：加上了 vis.
 import { APIProvider } from '@vis.gl/react-google-maps';
+
+// 🚀 安全样式合并函数
+const safeClass = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ');
 
 function ProductPageSkeleton() {
     return (
@@ -53,7 +68,7 @@ function ProductPageSkeleton() {
 
 export default function ProductPage() {
     const params = useParams();
-    const id = params.id as string;
+    const id = params?.id as string;
     const { user, profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
@@ -61,9 +76,16 @@ export default function ProductPage() {
     const router = useRouter();
 
     const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
-    const { data: product, loading } = useDoc<Product>(productRef);
+    const { data: product, loading } = useDoc<any>(productRef);
     
-    const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+    // 🚀 全局支付控制中心：实时监听后台开关
+    const settingsRef = useMemo(() => (firestore ? doc(firestore, 'settings', 'global') : null), [firestore]);
+    const { data: globalSettings } = useDoc<GlobalSettings>(settingsRef);
+    
+    // 逻辑：如果数据库没配置，默认开启全部以防逻辑锁死；如果配置了，严格遵守配置
+    const pms = globalSettings?.paymentMethods || { usdt: true, alipay: true, wechat: true, promptpay: true };
+
+    const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -75,14 +97,13 @@ export default function ProductPage() {
     useEffect(() => { window.scrollTo(0, 0); }, []);
     
     useEffect(() => {
-      if (!firestore) { setLoadingRecs(false); return; }
+      if (!firestore) return;
       const fetchRecs = async () => {
         setLoadingRecs(true);
-        const recsQuery = query(collection(firestore, 'products'), where('status', '==', 'active'), limit(12));
         try {
+            const recsQuery = query(collection(firestore, 'products'), where('status', '==', 'active'), limit(12));
             const querySnapshot = await getDocs(recsQuery);
-            let recs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-            recs.sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+            let recs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
             setRecommendedProducts(recs.filter(p => p.id !== id).slice(0, 5));
         } catch (error) { console.error(error); } finally { setLoadingRecs(false); }
       };
@@ -107,6 +128,9 @@ export default function ProductPage() {
         checkStatus();
     }, [user, product?.sellerId, product?.seller?.followerCount, firestore]);
 
+    if (loading) return <ProductPageSkeleton />;
+    if (!product) notFound();
+
     const isOwner = !!(user && product && user.uid === product.sellerId);
     const hasAdminAccess = !!(profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || ''));
     const isLiked = user && product && product.likedBy?.includes(user.uid);
@@ -125,14 +149,9 @@ export default function ProductPage() {
     };
 
     const handleToggleFollow = async () => {
-        if (!user || !firestore || !product?.sellerId) {
-            toast({ variant: 'destructive', title: t('common.loginToInteract') });
-            return;
-        }
-
+        if (!user || !firestore || !product?.sellerId) return;
         const userRef = doc(firestore, 'users', user.uid);
         const hostRef = doc(firestore, 'users', product.sellerId);
-
         try {
             if (isFollowing) {
                 await updateDoc(userRef, { following: arrayRemove(product.sellerId) });
@@ -144,10 +163,7 @@ export default function ProductPage() {
                 setLocalFollowerCount(prev => prev + 1);
             }
             setIsFollowing(!isFollowing);
-            toast({ title: isFollowing ? "Unfollowed Provider" : "Following Provider" });
-        } catch (error) {
-            toast({ variant: 'destructive', title: "Interaction Failed" });
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleDeleteProduct = async () => {
@@ -160,15 +176,10 @@ export default function ProductPage() {
         } catch(e) { setIsSubmittingDelete(false); }
     };
 
-    if (loading) return <ProductPageSkeleton />;
-    if (!product) notFound();
-
     return (
         <div className="min-h-screen relative overflow-hidden pb-20">
-            
-            {/* 🚀 核心压暗层：50%的纯黑遮罩，用于压制底部流体，增加深邃感，不显得空旷 */}
+            {/* 🚀 全局遮罩压暗，确保背景流动感不突兀 */}
             <div className="fixed inset-0 bg-black/50 pointer-events-none z-[-1]" />
-
             <PageHeaderWithBackAndClose />
 
             <header className="relative h-[32vh] w-full overflow-hidden border-b border-white/5">
@@ -176,13 +187,11 @@ export default function ProductPage() {
                     <div className="relative w-1/2 h-full"><Image src={product.images?.[0] || '/placeholder.jpg'} alt="P1" fill className="object-cover" /></div>
                     <div className="relative w-1/2 h-full border-l border-black/50"><Image src={product.images?.[1] || product.images?.[0]} alt="P2" fill className="object-cover" /></div>
                 </div>
-                {/* 渐变遮罩 */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
-                
                 <div className="absolute bottom-6 left-0 right-0 space-y-1 z-20 text-center">
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                         <h1 className="text-4xl font-black titanium-title tracking-tighter uppercase text-white drop-shadow-[0_0_20px_rgba(0,0,0,1)]">{product.title}</h1>
-                        <p className="text-purple-400 font-bold tracking-[0.4em] uppercase text-[10px] flex items-center justify-center gap-2 leading-none drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                        <p className="text-purple-400 font-bold tracking-[0.4em] uppercase text-[10px] flex items-center justify-center gap-2 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
                             <MapPin className="w-3 h-3 shrink-0" /> 
                             <span className="translate-y-[0.5px]">{product.location?.address || product.location?.city}</span>
                         </p>
@@ -192,18 +201,11 @@ export default function ProductPage() {
             
             <main className="container mx-auto px-4 py-12 relative z-10">
                 
-                {/* 警报模块也统一为 75% 玻璃拟态 */}
                 <div className="max-w-6xl mx-auto mb-10 space-y-4">
                     {isOwner && (
-                        <div className="bg-black/75 backdrop-blur-2xl border border-primary/30 rounded-[24px] p-5 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-2xl">
+                        <div className="bg-black/75 backdrop-blur-2xl border border-primary/30 rounded-[24px] p-5 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 shadow-2xl">
                             <Zap className="text-primary h-6 w-6 animate-pulse" />
-                            <p className="text-primary font-black italic uppercase text-xs tracking-widest">Owner_Protocol_Active: Self-trading is restricted to prevent wash trades.</p>
-                        </div>
-                    )}
-                    {product.seller?.creditScore !== undefined && product.seller.creditScore <= 200 && (
-                        <div className="bg-black/75 backdrop-blur-2xl border border-red-500/30 rounded-[24px] p-5 flex items-center gap-4 animate-pulse shadow-2xl">
-                            <ShieldAlert className="text-red-500 h-6 w-6" />
-                            <p className="text-red-500 font-black italic uppercase text-xs tracking-widest">Security_Alert: Crisis node provider detected. Proceed with caution.</p>
+                            <p className="text-primary font-black italic uppercase text-xs tracking-widest">Owner_Protocol_Active: Self-trading restricted.</p>
                         </div>
                     )}
                 </div>
@@ -212,13 +214,10 @@ export default function ProductPage() {
                     
                     {/* 👇 左侧区域 */}
                     <div className="lg:col-span-3 flex flex-col gap-12">
-                        
-                        {/* 🚀 模块 1：画廊展示柜 - 统一 bg-black/75 */}
                         <div className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl p-6">
                             <ProductImageGallery product={product} isLiked={!!isLiked} isFavorited={!!isFavorited} onLikeToggle={() => handleInteraction('like')} onFavoriteToggle={() => handleInteraction('favorite')} />
                         </div>
 
-                        {/* 🚀 模块 2：商品描述 - 统一 bg-black/75 */}
                         <Card className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
                             <CardHeader className="border-b border-white/5 p-8 flex flex-row items-center justify-between">
                                 <CardTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-white">
@@ -227,7 +226,7 @@ export default function ProductPage() {
                                 {(isOwner || hasAdminAccess) && (
                                     <div className="flex items-center gap-3">
                                         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                                            <DialogTrigger asChild><Button variant="outline" className="rounded-full bg-white/5 border-white/10 hover:bg-primary hover:text-black transition-all text-white"><Edit className="mr-2 h-4 w-4" /> {t('EDIT')}</Button></DialogTrigger>
+                                            <DialogTrigger asChild><Button variant="outline" className="rounded-full bg-white/5 border-white/10 hover:bg-primary transition-all text-white"><Edit className="mr-2 h-4 w-4" /> {t('EDIT')}</Button></DialogTrigger>
                                             <DialogContent className="bg-[#09090b] border-white/10 text-white backdrop-blur-3xl"><DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader><ProductEditForm product={product} onSave={() => setIsEditDialogOpen(false)} /></DialogContent>
                                         </Dialog>
                                         {hasAdminAccess && !isOwner && (
@@ -240,8 +239,7 @@ export default function ProductPage() {
                                 <p className="text-white/70 leading-relaxed italic whitespace-pre-wrap text-lg">{product.description}</p>
                                 {product.location && !product.locationHidden && (
                                     <div className="pt-8 border-t border-white/5">
-                                        <div className="flex items-center gap-3 mb-6"><MapPin className="h-4 w-4 text-primary" /><span className="text-white/60 font-mono text-[10px] uppercase font-bold">{product.location.city}, {product.location.country}</span></div>
-                                        <div className="h-[350px] rounded-2xl overflow-hidden border border-white/10 bg-black/50 grayscale brightness-75 hover:grayscale-0 transition-all duration-700 shadow-inner">
+                                        <div className="h-[350px] rounded-2xl overflow-hidden border border-white/10 bg-black/50 grayscale brightness-75 hover:grayscale-0 transition-all duration-700">
                                             <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
                                                 <MapComponent center={product.location} marker={product.location} />
                                             </APIProvider>
@@ -252,80 +250,115 @@ export default function ProductPage() {
                         </Card>
                     </div>
 
-                    {/* 👇 右侧区域：核心信息与留言板 */}
+                    {/* 👇 右侧区域：核心支付与卖家信息 */}
                     <div className="lg:col-span-2 flex flex-col gap-12">
                         <div className="sticky top-24 space-y-12 pb-12">
                             
-                            {/* 🚀 模块 3：右侧中控台 (整合标题、购买、名片) - 统一 bg-black/75 */}
-                            <div className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] p-8 shadow-2xl flex flex-col gap-8">
+                            {/* 🚀 费用中控台：75% 玻璃拟态 + 流体艺术背景 + 支付 Logo + 全局控制开关 */}
+                            <div className="relative overflow-hidden bg-black/85 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-2xl flex flex-col gap-8 group">
+                                {/* 装饰性流体元素 */}
+                                <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/20 rounded-full filter blur-[80px] animate-blob opacity-40 transition-opacity duration-1000" />
+                                <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-600/10 rounded-full filter blur-[80px] animate-blob animation-delay-4000 opacity-40 transition-opacity duration-1000" />
                                 
-                                <div className="space-y-4">
+                                <div className="relative z-10 space-y-4">
                                     <ProductTitleWithBadge product={product} />
-                                    <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 animate-pulse">Protocol Node Execution</p>
-                                </div>
-                                
-                                <div className="pt-4">
-                                    <ProductPurchaseActions product={product} isOwner={isOwner} />
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-4xl font-black titanium-title text-primary italic drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                                            ฿{(product.price || 0).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 animate-pulse">Node Execution Protocol</p>
                                 </div>
 
-                                <div className="pt-8 border-t border-white/5 space-y-6">
+                                {/* 🚀 支付方式按钮矩阵 */}
+                                <div className="relative z-10 grid grid-cols-2 gap-3 pt-4">
+                                    {/* USDT - 核心推荐 */}
+                                    <Button 
+                                      variant="outline" 
+                                      disabled={!pms.usdt}
+                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 hover:bg-white/10 transition-all rounded-2xl", !pms.usdt && "opacity-20 grayscale cursor-not-allowed")}
+                                    >
+                                      <Wallet className="w-5 h-5 text-green-400" /> 
+                                      <span className="font-black italic uppercase tracking-widest text-[10px]">USDT</span>
+                                    </Button>
+
+                                    {/* 支付宝 - 后台可控 */}
+                                    <Button 
+                                      variant="outline" 
+                                      disabled={!pms.alipay}
+                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.alipay && "opacity-20 grayscale cursor-not-allowed")}
+                                    >
+                                      <Smartphone className="w-5 h-5 text-blue-400" /> 
+                                      <span className="font-black italic uppercase tracking-widest text-[10px]">Alipay</span>
+                                    </Button>
+
+                                    {/* 微信支付 - 后台可控 */}
+                                    <Button 
+                                      variant="outline" 
+                                      disabled={!pms.wechat}
+                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.wechat && "opacity-20 grayscale cursor-not-allowed")}
+                                    >
+                                      <QrCode className="w-5 h-5 text-green-500" /> 
+                                      <span className="font-black italic uppercase tracking-widest text-[10px]">WeChat</span>
+                                    </Button>
+
+                                    {/* PromptPay - 后台可控 */}
+                                    <Button 
+                                      variant="outline" 
+                                      disabled={!pms.promptpay}
+                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.promptpay && "opacity-20 grayscale cursor-not-allowed")}
+                                    >
+                                      <CreditCard className="w-5 h-5 text-sky-400" /> 
+                                      <span className="font-black italic uppercase tracking-widest text-[10px]">PromptPay</span>
+                                    </Button>
+                                </div>
+                                
+                                <div className="relative z-10 pt-4">
+                                    <Button 
+                                      className="w-full h-16 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition-transform rounded-2xl"
+                                      disabled={isOwner}
+                                    >
+                                        立即购买 / Purchase
+                                    </Button>
+                                    <p className="mt-3 text-center text-[10px] text-white/30 font-mono uppercase tracking-widest flex items-center justify-center gap-1">
+                                      <ShieldCheck className="w-3 h-3 text-primary/50" /> Security Escrow Active
+                                    </p>
+                                </div>
+
+                                <div className="relative z-10 pt-8 border-t border-white/5 space-y-6">
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 pl-1">Authorized Provider</h3>
                                     <SellerProfileCard 
                                         seller={{...product.seller, followerCount: localFollowerCount}} 
                                         className="bg-transparent border-none p-0 shadow-none" 
                                     />
-                                    
                                     {!isOwner && (
                                         <div className="flex gap-4 pt-4">
-                                            <Button 
-                                                onClick={handleToggleFollow}
-                                                className={`flex-1 rounded-2xl h-14 font-black uppercase italic tracking-widest transition-all duration-300 ${
-                                                    isFollowing 
-                                                    ? 'bg-white/5 border border-white/10 text-white/40 hover:bg-white/10' 
-                                                    : 'bg-primary text-black hover:scale-[1.02] shadow-[0_0_20px_rgba(168,85,247,0.3)]'
-                                                }`}
-                                            >
-                                                <UserPlus className="mr-2 h-5 w-5" />
-                                                {isFollowing ? 'Following' : 'Follow'}
+                                            <Button onClick={handleToggleFollow} className={safeClass("flex-1 rounded-2xl h-14 font-black uppercase italic tracking-widest", isFollowing ? 'bg-white/5 text-white/40' : 'bg-primary text-black')}>
+                                                <UserPlus className="mr-2 h-5 w-5" /> {isFollowing ? 'Following' : 'Follow'}
                                             </Button>
-                                            
-                                            <Button 
-                                                onClick={() => router.push(`/messages/chat/${product.sellerId}?refProperty=${id}`)}
-                                                variant="outline" 
-                                                className="flex-1 rounded-2xl h-14 bg-white/5 border-white/10 hover:bg-white/10 text-white font-black uppercase italic tracking-widest"
-                                            >
-                                                <MessageSquare className="mr-2 h-5 w-5" />
-                                                Message
+                                            <Button onClick={() => router.push(`/messages/chat/${product.sellerId}?refProperty=${id}`)} variant="outline" className="flex-1 rounded-2xl h-14 bg-white/5 border-white/10 text-white font-black uppercase italic tracking-widest">
+                                                <MessageSquare className="mr-2 h-5 w-5" /> Message
                                             </Button>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* 🚀 模块 4：留言终端 (Terminal Logs) - 统一 bg-black/75 */}
+                            {/* 🚀 模块 4：留言终端 */}
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-3 mb-5 pl-1">
                                     <TerminalSquare className="w-5 h-5 text-primary drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
                                     <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white drop-shadow-md">Terminal <span className="text-primary">Logs</span></h3>
                                 </div>
-                                
-                                <div className="relative w-full rounded-[2.5rem] p-[1px] overflow-hidden group">
-                                    {/* 内部小流体依然保留，增强科技感 */}
-                                    <div className="absolute top-0 -left-10 w-48 h-48 bg-purple-600/30 rounded-full mix-blend-screen filter blur-[60px] animate-blob opacity-60 transition-opacity duration-1000" />
-                                    <div className="absolute top-1/2 -right-10 w-48 h-48 bg-blue-600/30 rounded-full mix-blend-screen filter blur-[60px] animate-blob animation-delay-2000 opacity-60 transition-opacity duration-1000" />
-                                    <div className="absolute -bottom-10 left-20 w-48 h-48 bg-pink-600/20 rounded-full mix-blend-screen filter blur-[60px] animate-blob animation-delay-4000 opacity-60 transition-opacity duration-1000" />
-
-                                    {/* 统一为 bg-black/75 */}
-                                    <div className="relative bg-black/75 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 p-6 shadow-2xl max-h-[500px] overflow-y-auto cyber-scrollbar [&_.bg-white]:!bg-white/[0.03] [&_.bg-card]:!bg-transparent [&_.border]:!border-white/5 [&_.shadow-sm]:!shadow-none [&_.rounded-xl]:!rounded-[24px] [&_textarea]:!bg-black/40 [&_textarea]:!border-white/10 [&_textarea]:!text-white [&_textarea]:!rounded-2xl [&_textarea]:!text-xs [&_textarea]:!min-h-[100px] [&_textarea]:backdrop-blur-md [&_button[type='submit']]:!bg-gradient-to-r [&_button[type='submit']]:!from-primary/20 [&_button[type='submit']]:!to-blue-500/20 [&_button[type='submit']]:!text-white [&_button[type='submit']]:!border [&_button[type='submit']]:!border-white/10 [&_button[type='submit']]:!rounded-2xl [&_button[type='submit']]:hover:!border-primary/50 [&_button[type='submit']]:!shadow-[0_0_20px_rgba(168,85,247,0.15)] [&_h3]:!text-white/90 [&_h3]:!text-sm [&_h3]:!font-black [&_h3]:!uppercase [&_h3]:!tracking-widest [&_p]:!text-white/70 [&_p]:!text-xs [&_p]:!leading-relaxed [&_.flex-row]:!items-start [&_.gap-4]:!gap-4 [&_img]:!rounded-full [&_img]:!ring-2 [&_img]:!ring-white/10">
-                                        <ProductCommentSection productId={product.id} />
-                                    </div>
+                                <div className="relative bg-black/75 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 p-6 shadow-2xl max-h-[500px] overflow-y-auto cyber-scrollbar">
+                                    <ProductCommentSection productId={product.id} />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 🚀 模块 5：底部推荐区域 - 统一 bg-black/75 */}
+                {/* 🚀 模块 5：底部推荐 */}
                 <div className="mt-32">
                     <div className="flex items-center justify-between mb-12">
                         <h2 className="font-headline text-4xl font-black italic uppercase tracking-tighter text-white">Similar <span className="text-primary">Protocols</span></h2>
@@ -348,32 +381,15 @@ export default function ProductPage() {
                 </div>
             </main>
 
-            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <AlertDialogContent className="bg-[#09090b]/90 border-white/10 text-white backdrop-blur-3xl rounded-[32px]">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="font-black uppercase italic tracking-tighter text-destructive">Termination Protocol</AlertDialogTitle>
-                        <AlertDialogDescription className="text-white/40 font-mono text-xs uppercase">This action will hide the product from the public index for review. Proceed?</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="bg-white/5 border-white/10 text-white/60">Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProduct} className="bg-destructive text-white font-black uppercase italic">{isSubmittingDelete ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Confirm Termination"}</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-
             <style jsx global>{`
-                @keyframes grid-scroll { from { background-position: 0 0; } to { background-position: 40px 40px; } }
                 .titanium-title { font-family: 'Playfair Display', serif; letter-spacing: -0.02em; }
-                
                 .cyber-scrollbar::-webkit-scrollbar { width: 4px; }
-                .cyber-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .cyber-scrollbar::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 4px; }
-                .cyber-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(168, 85, 247, 0.8); }
-
+                
                 @keyframes blob {
                   0% { transform: translate(0px, 0px) scale(1); }
-                  33% { transform: translate(30px, -50px) scale(1.2); }
-                  66% { transform: translate(-20px, 20px) scale(0.8); }
+                  33% { transform: translate(30px, -50px) scale(1.1); }
+                  66% { transform: translate(-20px, 20px) scale(0.9); }
                   100% { transform: translate(0px, 0px) scale(1); }
                 }
                 .animate-blob { animation: blob 15s infinite alternate ease-in-out; }

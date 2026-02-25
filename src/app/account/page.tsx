@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { Button } from "@/components/ui/button"
@@ -27,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import React, { useState, useEffect, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 import { useTranslation } from "@/hooks/use-translation";
-import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Languages, DollarSign } from "lucide-react";
+import { Gem, ShoppingBag, ShoppingCart, Star, Users, UserPlus, ShieldCheck, Loader2, CheckCircle, XCircle, Award, Sparkles, Fingerprint, Globe, UploadCloud, X, Languages, DollarSign, Database } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { updateUserProfile } from "@/lib/user";
@@ -171,7 +169,6 @@ export default function AccountProfilePage() {
             const ordersRef = collection(firestore, 'orders');
 
             try {
-                // Fetch purchases
                 const purchasesQuery = query(ordersRef, where('buyerId', '==', user.uid), where('status', '==', 'Completed'));
                 const purchasesSnapshot = await getDocs(purchasesQuery);
                 let totalSpent = 0;
@@ -180,7 +177,6 @@ export default function AccountProfilePage() {
                 });
                 setTotalPurchased(totalSpent);
 
-                // Fetch sales
                 const salesQuery = query(ordersRef, where('sellerId', '==', user.uid), where('status', '==', 'Completed'));
                 const salesSnapshot = await getDocs(salesQuery);
                 let totalEarned = 0;
@@ -190,7 +186,6 @@ export default function AccountProfilePage() {
                 setTotalSold(totalEarned);
             } catch(e) {
                 console.error("Error fetching transaction stats:", e);
-                // Optionally show a toast to the user
             } finally {
                 setLoadingStats(false);
             }
@@ -267,7 +262,7 @@ export default function AccountProfilePage() {
                 title: '专属ID设置成功！',
                 description: `您的新专属ID是 @${newLoginId}`,
             });
-            setNewLoginId(''); // Clear input
+            setNewLoginId('');
         } catch (error) {
             console.error('Failed to set Login ID:', error);
             toast({
@@ -432,7 +427,6 @@ export default function AccountProfilePage() {
         if (!firestore || !user || !profile || !selectedPlan) return;
         setIsUpgrading(true);
         try {
-            // Create a new pro application document
             const applicationData = {
                 userId: user.uid,
                 userName: profile.displayName || user.displayName || 'Anonymous User',
@@ -517,6 +511,10 @@ export default function AccountProfilePage() {
 
     return (
         <>
+        <style jsx global>{`
+            .titanium-title { font-family: 'Playfair Display', serif; letter-spacing: -0.02em; }
+        `}</style>
+        
         <NftSelectorDialog 
             open={isNftDialogOpen}
             onOpenChange={setIsNftDialogOpen}
@@ -525,9 +523,40 @@ export default function AccountProfilePage() {
             isUpdating={isUpdatingAvatar}
         />
         <Dialog open={isProDialogOpen} onOpenChange={setIsProDialogOpen}>
-            <div className="p-6 md:p-8 lg:p-12">
-                <h1 className="text-3xl font-headline mb-6">{t('accountPage.title')}</h1>
+            <div className="p-6 md:p-8 lg:p-12 max-w-7xl mx-auto">
+                <h1 className="text-3xl font-black titanium-title italic uppercase mb-8 text-white">System <span className="text-primary">Profile</span></h1>
+                
                 <div className="grid gap-8">
+                    
+                    {/* 🚀 新增：顶级视觉 - Lunar Vault 月壤金库面板 */}
+                    <Card className="bg-black/60 backdrop-blur-2xl border border-primary/30 shadow-[0_0_40px_rgba(168,85,247,0.15)] relative overflow-hidden group">
+                        {/* 动态光效背景 */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full filter blur-[80px] group-hover:bg-primary/20 transition-all duration-700" />
+                        
+                        <CardContent className="p-8 md:p-10 relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                            <div className="flex items-center gap-6">
+                                {/* 发光的数据库图标 */}
+                                <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/50 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:scale-105 transition-transform duration-500">
+                                    <Database className="w-10 h-10 text-primary animate-pulse" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-primary/70 drop-shadow-md">Lunar Vault / 月壤金库</p>
+                                    <div className="flex items-baseline gap-3 mt-1">
+                                        <span className="text-6xl font-black titanium-title text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                                            {profile?.lunarSoil || 0}
+                                        </span>
+                                        <span className="text-xl font-mono font-bold text-primary uppercase tracking-widest">Grams</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="hidden md:flex flex-col items-end space-y-2 border-l border-white/10 pl-8">
+                                <p className="text-xs font-mono text-white/40 uppercase tracking-widest flex items-center gap-2"><Sparkles className="w-3 h-3 text-yellow-400" /> Active Protocol</p>
+                                <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] max-w-[200px] text-right">Accumulate Lunar Soil through transactions, likes, and positive evaluations.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>{t('accountPage.personalInfo')}</CardTitle>
@@ -996,7 +1025,6 @@ export default function AccountProfilePage() {
                                             <span>{t('userProfile.kyc')}</span>
                                         </div>
                                     )}
-                                    {/* 修复点在这里：添加了问号 ?. 避免空指针错误 */}
                                     {!profile?.isPro && !profile?.isWeb3Verified && !profile?.isNftVerified && profile?.kycStatus !== 'Verified' && (
                                         <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
                                     )}
