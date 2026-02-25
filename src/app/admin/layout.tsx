@@ -1,4 +1,3 @@
-
 'use client'
 
 import * as React from 'react'
@@ -18,6 +17,7 @@ import {
   Banknote,
   Award,
   Radio,
+  Home, // 🚀 引入房源图标
 } from 'lucide-react'
 
 import {
@@ -44,7 +44,6 @@ type Role = NonNullable<UserProfile['role']>;
 // Centralized permission check function
 const hasRole = (userRole: Role | undefined, allowedRoles: Array<Role>): boolean => {
     if (!userRole) return false;
-    // Admin and Ghost have access to everything and are implicitly included in all checks.
     if (userRole === 'admin' || userRole === 'ghost') return true;
     return allowedRoles.includes(userRole);
 }
@@ -54,6 +53,7 @@ const pagePermissions: Record<string, Array<Role>> = {
     '/admin': ['admin', 'ghost', 'staff', 'support'],
     '/admin/users': ['admin', 'ghost', 'staff'],
     '/admin/products': ['admin', 'ghost', 'staff'],
+    '/admin/rental-reviews': ['admin', 'ghost', 'staff'], // 🚀 房源审核权限：Admin, Ghost, Staff
     '/admin/promotions': ['admin', 'ghost', 'staff'],
     '/admin/community': ['admin', 'ghost', 'staff'],
     '/admin/orders': ['admin', 'ghost', 'staff', 'support'],
@@ -81,7 +81,6 @@ export default function AdminLayout({
     return <div className="flex h-screen w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>;
   }
   
-  // 1. Central Guard: Check if user can access the admin panel at all
   if (!user || !userRole || !['admin', 'ghost', 'staff', 'support'].includes(userRole)) {
       return (
         <div className="flex h-screen w-full items-center justify-center p-4">
@@ -99,7 +98,6 @@ export default function AdminLayout({
       )
   }
   
-  // 2. Email verification check
   if (user.providerData[0]?.providerId === 'password' && !user.emailVerified && !profile?.emailVerified) {
     return (
        <div className="flex h-screen w-full items-center justify-center p-4">
@@ -117,7 +115,6 @@ export default function AdminLayout({
     )
   }
 
-  // 3. Central Guard: Check if user has permission for the SPECIFIC page
   const canAccessCurrentPage = Object.entries(pagePermissions).some(([page, roles]) => 
       pathname.startsWith(page) && hasRole(userRole, roles)
   );
@@ -171,11 +168,22 @@ export default function AdminLayout({
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/products')}>
                     <Link href="/admin/products">
-                      <ShieldAlert />
-                      {t('admin.layout.reviewQueue')}
+                      <ShoppingBag />
+                      商品审核
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                
+                {/* 🚀 新增：房源审核入口 */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/rental-reviews')}>
+                    <Link href="/admin/rental-reviews">
+                      <Home className="text-purple-400" />
+                      <span className="font-bold text-purple-300">房源审核</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
                  <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/promotions')}>
                     <Link href="/admin/promotions">

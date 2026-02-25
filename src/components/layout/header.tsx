@@ -11,25 +11,27 @@ export function Header() {
   const { user, loading } = useUser();
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-background relative border-b border-white/5">
+    <header className="sticky top-0 z-[110] w-full bg-background/80 backdrop-blur-xl relative border-b border-[#c41834]/30 shadow-[0_1px_15px_rgba(196,24,52,0.1)]">
       <GlowingPixelGrid seed="shared-luna-seed" className="-z-10" />
-      <div className="container mx-auto flex h-20 items-center justify-between gap-8 px-4">
-        {/* 左侧 Logo */}
-        <Logo />
+      
+      <div className="flex h-20 w-full items-center justify-between px-6 md:px-12 lg:px-16 relative">
+        <div className="flex-shrink-0 hover:scale-105 transition-transform duration-300">
+          <Logo />
+        </div>
 
-        {/* 中间 公告栏 (仅 PC) */}
         <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
           <AnnouncementBar />
         </div>
 
-        {/* 右侧 用户导航 */}
-        <div className="flex items-center gap-4">
+        {/* 🚀 这里彻底清空了那个没用的按钮，只留下 UserNav */}
+        <div className="flex items-center gap-6 flex-shrink-0">
           {loading ? (
-            // 加载中显示骨架屏，防止 UI 跳动
-            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
           ) : (
-            // 只有加载完成后才渲染 UserNav，UserNav 内部通常包含通知查询
-            <UserNav />
+            <div className="relative group">
+              <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <UserNav />
+            </div>
           )}
         </div>
       </div>

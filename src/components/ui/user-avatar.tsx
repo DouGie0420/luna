@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -61,15 +60,20 @@ export function UserAvatar({ profile, className }: UserAvatarProps) {
         
     const badgeSize = 'h-4 w-4';
 
-    // Handle different property names for the same data
-    const imageUrl = profile?.photoURL || (profile as any)?.avatarUrl;
-    const name = profile?.displayName || (profile as any)?.name;
+    // 🚀 核心优化：获取名字并生成专属的防弹兜底头像
+    const name = profile?.displayName || (profile as any)?.name || 'Luna_User';
+    const dicebearFallback = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name)}`;
+    const imageUrl = profile?.photoURL || (profile as any)?.avatarUrl || dicebearFallback;
 
     return (
         <div className={cn("relative", className)}>
             <Avatar className="h-full w-full">
-                <AvatarImage src={imageUrl || undefined} alt={name || 'User'} />
-                <AvatarFallback>{name?.charAt(0) || 'U'}</AvatarFallback>
+                {/* 正常加载逻辑：如果传入的是死链接，shadcn 会自动隐藏这个标签 */}
+                <AvatarImage src={imageUrl} alt={name} />
+                {/* 终极防线：如果图片死链了，显示带有专属默认头像的 Fallback，不再只有个干巴巴的字母 */}
+                <AvatarFallback className="bg-transparent">
+                    <img src={dicebearFallback} alt={name} className="h-full w-full object-cover" />
+                </AvatarFallback>
             </Avatar>
             
             {displayedBadge === 'pro' ? (

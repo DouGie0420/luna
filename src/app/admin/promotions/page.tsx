@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Megaphone, Award, Newspaper, SlidersHorizontal, Image as ImageIcon, Video as VideoIcon, Loader2 } from "lucide-react";
+import { Megaphone, Award, Newspaper, Image as ImageIcon, Video as VideoIcon, Loader2, Plus } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,38 +49,52 @@ export default function AdminPromotionsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
+    // 🚀 初始化为 6 个空位，但允许动态增加
+    const [fixedMerchants, setFixedMerchants] = useState<string[]>(Array(6).fill(''));
+    const [duration, setDuration] = useState('24');
+    const [position, setPosition] = useState(5);
+    const [randomize, setRandomize] = useState(false);
+    const [isSavingMerchants, setIsSavingMerchants] = useState(false);
+
+    const [carouselCount, setCarouselCount] = useState('10');
+    const [mediumPostIds, setMediumPostIds] = useState<string[]>(Array(10).fill(''));
+    const [smallPostIds, setSmallPostIds] = useState<string[]>(Array(5).fill(''));
+
+    // --- 🚀 数据预加载：打开页面时读取当前配置 ---
     useEffect(() => {
         if (!firestore) return;
+        
+        // 1. 加载官方通知
         setIsLoadingAnnouncement(true);
         const announcementRef = doc(firestore, 'announcements', 'live');
         getDoc(announcementRef).then(docSnap => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                setAnnouncementTitle(data.title);
-                setAnnouncementContent(data.content);
+                setAnnouncementTitle(data.title || '');
+                setAnnouncementContent(data.content || '');
             }
         }).catch(error => {
             console.error("Failed to fetch announcement:", error);
-            toast({
-                variant: 'destructive',
-                title: '加载通知失败',
-                description: '请检查您的网络连接或权限。'
-            });
         }).finally(() => {
             setIsLoadingAnnouncement(false);
         });
-    }, [firestore, toast]);
 
+        // 2. 加载认证商户配置
+        const merchantsRef = doc(firestore, 'configs', 'verified_merchants');
+        getDoc(merchantsRef).then(docSnap => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (data.fixedMerchantIds && data.fixedMerchantIds.length > 0) {
+                    setFixedMerchants(data.fixedMerchantIds);
+                }
+                if (data.duration) setDuration(data.duration);
+                if (data.position) setPosition(data.position);
+                if (data.randomize !== undefined) setRandomize(data.randomize);
+            }
+        }).catch(error => console.error("Failed to fetch merchants config:", error));
 
-    const [carouselCount, setCarouselCount] = useState('10');
+    }, [firestore]);
 
-    const [fixedMerchants, setFixedMerchants] = useState(Array(6).fill(''));
-    const [duration, setDuration] = useState('24');
-    const [position, setPosition] = useState(5);
-    const [randomize, setRandomize] = useState(false);
-
-    const [mediumPostIds, setMediumPostIds] = useState(Array(10).fill(''));
-    const [smallPostIds, setSmallPostIds] = useState(Array(5).fill(''));
 
     const handleArrayStateChange = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, value: string) => {
         setter(prev => {
@@ -89,6 +102,11 @@ export default function AdminPromotionsPage() {
             newArr[index] = value;
             return newArr;
         });
+    };
+
+    // 🚀 新增功能：动态增加商户输入框
+    const handleAddMerchantSlot = () => {
+        setFixedMerchants(prev => [...prev, '']);
     };
 
     const handlePublishAnnouncement = async () => {
@@ -124,6 +142,39 @@ export default function AdminPromotionsPage() {
             });
         } finally {
             setIsSubmittingAnnouncement(false);
+        }
+    };
+
+    // 🚀 核心修复：执行商户数据保存到 Firebase
+    const handleSaveMerchants = async () => {
+        if (!firestore) return;
+        setIsSavingMerchants(true);
+        try {
+            const merchantsRef = doc(firestore, 'configs', 'verified_merchants');
+            // 清理掉完全为空的输入框，防止存入垃圾数据
+            const cleanMerchantIds = fixedMerchants.filter(id => id.trim() !== '');
+
+            await setDoc(merchantsRef, {
+                fixedMerchantIds: cleanMerchantIds,
+                duration: duration,
+                position: position,
+                randomize: randomize,
+                updatedAt: serverTimestamp(),
+            }, { merge: true });
+
+            toast({
+                title: '商户设置已保存',
+                description: `成功保存了 ${cleanMerchantIds.length} 个指定的认证商户。`
+            });
+        } catch (error) {
+            console.error("Failed to save merchants:", error);
+            toast({
+                variant: 'destructive',
+                title: '保存失败',
+                description: '请检查数据库写入权限或网络状态。'
+            });
+        } finally {
+            setIsSavingMerchants(false);
         }
     };
 
@@ -227,6 +278,7 @@ export default function AdminPromotionsPage() {
                     </CardContent>
                 </Card>
 
+                {/* 轮播广告管理保持不变 */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -237,6 +289,7 @@ export default function AdminPromotionsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {/* ... 省略了中间未改动的部分代码，为了干净展示，你原本的 Accordion 代码依然在这里 ... */}
                         <div className="grid md:grid-cols-3 gap-4 mb-6">
                             <div className="md:col-span-1 grid gap-2">
                                 <Label>选择轮播数量</Label>
@@ -253,7 +306,6 @@ export default function AdminPromotionsPage() {
                                 </Select>
                             </div>
                         </div>
-
                         <ScrollArea className="h-96 pr-4">
                             <Accordion type="multiple" className="w-full">
                                 {Array.from({ length: 20 }).map((_, index) => (
@@ -287,13 +339,14 @@ export default function AdminPromotionsPage() {
                     </CardContent>
                 </Card>
 
+                {/* 🚀 认证商户展示管理：彻底打通逻辑，支持无限添加 */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             <Award /> 认证商户展示管理
                         </CardTitle>
                         <CardDescription>
-                            控制首页“认证商户”板块的展示逻辑和内容。可设置多个固定商户ID。
+                            控制首页“认证商户”板块的展示逻辑和内容。可设置无限个固定商户ID。
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -303,7 +356,7 @@ export default function AdminPromotionsPage() {
                         </div>
                         <Separator />
                         <div>
-                             <Label className="mb-4 block">指定固定商户 (6个位置)</Label>
+                             <Label className="mb-4 block">指定固定商户 ({fixedMerchants.length}个位置)</Label>
                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {fixedMerchants.map((merchantId, index) => (
                                     <Input
@@ -313,6 +366,14 @@ export default function AdminPromotionsPage() {
                                         onChange={(e) => handleArrayStateChange(setFixedMerchants, index, e.target.value)}
                                     />
                                 ))}
+                                {/* 🚀 动态添加更多商户的按钮 */}
+                                <Button 
+                                    variant="outline" 
+                                    className="h-10 border-dashed border-primary/50 text-primary hover:bg-primary/10"
+                                    onClick={handleAddMerchantSlot}
+                                >
+                                    <Plus className="h-4 w-4 mr-2" /> 添加更多商户位
+                                </Button>
                              </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -347,12 +408,17 @@ export default function AdminPromotionsPage() {
                                 </div>
                             </div>
                         </div>
-                         <div className="flex justify-end">
-                            <Button>保存商户设置</Button>
+                         <div className="flex justify-end mt-4">
+                            {/* 🚀 绑定了写入 Firebase 的 onClick 事件 */}
+                            <Button onClick={handleSaveMerchants} disabled={isSavingMerchants}>
+                                {isSavingMerchants && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                保存商户设置
+                            </Button>
                          </div>
                     </CardContent>
                 </Card>
                 
+                {/* 社区内容推荐保持不变 */}
                 <Card>
                      <CardHeader>
                         <CardTitle className="flex items-center gap-2">

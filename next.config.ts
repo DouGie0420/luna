@@ -1,11 +1,15 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  serverActions: {
-    bodySizeLimit: '4mb',
+  
+  // ✅ 正確寫法：包在 experimental 裡面
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '4mb',
+    },
   },
+
   typescript: {
     ignoreBuildErrors: true,
   },

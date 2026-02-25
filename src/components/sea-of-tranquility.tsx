@@ -1,11 +1,10 @@
-
 'use client';
 
 import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/hooks/use-translation';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Eye, Heart, MessageSquare, Star, TrendingUp, Edit, Trash2, MoreHorizontal, MapPin } from 'lucide-react';
+import { ArrowRight, Heart, Edit, MoreHorizontal, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore, useCollection, useUser } from '@/firebase';
 import { collection, query, where, orderBy, limit, doc, updateDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -17,52 +16,19 @@ import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { errorEmitter } from '@/firebase/error-emitter';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createNotification } from '@/lib/notifications';
 import { UserAvatar } from './ui/user-avatar';
 
+const locales: Record<string, any> = { en: enUS, zh: zhCN, th: th };
 
-const locales = { en: enUS, zh: zhCN, th: th };
-
-const SmallPostCardSkeleton = () => (
-    <Card className="flex h-full flex-col justify-between bg-card/50">
-        <CardContent className="p-5">
-            <div className="flex items-start gap-4">
-                <Skeleton className="h-28 w-28 shrink-0 rounded-md" />
-                <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <Skeleton className="h-3 w-4/5 mt-2" />
-                    <Skeleton className="h-3 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                </div>
-            </div>
-        </CardContent>
-        <CardFooter className="p-5 pt-0 flex justify-between items-center">
-            <div className="flex items-center gap-2">
-                <Skeleton className="h-6 w-6 rounded-full" />
-                <div className="space-y-1">
-                    <Skeleton className="h-3 w-16" />
-                    <Skeleton className="h-3 w-20" />
-                </div>
-            </div>
-            <div className="flex items-center gap-2">
-                <Skeleton className="h-7 w-7" />
-                <Skeleton className="h-7 w-7" />
-            </div>
-        </CardFooter>
-    </Card>
-);
-
-
+/**
+ * 🚀 子组件：侧边小卡片 (保留原有硬核 UI 逻辑)
+ */
 const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const { t, language } = useTranslation();
     const { user, profile } = useUser();
@@ -73,281 +39,128 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
     const canInteract = !!user;
     const hasAdminAccess = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
 
-    const handleInteractionNotAllowed = () => {
-        toast({
-            variant: 'destructive',
-            title: t('common.loginToInteract'),
-        });
-    };
-
-    const handlePostInteraction = (e: React.MouseEvent, type: 'like' | 'favorite') => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (!canInteract || !firestore || !post || !user || !profile) {
-            handleInteractionNotAllowed();
+    const handlePostInteraction = (e: React.MouseEvent) => {
+        e.preventDefault(); e.stopPropagation();
+        if (!canInteract || !firestore || !user) {
+            toast({ variant: 'destructive', title: t('common.loginToInteract') });
             return;
         }
-
         const isLiked = post.likedBy?.includes(user.uid);
-        const isFavorited = post.favoritedBy?.includes(user.uid);
         const postRef = doc(firestore, 'bbs', post.id);
-        
-        let updateData = {};
-        if (type === 'like') {
-            updateData = {
-                likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                likes: increment(isLiked ? -1 : 1)
-            };
-        } else { // favorite
-            updateData = {
-                favoritedBy: isFavorited ? arrayRemove(user.uid) : arrayUnion(user.uid),
-                favorites: increment(isFavorited ? -1 : 1)
-            };
-            if (!isFavorited) {
-                toast({ title: t('productCardActions.addedToFavorites') });
-            }
-        }
-
-        updateDoc(postRef, updateData).then(() => {
-            if(type === 'like' && !isLiked) {
-                createNotification(firestore, post.authorId, { type: 'like-post', actor: profile, post });
-            }
-        }).catch(serverError => {
-            const permissionError = new FirestorePermissionError({
-                path: postRef.path,
-                operation: 'update',
-                requestResourceData: updateData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+        updateDoc(postRef, {
+            likedBy: isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid),
+            likes: increment(isLiked ? -1 : 1)
         });
     };
-
-    const handleAdminAction = async (action: 'feature' | 'boost' | 'edit' | 'delete') => {
-      if (!firestore || !profile) return;
-
-      if (action === 'edit') {
-          router.push(`/bbs/edit/${post.id}`);
-      } else if (action === 'feature') {
-          const postRef = doc(firestore, 'bbs', post.id);
-          const newFeaturedState = !post.isFeatured;
-          try {
-            await updateDoc(postRef, { isFeatured: newFeaturedState });
-            toast({
-                title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
-            });
-             if (newFeaturedState) {
-                createNotification(firestore, post.authorId, { type: 'feature', actor: profile, post });
-            }
-          } catch (error) {
-            console.error("Error updating feature status:", error);
-            toast({
-                title: "操作失败",
-                description: "更新精华状态时出错。",
-                variant: "destructive",
-            });
-          }
-      } else {
-        toast({
-          title: `Admin Action: ${action}`,
-          description: "This feature is in development.",
-        });
-      }
-    };
-
-    const summary = useMemo(() => {
-        const content = post.content || t(post.contentKey || '');
-        return content
-            .replace(/!\[.*?\]\(.*?\)/g, '')
-            .replace(/\[(youtube|tiktok)\]\(.*?\)/g, '')
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0)
-            .join(' ')
-            .trim();
-    }, [post.content, post.contentKey, t]);
-
-    const timeAgo = post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true, locale: locales[language] }) : '';
-
-    const isLiked = user && post.likedBy?.includes(user.uid);
-    const isFavorited = user && post.favoritedBy?.includes(user.uid);
 
     return (
-        <Card className="relative flex h-full flex-col justify-between bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 border-2 border-foreground/60 hover:border-primary">
+        <Card className="relative flex h-full flex-col justify-between bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 border-2 border-foreground/60 hover:border-primary">
             {hasAdminAccess && (
                 <div className="absolute top-2 right-2 z-20">
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={(e) => {e.preventDefault(); e.stopPropagation();}} className="h-7 w-7 rounded-full bg-black/50 text-white hover:bg-black/70">
+                        <DropdownMenuTrigger asChild onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full bg-black/50 text-white">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
-                            <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
-                                <Star className="mr-2 h-4 w-4" />
-                                <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
-                                <TrendingUp className="mr-2 h-4 w-4" />
-                                <span>加曝光</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                <span>编辑</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                <span>删除</span>
-                            </DropdownMenuItem>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => router.push(`/bbs/edit/${post.id}`)}><Edit className="mr-2 h-4 w-4" /> 編輯</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             )}
             <Link href={`/bbs/${post.id}`} className="group block flex-grow">
-                <CardContent className="p-5 flex flex-col h-full">
+                <CardContent className="p-5 flex flex-col h-full text-white">
                     <div className="flex items-start gap-4">
-                        <div className="w-28 h-28 relative overflow-hidden rounded-md shrink-0">
-                            <img
-                                src={post.images?.[0] || 'https://picsum.photos/seed/default-bbs/200/200'}
-                                alt={post.title || t(post.titleKey || '')}
-                                className="object-cover w-full h-full"
-                                data-ai-hint={post.imageHints?.[0] || ''}
-                                loading="lazy"
-                            />
+                        <div className="w-24 h-24 relative overflow-hidden rounded-md shrink-0 border border-white/5">
+                            <img src={post.images?.[0] || 'https://picsum.photos/seed/luna/200/200'} className="object-cover w-full h-full" alt="post" />
                         </div>
-                        <div className="flex-1 flex flex-col self-stretch">
-                            <div className="flex-grow">
-                                <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                                    {post.title || t(post.titleKey || '')}
-                                </h3>
-                                <p className="text-xs text-muted-foreground line-clamp-4">{summary}</p>
-                            </div>
+                        <div className="flex-1">
+                            <h3 className="font-headline text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                                {post.title || t(post.titleKey || '')}
+                            </h3>
+                            <p className="text-[10px] text-white/20 font-mono uppercase tracking-widest mt-2">Log_Ref: {post.id.substring(0,8)}</p>
                         </div>
                     </div>
                 </CardContent>
             </Link>
-            <CardFooter className="p-5 pt-0 flex justify-between items-center">
-                 <div className="flex items-center gap-2 overflow-hidden">
-                    <UserAvatar profile={post.author} className="h-6 w-6" />
-                    <div className="text-xs">
-                        <p className="font-headline font-semibold text-foreground truncate">{post.author.name}</p>
-                        <p className="text-muted-foreground truncate">
-                            {timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}
-                        </p>
-                    </div>
+            <CardFooter className="p-5 pt-0 flex justify-between items-center text-white/40">
+                <div className="flex items-center gap-2">
+                    <UserAvatar profile={post.author || {}} className="h-5 w-5 border border-white/10" />
+                    <p className="text-[10px] truncate font-bold">{post.author?.name || 'User'}</p>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
-                        <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
-                        <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
-                    </Button>
-                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handlePostInteraction}>
+                    <Heart className={cn("h-4 w-4", user && post.likedBy?.includes(user.uid) && "text-yellow-400 fill-yellow-400")} />
+                </Button>
             </CardFooter>
         </Card>
     );
 });
-SmallPostCard.displayName = 'SmallPostCard';
 
+/**
+ * 🪐 主组件：Luna Orbit (原 SeaOfTranquility)
+ */
 export function SeaOfTranquility() {
     const { t } = useTranslation();
     const firestore = useFirestore();
-    const { user } = useUser();
-    const { toast } = useToast();
-    
-    const postsQuery = useMemo(() => 
-        firestore 
-        ? query(collection(firestore, 'bbs'), where('status', '==', 'active'), orderBy('createdAt', 'desc'), limit(7)) 
-        : null, 
-    [firestore]);
 
+    // 🛡️ 限制抓取 7 条数据展示
+    const postsQuery = useMemo(() => 
+        firestore ? query(collection(firestore, 'bbs'), where('status', '==', 'active'), orderBy('createdAt', 'desc'), limit(7)) : null, 
+    [firestore]);
+    
     const { data: posts, loading: isLoading } = useCollection<BbsPost>(postsQuery);
 
-    const handleGuestClick = (e: React.MouseEvent) => {
-        if (!user) {
-            e.preventDefault();
-            toast({
-                title: '需要认证',
-                description: '请先登录或注册以访问梦境之湖。',
-                variant: 'destructive'
-            });
-        }
-    }
+    if (isLoading) return (
+        <section className="container mx-auto px-4 py-16">
+            <div className="h-10 w-48 bg-white/5 animate-pulse rounded-lg mb-8" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8"><div className="h-80 bg-white/5 rounded-3xl animate-pulse" /></div>
+                <div className="lg:col-span-1 space-y-4"><div className="h-32 bg-white/5 rounded-2xl animate-pulse" /></div>
+            </div>
+        </section>
+    );
 
-    const featuredPosts = posts?.slice(0, 2) || [];
-    const otherPosts = posts?.slice(2, 7) || [];
-    
-    if (isLoading) {
-        return (
-            <section className="container mx-auto px-4 py-12 md:py-16">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="font-headline text-3xl font-semibold">{t('seaOfTranquility.title')}</h2>
-                     <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground font-bold">
-                        <Link href="/bbs">
-                            {t('seaOfTranquility.enter')} <ArrowRight className="ml-2 h-4 w-4" />
-                        </Link>
-                    </Button>
-                </div>
-                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                    {/* Main Posts Skeleton */}
-                    <div className="lg:col-span-2 grid grid-cols-1 gap-8">
-                         <div className="flex flex-col space-y-3">
-                            <Skeleton className="aspect-[1.8/1] w-full" />
-                            <div className="space-y-2 p-4">
-                                <Skeleton className="h-4 w-4/5" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                        </div>
-                        <div className="flex flex-col space-y-3">
-                            <Skeleton className="aspect-[1.8/1] w-full" />
-                            <div className="space-y-2 p-4">
-                                <Skeleton className="h-4 w-4/5" />
-                                <Skeleton className="h-4 w-1/2" />
-                            </div>
-                        </div>
-                    </div>
-                    {/* Other Posts Skeleton */}
-                    <div className="lg:col-span-1 flex flex-col gap-4">
-                        {[...Array(5)].map((_, i) => <SmallPostCardSkeleton key={i} />)}
-                    </div>
-                </div>
-            </section>
-        );
-    }
-    
     return (
-        <section className="container mx-auto px-4 py-12 md:py-16">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="font-headline text-3xl font-semibold">{t('seaOfTranquility.title')}</h2>
-                <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate text-primary-foreground font-bold">
-                    <Link href="/bbs" onClick={handleGuestClick}>
-                        {t('seaOfTranquility.enter')} <ArrowRight className="ml-2 h-4 w-4" />
+        <section className="container mx-auto px-4 py-12 md:py-20">
+            {/* 🚀 板块头部：视觉对齐 Moon Market */}
+            <div className="flex justify-between items-end mb-10">
+                <div>
+                    <div className="flex items-center gap-2 text-primary font-mono text-[10px] uppercase tracking-[0.4em] mb-1">
+                        <Globe className="w-3 h-3 animate-spin-slow" /> Orbit_Sync_Active
+                    </div>
+                    <h2 className="font-headline text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white">
+                        Luna Orbit
+                    </h2>
+                </div>
+                
+                {/* 🚀 补全缺失的箭头 hover 动效：加上 group 和 group-hover:translate-x-1 */}
+                <Button asChild className="group rounded-full bg-white/5 border border-primary/20 text-primary hover:bg-primary/10 font-black uppercase tracking-[0.2em] text-xs px-8 h-12 transition-all">
+                    <Link href="/bbs" className="flex items-center gap-2">
+                        Discover <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                     </Link>
                 </Button>
             </div>
-            
-             {(featuredPosts.length > 0 || otherPosts.length > 0) && (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-                    
-                    {featuredPosts.length > 0 && (
-                        <div className="lg:col-span-2 flex flex-col gap-8">
-                            {featuredPosts.map((post) => (
-                                <BbsPostCard key={post.id} post={post} />
-                            ))}
-                        </div>
-                    )}
-                    
-                    {otherPosts.length > 0 && (
-                         <div className="lg:col-span-1 flex flex-col gap-4 justify-between">
-                            {otherPosts.map(post => (
-                                <SmallPostCard key={post.id} post={post} />
-                            ))}
-                        </div>
+
+            {/* 🚀 内容网格：2大5小布局 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* 左侧：2个大型展示卡片 */}
+                <div className="lg:col-span-2 flex flex-col gap-8">
+                    {posts?.slice(0, 2).map((post) => (
+                        <BbsPostCard key={post.id} post={post} />
+                    ))}
+                    {posts?.length === 0 && (
+                        <div className="h-full min-h-[400px] border border-dashed border-white/5 rounded-3xl flex items-center justify-center font-mono text-white/10 uppercase tracking-[0.4em]">No_Data_Stream</div>
                     )}
                 </div>
-            )}
+
+                {/* 右侧：5个小型快速浏览卡片 */}
+                <div className="lg:col-span-1 flex flex-col gap-4">
+                    {posts?.slice(2, 7).map(post => (
+                        <SmallPostCard key={post.id} post={post} />
+                    ))}
+                </div>
+            </div>
         </section>
     );
 }

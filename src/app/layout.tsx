@@ -1,4 +1,3 @@
-
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from "@/components/ui/toaster";
@@ -11,7 +10,9 @@ import { SettingsProvider } from '@/context/settings-provider';
 import { FloatingSupportButton } from '@/components/floating-support-button';
 import { BackgroundSnake } from '@/components/background-snake';
 import { GlobalAudioPlayer } from '@/components/global-audio-player';
-import { MapProvider } from '@/components/map-provider';
+
+// 🚀 导入全局智能流体引擎
+import { GlobalFluidBackground } from '@/components/global-fluid-background';
 
 export default function RootLayout({
   children,
@@ -29,19 +30,25 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <SettingsProvider>
             <LanguageProvider>
-              <MapProvider>
-                <div className="pixel-grid-bg" />
-                <BackgroundSnake />
-                <div className="flex flex-col min-h-screen">
-                    <Header />
-                    <main className="flex-grow flex flex-col">{children}</main>
-                    <Footer />
-                </div>
-                <Toaster />
-                <FirebaseErrorListener />
-                <FloatingSupportButton />
-                <GlobalAudioPlayer />
-              </MapProvider>
+              
+              {/* 🚀 注入全局流体能量场 (它自带 z-index: -50 会自动沉入最底层) */}
+              <GlobalFluidBackground />
+
+              {/* 🚀 完美保留你的像素网格和蛇游戏，它们会覆盖在流体上方 */}
+              <div className="pixel-grid-bg" />
+              <BackgroundSnake />
+              
+              <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-grow flex flex-col">{children}</main>
+                  <Footer />
+              </div>
+              
+              <Toaster />
+              <FirebaseErrorListener />
+              <FloatingSupportButton />
+              <GlobalAudioPlayer />
+              
             </LanguageProvider>
           </SettingsProvider>
         </FirebaseClientProvider>

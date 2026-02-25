@@ -30,7 +30,7 @@
     "usernameLabel": "ชื่อผู้ใช้",
     "usernamePlaceholder": "คนอื่นจะเรียกคุณว่าอะไร?",
     "emailLabel": "อีเมล",
-    "emailPlaceholder": "m@example.com",
+    "emailPlaceholder": "test@example.com",
     "sendVerificationCode": "ส่งรหัส",
     "phoneLabel": "หมายเลขโทรศัพท์ (ไม่จำเป็น)",
     "phonePlaceholder": "+66 12 345 6789",

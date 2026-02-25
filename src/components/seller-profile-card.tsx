@@ -1,22 +1,13 @@
-
 'use client';
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card, CardContent } from '@/components/ui/card';
-import { UserAvatar } from '@/components/ui/user-avatar';
-import { Star, MapPin, ShieldCheck, ShoppingBag, ShoppingCart, ThumbsUp, Meh, ThumbsDown, Gem, Users, UserPlus, Globe, Fingerprint } from 'lucide-react';
-import type { Product, UserProfile } from '@/lib/types';
-import { useTranslation } from "@/hooks/use-translation";
-import Link from 'next/link';
 import React, { useMemo } from 'react';
-import { useDoc, useFirestore } from "@/firebase";
+import Link from 'next/link';
+import { MapPin, Star, ShieldCheck, Globe, Fingerprint } from 'lucide-react';
+import { UserAvatar } from './ui/user-avatar';
+import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
 import { doc } from 'firebase/firestore';
+import { useFirestore, useDoc } from '@/firebase';
 
 const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg {...props} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -25,192 +16,109 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
-export function SellerProfileCard({ product }: { product: Product }) {
+export function SellerProfileCard({ seller: initialSeller, className }: { seller: any; className?: string }) {
     const { t } = useTranslation();
-    const { seller } = product;
     const firestore = useFirestore();
 
-    const sellerProfileRef = useMemo(() => 
-        firestore ? doc(firestore, 'users', seller.id) : null,
-    [firestore, seller.id]);
-    const { data: sellerProfile } = useDoc<UserProfile>(sellerProfileRef);
+    const sellerId = initialSeller?.uid || initialSeller?.id;
+    const userRef = useMemo(() => (firestore && sellerId ? doc(firestore, 'users', sellerId) : null), [firestore, sellerId]);
+    const { data: liveSeller } = useDoc<any>(userRef);
+    const seller = liveSeller || initialSeller;
 
-    const displayUser = sellerProfile || seller;
-    const onSaleCount = sellerProfile?.onSaleCount ?? displayUser.onSaleCount ?? 0;
-    const displayName = displayUser.displayName || displayUser.name;
-    const profileUrl = `/@${displayUser.loginId || displayUser.id}`;
-    
-    const locationDisplay = sellerProfile?.location;
+    if (!sellerId) return null;
+
+    const loginId = seller?.loginId || sellerId;
+    const displayName = seller?.displayName || seller?.name || 'PROTOCOL_USER';
+    const city = typeof seller?.location === 'string' ? seller.location : seller?.location?.city || 'BANGKOK'; 
+    const onSaleCount = seller?.onSaleCount || 0;
+    const rating = (seller?.rating || 0).toFixed(1);
+
+    const isPro = seller?.isPro;
+    const isWeb3 = seller?.isWeb3Verified;
+    const isNft = seller?.isNftVerified;
+    const isKyc = seller?.kycStatus === 'Verified';
+    const hasAnyBadge = isPro || isWeb3 || isNft || isKyc;
 
     return (
-        <Dialog>
-            <DialogTrigger asChild>
-                <Card className="cursor-pointer hover:border-primary/50 transition-colors">
-                    <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                            <UserAvatar profile={displayUser} className="h-16 w-16" />
-                            <div className="flex-1">
-                                <p className="font-headline font-bold text-lg">{displayName}</p>
-                                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                    <Star className="h-4 w-4 fill-primary text-primary" />
-                                    <span>{(displayUser.rating || 0).toFixed(1)} ({t('sellerProfile.onSaleCount').replace('{count}', onSaleCount.toString())})</span>
-                                </div>
-                                {locationDisplay && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{locationDisplay}</span>
-                                </div>
-                                )}
-                            </div>
-                            <div className="flex flex-col items-start gap-1 text-sm font-medium">
-                                {displayUser.isPro && (
-                                    <div className="flex items-center gap-1.5 text-green-500">
-                                        <ShieldCheck className="h-4 w-4" />
-                                        <span>{t('userProfile.pro')}</span>
-                                    </div>
-                                )}
-                                {displayUser.isWeb3Verified && (
-                                    <div className="flex items-center gap-1.5 text-blue-400">
-                                        <Globe className="h-4 w-4" />
-                                        <span>WEB3</span>
-                                    </div>
-                                )}
-                                {displayUser.isNftVerified && (
-                                    <div className="flex items-center gap-1.5 text-blue-400">
-                                        <EthereumIcon className="h-4 w-4 stroke-blue-400" />
-                                        <span>NFT</span>
-                                    </div>
-                                )}
-                                {displayUser.kycStatus === 'Verified' && (
-                                    <div className="flex items-center gap-1.5 text-yellow-400">
-                                        <Fingerprint className="h-4 w-4" />
-                                        <span>{t('userProfile.kyc')}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-3">
-                        <UserAvatar profile={displayUser} className="h-12 w-12" />
-                        <div>
-                            <p className="text-xl font-headline font-bold">{displayName}</p>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Star className="h-4 w-4 fill-primary text-primary" />
-                                <span>{(displayUser.rating || 0).toFixed(1)} ({displayUser.reviewsCount || 0} {t('sellerProfile.reviews')})</span>
-                            </div>
-                        </div>
-                    </DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="flex items-center gap-4 p-4 bg-accent/50 rounded-lg animate-glow">
-                        <Gem className="h-10 w-10 text-primary" />
-                        <div className="flex-1">
-                            <p className="text-sm text-muted-foreground">{t('accountPage.creditLevel')}</p>
-                            <p className="text-2xl font-bold">{displayUser.creditLevel || 'Newcomer'}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-muted-foreground">{t('accountPage.creditScore')}</p>
-                            <p className="text-2xl font-bold">{displayUser.creditScore || 0}</p>
-                        </div>
+        <div className={cn("relative w-full group overflow-hidden rounded-[24px] p-[2px] transition-all duration-500 bg-[#050505] shadow-[0_0_40px_rgba(0,0,0,0.8)]", className)}>
+            {/* 名片外圈流动边框 */}
+            <div className="absolute inset-0 z-0 overflow-hidden rounded-[24px]">
+                <div className="absolute inset-[-100%] bg-[conic-gradient(from_0deg,transparent,rgba(168,85,247,0.4),rgba(59,130,246,0.4),transparent)] animate-[spin_4s_linear_infinite]" />
+            </div>
+
+            <Link href={`/@${loginId}`} className="flex items-center gap-5 md:gap-6 p-5 relative z-10 bg-[#050505] rounded-[22px] w-full h-full hover:bg-[#09090b] transition-colors">
+                
+                {/* 🚀 核心修复：液态流动头像容器 */}
+                <div className="relative shrink-0 flex items-center justify-center">
+                    {/* 1. 紧贴头像的流动液态圈 */}
+                    <div className="absolute inset-[-3px] rounded-full overflow-hidden animate-[spin_3s_linear_infinite] opacity-80">
+                        <div className="absolute inset-0 bg-[conic-gradient(from_0deg,#ff00ff,#00ffff,#ff00ff)] blur-[2px]" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <Link href={`${profileUrl}/listings`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
-                            <ShoppingBag className="h-6 w-6 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('sellerProfile.onSale')}</p>
-                                <p className="font-bold group-hover:underline">
-                                    {onSaleCount}
-                                </p>
-                            </div>
-                        </Link>
-                         <Link href={`${profileUrl}/sold`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
-                            <ShoppingCart className="h-6 w-6 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('sellerProfile.sold')}</p>
-                                <p className="font-bold group-hover:underline">
-                                    {displayUser.salesCount ?? 0}
-                                </p>
-                            </div>
-                        </Link>
-                        <Link href={`${profileUrl}/followers`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
-                            <Users className="h-6 w-6 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('userProfile.followers')}</p>
-                                <p className="font-bold group-hover:underline">{displayUser.followersCount || 0}</p>
-                            </div>
-                        </Link>
-                        <Link href={`${profileUrl}/following`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-accent transition-colors group">
-                            <UserPlus className="h-6 w-6 text-primary" />
-                            <div>
-                                <p className="text-sm text-muted-foreground">{t('userProfile.following')}</p>
-                                <p className="font-bold group-hover:underline">{displayUser.followingCount || 0}</p>
-                            </div>
-                        </Link>
+                    
+                    {/* 2. 背景遮罩，确保流动条呈圆环状 */}
+                    <div className="absolute inset-0 rounded-full bg-[#050505] z-[1]" />
+
+                    {/* 3. 真实头像组件 */}
+                    <UserAvatar 
+                        profile={seller} 
+                        className="h-16 w-16 md:h-[72px] md:w-[72px] relative z-[10] border-none ring-0 bg-transparent" 
+                    />
+                </div>
+
+                {/* 🚀 已修复的信息中轴区：全面水平居中 */}
+                <div className="flex-1 min-w-0 flex flex-col items-center justify-center py-2 text-center">
+                    <h3 className="w-full font-headline font-black text-xl md:text-2xl text-white uppercase italic tracking-tighter truncate">
+                        {displayName}
+                    </h3>
+                    
+                    <div className="flex items-center justify-center w-full gap-3 mt-1.5 mb-2.5">
+                        <div className="flex items-center gap-1 text-primary">
+                            <Star className="h-4 w-4 fill-primary" />
+                            <span className="font-mono font-bold text-lg">{rating}</span>
+                        </div>
+                        <span className="text-white/40 font-mono text-xs md:text-sm uppercase tracking-widest">
+                            ({onSaleCount} ON SALE)
+                        </span>
                     </div>
 
-                    <div>
-                        <h4 className="font-semibold mb-2">{t('userProfile.verifications')}</h4>
-                         <div className="flex flex-row flex-wrap items-center gap-x-3 gap-y-1 text-sm font-medium">
-                            {displayUser.isPro && (
-                                <div className="flex items-center gap-1.5 text-green-500">
-                                    <ShieldCheck className="h-4 w-4" />
-                                    <span>{t('userProfile.pro')}</span>
-                                </div>
-                            )}
-                            {displayUser.isWeb3Verified && (
-                                <div className="flex items-center gap-1.5 text-blue-400">
-                                    <Globe className="h-4 w-4" />
-                                    <span>WEB3</span>
-                                </div>
-                            )}
-                            {displayUser.isNftVerified && (
-                                <div className="flex items-center gap-1.5 text-blue-400">
-                                    <EthereumIcon className="h-4 w-4 stroke-blue-400" />
-                                    <span>NFT</span>
-                                </div>
-                            )}
-                            {displayUser.kycStatus === 'Verified' && (
-                                <div className="flex items-center gap-1.5 text-yellow-400">
-                                    <Fingerprint className="h-4 w-4" />
-                                    <span>{t('userProfile.kyc')}</span>
-                                </div>
-                            )}
-                            {!displayUser.isPro && !displayUser.isWeb3Verified && !displayUser.isNftVerified && displayUser.kycStatus !== 'Verified' && (
-                                <p className="text-xs text-muted-foreground">{t('userProfile.noVerifications')}</p>
-                            )}
-                        </div>
-                    </div>
+                    <div className="h-px bg-white/5 w-full max-w-[200px] mb-2.5 mx-auto" />
 
-                    <div>
-                        <h4 className="font-semibold mb-2">{t('sellerProfile.reviewDetails')}</h4>
-                        <div className="space-y-1">
-                             <Link href={`${profileUrl}/reviews?type=good`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="flex items-center gap-2 text-green-400"><ThumbsUp className="h-4 w-4" /> {t('sellerProfile.goodReviews')}</span>
-                                    <span className="font-medium hover:underline">{displayUser.goodReviews ?? 0}</span>
-                                </div>
-                             </Link>
-                             <Link href={`${profileUrl}/reviews?type=neutral`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="flex items-center gap-2 text-yellow-400"><Meh className="h-4 w-4" /> {t('sellerProfile.neutralReviews')}</span>
-                                    <span className="font-medium hover:underline">{displayUser.neutralReviews ?? 0}</span>
-                                </div>
-                             </Link>
-                             <Link href={`${profileUrl}/reviews?type=bad`} className="block rounded-lg -mx-3 px-3 py-1.5 hover:bg-accent transition-colors">
-                                <div className="flex justify-between items-center text-sm">
-                                    <span className="flex items-center gap-2 text-red-400"><ThumbsDown className="h-4 w-4" /> {t('sellerProfile.badReviews')}</span>
-                                    <span className="font-medium hover:underline">{displayUser.badReviews ?? 0}</span>
-                                </div>
-                             </Link>
-                        </div>
+                    <div className="flex items-center justify-center w-full gap-2 text-[10px] md:text-xs font-mono uppercase text-white/50">
+                        <MapPin className="h-3 w-3 md:h-3.5 md:w-3.5" /> 
+                        <span className="truncate">{city}</span>
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+
+                {/* 右侧认证列表 */}
+                {hasAnyBadge && (
+                    <div className="flex flex-col gap-2.5 items-start shrink-0 border-l border-white/10 pl-4 md:pl-6 pr-1 md:pr-2 min-w-[80px] md:min-w-[100px]">
+                        {isPro && (
+                            <div className="flex items-center gap-2 font-black italic tracking-tighter text-[10px] md:text-[11px] uppercase text-green-500">
+                                <ShieldCheck className="h-3.5 w-3.5 drop-shadow-[0_0_5px_rgba(34,197,94,0.8)]" />
+                                <span>PRO</span>
+                            </div>
+                        )}
+                        {isWeb3 && (
+                            <div className="flex items-center gap-2 font-black italic tracking-tighter text-[10px] md:text-[11px] uppercase text-purple-500">
+                                <Globe className="h-3.5 w-3.5 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]" />
+                                <span>WEB3</span>
+                            </div>
+                        )}
+                        {isNft && (
+                            <div className="flex items-center gap-2 font-black italic tracking-tighter text-[10px] md:text-[11px] uppercase text-blue-400">
+                                <EthereumIcon className="h-3.5 w-3.5 drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]" />
+                                <span>NFT</span>
+                            </div>
+                        )}
+                        {isKyc && (
+                            <div className="flex items-center gap-2 font-black italic tracking-tighter text-[10px] md:text-[11px] uppercase text-yellow-400">
+                                <Fingerprint className="h-3.5 w-3.5 drop-shadow-[0_0_5px_rgba(250,204,21,0.8)]" />
+                                <span>KYC</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Link>
+        </div>
     );
 }

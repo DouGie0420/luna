@@ -26,11 +26,11 @@
   },
   "registerPage": {
     "title": "创建您的 LUNA 账户",
-    "description": "加入我们，开始您的赛博朋克交易之旅。",
+    "description": "加入我们，开始您的奇幻之旅。",
     "usernameLabel": "用户名",
     "usernamePlaceholder": "人们将如何称呼您？",
     "emailLabel": "电子邮箱",
-    "emailPlaceholder": "m@example.com",
+    "emailPlaceholder": "test@example.com",
     "sendVerificationCode": "发送验证码",
     "phoneLabel": "手机号码 (可选)",
     "phonePlaceholder": "+86 138 0013 8000",

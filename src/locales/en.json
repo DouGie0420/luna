@@ -26,11 +26,11 @@
   },
   "registerPage": {
     "title": "Create your LUNA account",
-    "description": "Join us and start your cyberpunk trading journey.",
+    "description": "Join us and start your magic journey.",
     "usernameLabel": "Username",
     "usernamePlaceholder": "How will people call you?",
     "emailLabel": "Email",
-    "emailPlaceholder": "m@example.com",
+    "emailPlaceholder": "test@example.com",
     "sendVerificationCode": "Send Code",
     "phoneLabel": "Phone Number (Optional)",
     "phonePlaceholder": "+1 123 456 7890",

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import Link from "next/link";
 import { useUser, useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import { ethers } from 'ethers';
 import { updateUserProfile } from "@/lib/user";
@@ -43,19 +42,15 @@ export function UserNav() {
   const [isSyncingNfts, setIsSyncingNfts] = useState(false);
   const [isLinkingWallet, setIsLinkingWallet] = useState(false);
   const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
-  
   const [unreadMessages, setUnreadMessages] = useState(0);
 
-  // Get unread message count
   useEffect(() => {
     if (!firestore || !user) {
         setUnreadMessages(0);
         return;
     }
-
     const chatsRef = collection(firestore, 'direct_chats');
     const q = query(chatsRef, where('participants', 'array-contains', user.uid));
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
         let totalUnread = 0;
         snapshot.forEach(doc => {
@@ -64,15 +59,11 @@ export function UserNav() {
                 totalUnread += data.unreadCount[user.uid];
             }
         });
-        
         setUnreadMessages(totalUnread);
     });
-
     return () => unsubscribe();
   }, [firestore, user]);
 
-
-  // 严格匹配四级管理权限
   const hasAdminAccess = profile && ['staff', 'support', 'ghost', 'admin'].includes(profile.role || '');
 
   const handleLogout = async () => {
@@ -86,33 +77,27 @@ export function UserNav() {
   const handleLinkWallet = async () => {
     if (!firestore || !user || !auth) return;
     if (typeof window.ethereum === 'undefined') {
-        toast({ variant: "destructive", title: "MetaMask Not Found", description: "Please install MetaMask to use this feature." });
+        toast({ variant: "destructive", title: "MetaMask Not Found" });
         return;
     }
     setIsLinkingWallet(true);
     try {
         const provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []); // Explicitly request connection
+        await provider.send("eth_requestAccounts", []);
         const signer = await provider.getSigner();
         const address = (await signer.getAddress()).toLowerCase();
-
         const q = query(collection(firestore, 'users'), where("walletAddress", "==", address));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
             toast({ variant: "destructive", title: t('userNav.walletAlreadyLinkedTitle') });
-            setIsLinkingWallet(false);
             return;
         }
-        
         await updateUserProfile(firestore, user.uid, { walletAddress: address, isWeb3Verified: true });
         toast({ title: "Wallet Linked!" });
     } catch (error: any) {
-        console.error("Failed to link wallet:", error);
         toast({ variant: "destructive", title: "Wallet Link Failed", description: error.message });
-    } finally {
-        setIsLinkingWallet(false);
-    }
+    } finally { setIsLinkingWallet(false); }
   };
 
   const handleSyncNfts = async () => {
@@ -142,8 +127,7 @@ export function UserNav() {
 
   const handleListProductClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (profile?.kycStatus !== 'Verified') {
-      e.preventDefault();
-      toast({ variant: 'destructive', title: 'KYC Required' });
+      toast({ variant: 'warning', title: 'KYC Recommended', description: 'Please complete KYC for better trust score.' });
     }
   };
   
@@ -168,7 +152,9 @@ export function UserNav() {
   return (
     <>
       <NftSelectorDialog open={isNftDialogOpen} onOpenChange={setIsNftDialogOpen} nfts={nfts} onSelect={handleSetNftAvatar} isUpdating={isUpdatingAvatar} />
-      <div className="flex items-center gap-2">
+
+      <div className="flex items-center gap-3">
+        
         {hasAdminAccess && (
           <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
             <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
@@ -177,7 +163,6 @@ export function UserNav() {
           </div>
         )}
         
-        {/* New Messages Button */}
         <div className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate">
             <Button asChild variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent">
                 <Link href="/messages">
@@ -190,12 +175,15 @@ export function UserNav() {
         </div>
 
         <NotificationBell />
+        
         <div className={cn("relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500", profile?.isNftVerified && 'animate-glow-pink-neon')}>
           <Button variant="ghost" size="icon" className="h-full w-full rounded-full bg-background hover:bg-transparent" onClick={handleWalletAction} disabled={isSyncingNfts || isLinkingWallet}>
             {(isSyncingNfts || isLinkingWallet) ? <Loader2 className="h-5 w-5 animate-spin" /> : <Wallet className="h-5 w-5" />}
           </Button>
         </div>
+        
         <LanguageSwitcher />
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="relative h-9 w-9 rounded-full p-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate outline-none">
@@ -219,9 +207,29 @@ export function UserNav() {
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10"><LogOut className="mr-2 h-4 w-4" /><span>{t('userNav.logout')}</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button asChild className="rounded-full bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 text-primary-foreground h-10 px-4 font-bold">
-          <Link href="/products/new" onClick={handleListProductClick}><PlusCircle className="mr-2 h-4 w-4" />{t('userNav.listAnItem')}</Link>
-        </Button>
+
+        {/* 🚀 修正版 ROLL OUT 按钮：深色实体背景 + 收紧尺寸 + 头像同款发光边框 */}
+        <div className="relative group cursor-pointer hover:scale-105 transition-all duration-300 ml-1">
+          {/* 外围渐变发光晕影 */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 rounded-full blur opacity-40 group-hover:opacity-80 transition duration-500 animate-hue-rotate z-0" />
+          
+          {/* 流动边框层 (完全复刻左侧头像框的 p-[1.5px] 渐变逻辑) */}
+          <div className="relative h-9 rounded-full p-[1.5px] bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate z-10">
+            
+            {/* 内部深色实体背景，收紧内边距 px-4，高度填满 h-full */}
+            <Button asChild className="relative h-full w-full px-4 rounded-full bg-[#0a0510] hover:bg-black border-0 m-0 flex items-center justify-center">
+              <Link href="/products/new" onClick={handleListProductClick} className="flex items-center gap-1.5">
+                <PlusCircle className="h-4 w-4 text-lime-400 group-hover:rotate-180 transition-transform duration-500" />
+                
+                <span className="bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 bg-clip-text text-transparent font-headline font-black uppercase tracking-tighter text-sm animate-hue-rotate">
+                  ROLL OUT
+                </span>
+              </Link>
+            </Button>
+            
+          </div>
+        </div>
+        
       </div>
     </>
   );
