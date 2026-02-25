@@ -193,7 +193,8 @@ export function UserNav() {
           <DropdownMenuContent className="w-56" align="end">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span className="text-sm font-headline">{profile?.displayName || user.displayName || "User"}</span>
+                {/* 🚀 清理了潜在的 font-headline 污染 */}
+                <span className="text-sm font-bold">{profile?.displayName || user.displayName || "User"}</span>
                 <span className="text-xs text-muted-foreground uppercase">{profile?.role || 'user'}</span>
               </div>
             </DropdownMenuLabel>
@@ -208,25 +209,23 @@ export function UserNav() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* 🚀 修正版 ROLL OUT 按钮：深色实体背景 + 收紧尺寸 + 头像同款发光边框 */}
         <div className="relative group cursor-pointer hover:scale-105 transition-all duration-300 ml-1">
-          {/* 外围渐变发光晕影 */}
           <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 rounded-full blur opacity-40 group-hover:opacity-80 transition duration-500 animate-hue-rotate z-0" />
           
-          {/* 流动边框层 (完全复刻左侧头像框的 p-[1.5px] 渐变逻辑) */}
           <div className="relative h-9 rounded-full p-[1.5px] bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 animate-hue-rotate z-10">
-            
-            {/* 内部深色实体背景，收紧内边距 px-4，高度填满 h-full */}
             <Button asChild className="relative h-full w-full px-4 rounded-full bg-[#0a0510] hover:bg-black border-0 m-0 flex items-center justify-center">
               <Link href="/products/new" onClick={handleListProductClick} className="flex items-center gap-1.5">
                 <PlusCircle className="h-4 w-4 text-lime-400 group-hover:rotate-180 transition-transform duration-500" />
                 
-                <span className="bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 bg-clip-text text-transparent font-headline font-black uppercase tracking-tighter text-sm animate-hue-rotate">
+                {/* 🚀 核心修复：内联写入像素字体，去除 font-headline 污染 */}
+                <span 
+                  style={{ fontFamily: "'Press Start 2P', cursive" }} 
+                  className="bg-gradient-to-r from-yellow-300 via-lime-400 to-violet-500 bg-clip-text text-transparent uppercase tracking-widest text-[10px] animate-hue-rotate"
+                >
                   ROLL OUT
                 </span>
               </Link>
             </Button>
-            
           </div>
         </div>
         

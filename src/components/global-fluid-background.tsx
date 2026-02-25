@@ -60,7 +60,6 @@ export function GlobalFluidBackground() {
         <div className="fixed inset-0 pointer-events-none overflow-hidden bg-[#020203]" style={{ zIndex: -50 }}>
             
             {/* 🔳 1. 最底层：精密白色像素格基底 (Pixel Grid Base) - z-0 */}
-            {/* 修改点：将 rgba 透明度从 0.4 降至 0.25 */}
             <div className="absolute inset-0 z-0" style={{
                 backgroundImage: `
                     linear-gradient(rgba(255, 255, 255, 0.25) 1.2px, transparent 1.2px), 
@@ -71,14 +70,15 @@ export function GlobalFluidBackground() {
             }} />
 
             {/* 🌊 2. 中间层：全屏灵动流体 (Fluid Overlay) - z-10 */}
-            <div className="absolute inset-0 z-10 opacity-40 transform-gpu scale-110" style={{ filter: 'url(#goo-refined)' }}>
+            {/* 🚀 性能优化核心：彻底抛弃高耗能 SVG 滤镜，改用 CSS GPU 硬件加速的极致模糊 (Mesh Gradient) */}
+            <div className="absolute inset-0 z-10 opacity-50 transform-gpu scale-110 pointer-events-none">
                 {/* --- 侧翼流体 --- */}
-                <div className="absolute top-[-10%] left-[-20%] w-[55vw] h-[55vw] bg-purple-900/50 rounded-full animate-fluid-morph-slow" />
-                <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vw] bg-blue-900/40 rounded-full animate-fluid-morph-slower" style={{ animationDelay: '-12s' }} />
+                <div className="absolute top-[-10%] left-[-20%] w-[55vw] h-[55vw] bg-purple-900/50 rounded-full blur-[100px] animate-fluid-morph-slow will-change-transform" />
+                <div className="absolute bottom-[-10%] right-[-20%] w-[60vw] h-[60vw] bg-blue-900/40 rounded-full blur-[120px] animate-fluid-morph-slower will-change-transform" style={{ animationDelay: '-12s' }} />
                 
-                {/* --- 🚀 新增：中央核心流体 --- */}
-                <div className="absolute top-[25%] left-[35%] w-[40vw] h-[40vw] bg-purple-800/30 rounded-full animate-fluid-morph-medium" style={{ animationDelay: '-5s' }} />
-                <div className="absolute bottom-[30%] right-[40%] w-[35vw] h-[35vw] bg-pink-800/25 rounded-full animate-fluid-morph-slow" style={{ animationDelay: '-18s' }} />
+                {/* --- 中央核心流体 --- */}
+                <div className="absolute top-[25%] left-[35%] w-[40vw] h-[40vw] bg-purple-800/30 rounded-full blur-[90px] animate-fluid-morph-medium will-change-transform" style={{ animationDelay: '-5s' }} />
+                <div className="absolute bottom-[30%] right-[40%] w-[35vw] h-[35vw] bg-pink-800/25 rounded-full blur-[100px] animate-fluid-morph-slow will-change-transform" style={{ animationDelay: '-18s' }} />
             </div>
 
             {/* 🐍 3. 上层：边缘巡逻蛇 - z-20 */}
@@ -87,16 +87,7 @@ export function GlobalFluidBackground() {
             {/* 🔦 4. 顶层：底部沉浸式暗场遮罩 - z-30 */}
             <div className="absolute inset-0 z-30 bg-gradient-to-t from-[#020203] via-transparent to-transparent opacity-70" />
 
-            {/* 🔮 SVG 滤镜 */}
-            <svg xmlns="http://www.w3.org/2000/svg" className="hidden">
-                <defs>
-                    <filter id="goo-refined">
-                        <feGaussianBlur in="SourceGraphic" stdDeviation="50" result="blur" />
-                        <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 30 -10" result="goo" />
-                        <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-                    </filter>
-                </defs>
-            </svg>
+            {/* 🚀 SVG 滤镜节点已被安全切除，释放大量 GPU 资源 */}
 
             <style jsx>{`
                 @keyframes fluid-morph {
