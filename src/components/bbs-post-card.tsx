@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -206,7 +205,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     <AlertDialogHeader>
                         <AlertDialogTitle>确认提交审核</AlertDialogTitle>
                         <AlertDialogDescription>
-                           此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？
+                            此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -215,7 +214,9 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-            <Link href={`/bbs/${post.id}`} className="group block h-full">
+            
+            {/* 🚀 终极修复：彻底抛弃 Link，改用带 onClick 的 div 编程式导航，完美避开 HTML 嵌套地雷！ */}
+            <div onClick={() => router.push(`/bbs/${post.id}`)} className="group block h-full cursor-pointer">
                 <Card className="h-full flex flex-col bg-card/50 backdrop-blur-md transition-all duration-300 hover:bg-card/80 hover:shadow-primary/20 hover:shadow-lg hover:scale-105 border-2 border-white/60 hover:border-primary">
                     <CardHeader className="p-0 relative">
                         <div className="aspect-[1.8/1] relative overflow-hidden">
@@ -283,7 +284,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                     <CardFooter className="p-4 flex justify-between items-end">
                         <div className="flex items-center gap-3">
                              <div
-                                className="relative cursor-pointer"
+                                className="relative cursor-pointer hover:opacity-80 transition-opacity"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     e.preventDefault();
@@ -318,7 +319,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         </div>
                     </CardFooter>
                 </Card>
-            </Link>
+            </div>
         </>
     )
 }

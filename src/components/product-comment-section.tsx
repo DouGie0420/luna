@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChevronDown, Loader2, MessageSquare, Reply, X, ThumbsDown, Trash2, Heart } from 'lucide-react';
+import { ChevronDown, Loader2, MessageSquare, Reply, X, ThumbsDown, Trash2, Heart, Sparkles, TerminalSquare, Lock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { enUS, zhCN, th } from 'date-fns/locale';
 import { useTranslation } from '@/hooks/use-translation';
@@ -54,24 +53,30 @@ const CommentForm = ({
   const { t } = useTranslation()
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
       <Textarea
         value={value}
         onChange={onChange}
-        placeholder={t('productComments.placeholder')}
+        placeholder="Type your message to the protocol..."
         maxLength={500}
         rows={3}
+        className="bg-black/60 border-purple-500/30 text-white rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-none shadow-inner textarea-scrollbar"
       />
       <div className="flex items-center justify-between">
-        <p className="text-xs text-muted-foreground">{value.length} / 500</p>
-        <div className="flex items-center gap-2">
-          <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t('productComments.submit')}
-          </Button>
-           <Button variant="default" onClick={onCancelClick}>
-            {t('productComments.cancelReply')}
-          </Button>
+        <p className="text-xs font-mono text-primary/50">{value.length} / 500 CHARS</p>
+        <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={onCancelClick} className="text-white/50 hover:text-white hover:bg-white/5 rounded-xl text-xs uppercase tracking-widest font-bold">
+              {t('productComments.cancelReply')}
+            </Button>
+            {/* 🚀 统一风格：渐变紫发光提交按钮 */}
+            <Button 
+                onClick={onSubmit} 
+                disabled={isSubmitting || !value.trim()} 
+                className="h-12 px-8 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.2em] text-xs rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:scale-[1.02] transition-transform"
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('productComments.submit')}
+            </Button>
         </div>
       </div>
     </div>
@@ -105,58 +110,44 @@ const CommentItem = ({
   const profileUrl = `/@${author?.loginId || author?.uid}`;
 
   return (
-    <div className="flex items-start gap-3">
-        <Link href={profileUrl}>
-            <Avatar className="h-10 w-10">
+    <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/[0.02] transition-colors border border-transparent hover:border-white/5">
+        <Link href={profileUrl} className="relative group">
+            <div className="absolute inset-0 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            <Avatar className="h-10 w-10 border border-white/10 shadow-lg relative">
                 {author?.photoURL && <AvatarImage src={author.photoURL} alt={authorName} />}
-                <AvatarFallback>{authorName.charAt(0) || '?'}</AvatarFallback>
+                <AvatarFallback className="bg-black text-primary font-black">{authorName.charAt(0) || '?'}</AvatarFallback>
             </Avatar>
         </Link>
-        <div className="flex-1">
+        <div className="flex-1 space-y-1.5">
             <div className="flex items-center justify-between">
-                <div>
-                    <span className="font-headline font-semibold text-foreground">{authorName}</span>
-                </div>
-                <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
-                    <Button
-                        variant="ghost"
-                        onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')}
-                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isLiked && "text-yellow-400")}
-                    >
-                        <Heart className={cn("h-4 w-4", isLiked && "fill-yellow-400")} />
-                        <span>{comment.likes || 0}</span>
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')}
-                        className={cn("h-auto p-1.5 rounded-md text-xs flex items-center gap-1.5 hover:bg-accent", isDisliked && "text-gray-500")}
-                    >
-                        <ThumbsDown className="h-4 w-4" />
-                        <span>{comment.dislikes || 0}</span>
-                    </Button>
+                <Link href={profileUrl} className="font-black text-sm text-white hover:text-primary transition-colors uppercase tracking-wider">
+                    {authorName}
+                </Link>
+                <div className="flex items-center gap-1 text-xs text-white/40 font-mono">
                     <span>{timeAgo}</span>
                 </div>
             </div>
-            <p className="text-sm my-2 text-foreground/90">{comment.text}</p>
-            <div className="flex items-center gap-2">
-                <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-auto p-1 text-xs text-muted-foreground hover:text-primary"
-                    onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: authorName }) : handleInteractionNotAllowed()}
-                >
-                    <Reply className="mr-1 h-3 w-3 -scale-x-100" />
-                    {t('productComments.reply')}
+            
+            <p className="text-sm text-white/80 leading-relaxed font-medium">{comment.text}</p>
+            
+            <div className="flex items-center gap-2 pt-2">
+                <Button variant="ghost" onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')} className={cn("h-8 px-2 rounded-lg text-xs font-bold hover:bg-white/5 transition-all gap-1.5", isLiked ? "text-pink-500" : "text-white/40 hover:text-pink-400")}>
+                    <Heart className={cn("h-3.5 w-3.5", isLiked && "fill-pink-500")} /> {comment.likes || 0}
                 </Button>
+                
+                <Button variant="ghost" onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')} className={cn("h-8 px-2 rounded-lg text-xs font-bold hover:bg-white/5 transition-all gap-1.5", isDisliked ? "text-purple-400" : "text-white/40 hover:text-purple-400")}>
+                    <ThumbsDown className={cn("h-3.5 w-3.5", isDisliked && "fill-purple-400")} /> {comment.dislikes || 0}
+                </Button>
+
+                <div className="w-px h-3 bg-white/10 mx-1" />
+
+                <Button variant="ghost" className="h-8 px-2 text-xs font-bold text-white/40 hover:text-white hover:bg-white/5 rounded-lg" onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: authorName }) : handleInteractionNotAllowed()}>
+                    <Reply className="mr-1 h-3.5 w-3.5 -scale-x-100" /> {t('productComments.reply')}
+                </Button>
+
                 {user?.uid === comment.authorId && (
-                     <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-auto p-1 text-xs text-destructive hover:text-destructive"
-                        onClick={() => setCommentToDelete(comment.id)}
-                    >
-                        <Trash2 className="mr-1 h-3 w-3" />
-                        {t('productComments.delete')}
+                     <Button variant="ghost" className="h-8 px-2 text-xs font-bold text-red-500/50 hover:text-red-400 hover:bg-red-500/10 rounded-lg ml-auto" onClick={() => setCommentToDelete(comment.id)}>
+                        <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                 )}
             </div>
@@ -164,7 +155,6 @@ const CommentItem = ({
     </div>
   );
 };
-
 
 export function ProductCommentSection({ productId }: { productId: string }) {
     const { t, language } = useTranslation();
@@ -323,7 +313,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
     
     const renderComments = (commentList: NestedComment[]) => {
       return commentList.map(comment => (
-        <div key={comment.id}>
+        <div key={comment.id} className="animate-in fade-in slide-in-from-bottom-4">
           <CommentItem
             comment={comment}
             user={user}
@@ -334,7 +324,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             setCommentToDelete={setCommentToDelete}
           />
           {replyingTo?.id === comment.id && (
-            <div className="mt-4 ml-12 pl-4 border-l-2">
+            <div className="mt-2 ml-14 pl-4 border-l-2 border-primary/30">
               <CommentForm
                 isSubmitting={isSubmitting}
                 value={newComment}
@@ -345,7 +335,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             </div>
           )}
           {comment.replies.length > 0 && (
-            <div className="ml-10 mt-4 space-y-4 border-l-2 pl-4">
+            <div className="ml-12 mt-2 space-y-2 border-l-2 border-white/5 pl-2">
               {renderComments(comment.replies)}
             </div>
           )}
@@ -355,89 +345,118 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
 
     return (
-        <>
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('productComments.title')}</CardTitle>
+        <div className="relative group rounded-[2rem] overflow-hidden bg-[#050508]">
+            {/* 🚀 极其关键：注入隐藏和美化滚动条的内部 CSS */}
+            <style dangerouslySetInnerHTML={{__html: `
+                .laser-scrollbar::-webkit-scrollbar { width: 4px; }
+                .laser-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .laser-scrollbar::-webkit-scrollbar-thumb { 
+                    background: linear-gradient(to bottom, #a855f7, #c026d3); 
+                    border-radius: 4px; 
+                    box-shadow: 0 0 10px rgba(168,85,247,0.8);
+                }
+                .laser-scrollbar::-webkit-scrollbar-thumb:hover { background: #d946ef; }
+                
+                .textarea-scrollbar::-webkit-scrollbar { width: 2px; }
+                .textarea-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .textarea-scrollbar::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.4); border-radius: 2px; }
+            `}} />
+
+            {/* 底层动态流体呼吸光晕 */}
+            <div className="absolute top-10 -left-10 w-48 h-48 bg-primary/20 rounded-full blur-[80px] opacity-40 group-hover:opacity-80 transition-opacity duration-1000 animate-blob pointer-events-none" />
+            <div className="absolute bottom-10 -right-10 w-56 h-56 bg-purple-600/20 rounded-full blur-[80px] opacity-40 group-hover:opacity-80 transition-opacity duration-1000 animate-blob animation-delay-2000 pointer-events-none" />
+
+            {/* 高透玻璃舱主体 */}
+            <Card className="relative z-10 bg-black/40 backdrop-blur-3xl border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] border-none">
+                <CardHeader className="border-b border-white/5 pb-6">
+                    <CardTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-[0.2em] text-white">
+                        <TerminalSquare className="text-primary w-5 h-5 animate-pulse" /> 
+                        Communication <span className="text-primary">Terminal</span>
+                    </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-8">
+
+                <CardContent className="space-y-8 pt-8 p-8">
                     {canInteract ? (
                         (!replyingTo || replyingTo.id !== 'root') && (
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
+                                        {/* 🚀 统一风格：渐变紫发光发起留言按钮 */}
                                         <Button
-                                            variant="outline"
-                                            className="w-full justify-center rounded-lg border border-white bg-card p-4 text-lg font-semibold text-yellow-400 h-auto mb-6 animate-glow-yellow-text transition-all hover:brightness-125"
+                                            className="w-full h-16 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition-transform rounded-2xl mb-8"
                                             onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                                         >
-                                            {t('productComments.placeholder')}
+                                            <Sparkles className="w-5 h-5 mr-3" /> Share your thoughts
                                         </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>
+                                    <TooltipContent className="bg-black/90 border-primary/30 text-primary font-mono text-xs">
                                         <p>{t('productComments.tooltip')}</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
                         )
                     ) : (
-                        <div className="text-center text-sm text-muted-foreground p-4 border border-dashed rounded-md mb-6">
-                            <p>{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
+                        <div className="flex flex-col items-center justify-center text-center p-8 border border-dashed border-white/10 bg-white/[0.02] rounded-2xl mb-8">
+                            <Lock className="w-6 h-6 text-white/30 mb-3" />
+                            <p className="text-sm font-bold text-white/50 tracking-wide uppercase">{isGuest ? t('common.loginToInteract') : t('common.verifyToInteract')}</p>
                         </div>
                     )}
                     
                     {replyingTo?.id === 'root' && (
-                            <div className="mb-6">
-                            <CommentForm
-                                isSubmitting={isSubmitting}
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                onSubmit={handlePostComment}
-                                onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
-                            />
+                            <div className="mb-8 p-1 rounded-2xl bg-gradient-to-br from-primary/30 to-purple-600/10">
+                                <div className="bg-[#0A0A0C] p-5 rounded-xl border border-white/5">
+                                    <CommentForm
+                                        isSubmitting={isSubmitting}
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        onSubmit={handlePostComment}
+                                        onCancelClick={() => newComment ? setIsCancelDialogOpen(true) : handleConfirmCancelReply()}
+                                    />
+                                </div>
                             </div>
                     )}
                     
-                    {nestedComments.length > 0 && <Separator />}
+                    {nestedComments.length > 0 && <Separator className="bg-white/5" />}
 
                     {commentsLoading ? (
-                        <div className="flex justify-center p-8"><Loader2 className="h-8 w-8 animate-spin" /></div>
+                        <div className="flex justify-center p-12"><Loader2 className="h-10 w-10 animate-spin text-primary" /></div>
                     ) : nestedComments.length > 0 ? (
-                        <div className="space-y-6">
+                        /* 🚀 应用自定义激光滚动条，并限制最大高度触发滚动 */
+                        <div className="space-y-4 mt-4 max-h-[500px] overflow-y-auto laser-scrollbar pr-3 pb-4">
                             {renderComments(nestedComments.slice(0, visibleCommentsCount))}
                         </div>
                     ) : (
-                         <div className="text-center py-8 text-muted-foreground">
-                            <MessageSquare className="mx-auto h-8 w-8 mb-2" />
-                            <p>{t('productComments.noComments')}</p>
-                            <p className="text-xs">{t('productComments.beTheFirst')}</p>
+                         <div className="text-center py-16 text-white/30 flex flex-col items-center">
+                            <MessageSquare className="h-10 w-10 mb-4 opacity-50" />
+                            <p className="font-bold text-sm tracking-widest uppercase">No Logs Found</p>
+                            <p className="text-xs font-mono mt-2">Initiate the first transmission</p>
                         </div>
                     )}
                     
                     {comments && comments.length > visibleCommentsCount && (
-                        <div className="text-center mt-6">
-                            <Button variant="outline" onClick={handleLoadMore}>
-                                {t('bbsPage.loadMoreComments')}
-                                <ChevronDown className="ml-2 h-4 w-4" />
+                        <div className="text-center mt-10">
+                            <Button variant="outline" onClick={handleLoadMore} className="rounded-full bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 uppercase text-xs tracking-widest font-bold">
+                                Load Archives <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     )}
                 </CardContent>
             </Card>
 
+            {/* 警告弹窗同样加上紫色系点缀 */}
             <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#0A0A0C] border-red-500/30 text-white rounded-3xl shadow-[0_0_50px_rgba(239,68,68,0.2)]">
                     <AlertDialogHeader>
-                    <AlertDialogTitle>{t('productComments.deleteConfirmTitle')}</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-red-500 flex items-center gap-2"><Trash2 className="w-5 h-5"/> {t('productComments.deleteConfirmTitle')}</AlertDialogTitle>
+                    <AlertDialogDescription className="text-white/60">
                         {t('productComments.deleteConfirmDescription')}
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setCommentToDelete(null)}>{t('productComments.deleteCancel')}</AlertDialogCancel>
+                    <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10" onClick={() => setCommentToDelete(null)}>{t('productComments.deleteCancel')}</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDeleteComment}
-                        className="bg-destructive hover:bg-destructive/90"
+                        className="bg-red-500 hover:bg-red-600 text-white"
                     >
                         {t('productComments.deleteConfirmAction')}
                     </AlertDialogAction>
@@ -445,19 +464,19 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                 </AlertDialogContent>
             </AlertDialog>
             <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-[#0A0A0C] border-primary/30 text-white rounded-3xl shadow-[0_0_50px_rgba(168,85,247,0.15)]">
                     <AlertDialogHeader>
                         <AlertDialogTitle>{t('productComments.cancelConfirmTitle')}</AlertDialogTitle>
-                        <AlertDialogDescription>{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
+                        <AlertDialogDescription className="text-white/60">{t('productComments.cancelConfirmDescription')}</AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <Button onClick={() => setIsCancelDialogOpen(false)} variant="default">{t('productComments.continueEditing')}</Button>
-                        <Button onClick={handleConfirmCancelReply} variant="outline" className="border-primary text-primary bg-primary/10 hover:bg-primary/20">
+                        <Button onClick={() => setIsCancelDialogOpen(false)} variant="default" className="bg-white/10 text-white hover:bg-white/20">{t('productComments.continueEditing')}</Button>
+                        <Button onClick={handleConfirmCancelReply} variant="outline" className="border-primary/50 text-primary bg-primary/10 hover:bg-primary/20">
                             {t('productComments.cancelConfirmAction')}
                         </Button>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 }

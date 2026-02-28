@@ -17,7 +17,8 @@ import {
   Banknote,
   Award,
   Radio,
-  Home, // 🚀 引入房源图标
+  Home, 
+  ShieldCheck, // 🚀 引入寄卖审查的护盾图标
 } from 'lucide-react'
 
 import {
@@ -53,7 +54,9 @@ const pagePermissions: Record<string, Array<Role>> = {
     '/admin': ['admin', 'ghost', 'staff', 'support'],
     '/admin/users': ['admin', 'ghost', 'staff'],
     '/admin/products': ['admin', 'ghost', 'staff'],
-    '/admin/rental-reviews': ['admin', 'ghost', 'staff'], // 🚀 房源审核权限：Admin, Ghost, Staff
+    '/admin/rental-reviews': ['admin', 'ghost', 'staff'], 
+    // 🚀 新增：官方寄卖审查页面权限配置
+    '/admin/consignment': ['admin', 'ghost', 'staff'], 
     '/admin/promotions': ['admin', 'ghost', 'staff'],
     '/admin/community': ['admin', 'ghost', 'staff'],
     '/admin/orders': ['admin', 'ghost', 'staff', 'support'],
@@ -174,7 +177,17 @@ export default function AdminLayout({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 
-                {/* 🚀 新增：房源审核入口 */}
+                {/* 🚀 新增：官方寄卖审查侧边栏入口 */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive('/admin/consignment')}>
+                    <Link href="/admin/consignment">
+                      <ShieldCheck className="text-[#ff00ff]" />
+                      <span className="font-bold text-[#ff00ff]">寄卖审查</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* 房源审核入口 */}
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={isActive('/admin/rental-reviews')}>
                     <Link href="/admin/rental-reviews">

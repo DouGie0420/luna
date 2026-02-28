@@ -1,10 +1,11 @@
+// 覆盖到：src/app/admin/page.tsx
 
 'use client';
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, Loader2, DollarSign, Activity, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award, Radio } from "lucide-react";
+import { Users, ShieldCheck, Loader2, DollarSign, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award, Radio, Box } from "lucide-react";
 import { useFirestore, useDoc } from "@/firebase";
-import { collection, getDocs, query, where, Timestamp, doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, setDoc, updateDoc } from "firebase/firestore";
 import { useEffect, useState, useMemo } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import Link from "next/link";
@@ -25,6 +26,7 @@ type Stats = {
     totalUsers: number;
     pendingKyc: number;
     pendingPaymentRequests: number;
+    pendingConsignments: number; // 🚀 新增：待处理的官方寄卖数量
     totalGmv: number;
 };
 
@@ -48,7 +50,6 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-
 export default function AdminDashboardPage() {
     const firestore = useFirestore();
     const { t } = useTranslation();
@@ -62,7 +63,6 @@ export default function AdminDashboardPage() {
     const audioConfigRef = useMemo(() => firestore ? doc(firestore, 'configs', 'global_audio_player') : null, [firestore]);
     const { data: globalAudioPlayerConfig, loading: audioConfigLoading } = useDoc<GlobalAudioPlayerConfig>(audioConfigRef);
 
-
     useEffect(() => {
         if (!firestore) return;
 
@@ -72,6 +72,7 @@ export default function AdminDashboardPage() {
                 const usersCollection = collection(firestore, 'users');
                 const ordersCollection = collection(firestore, 'orders');
                 const paymentRequestsCollection = collection(firestore, 'paymentChangeRequests');
+                const productsCollection = collection(firestore, 'products'); // 🚀 引入商品表
 
                 const totalUsersSnapshot = await getDocs(usersCollection);
                 const pendingKycQuery = query(usersCollection, where('kycStatus', '==', 'Pending'));
@@ -79,6 +80,10 @@ export default function AdminDashboardPage() {
                 
                 const pendingPaymentQuery = query(paymentRequestsCollection, where('status', '==', 'pending'));
                 const pendingPaymentSnapshot = await getDocs(pendingPaymentQuery);
+
+                // 🚀 查询所有处于待审核状态的官方寄卖商品
+                const pendingConsignmentQuery = query(productsCollection, where('isConsignment', '==', true), where('status', '==', 'under_review'));
+                const pendingConsignmentSnapshot = await getDocs(pendingConsignmentQuery);
 
                 const completedOrdersQuery = query(ordersCollection, where('status', '==', 'Completed'));
                 const completedOrdersSnapshot = await getDocs(completedOrdersQuery);
@@ -88,6 +93,7 @@ export default function AdminDashboardPage() {
                     totalUsers: totalUsersSnapshot.size,
                     pendingKyc: pendingKycSnapshot.size,
                     pendingPaymentRequests: pendingPaymentSnapshot.size,
+                    pendingConsignments: pendingConsignmentSnapshot.size, // 🚀 写入状态
                     totalGmv,
                 });
             } catch (error) {
@@ -98,7 +104,6 @@ export default function AdminDashboardPage() {
         }
 
         fetchStats();
-
     }, [firestore]);
 
     const handleSettingToggle = async (settingName: keyof GlobalSettings, value: boolean) => {
@@ -122,7 +127,6 @@ export default function AdminDashboardPage() {
             toast({ variant: 'destructive', title: '更新失败' });
         }
     };
-
 
     if (loading || !stats) {
         return (
@@ -198,6 +202,19 @@ export default function AdminDashboardPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-red-300">{stats.pendingPaymentRequests}</div>
+                        </CardContent>
+                    </Card>
+                </Link>
+
+                {/* 🚀 新增：官方寄卖审核快捷入口 */}
+                <Link href="/admin/consignment">
+                    <Card className="hover:border-[#ff00ff]/50 transition-colors cursor-pointer bg-[#ff00ff]/10 border-[#ff00ff]/30 shadow-[0_0_15px_rgba(255,0,255,0.1)]">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-bold text-[#ff00ff]">待处理寄卖审核</CardTitle>
+                            <Box className="h-4 w-4 text-[#ff00ff] animate-pulse" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-black text-white">{stats.pendingConsignments}</div>
                         </CardContent>
                     </Card>
                 </Link>
@@ -305,6 +322,3 @@ export default function AdminDashboardPage() {
         </div>
     );
 }
-
-
-    

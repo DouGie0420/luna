@@ -178,7 +178,6 @@ export default function ProductPage() {
 
     return (
         <div className="min-h-screen relative overflow-hidden pb-20">
-            {/* 🚀 全局遮罩压暗，确保背景流动感不突兀 */}
             <div className="fixed inset-0 bg-black/50 pointer-events-none z-[-1]" />
             <PageHeaderWithBackAndClose />
 
@@ -200,7 +199,6 @@ export default function ProductPage() {
             </header>
             
             <main className="container mx-auto px-4 py-12 relative z-10">
-                
                 <div className="max-w-6xl mx-auto mb-10 space-y-4">
                     {isOwner && (
                         <div className="bg-black/75 backdrop-blur-2xl border border-primary/30 rounded-[24px] p-5 flex items-center gap-4 animate-in fade-in slide-in-from-top-4 shadow-2xl">
@@ -211,8 +209,6 @@ export default function ProductPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-12">
-                    
-                    {/* 👇 左侧区域 */}
                     <div className="lg:col-span-3 flex flex-col gap-12">
                         <div className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl p-6">
                             <ProductImageGallery product={product} isLiked={!!isLiked} isFavorited={!!isFavorited} onLikeToggle={() => handleInteraction('like')} onFavoriteToggle={() => handleInteraction('favorite')} />
@@ -250,15 +246,11 @@ export default function ProductPage() {
                         </Card>
                     </div>
 
-                    {/* 👇 右侧区域：核心支付与卖家信息 */}
                     <div className="lg:col-span-2 flex flex-col gap-12">
                         <div className="sticky top-24 space-y-12 pb-12">
-                            
-                            {/* 🚀 费用中控台：75% 玻璃拟态 + 流体艺术背景 + 支付 Logo + 全局控制开关 */}
                             <div className="relative overflow-hidden bg-black/85 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-2xl flex flex-col gap-8 group">
-                                {/* 装饰性流体元素 */}
-                                <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/20 rounded-full filter blur-[80px] animate-blob opacity-40 transition-opacity duration-1000" />
-                                <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-600/10 rounded-full filter blur-[80px] animate-blob animation-delay-4000 opacity-40 transition-opacity duration-1000" />
+                                <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/20 rounded-full filter blur-[80px] animate-blob opacity-40 transition-opacity duration-1000 pointer-events-none" />
+                                <div className="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-600/10 rounded-full filter blur-[80px] animate-blob animation-delay-4000 opacity-40 transition-opacity duration-1000 pointer-events-none" />
                                 
                                 <div className="relative z-10 space-y-4">
                                     <ProductTitleWithBadge product={product} />
@@ -270,54 +262,23 @@ export default function ProductPage() {
                                     <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 animate-pulse">Node Execution Protocol</p>
                                 </div>
 
-                                {/* 🚀 支付方式按钮矩阵 */}
                                 <div className="relative z-10 grid grid-cols-2 gap-3 pt-4">
-                                    {/* USDT - 核心推荐 */}
-                                    <Button 
-                                      variant="outline" 
-                                      disabled={!pms.usdt}
-                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 hover:bg-white/10 transition-all rounded-2xl", !pms.usdt && "opacity-20 grayscale cursor-not-allowed")}
-                                    >
-                                      <Wallet className="w-5 h-5 text-green-400" /> 
-                                      <span className="font-black italic uppercase tracking-widest text-[10px]">USDT</span>
+                                    <Button variant="outline" disabled={!pms.usdt} className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 hover:bg-white/10 transition-all rounded-2xl", !pms.usdt && "opacity-20 grayscale cursor-not-allowed")}>
+                                      <Wallet className="w-5 h-5 text-green-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">USDT</span>
                                     </Button>
-
-                                    {/* 支付宝 - 后台可控 */}
-                                    <Button 
-                                      variant="outline" 
-                                      disabled={!pms.alipay}
-                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.alipay && "opacity-20 grayscale cursor-not-allowed")}
-                                    >
-                                      <Smartphone className="w-5 h-5 text-blue-400" /> 
-                                      <span className="font-black italic uppercase tracking-widest text-[10px]">Alipay</span>
+                                    <Button variant="outline" disabled={!pms.alipay} className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.alipay && "opacity-20 grayscale cursor-not-allowed")}>
+                                      <Smartphone className="w-5 h-5 text-blue-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">Alipay</span>
                                     </Button>
-
-                                    {/* 微信支付 - 后台可控 */}
-                                    <Button 
-                                      variant="outline" 
-                                      disabled={!pms.wechat}
-                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.wechat && "opacity-20 grayscale cursor-not-allowed")}
-                                    >
-                                      <QrCode className="w-5 h-5 text-green-500" /> 
-                                      <span className="font-black italic uppercase tracking-widest text-[10px]">WeChat</span>
+                                    <Button variant="outline" disabled={!pms.wechat} className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.wechat && "opacity-20 grayscale cursor-not-allowed")}>
+                                      <QrCode className="w-5 h-5 text-green-500" /> <span className="font-black italic uppercase tracking-widest text-[10px]">WeChat</span>
                                     </Button>
-
-                                    {/* PromptPay - 后台可控 */}
-                                    <Button 
-                                      variant="outline" 
-                                      disabled={!pms.promptpay}
-                                      className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.promptpay && "opacity-20 grayscale cursor-not-allowed")}
-                                    >
-                                      <CreditCard className="w-5 h-5 text-sky-400" /> 
-                                      <span className="font-black italic uppercase tracking-widest text-[10px]">PromptPay</span>
+                                    <Button variant="outline" disabled={!pms.promptpay} className={safeClass("h-14 flex items-center justify-center gap-2 border-white/5 bg-black/40 transition-all rounded-2xl", !pms.promptpay && "opacity-20 grayscale cursor-not-allowed")}>
+                                      <CreditCard className="w-5 h-5 text-sky-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">PromptPay</span>
                                     </Button>
                                 </div>
                                 
                                 <div className="relative z-10 pt-4">
-                                    <Button 
-                                      className="w-full h-16 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition-transform rounded-2xl"
-                                      disabled={isOwner}
-                                    >
+                                    <Button className="w-full h-16 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition-transform rounded-2xl" disabled={isOwner}>
                                         立即购买 / Purchase
                                     </Button>
                                     <p className="mt-3 text-center text-[10px] text-white/30 font-mono uppercase tracking-widest flex items-center justify-center gap-1">
@@ -327,16 +288,28 @@ export default function ProductPage() {
 
                                 <div className="relative z-10 pt-8 border-t border-white/5 space-y-6">
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 pl-1">Authorized Provider</h3>
-                                    <SellerProfileCard 
-                                        seller={{...product.seller, followerCount: localFollowerCount}} 
-                                        className="bg-transparent border-none p-0 shadow-none" 
-                                    />
+                                    <SellerProfileCard seller={{...product.seller, followerCount: localFollowerCount}} className="bg-transparent border-none p-0 shadow-none" />
+                                    
                                     {!isOwner && (
                                         <div className="flex gap-4 pt-4">
-                                            <Button onClick={handleToggleFollow} className={safeClass("flex-1 rounded-2xl h-14 font-black uppercase italic tracking-widest", isFollowing ? 'bg-white/5 text-white/40' : 'bg-primary text-black')}>
+                                            {/* 🚀 统一机甲风格 Follow 按钮 */}
+                                            <Button 
+                                                onClick={handleToggleFollow} 
+                                                className={safeClass(
+                                                    "flex-1 rounded-2xl h-14 font-black uppercase italic tracking-[0.2em] transition-all duration-300", 
+                                                    isFollowing 
+                                                    ? "bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-500/20 shadow-inner" 
+                                                    : "bg-gradient-to-r from-primary to-purple-600 text-black shadow-[0_0_20px_rgba(168,85,247,0.3)] hover:scale-[1.02] border-none"
+                                                )}
+                                            >
                                                 <UserPlus className="mr-2 h-5 w-5" /> {isFollowing ? 'Following' : 'Follow'}
                                             </Button>
-                                            <Button onClick={() => router.push(`/messages/chat/${product.sellerId}?refProperty=${id}`)} variant="outline" className="flex-1 rounded-2xl h-14 bg-white/5 border-white/10 text-white font-black uppercase italic tracking-widest">
+                                            
+                                            {/* 🚀 统一机甲风格 Message 按钮 (修复 404 路由) */}
+                                            <Button 
+                                                onClick={() => router.push(`/messages?to=${product.sellerId}`)} 
+                                                className="flex-1 rounded-2xl h-14 bg-black/40 border border-primary/40 text-primary font-black uppercase italic tracking-[0.2em] hover:bg-primary/10 hover:shadow-[0_0_15px_rgba(168,85,247,0.2)] hover:scale-[1.02] transition-all duration-300"
+                                            >
                                                 <MessageSquare className="mr-2 h-5 w-5" /> Message
                                             </Button>
                                         </div>
@@ -344,21 +317,19 @@ export default function ProductPage() {
                                 </div>
                             </div>
 
-                            {/* 🚀 模块 4：留言终端 */}
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-3 mb-5 pl-1">
+                            <div className="flex flex-col relative group mt-8">
+                                <div className="flex items-center gap-3 mb-5 pl-1 relative z-10">
                                     <TerminalSquare className="w-5 h-5 text-primary drop-shadow-[0_0_10px_rgba(168,85,247,0.5)] animate-pulse" />
-                                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white drop-shadow-md">Terminal <span className="text-primary">Logs</span></h3>
+                                    <h3 className="text-sm font-black uppercase tracking-[0.3em] text-white drop-shadow-md">
+                                        Terminal <span className="text-primary">Logs</span>
+                                    </h3>
                                 </div>
-                                <div className="relative bg-black/75 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 p-6 shadow-2xl max-h-[500px] overflow-y-auto cyber-scrollbar">
-                                    <ProductCommentSection productId={product.id} />
-                                </div>
+                                <ProductCommentSection productId={product.id} />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 🚀 模块 5：底部推荐 */}
                 <div className="mt-32">
                     <div className="flex items-center justify-between mb-12">
                         <h2 className="font-headline text-4xl font-black italic uppercase tracking-tighter text-white">Similar <span className="text-primary">Protocols</span></h2>

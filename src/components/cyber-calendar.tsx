@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isAfter, isBefore, startOfDay, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isAfter, isBefore, startOfDay, addDays, setMonth, setYear } from 'date-fns';
+import { ChevronLeft, ChevronRight, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CyberCalendarProps {
@@ -13,7 +13,7 @@ interface CyberCalendarProps {
 }
 
 export function CyberCalendar({ blockedDates, pricePerDay, weekendPremium = 0, onRangeSelect }: CyberCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [currentMonth, setCurrentMonth] = useState(startOfDay(new Date()));
   const [selection, setSelection] = useState<{ start: Date | null, end: Date | null }>({ start: null, end: null });
 
   // 1. 将 Firebase Timestamps 转换为 JS Date 易于比较
@@ -79,16 +79,51 @@ export function CyberCalendar({ blockedDates, pricePerDay, weekendPremium = 0, o
     end: endOfMonth(currentMonth)
   });
 
+  // 🚀 生成年份与月份数据用于下拉框（当前年份往后推 5 年）
+  const currentYearBase = new Date().getFullYear();
+  const availableYears = Array.from({ length: 5 }, (_, i) => currentYearBase + i);
+  const monthsList = [
+    'January', 'February', 'March', 'April', 'May', 'June', 
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
   return (
     <div className="w-full bg-black/40 backdrop-blur-xl rounded-[2rem] border border-white/10 p-6 overflow-hidden">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h3 className="titanium-title text-xl font-black uppercase tracking-tighter italic">
-          {format(currentMonth, 'MMMM yyyy')}
-        </h3>
+        
+        {/* 🚀 新增：支持直接点击和下拉选择的年月控件 */}
+        <div className="flex items-center gap-3">
+            <div className="relative group">
+                <select 
+                    value={currentMonth.getMonth()} 
+                    onChange={(e) => setCurrentMonth(setMonth(currentMonth, parseInt(e.target.value)))}
+                    className="appearance-none bg-transparent titanium-title text-xl font-black uppercase tracking-tighter italic text-white outline-none cursor-pointer hover:text-purple-400 transition-colors pr-4"
+                >
+                    {monthsList.map((m, idx) => (
+                        <option key={m} value={idx} className="bg-[#050508] text-sm not-italic tracking-widest">{m}</option>
+                    ))}
+                </select>
+                <ChevronDown className="w-3 h-3 text-white/50 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-purple-400" />
+            </div>
+
+            <div className="relative group">
+                <select 
+                    value={currentMonth.getFullYear()} 
+                    onChange={(e) => setCurrentMonth(setYear(currentMonth, parseInt(e.target.value)))}
+                    className="appearance-none bg-transparent titanium-title text-xl font-black uppercase tracking-tighter italic text-white outline-none cursor-pointer hover:text-purple-400 transition-colors pr-4"
+                >
+                    {availableYears.map(y => (
+                        <option key={y} value={y} className="bg-[#050508] text-sm not-italic tracking-widest">{y}</option>
+                    ))}
+                </select>
+                <ChevronDown className="w-3 h-3 text-white/50 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none group-hover:text-purple-400" />
+            </div>
+        </div>
+
         <div className="flex gap-2">
-          <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-white/10 rounded-full"><ChevronLeft className="w-5 h-5" /></button>
-          <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-white/10 rounded-full"><ChevronRight className="w-5 h-5" /></button>
+          <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ChevronLeft className="w-5 h-5 text-white/70" /></button>
+          <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} className="p-2 hover:bg-white/10 rounded-full transition-colors"><ChevronRight className="w-5 h-5 text-white/70" /></button>
         </div>
       </div>
 

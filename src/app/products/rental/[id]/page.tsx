@@ -16,7 +16,8 @@ import {
     ShieldAlert, Building, ArrowUpDown, UserCheck, TrainFront,
     Plane, Landmark, Navigation, MessageCircle, Heart, Bookmark, Edit3,
     MessageSquareQuote, Crown, Shield, Check, Send, X, ChevronLeft, ChevronRight,
-    ShieldCheck as VerifiedIcon, ThumbsUp, Minus, ThumbsDown
+    ShieldCheck as VerifiedIcon, ThumbsUp, Minus, ThumbsDown,
+    ArrowLeft, Home
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -81,9 +82,10 @@ const AMENITY_LOOKUP: Record<string, { icon: any, desc: string }> = {
     '一氧化碳报警器': { icon: ShieldAlert, desc: 'Molecular toxicity monitoring.' }
 };
 
+// 🚀 核心加强：宇宙/宗教级流体背景，极高饱和度光晕
 const eliteStyles = `
-  .obsidian-elite { background: #0A0A0B; color: #FFFFFF; font-family: 'Inter', sans-serif; }
-  .glass-card { background: rgba(20, 20, 22, 0.7); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.05); }
+  .obsidian-elite { background: transparent; color: #FFFFFF; font-family: 'Inter', sans-serif; }
+  .glass-card { background: rgba(10, 10, 12, 0.5); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
   .purple-glow-btn { background: linear-gradient(135deg, #A855F7 0%, #7E22CE 100%); box-shadow: 0 10px 40px rgba(168, 85, 247, 0.4); }
   .liquid-pay-btn {
     background: linear-gradient(270deg, #A855F7, #7E22CE, #D946EF, #A855F7);
@@ -97,6 +99,30 @@ const eliteStyles = `
   .pay-option { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
   .pay-option.active { background: rgba(168, 85, 247, 0.1); border-color: rgba(168, 85, 247, 0.5); box-shadow: 0 0 20px rgba(168, 85, 247, 0.1); }
   .pay-option.disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* 🌌 加强版：极高饱和度的宇宙流体动画 */
+  .fluid-bg-container { position: fixed; inset: 0; background: #020004; overflow: hidden; z-index: -1; }
+  .fluid-entity { position: absolute; border-radius: 50%; filter: blur(120px); will-change: transform; mix-blend-mode: screen; transform: translateZ(0); }
+  
+  @keyframes astral-drift-1 {
+      0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.7; }
+      50% { transform: translate3d(10vw, -10vh, 0) scale(1.1); opacity: 1; }
+      100% { transform: translate3d(-5vw, 5vh, 0) scale(1); opacity: 0.7; }
+  }
+  @keyframes astral-drift-2 {
+      0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.6; }
+      50% { transform: translate3d(-10vw, 15vh, 0) scale(1.2); opacity: 0.9; }
+      100% { transform: translate3d(5vw, -5vh, 0) scale(1); opacity: 0.6; }
+  }
+  @keyframes astral-drift-3 {
+      0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+      50% { transform: translate3d(8vw, 8vh, 0) scale(1.15); opacity: 0.8; }
+      100% { transform: translate3d(-8vw, -8vh, 0) scale(1); opacity: 0.5; }
+  }
+  
+  .astral-1 { width: 80vw; height: 80vw; top: -20%; left: -20%; background: rgba(168, 85, 247, 0.4); animation: astral-drift-1 25s ease-in-out infinite; }
+  .astral-2 { width: 90vw; height: 90vw; bottom: -30%; right: -20%; background: rgba(245, 158, 11, 0.25); animation: astral-drift-2 30s ease-in-out infinite; } /* 加强神圣琥珀金 */
+  .astral-3 { width: 60vw; height: 60vw; top: 30%; left: 20%; background: rgba(59, 130, 246, 0.35); animation: astral-drift-3 35s ease-in-out infinite; } /* 加强宇宙蓝 */
 `;
 
 export default function PropertyDetailPage() {
@@ -120,11 +146,9 @@ export default function PropertyDetailPage() {
     const [canReview, setCanReview] = useState(false);
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [reviewContent, setReviewContent] = useState('');
-    // 🚀 将 ReviewScore 替换为 ReviewType 用于好评系统中评系统
     const [reviewType, setReviewType] = useState<'good'|'neutral'|'bad'|null>(null); 
     const [submittingReview, setSubmittingReview] = useState(false);
     
-    // 图库状态
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
@@ -213,7 +237,6 @@ export default function PropertyDetailPage() {
     };
 
     const handleSubmitReview = async () => {
-        // 🚀 确保必须输入评价内容且选择了评价类型
         if (!reviewContent || !reviewType || submittingReview) return;
         setSubmittingReview(true);
         try {
@@ -221,7 +244,6 @@ export default function PropertyDetailPage() {
             const isManager = adminRoles.includes(currentProfile?.role || '');
             const baseName = currentProfile?.displayName || currentProfile?.nickname || 'Elite Node';
             
-            // 🚀 根据类型设置分数底层
             let score = 10;
             if (reviewType === 'neutral') score = 5;
             if (reviewType === 'bad') score = 1;
@@ -235,7 +257,6 @@ export default function PropertyDetailPage() {
             const docRef = await addDoc(collection(db, 'reviews'), reviewData);
             setReviews(prev => [{ id: docRef.id, ...reviewData, createdAt: { toDate: () => new Date() } }, ...prev]);
             
-            // 🚀 核心结算逻辑：将打分结果写入该房源房东的 GlobalTrustScore
             if (property.ownerId) {
                 const hostRef = doc(db, 'users', property.ownerId);
                 const scoreChange = reviewType === 'good' ? 1 : reviewType === 'bad' ? -1 : 0;
@@ -281,12 +302,12 @@ export default function PropertyDetailPage() {
                 await updateDoc(hostRef, { followers: arrayRemove(currentUser.uid), followerCount: increment(-1) });
                 await updateDoc(userRef, { following: arrayRemove(host.id) });
                 setIsFollowing(false);
-                setHost(prev => ({ ...prev, followerCount: Math.max(0, (prev.followerCount || 1) - 1) }));
+                setHost((prev: any) => ({ ...prev, followerCount: Math.max(0, (prev.followerCount || 1) - 1) }));
             } else {
                 await updateDoc(hostRef, { followers: arrayUnion(currentUser.uid), followerCount: increment(1) });
                 await updateDoc(userRef, { following: arrayUnion(host.id) });
                 setIsFollowing(true);
-                setHost(prev => ({ ...prev, followerCount: (prev.followerCount || 0) + 1 }));
+                setHost((prev: any) => ({ ...prev, followerCount: (prev.followerCount || 0) + 1 }));
             }
         } catch (err) { console.error("Follow error:", err); } finally { setFollowLoading(false); }
     };
@@ -317,13 +338,6 @@ export default function PropertyDetailPage() {
         ];
     }, [property]);
 
-    const aiLocationAnalysis = useMemo(() => [
-        { label: 'AIRPORT DISTANCE', val: 'Est. 45 Mins', icon: Plane },
-        { label: 'NEAREST SUBWAY', val: '< 500m Walk', icon: TrainFront },
-        { label: 'DOWNTOWN DISTANCE', val: 'City Center', icon: Building },
-        { label: 'BANK / FINANCIAL', val: 'Within 1km', icon: Landmark }
-    ], []);
-
     const billing = useMemo(() => {
         if (!property || !bookingRange.start || !bookingRange.end) return null;
         const start = startOfDay(new Date(bookingRange.start));
@@ -346,24 +360,72 @@ export default function PropertyDetailPage() {
     if (!property) return <div className="h-screen bg-black flex items-center justify-center text-white/50 font-mono uppercase tracking-widest">Asset_Not_Found</div>;
 
     return (
-        <div className="obsidian-elite pb-32">
+        <div className="obsidian-elite pb-32 relative">
             <style dangerouslySetInnerHTML={{ __html: eliteStyles }} />
             
-            <header className="relative h-[48vh] w-full border-b border-white/5 overflow-hidden">
+            {/* 🌌 明显增强的神圣宇宙流体背景层 */}
+            <div className="fluid-bg-container pointer-events-none">
+                <div className="fluid-entity astral-1" />
+                <div className="fluid-entity astral-2" />
+                <div className="fluid-entity astral-3" />
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNykiLz48L3N2Zz4=')] opacity-50 mix-blend-overlay" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020004] via-[#020004]/40 to-transparent" />
+            </div>
+
+            {/* 🚀 顶层固定悬浮按钮 */}
+            <div className="fixed top-[90px] md:top-[110px] left-0 w-full px-4 md:px-10 flex items-center justify-between z-[90] pointer-events-none">
+                <motion.button 
+                    onClick={() => router.back()}
+                    whileHover="hover" initial="initial"
+                    className="flex-shrink-0 flex items-center gap-4 group cursor-pointer pointer-events-auto"
+                >
+                    <div className="relative">
+                        <motion.div 
+                            variants={{ hover: { scale: 1.8, opacity: 0.9 }, initial: { scale: 1.2, opacity: 0.3 } }}
+                            className="absolute -inset-2 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 rounded-full blur-2xl transition-all duration-700"
+                        />
+                        <div className="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#050508]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.3)] group-hover:border-purple-400 group-hover:bg-black transition-colors duration-300">
+                            <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 text-white/70 group-hover:text-white transition-colors" />
+                        </div>
+                    </div>
+                    <span className="hidden lg:block text-[10px] font-mono font-black italic uppercase tracking-[0.4em] text-white/50 group-hover:text-purple-300 transition-all drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">
+                        [ BACK ]
+                    </span>
+                </motion.button>
+
+                <Link href="/" className="flex-shrink-0 flex flex-row-reverse items-center gap-4 group cursor-pointer pointer-events-auto">
+                    <motion.div whileHover="hover" initial="initial" className="flex flex-row-reverse items-center gap-4">
+                        <div className="relative">
+                            <motion.div 
+                                variants={{ hover: { scale: 1.8, opacity: 0.9 }, initial: { scale: 1.2, opacity: 0.3 } }}
+                                className="absolute -inset-2 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-full blur-2xl transition-all duration-700"
+                            />
+                            <div className="relative z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#050508]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.3)] group-hover:border-cyan-400 group-hover:bg-black transition-colors duration-300">
+                                <Home className="w-4 h-4 md:w-5 md:h-5 text-white/70 group-hover:text-white transition-colors" />
+                            </div>
+                        </div>
+                        <span className="hidden lg:block text-[10px] font-mono font-black italic uppercase tracking-[0.4em] text-white/50 group-hover:text-cyan-300 transition-all drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]">
+                            [ HOME ]
+                        </span>
+                    </motion.div>
+                </Link>
+            </div>
+            
+            <header className="relative h-[55vh] w-full border-b border-white/5 overflow-hidden rounded-b-[4rem] shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
                 <AnimatePresence mode="wait">
                     <motion.div key={currentHeroProp.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.5 }} className="absolute inset-0 flex">
                         <div className="relative w-1/2 h-full"><Image src={currentHeroProp.images?.[0] || '/placeholder.jpg'} alt="P1" fill className="object-cover object-center" /></div>
                         <div className="relative w-1/2 h-full border-l border-black/50"><Image src={currentHeroProp.images?.[1] || currentHeroProp.images?.[0]} alt="P2" fill className="object-cover object-center" /></div>
                     </motion.div>
                 </AnimatePresence>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0B] via-[#0A0A0B]/40 to-transparent z-10" />
-                <div className="absolute inset-0 flex flex-col items-center justify-end z-20 pb-12">
-                    <h1 className="text-5xl font-black titanium-title tracking-tighter uppercase text-white text-center drop-shadow-2xl">{currentHeroProp.title}</h1>
-                    <p className="mt-4 text-purple-400 font-bold tracking-[0.4em] uppercase text-[11px] flex items-center gap-2 drop-shadow-lg"><MapPin className="w-4 h-4 shrink-0" /> {currentHeroProp.location?.address}</p>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#020004] via-[#020004]/50 to-transparent z-10" />
+                <div className="absolute inset-0 flex flex-col items-center justify-end z-20 pb-16">
+                    <h1 className="text-6xl md:text-7xl font-black titanium-title tracking-tighter uppercase text-white text-center drop-shadow-2xl">{currentHeroProp.title}</h1>
+                    <p className="mt-4 text-purple-400 font-bold tracking-[0.4em] uppercase text-xs flex items-center gap-2 drop-shadow-lg"><MapPin className="w-4 h-4 shrink-0" /> {currentHeroProp.location?.address}</p>
                 </div>
             </header>
 
-            <div className="max-w-[1600px] mx-auto px-12 grid grid-cols-12 gap-16 mt-12">
+            <div className="max-w-[1600px] mx-auto px-12 grid grid-cols-12 gap-16 mt-16 relative z-20">
                 <aside className="col-span-4 flex flex-col gap-8">
                     <div className="glass-card rounded-[2.5rem] p-8 relative">
                         <div className="flex items-center gap-6">
@@ -376,7 +438,20 @@ export default function PropertyDetailPage() {
                                 <p className="text-[10px] text-white/40 font-black uppercase">Elite Host since {host?.createdAt ? format(host.createdAt.toDate(), 'yyyy') : '2021'}</p>
                                 <div className="flex items-center gap-6 pt-4">
                                     <div className="text-left"><p className="text-[9px] font-black uppercase text-purple-400">Followers</p><p className="text-3xl font-black titanium-title text-purple-400 mt-0.5">{host?.followerCount || 0}</p></div>
-                                    <button onClick={handleToggleFollow} disabled={followLoading} className={cn("px-8 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all", isFollowing ? "bg-white/10 text-white border border-white/5" : "action-btn")}>{followLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : isFollowing ? 'Following' : 'Follow'}</button>
+                                    
+                                    {/* 🚀 高奢重构的 Follow 按钮，配色逻辑与 Message Host 完美统一 */}
+                                    <button 
+                                        onClick={handleToggleFollow} 
+                                        disabled={followLoading} 
+                                        className={cn(
+                                            "px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all duration-300 border flex items-center justify-center min-w-[110px]", 
+                                            isFollowing 
+                                            ? "bg-purple-500/30 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]" 
+                                            : "border-purple-500/40 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:border-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+                                        )}
+                                    >
+                                        {followLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : isFollowing ? 'Following' : 'Follow'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -384,10 +459,14 @@ export default function PropertyDetailPage() {
                             <Link href={`/@${host?.loginId || property.ownerId}`} className="group block"><p className="text-[10px] text-white/20 uppercase font-black mb-1 group-hover:text-purple-400 transition-colors">Properties</p><p className="text-4xl font-black titanium-title group-hover:text-purple-300 transition-colors">{hostPropertyCount}</p></Link>
                             <div><p className="text-[10px] text-white/20 uppercase font-black mb-1 tracking-tighter">Trust Score</p><p className="text-4xl font-black titanium-title text-purple-400">{host?.globalTrustScore || '99.8'}%</p></div>
                         </div>
-                        <button onClick={handleMessageHost} className="w-full mt-8 py-5 message-host-btn rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-2 hover:bg-purple-500/10 transition-colors"><MessageSquare className="w-4 h-4" /> Message Host</button>
+
+                        {/* 🚀 高奢重构的 Message Host 按钮 */}
+                        <button onClick={handleMessageHost} className="w-full mt-8 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 border border-purple-500/40 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:border-purple-400 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all duration-300 group">
+                            <MessageSquare className="w-4 h-4 group-hover:scale-110 transition-transform" /> Message Host
+                        </button>
                     </div>
 
-                    <div className="sticky top-12 flex flex-col gap-8">
+                    <div className="sticky top-[140px] flex flex-col gap-8">
                         <div className="glass-card rounded-[3rem] p-10">
                             <div className="flex justify-between items-start mb-8">
                                 <div><p className="text-[10px] text-white/30 font-black uppercase tracking-[0.2em]">Starting at</p><p className="text-5xl font-black italic tracking-tighter titanium-title">₮ {property.pricePerDay} <span className="text-sm font-normal text-white/20">/ night</span></p></div>
@@ -432,14 +511,12 @@ export default function PropertyDetailPage() {
 
                         <div className="glass-card rounded-[2.5rem] p-8 bg-gradient-to-br from-[#0A0A0B] to-purple-900/10 border border-purple-500/20 overflow-hidden text-center space-y-8">
                             <div className="flex w-full justify-around border-b border-white/5 pb-8">
-                                {/* 🚀 修复1：使用 flex-col items-center 强制居中对齐数字、图标和文字 */}
                                 <button onClick={handleToggleLike} className="flex flex-col items-center space-y-2 group">
                                     <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", property.likedBy?.includes(currentUser?.uid) ? "bg-pink-500 shadow-[0_0_15px_#ec4899]" : "bg-white/5 group-hover:bg-pink-500/20")}><Heart className={cn("w-5 h-5", property.likedBy?.includes(currentUser?.uid) && "fill-white")} /></div>
                                     <p className="text-3xl font-black titanium-title">{property.likesCount || 0}</p>
                                     <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Appreciations</p>
                                 </button>
                                 <div className="w-px bg-white/5" />
-                                {/* 🚀 修复1：使用 flex-col items-center 强制居中对齐 */}
                                 <button onClick={handleToggleSave} className="flex flex-col items-center space-y-2 group">
                                     <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-all", property.favoritedBy?.includes(currentUser?.uid) ? "bg-blue-500 shadow-[0_0_15px_#3b82f6]" : "bg-white/5 group-hover:bg-blue-500/20")}><Bookmark className={cn("w-5 h-5", property.favoritedBy?.includes(currentUser?.uid) && "fill-white")} /></div>
                                     <p className="text-3xl font-black titanium-title">{property.savesCount || 0}</p>
@@ -497,7 +574,6 @@ export default function PropertyDetailPage() {
                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                                     <div className="glass-card p-8 rounded-[2rem] border-blue-500/30 space-y-6 shadow-2xl">
                                         
-                                        {/* 🚀 修复2：移除滑块，替换为好评/中评/差评系统 */}
                                         <div>
                                             <label className="text-[10px] font-black uppercase tracking-widest text-blue-400 mb-3 block">Select Execution Outcome</label>
                                             <div className="flex gap-4">
@@ -521,7 +597,6 @@ export default function PropertyDetailPage() {
                                             <div className="absolute bottom-4 right-4 flex items-center gap-2"><EmojiPicker onSelect={(emoji) => setReviewContent(prev => prev + emoji)} /></div>
                                         </div>
                                         <div className="flex justify-end">
-                                            {/* 🚀 加入类型校验限制 */}
                                             <Button onClick={handleSubmitReview} disabled={!reviewContent || !reviewType || submittingReview} className="bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-widest rounded-xl px-10 h-12 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                                                 {submittingReview ? <Loader2 className="animate-spin" /> : <><Send className="w-4 h-4 mr-2" /> Broadcast Log</>}
                                             </Button>
@@ -554,7 +629,6 @@ export default function PropertyDetailPage() {
                                                     </div>
                                                 </div>
                                                 
-                                                {/* 🚀 修复3：将右侧的分数改为状态徽章，并且彻底移除了底部的 Helpful 按钮 */}
                                                 <div className={cn("px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-widest", rev.type === 'good' ? 'bg-green-500/20 text-green-400 border-green-500/30' : rev.type === 'bad' ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-white/10 text-white/50 border-white/20')}>
                                                     {rev.type === 'good' ? 'POSITIVE' : rev.type === 'bad' ? 'NEGATIVE' : 'NEUTRAL'}
                                                 </div>
@@ -580,15 +654,14 @@ export default function PropertyDetailPage() {
                 </main>
             </div>
 
-            {/* 🚀 沉浸式图库预览层（修复了关闭按钮） */}
+            {/* 🚀 沉浸式图库预览层 */}
             <AnimatePresence>
                 {isGalleryOpen && property.images && (
                     <motion.div 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 z-[100] bg-black/98 backdrop-blur-3xl flex items-center justify-center"
-                        onClick={() => setIsGalleryOpen(false)} // 🚀 点击黑色背景区域关闭
+                        onClick={() => setIsGalleryOpen(false)}
                     >
-                        {/* 🚀 显著的关闭按钮 */}
                         <button 
                             onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(false); }} 
                             className="absolute top-8 right-8 w-16 h-16 bg-white/5 hover:bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white/50 hover:text-white z-[120] transition-all border border-white/10 group shadow-2xl"
@@ -597,7 +670,6 @@ export default function PropertyDetailPage() {
                         </button>
                         
                         <div className="relative w-full h-full max-w-6xl flex items-center justify-center p-4 md:p-12" onClick={(e) => e.stopPropagation()}>
-                            {/* 上一张按钮 */}
                             <button 
                                 onClick={() => setActivePhotoIndex(prev => (prev > 0 ? prev - 1 : property.images.length - 1))}
                                 className="absolute left-4 md:left-0 p-4 text-white/30 hover:text-purple-400 transition-colors z-[110]"
@@ -613,7 +685,6 @@ export default function PropertyDetailPage() {
                                 <Image src={property.images[activePhotoIndex]} alt="Gallery" fill className="object-contain" unoptimized />
                             </motion.div>
 
-                            {/* 下一张按钮 */}
                             <button 
                                 onClick={() => setActivePhotoIndex(prev => (prev < property.images.length - 1 ? prev + 1 : 0))}
                                 className="absolute right-4 md:right-0 p-4 text-white/30 hover:text-purple-400 transition-colors z-[110]"
@@ -621,7 +692,6 @@ export default function PropertyDetailPage() {
                                 <ChevronRight size={60} />
                             </button>
 
-                            {/* 指示器 */}
                             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/60 px-8 py-3 rounded-full border border-white/10 backdrop-blur-2xl">
                                 <span className="font-mono text-xs text-purple-400 font-black uppercase tracking-[0.3em] drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]">
                                     NODE_{activePhotoIndex + 1} / {property.images.length}
