@@ -110,3 +110,83 @@ export type Order = {
   createdAt: any;
   paymentMethod?: PaymentMethod;
 };
+
+// ==================== 聊天系统类型定义 ====================
+
+// 消息类型
+export type MessageType = 'text' | 'image' | 'location' | 'system';
+
+// 聊天消息
+export interface ChatMessage {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName?: string;
+  senderAvatar?: string;
+  timestamp?: Date;
+  createdAt?: any; // Firestore timestamp
+  read?: boolean;
+  type?: MessageType;
+  metadata?: {
+    imageUrl?: string;
+    location?: {
+      lat: number;
+      lng: number;
+      address?: string;
+    };
+  };
+}
+
+// 订单聊天
+export interface OrderChat {
+  id: string; // format: order_${orderId}
+  orderId: string;
+  productId?: string;
+  productName?: string;
+  sellerId: string;
+  buyerId: string;
+  participants: string[];
+  lastMessage?: string;
+  lastMessageTime?: Date;
+  lastMessageTimestamp?: any; // Firestore timestamp
+  lastSenderId?: string;
+  unreadCount?: {
+    [userId: string]: number;
+  };
+  createdAt?: Date | any;
+  updatedAt?: Date | any;
+}
+
+// 直接聊天
+export interface DirectChat {
+  id: string;
+  participants: string[];
+  participantProfiles?: {
+    [userId: string]: {
+      displayName: string;
+      photoURL?: string;
+    };
+  };
+  initiatorId?: string;
+  lastMessage?: string;
+  lastMessageTimestamp?: Date | any;
+  unreadCount?: {
+    [userId: string]: number;
+  };
+  createdAt?: Date | any;
+  updatedAt?: Date | any;
+}
+
+// 聊天预览（用于列表显示）
+export interface ChatPreview {
+  id: string;
+  type: 'order' | 'direct';
+  orderId?: string;
+  otherUserId: string;
+  otherUserName: string;
+  otherUserAvatar?: string;
+  lastMessage: string;
+  lastMessageTime: Date;
+  unreadCount: number;
+  productName?: string;
+}

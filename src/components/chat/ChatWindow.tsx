@@ -6,32 +6,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, Loader2, Bell, BellOff, CheckCircle } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  serverTimestamp,
-  doc,
-  updateDoc,
-  getDoc
-} from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { sendPushNotification } from '@/lib/fcm';
 import { cn } from '@/lib/utils';
-
-interface Message {
-  id: string;
-  text: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar?: string;
-  timestamp: Date;
-  read: boolean;
-  type?: 'text' | 'system';
-}
+import { getChatService } from '@/lib/chatService';
+import type { ChatMessage } from '@/lib/types';
 
 interface ChatWindowProps {
   orderId: string;
@@ -44,7 +22,7 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
   const { user, profile } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,95 +35,54 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
   const otherUserId = isSeller ? buyerId : sellerId;
   const otherUserName = isSeller ? 'Buyer' : 'Seller';
 
-  // Subscribe to real-time messages
+  // Subscribe to real-time messages using ChatService
   useEffect(() => {
     if (!firestore || !user) return;
 
     setIsLoading(true);
-    const messagesRef = collection(firestore, 'chats', chatId, 'messages');
-    const q = query(
-      messagesRef,
-      orderBy('timestamp', 'asc')
-    );
+    const chatService = getChatService(firestore);
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const newMessages: Message[] = [];
-      let unread = 0;
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const message: Message = {
-          id: doc.id,
-          text: data.text,
-          senderId: data.senderId,
-          senderName: data.senderName,
-          senderAvatar: data.senderAvatar,
-          timestamp: data.timestamp?.toDate() || new Date(),
-          read: data.read || false,
-          type: data.type || 'text'
-        };
-        
-        newMessages.push(message);
+    const unsubscribe = chatService.subscribeToMessages(
+      chatId,
+      'order',
+      (newMessages) => {
+        setMessages(newMessages);
         
         // Count unread messages (sent by others)
-        if (!message.read && message.senderId !== user.uid) {
-          unread++;
+        const unread = newMessages.filter(
+          msg => !msg.read && msg.senderId !== user.uid
+        ).length;
+        setUnreadCount(unread);
+        
+        setIsLoading(false);
+        scrollToBottom();
+
+        // Mark messages as read when opening chat
+        if (unread > 0) {
+          markMessagesAsRead();
         }
-      });
-
-      setMessages(newMessages);
-      setUnreadCount(unread);
-      setIsLoading(false);
-      scrollToBottom();
-
-      // Mark messages as read when opening chat
-      if (unread > 0) {
-        markMessagesAsRead();
+      },
+      (error) => {
+        console.error('Error listening to messages:', error);
+        setIsLoading(false);
+        toast({
+          title: 'Connection error',
+          description: 'Failed to load messages. Please refresh.',
+          variant: 'destructive'
+        });
       }
-    }, (error) => {
-      console.error('Error listening to messages:', error);
-      setIsLoading(false);
-    });
+    );
 
     return () => unsubscribe();
   }, [firestore, user, chatId]);
-
-  // Send push notification for new messages
-  const sendMessageNotification = async (message: Message, otherUserId: string) => {
-    if (!notificationEnabled) return;
-
-    try {
-      await sendPushNotification(
-        otherUserId,
-        `💬 New Message from ${message.senderName}`,
-        message.text.length > 50 ? message.text.substring(0, 50) + '...' : message.text,
-        {
-          url: `/account/${isSeller ? 'sales' : 'purchases'}/${orderId}`,
-          chatId,
-          messageId: message.id,
-          orderId,
-          productName
-        }
-      );
-    } catch (error) {
-      console.error('Failed to send push notification:', error);
-    }
-  };
 
   // Mark messages as read
   const markMessagesAsRead = async () => {
     if (!firestore || !user) return;
 
     try {
-      const messagesRef = collection(firestore, 'chats', chatId, 'messages');
-      const q = query(
-        messagesRef,
-        where('senderId', '!=', user.uid),
-        where('read', '==', false)
-      );
-
-      // In a real implementation, you'd batch update
-      // For now, we'll just update the state
+      const chatService = getChatService(firestore);
+      await chatService.markAsRead(chatId, 'order', user.uid);
       setUnreadCount(0);
     } catch (error) {
       console.error('Error marking messages as read:', error);
@@ -165,55 +102,40 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
     const messageText = newMessage.trim();
     
     try {
-      // Add message to Firestore
-      const messagesRef = collection(firestore, 'chats', chatId, 'messages');
-      const newMessageDoc = {
-        text: messageText,
-        senderId: user.uid,
-        senderName: profile?.displayName || 'You',
-        senderAvatar: profile?.photoURL,
-        timestamp: serverTimestamp(),
-        read: false,
-        type: 'text'
-      };
-
-      const docRef = await addDoc(messagesRef, newMessageDoc);
+      const chatService = getChatService(firestore);
       
-      // Update last message timestamp in chat metadata
-      const chatRef = doc(firestore, 'chats', chatId);
-      await updateDoc(chatRef, {
-        lastMessage: messageText,
-        lastMessageTime: serverTimestamp(),
-        lastSenderId: user.uid,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      // Send push notification to the other user
-      const message: Message = {
-        id: docRef.id,
-        text: messageText,
-        senderId: user.uid,
-        senderName: profile?.displayName || 'You',
-        senderAvatar: profile?.photoURL,
-        timestamp: new Date(),
-        read: false
-      };
-
-      await sendMessageNotification(message, otherUserId);
+      await chatService.sendMessage(
+        chatId,
+        'order',
+        {
+          text: messageText,
+          senderId: user.uid,
+          senderName: profile?.displayName || 'You',
+          senderAvatar: profile?.photoURL,
+          type: 'text'
+        },
+        otherUserId,
+        {
+          productName,
+          orderId
+        }
+      );
 
       setNewMessage('');
       
-      toast({
-        title: 'Message sent',
-        description: 'Your message has been delivered.',
-        variant: 'default'
-      });
+      if (notificationEnabled) {
+        toast({
+          title: 'Message sent',
+          description: 'Your message has been delivered.',
+          variant: 'default'
+        });
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
         title: 'Failed to send',
-        description: 'There was an error sending your message.',
+        description: 'There was an error sending your message. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -308,12 +230,12 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
                   <Avatar className="h-6 w-6">
                     {msg.senderAvatar && <AvatarImage src={msg.senderAvatar} />}
                     <AvatarFallback className="text-xs">
-                      {msg.senderName.charAt(0)}
+                      {(msg.senderName || 'U').charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-bold text-white">{msg.senderName}</span>
+                  <span className="text-sm font-bold text-white">{msg.senderName || 'User'}</span>
                   <span className="text-xs text-white/40">
-                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {msg.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   {!msg.read && msg.senderId === user?.uid && (
                     <span className="text-xs text-white/40 flex items-center gap-1">
@@ -325,7 +247,7 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
                     <span className="text-xs text-primary animate-pulse">New</span>
                   )}
                 </div>
-                <p className="text-white text-sm">{msg.text}</p>
+                <p className="text-white text-sm whitespace-pre-wrap">{msg.text}</p>
               </div>
             </div>
           ))
