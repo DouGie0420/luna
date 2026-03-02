@@ -11,7 +11,6 @@ import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -92,8 +91,7 @@ export function Header() {
                   <div className={cn(
                     "relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2",
                     "bg-gradient-to-r from-primary to-secondary hover:shadow-[0_0_20px_rgba(255,0,255,0.5)]",
-                    "border border-primary/50 hover:border-primary",
-                    unreadCount > 0 && "animate-pulse"
+                    "border border-primary/50 hover:border-primary"
                   )}>
                     <MessageSquare className="h-4 w-4 text-white" />
                     <span className="text-white font-medium text-sm">Messages</span>
@@ -105,14 +103,8 @@ export function Header() {
                   </div>
                 </Link>
               )}
-              <div className="relative group">
-                <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <ConnectWalletButton />
-              </div>
-              <div className="relative group">
-                <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <UserNav />
-              </div>
+              <ConnectWalletButton />
+              <UserNav />
             </>
           )}
         </div>

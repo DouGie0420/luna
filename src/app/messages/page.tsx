@@ -68,9 +68,8 @@ export default function MessagesPage() {
     const unsubscribe = chatService.subscribeToUserChats(
       user.uid,
       (chatPreviews) => {
-        // 只显示直接消息
-        const directChats = chatPreviews.filter(c => c.type === 'direct');
-        setChats(directChats);
+        // 显示所有聊天（包括订单聊天和直接消息）
+        setChats(chatPreviews);
         setIsLoading(false);
       },
       (error) => {
