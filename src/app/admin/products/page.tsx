@@ -1,425 +1,366 @@
-
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
-import { useFirestore } from "@/firebase";
-import { collection, query, where, doc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
-import type { Product, BbsPost } from "@/lib/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Loader2, Edit, Trash2, ShieldCheck, CheckCircle } from "lucide-react"
-import Image from "next/image"
-import { useTranslation } from "@/hooks/use-translation";
+import { useState, useEffect } from 'react';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, getDocs, doc, updateDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { 
+  Package, 
+  Search, 
+  CheckCircle, 
+  XCircle, 
+  Eye,
+  Loader2,
+  Shield,
+  Clock
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
-import { format } from 'date-fns';
-
-type ProductStatus = NonNullable<Product['status']>;
-type PostStatus = NonNullable<BbsPost['status']>;
-
-
-function ProductTable({ products, loading, onStatusChange, onSetReason, onHardDelete }: { 
-    products: Product[] | null, 
-    loading: boolean, 
-    onStatusChange: (id: string, status: ProductStatus) => void, 
-    onSetReason: (product: Product) => void,
-    onHardDelete: (id: string) => void
-}) {
-    const { t } = useTranslation();
-
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
-
-    if (!products || products.length === 0) {
-        return <div className="text-center py-12 text-muted-foreground">没有需要审核的商品。</div>
-    }
-
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>商品</TableHead>
-                    <TableHead className="w-[100px]">卖家</TableHead>
-                    <TableHead className="w-[120px]">价格</TableHead>
-                    <TableHead className="w-[180px]">提交时间</TableHead>
-                    <TableHead className="w-[120px]">原因</TableHead>
-                    <TableHead className="w-[80px] text-right">操作</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {products.map(product => (
-                    <TableRow key={product.id}>
-                        <TableCell className="font-medium flex items-center gap-3">
-                            {product.images && product.images.length > 0 && (
-                                <Image src={product.images[0]} alt={product.name} width={40} height={30} className="rounded-md object-cover" data-ai-hint={product.imageHints ? product.imageHints[0] : ''} />
-                            )}
-                            <div className="flex-1">
-                                <p className="font-semibold">{product.name}</p>
-                                <p className="text-xs text-muted-foreground font-mono">{product.id}</p>
-                            </div>
-                        </TableCell>
-                        <TableCell>{product.seller.name}</TableCell>
-                        <TableCell>{product.price.toLocaleString()} {product.currency}</TableCell>
-                        <TableCell>{product.createdAt ? format(product.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
-                        <TableCell>
-                            <Badge variant={product.reviewReason ? "destructive" : "secondary"}>{product.reviewReason || 'N/A'}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => onStatusChange(product.id, 'active')}>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        <span>批准 (重新发布)</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onSetReason(product)}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        <span>添加/更新原因</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                        className="text-destructive focus:bg-destructive/10"
-                                        onClick={() => onHardDelete(product.id)}
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>彻底删除</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    )
-}
-
-function PostTable({ posts, loading, onStatusChange, onSetReason, onHardDelete }: { 
-    posts: BbsPost[] | null, 
-    loading: boolean, 
-    onStatusChange: (id: string, status: PostStatus) => void, 
-    onSetReason: (post: BbsPost) => void,
-    onHardDelete: (id: string) => void
-}) {
-    if (loading) {
-        return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div>;
-    }
-
-    if (!posts || posts.length === 0) {
-        return <div className="text-center py-12 text-muted-foreground">没有需要审核的帖子。</div>
-    }
-
-    return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>帖子</TableHead>
-                    <TableHead className="w-[100px]">作者</TableHead>
-                    <TableHead className="w-[120px]"></TableHead>
-                    <TableHead className="w-[180px]">提交时间</TableHead>
-                    <TableHead className="w-[120px]">原因</TableHead>
-                    <TableHead className="w-[80px] text-right">操作</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {posts.map(post => (
-                    <TableRow key={post.id}>
-                        <TableCell className="font-medium">
-                            <p className="font-semibold">{post.title}</p>
-                            <p className="text-xs text-muted-foreground font-mono">{post.id}</p>
-                        </TableCell>
-                        <TableCell>{post.author.name}</TableCell>
-                        <TableCell />
-                        <TableCell>{post.createdAt ? format(post.createdAt.toDate(), 'yyyy-MM-dd HH:mm') : 'N/A'}</TableCell>
-                         <TableCell>
-                            <Badge variant={post.reviewReason ? "destructive" : "secondary"}>{post.reviewReason || 'N/A'}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => onStatusChange(post.id, 'active')}>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        <span>批准 (恢复显示)</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => onSetReason(post)}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        <span>添加/更新原因</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                        className="text-destructive focus:bg-destructive/10"
-                                        onClick={() => onHardDelete(post.id)}
-                                    >
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        <span>彻底删除</span>
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </TableCell>
-                    </TableRow>
-                ))}
-            </TableBody>
-        </Table>
-    )
-}
-
+import Link from 'next/link';
+import type { Product } from '@/lib/types';
 
 export default function AdminProductsPage() {
-    const firestore = useFirestore();
-    const { toast } = useToast();
-    
-    // Local state for items
-    const [products, setProducts] = useState<Product[] | null>(null);
-    const [posts, setPosts] = useState<BbsPost[] | null>(null);
-    const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
-    const { consignmentProducts, reportedProducts } = useMemo(() => {
-        if (!products) {
-            return { consignmentProducts: [], reportedProducts: [] };
-        }
-        const consignment = products.filter(p => p.isConsignment === true);
-        const reported = products.filter(p => p.isConsignment !== true);
-        return { consignmentProducts: consignment, reportedProducts: reported };
-    }, [products]);
+  // 加载产品列表
+  useEffect(() => {
+    if (!firestore) return;
 
-    // Review Item State
-    const [itemToReview, setItemToReview] = useState<{ type: 'product' | 'post', item: Product | BbsPost } | null>(null);
-    const [reviewReason, setReviewReason] = useState('涉黄');
-    const [customReason, setCustomReason] = useState('');
-    
-    // Hard delete state
-    const [itemToHardDelete, setItemToHardDelete] = useState<{ type: 'product' | 'post'; id: string } | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const loadProducts = async () => {
+      try {
+        const productsRef = collection(firestore, 'products');
+        const q = query(productsRef, orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        
+        const productsList: Product[] = [];
+        snapshot.forEach((doc) => {
+          productsList.push({
+            id: doc.id,
+            ...doc.data()
+          } as Product);
+        });
 
-    const fetchItems = async () => {
-        if (!firestore) return;
-
-        setLoading(true);
-        try {
-            const productsQuery = query(collection(firestore, 'products'), where('status', '==', 'under_review'));
-            const postsQuery = query(collection(firestore, 'bbs'), where('status', '==', 'under_review'));
-
-            const [productsSnapshot, postsSnapshot] = await Promise.all([
-                getDocs(productsQuery),
-                getDocs(postsQuery)
-            ]);
-
-            const productsData = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-            const postsData = postsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BbsPost));
-
-            setProducts(productsData);
-            setPosts(postsData);
-        } catch (error) {
-            console.error("Failed to fetch review items:", error);
-            toast({ variant: 'destructive', title: 'Failed to load items for review.' });
-        } finally {
-            setLoading(false);
-        }
+        setProducts(productsList);
+        setFilteredProducts(productsList);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load products.',
+          variant: 'destructive'
+        });
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    useEffect(() => {
-        fetchItems();
-    }, [firestore]);
+    loadProducts();
+  }, [firestore, toast]);
 
-    const handleStatusChange = async (collectionName: 'products' | 'bbs', itemId: string, status: ProductStatus | PostStatus) => {
-        if (!firestore) return;
-        const itemRef = doc(firestore, collectionName, itemId);
-        try {
-            await updateDoc(itemRef, { status, reviewReason: null });
-            toast({ title: '状态已更新', description: `项目已设置为 "${status}"。` });
-            fetchItems();
-        } catch (error) {
-            console.error("Failed to update status:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { status } }));
-        }
-    };
-    
-    const handleConfirmSetReason = async () => {
-        if (!firestore || !itemToReview) return;
+  // 筛选和搜索
+  useEffect(() => {
+    let filtered = products;
 
-        const finalReason = reviewReason === '其它违规' ? customReason : reviewReason;
-        if (!finalReason || !finalReason.trim()) {
-            toast({ variant: 'destructive', title: '原因不能为空' });
-            return;
-        }
+    // 状态筛选
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(p => p.status === statusFilter);
+    }
 
-        setIsSubmitting(true);
-        const itemRef = doc(firestore, itemToReview.type === 'product' ? 'products' : 'bbs', itemToReview.item.id);
+    // 搜索
+    if (searchQuery) {
+      filtered = filtered.filter(p =>
+        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
 
-        try {
-            await updateDoc(itemRef, { reviewReason: finalReason });
-            toast({ title: '原因已记录' });
-            fetchItems(); // Refresh data after setting reason
-        } catch (error) {
-            console.error("Failed to set review reason:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'update', requestResourceData: { reviewReason: finalReason } }));
-        } finally {
-            setIsSubmitting(false);
-            setItemToReview(null);
-            setReviewReason('涉黄');
-            setCustomReason('');
-        }
-    };
-    
-    const handleConfirmHardDelete = async () => {
-        if (!firestore || !itemToHardDelete) return;
+    setFilteredProducts(filtered);
+  }, [products, statusFilter, searchQuery]);
 
-        setIsSubmitting(true);
-        const { type, id } = itemToHardDelete;
-        const collectionPath = type === 'product' ? 'products' : 'bbs';
-        const itemRef = doc(firestore, collectionPath, id);
+  // 审核通过
+  const handleApprove = async (productId: string) => {
+    if (!firestore || !user) return;
 
-        try {
-            await deleteDoc(itemRef);
-            toast({ title: '项目已彻底删除' });
-            setItemToHardDelete(null); // Close dialog
-            window.location.reload(); // Refresh the page to clear state and refetch
-        } catch (error) {
-            console.error("Failed to hard delete item:", error);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({ path: itemRef.path, operation: 'delete' }));
-            setIsSubmitting(false); // Only set to false on error
-        }
-    };
+    try {
+      await updateDoc(doc(firestore, 'products', productId), {
+        status: 'approved',
+        reviewedBy: user.uid,
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
 
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, status: 'approved' as const } : p
+      ));
 
+      toast({
+        title: 'Approved!',
+        description: 'Product has been approved and is now visible.',
+      });
+    } catch (error) {
+      console.error('Error approving product:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to approve product.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  // 审核拒绝
+  const handleReject = async (productId: string) => {
+    if (!firestore || !user) return;
+
+    const reason = prompt('Please enter rejection reason:');
+    if (!reason) return;
+
+    try {
+      await updateDoc(doc(firestore, 'products', productId), {
+        status: 'rejected',
+        rejectionReason: reason,
+        reviewedBy: user.uid,
+        reviewedAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      });
+
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, status: 'rejected' as const, rejectionReason: reason } : p
+      ));
+
+      toast({
+        title: 'Rejected',
+        description: 'Product has been rejected.',
+      });
+    } catch (error) {
+      console.error('Error rejecting product:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to reject product.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
+      case 'approved':
+        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
+      case 'rejected':
+        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
+      case 'inactive':
+        return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Inactive</Badge>;
+      default:
+        return null;
+    }
+  };
+
+  if (isLoading) {
     return (
-        <div>
-            <h2 className="text-3xl font-headline mb-2">内容审核</h2>
-            <p className="text-muted-foreground mb-8">此页面列出了被标记为需要审核的商品和帖子。请检查并进行相应操作。</p>
-            
-            <div className="mb-12">
-                <h3 className="text-2xl font-headline mb-4">寄售商品审核</h3>
-                 <ProductTable 
-                    products={consignmentProducts} 
-                    loading={loading} 
-                    onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
-                    onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
-                    onHardDelete={(id) => setItemToHardDelete({ type: 'product', id })}
-                />
-            </div>
-            
-            <div className="mb-12">
-                <h3 className="text-2xl font-headline mb-4">违规商品审核</h3>
-                <ProductTable 
-                    products={reportedProducts} 
-                    loading={loading} 
-                    onStatusChange={(id, status) => handleStatusChange('products', id, status)} 
-                    onSetReason={(product) => setItemToReview({ type: 'product', item: product })} 
-                    onHardDelete={(id) => setItemToHardDelete({ type: 'product', id })}
-                />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-            <div>
-                <h3 className="text-2xl font-headline mb-4">待审核帖子</h3>
-                 <PostTable 
-                    posts={posts} 
-                    loading={loading} 
-                    onStatusChange={(id, status) => handleStatusChange('bbs', id, status)}
-                    onSetReason={(post) => setItemToReview({ type: 'post', item: post })} 
-                    onHardDelete={(id) => setItemToHardDelete({ type: 'post', id })}
-                />
-            </div>
-
-            <Dialog open={!!itemToReview} onOpenChange={(open) => !open && setItemToReview(null)}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>为 "{('name' in (itemToReview?.item || {})) ? itemToReview?.item.name : itemToReview?.item.title}" 添加审核原因</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <Label htmlFor="reason-select">选择原因</Label>
-                        <Select value={reviewReason} onValueChange={setReviewReason}>
-                            <SelectTrigger id="reason-select">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="涉黄">涉黄 (Pornographic)</SelectItem>
-                                <SelectItem value="涉暴">涉暴 (Violent)</SelectItem>
-                                <SelectItem value="其它违规">其它违规 (Other)</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {reviewReason === '其它违规' && (
-                            <div className="grid gap-2">
-                                <Label htmlFor="custom-reason">请具体说明</Label>
-                                <Input id="custom-reason" value={customReason} onChange={(e) => setCustomReason(e.target.value)} />
-                            </div>
-                        )}
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setItemToReview(null)} disabled={isSubmitting}>取消</Button>
-                        <Button onClick={handleConfirmSetReason} disabled={isSubmitting}>
-                             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            确认
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            
-            <AlertDialog open={!!itemToHardDelete} onOpenChange={(open) => !open && setItemToHardDelete(null)}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>您确定要彻底删除吗？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            此操作将从数据库中永久删除该项目，且无法恢复。这与将商品状态设置为“隐藏”不同。
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setItemToHardDelete(null)} disabled={isSubmitting}>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmHardDelete} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90">
-                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            确认彻底删除
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gradient mb-2">Product Management</h1>
+          <p className="text-white/60">Manage and review products</p>
         </div>
-    )
-}
 
-    
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="glass-morphism border-white/10 p-4">
+            <p className="text-sm text-white/60 mb-1">Total Products</p>
+            <p className="text-2xl font-bold text-white">{products.length}</p>
+          </Card>
+          <Card className="glass-morphism border-yellow-500/30 p-4 bg-yellow-500/5">
+            <p className="text-sm text-white/60 mb-1">Pending Review</p>
+            <p className="text-2xl font-bold text-yellow-400">
+              {products.filter(p => p.status === 'pending').length}
+            </p>
+          </Card>
+          <Card className="glass-morphism border-green-500/30 p-4 bg-green-500/5">
+            <p className="text-sm text-white/60 mb-1">Approved</p>
+            <p className="text-2xl font-bold text-green-400">
+              {products.filter(p => p.status === 'approved').length}
+            </p>
+          </Card>
+          <Card className="glass-morphism border-orange-500/30 p-4 bg-orange-500/5">
+            <p className="text-sm text-white/60 mb-1">Consignment</p>
+            <p className="text-2xl font-bold text-orange-400">
+              {products.filter(p => p.isConsignment).length}
+            </p>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="glass-morphism border-white/10 p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name or category..."
+                className="pl-10 bg-black/40 border-white/20 text-white"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex gap-2">
+              <Button
+                variant={statusFilter === 'all' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('all')}
+                size="sm"
+              >
+                All
+              </Button>
+              <Button
+                variant={statusFilter === 'pending' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('pending')}
+                size="sm"
+                className="border-yellow-500/50 text-yellow-400"
+              >
+                Pending
+              </Button>
+              <Button
+                variant={statusFilter === 'approved' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('approved')}
+                size="sm"
+                className="border-green-500/50 text-green-400"
+              >
+                Approved
+              </Button>
+              <Button
+                variant={statusFilter === 'rejected' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('rejected')}
+                size="sm"
+                className="border-red-500/50 text-red-400"
+              >
+                Rejected
+              </Button>
+            </div>
+          </div>
+        </Card>
+
+        {/* Products List */}
+        {filteredProducts.length === 0 ? (
+          <Card className="glass-morphism border-white/10 p-12 text-center">
+            <Package className="h-16 w-16 text-white/20 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
+            <p className="text-white/60">
+              {searchQuery || statusFilter !== 'all' 
+                ? 'Try adjusting your filters' 
+                : 'No products have been submitted yet'}
+            </p>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {filteredProducts.map((product) => (
+              <Card key={product.id} className="glass-morphism border-white/10 p-6">
+                <div className="flex gap-4">
+                  {/* Image */}
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-32 h-32 rounded-lg object-cover border border-white/10"
+                    />
+                  ) : (
+                    <div className="w-32 h-32 rounded-lg bg-white/5 flex items-center justify-center border border-white/10">
+                      <Package className="h-12 w-12 text-white/20" />
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-xl font-bold text-white">{product.name}</h3>
+                          {product.isConsignment && (
+                            <Badge className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0">
+                              <Shield className="h-3 w-3 mr-1" />
+                              Consignment
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-white/60">
+                          <span>{product.category}</span>
+                          <span>${product.price}</span>
+                        </div>
+                      </div>
+                      {getStatusBadge(product.status || 'approved')}
+                    </div>
+
+                    <p className="text-sm text-white/70 mb-3 line-clamp-2">
+                      {product.description}
+                    </p>
+
+                    {product.status === 'rejected' && product.rejectionReason && (
+                      <div className="mb-3 p-2 bg-red-500/10 border border-red-500/30 rounded text-sm text-red-400">
+                        Reason: {product.rejectionReason}
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-white/60">
+                        Seller ID: {product.sellerId.slice(0, 8)}...
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Link href={`/products/${product.id}`}>
+                          <Button variant="outline" size="sm" className="border-white/20">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View
+                          </Button>
+                        </Link>
+
+                        {product.status === 'pending' && (
+                          <>
+                            <Button
+                              onClick={() => handleApprove(product.id)}
+                              size="sm"
+                              className="bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Approve
+                            </Button>
+                            <Button
+                              onClick={() => handleReject(product.id)}
+                              size="sm"
+                              className="bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30"
+                            >
+                              <XCircle className="h-4 w-4 mr-2" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
