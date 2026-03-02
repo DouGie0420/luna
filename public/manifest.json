@@ -1,0 +1,58 @@
+{
+  "name": "LUNA - Cyber Luxury Marketplace",
+  "short_name": "LUNA",
+  "description": "Secure Web3 marketplace with escrow protection",
+  "theme_color": "#020203",
+  "background_color": "#020203",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Product",
+      "short_name": "Sell",
+      "description": "List a new product for sale",
+      "url": "/products/new"
+    },
+    {
+      "name": "My Wallet",
+      "short_name": "Wallet",
+      "description": "View your USDT balance and transactions",
+      "url": "/account/wallet"
+    },
+    {
+      "name": "Messages",
+      "short_name": "Chat",
+      "description": "Check your messages",
+      "url": "/account/messages"
+    }
+  ],
+  "categories": ["shopping", "finance", "social"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  }
+}
