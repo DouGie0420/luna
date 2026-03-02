@@ -1,17 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useUser, useFirestore } from "@/firebase";
 import { Logo } from "./logo";
 import { UserNav } from "./user-nav";
 import { AnnouncementBar } from "./announcement-bar";
 import { GlowingPixelGrid } from "../glowing-pixel-grid";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { MessageSquare, Shield, Globe, Zap, Wallet } from "lucide-react";
+import { MessageSquare, Shield, Globe, Zap } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
+import { useWeb3 } from "@/contexts/Web3Context";
 import { WalletDropdown } from "../wallet/WalletDropdown";
 
 export function Header() {
@@ -34,7 +34,8 @@ export function Header() {
         const userDoc = await getDoc(doc(firestore, 'users', user.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setIsAdmin(userData.role === 'admin' || userData.isAdmin === true);
+          const role = userData.role;
+          setIsAdmin(['admin', 'ghost', 'staff', 'support'].includes(role));
         }
       } catch (error) {
         console.error('Error checking admin status:', error);
@@ -117,11 +118,11 @@ export function Header() {
             <Logo />
           </div>
           
-          {/* 管理员按钮 - 液态毛玻璃风格 */}
+          {/* 管理员按钮 */}
           {user && isAdmin && (
             <Link href="/admin" className="relative group">
               <div className="absolute -inset-2 bg-yellow-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-yellow-500/10 border border-yellow-500/30 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+              <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                 <Shield className="h-4 w-4 text-yellow-400" />
                 <span className="text-yellow-400 font-medium text-sm">Admin</span>
               </div>
@@ -140,7 +141,7 @@ export function Header() {
             <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
           ) : (
             <>
-              {/* 语言切换按钮 - 液态毛玻璃风格 */}
+              {/* 语言切换按钮 */}
               <button
                 onClick={toggleLanguage}
                 className="relative group"
@@ -154,21 +155,21 @@ export function Header() {
 
               {user && (
                 <>
-                  {/* ROLL OUT 快捷发布按钮 - 液态毛玻璃风格 */}
+                  {/* ROLL OUT 快捷发布按钮 - 统一配色 */}
                   <Link href="/products/new" className="relative group">
                     <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-secondary/20 to-primary/20 border border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-secondary/20 to-cyan-500/20 border border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
                       <Zap className="h-4 w-4 text-secondary" />
-                      <span className="text-white font-medium text-sm">ROLL OUT</span>
+                      <span className="text-secondary font-medium text-sm">ROLL OUT</span>
                     </div>
                   </Link>
 
-                  {/* Messages按钮 - 液态毛玻璃风格 */}
+                  {/* Messages按钮 */}
                   <Link href="/messages" className="relative group">
                     <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-primary/20 to-secondary/20 border border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]">
-                      <MessageSquare className="h-4 w-4 text-white" />
-                      <span className="text-white font-medium text-sm">Messages</span>
+                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-primary/20 to-pink-500/20 border border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]">
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                      <span className="text-primary font-medium text-sm">Messages</span>
                       {unreadCount > 0 && (
                         <span className="bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full">
                           {unreadCount > 99 ? '99+' : unreadCount}
@@ -177,7 +178,7 @@ export function Header() {
                     </div>
                   </Link>
 
-                  {/* 钱包按钮 - 液态毛玻璃风格 */}
+                  {/* 钱包按钮 */}
                   {account ? (
                     <WalletDropdown />
                   ) : (
@@ -186,8 +187,7 @@ export function Header() {
                       className="relative group"
                     >
                       <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                        <Wallet className="h-4 w-4 text-blue-400" />
+                      <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
                         <span className="text-blue-400 font-medium text-sm">Connect Wallet</span>
                       </div>
                     </button>

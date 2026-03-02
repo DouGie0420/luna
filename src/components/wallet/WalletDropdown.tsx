@@ -11,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Wallet, Image, Copy, ExternalLink, LogOut, Check } from 'lucide-react';
+import { Wallet, Image, Copy, ExternalLink, LogOut, Check, Settings } from 'lucide-react';
 import { formatWalletAddress } from '@/lib/avatarUtils';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -48,7 +47,7 @@ export function WalletDropdown() {
       <DropdownMenuTrigger asChild>
         <button className="relative group">
           <div className="absolute -inset-2 bg-green-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-          <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-green-500/10 border border-green-500/30 hover:border-green-500/50">
+          <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.3)]">
             <Wallet className="h-4 w-4 text-green-400" />
             <span className="text-green-400 font-medium text-sm">{formatWalletAddress(account)}</span>
           </div>
@@ -63,18 +62,18 @@ export function WalletDropdown() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-white/10" />
         
-        {/* 设置NFT头像 */}
+        {/* 设置NFT头像 - 突出显示 */}
         <DropdownMenuItem asChild>
-          <Link href="/account/nft-avatar" className="cursor-pointer">
+          <Link href="/account/nft-avatar" className="cursor-pointer bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-l-2 border-l-purple-500">
             <Image className="mr-2 h-4 w-4 text-purple-400" />
-            <span>Set NFT Avatar</span>
+            <span className="font-medium">Set NFT Avatar</span>
           </Link>
         </DropdownMenuItem>
         
         {/* 钱包管理 */}
         <DropdownMenuItem asChild>
           <Link href="/account/wallet" className="cursor-pointer">
-            <Wallet className="mr-2 h-4 w-4" />
+            <Settings className="mr-2 h-4 w-4" />
             <span>Wallet Management</span>
           </Link>
         </DropdownMenuItem>
