@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWeb3 } from '@/contexts/Web3Context';
+import { useWeb3 } from '@/context/Web3Context';
 import { useUser } from '@/firebase';
 import {
   DropdownMenu,
