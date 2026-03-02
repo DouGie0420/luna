@@ -1,324 +1,205 @@
-// 覆盖到：src/app/admin/page.tsx
-
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, ShieldCheck, Loader2, DollarSign, AlertCircle, TrendingUp, HandCoins, Sparkles as SparklesIcon, Award, Radio, Box } from "lucide-react";
-import { useFirestore, useDoc } from "@/firebase";
-import { collection, getDocs, query, where, doc, setDoc, updateDoc } from "firebase/firestore";
-import { useEffect, useState, useMemo } from "react";
-import { useTranslation } from "@/hooks/use-translation";
-import Link from "next/link";
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-import { Skeleton } from "@/components/ui/skeleton";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import type { GlobalSettings, GlobalAudioPlayerConfig } from "@/lib/types";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useFirestore } from '@/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { 
+  Users, 
+  ShoppingBag, 
+  Package, 
+  DollarSign,
+  TrendingUp,
+  Loader2
+} from 'lucide-react';
+import Link from 'next/link';
 
-type Stats = {
-    totalUsers: number;
-    pendingKyc: number;
-    pendingPaymentRequests: number;
-    pendingConsignments: number; // 🚀 新增：待处理的官方寄卖数量
-    totalGmv: number;
-};
+interface Stats {
+  totalUsers: number;
+  totalOrders: number;
+  totalProducts: number;
+  totalRevenue: number;
+  pendingOrders: number;
+  activeUsers: number;
+}
 
-const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-]
+export default function AdminDashboard() {
+  const firestore = useFirestore();
+  const [stats, setStats] = useState<Stats>({
+    totalUsers: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    activeUsers: 0
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-const chartConfig = {
-  desktop: {
-    label: "Desktop",
-    color: "hsl(var(--chart-1))",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "hsl(var(--chart-2))",
-  },
-} satisfies ChartConfig
+  useEffect(() => {
+    if (!firestore) return;
 
-export default function AdminDashboardPage() {
-    const firestore = useFirestore();
-    const { t } = useTranslation();
-    const { toast } = useToast();
-    const [stats, setStats] = useState<Stats | null>(null);
-    const [loading, setLoading] = useState(true);
+    const loadStats = async () => {
+      try {
+        // 获取用户总数
+        const usersSnapshot = await getDocs(collection(firestore, 'users'));
+        const totalUsers = usersSnapshot.size;
 
-    const settingsRef = useMemo(() => firestore ? doc(firestore, 'settings', 'global') : null, [firestore]);
-    const { data: globalSettings, loading: settingsLoading } = useDoc<GlobalSettings>(settingsRef);
+        // 获取订单总数和收入
+        const ordersSnapshot = await getDocs(collection(firestore, 'orders'));
+        const totalOrders = ordersSnapshot.size;
+        let totalRevenue = 0;
+        let pendingOrders = 0;
 
-    const audioConfigRef = useMemo(() => firestore ? doc(firestore, 'configs', 'global_audio_player') : null, [firestore]);
-    const { data: globalAudioPlayerConfig, loading: audioConfigLoading } = useDoc<GlobalAudioPlayerConfig>(audioConfigRef);
+        ordersSnapshot.forEach((doc) => {
+          const order = doc.data();
+          if (order.status === 'completed') {
+            totalRevenue += order.price || 0;
+          }
+          if (order.status === 'pending_payment' || order.status === 'payment_submitted') {
+            pendingOrders++;
+          }
+        });
 
-    useEffect(() => {
-        if (!firestore) return;
+        // 获取产品总数
+        const productsSnapshot = await getDocs(collection(firestore, 'products'));
+        const totalProducts = productsSnapshot.size;
 
-        const fetchStats = async () => {
-            setLoading(true);
-            try {
-                const usersCollection = collection(firestore, 'users');
-                const ordersCollection = collection(firestore, 'orders');
-                const paymentRequestsCollection = collection(firestore, 'paymentChangeRequests');
-                const productsCollection = collection(firestore, 'products'); // 🚀 引入商品表
+        // 获取活跃用户数（最近30天登录）
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        let activeUsers = 0;
+        usersSnapshot.forEach((doc) => {
+          const user = doc.data();
+          if (user.updatedAt?.toDate() > thirtyDaysAgo) {
+            activeUsers++;
+          }
+        });
 
-                const totalUsersSnapshot = await getDocs(usersCollection);
-                const pendingKycQuery = query(usersCollection, where('kycStatus', '==', 'Pending'));
-                const pendingKycSnapshot = await getDocs(pendingKycQuery);
-                
-                const pendingPaymentQuery = query(paymentRequestsCollection, where('status', '==', 'pending'));
-                const pendingPaymentSnapshot = await getDocs(pendingPaymentQuery);
-
-                // 🚀 查询所有处于待审核状态的官方寄卖商品
-                const pendingConsignmentQuery = query(productsCollection, where('isConsignment', '==', true), where('status', '==', 'under_review'));
-                const pendingConsignmentSnapshot = await getDocs(pendingConsignmentQuery);
-
-                const completedOrdersQuery = query(ordersCollection, where('status', '==', 'Completed'));
-                const completedOrdersSnapshot = await getDocs(completedOrdersQuery);
-                const totalGmv = completedOrdersSnapshot.docs.reduce((sum, doc) => sum + (doc.data().totalAmount || 0), 0);
-
-                setStats({
-                    totalUsers: totalUsersSnapshot.size,
-                    pendingKyc: pendingKycSnapshot.size,
-                    pendingPaymentRequests: pendingPaymentSnapshot.size,
-                    pendingConsignments: pendingConsignmentSnapshot.size, // 🚀 写入状态
-                    totalGmv,
-                });
-            } catch (error) {
-                console.error("Failed to fetch dashboard stats:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchStats();
-    }, [firestore]);
-
-    const handleSettingToggle = async (settingName: keyof GlobalSettings, value: boolean) => {
-        if (!settingsRef) return;
-        try {
-            await setDoc(settingsRef, { [settingName]: value }, { merge: true });
-            toast({ title: 'Setting updated' });
-        } catch (error) {
-            console.error("Failed to update setting:", error);
-            toast({ variant: 'destructive', title: 'Update failed' });
-        }
+        setStats({
+          totalUsers,
+          totalOrders,
+          totalProducts,
+          totalRevenue,
+          pendingOrders,
+          activeUsers
+        });
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const handleAudioPlayerToggle = async (value: boolean) => {
-        if (!audioConfigRef) return;
-        try {
-            await updateDoc(audioConfigRef, { 'display_logic.isVisible': value });
-            toast({ title: '播放器设置已更新' });
-        } catch (error) {
-            console.error("Failed to update audio player setting:", error);
-            toast({ variant: 'destructive', title: '更新失败' });
-        }
-    };
+    loadStats();
+  }, [firestore]);
 
-    if (loading || !stats) {
-        return (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                     <Card key={i}>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium"><Skeleton className="h-4 w-24" /></CardTitle>
-                            <Skeleton className="h-4 w-4" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold"><Loader2 className="h-6 w-6 animate-spin" /></div>
-                            <div className="text-xs text-muted-foreground"><Skeleton className="h-3 w-40" /></div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        )
-    }
-
+  if (isLoading) {
     return (
-        <div className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">总成交额 (GMV)</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">¥{stats.totalGmv.toLocaleString()}</div>
-                        <p className="text-xs text-muted-foreground">所有已完成订单的总金额</p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">手续费总收入 (Coming Soon)</CardTitle>
-                        <HandCoins className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold text-muted-foreground/50">¥ -</div>
-                        <p className="text-xs text-muted-foreground">需要更新订单结构以追踪费用</p>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">总用户数</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                         <div className="text-xs text-muted-foreground">&nbsp;</div>
-                    </CardContent>
-                </Card>
-            </div>
-            
-             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                 <Link href="/admin/kyc-list">
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer bg-red-500/10 border-red-500/30">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">待处理KYC申请</CardTitle>
-                            <AlertCircle className="h-4 w-4 text-red-400" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-red-300">{stats.pendingKyc}</div>
-                        </CardContent>
-                    </Card>
-                </Link>
-                 <Link href="/admin/payment-requests">
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer bg-red-500/10 border-red-500/30">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">待处理收款申请</CardTitle>
-                            <AlertCircle className="h-4 w-4 text-red-400" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold text-red-300">{stats.pendingPaymentRequests}</div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* 🚀 新增：官方寄卖审核快捷入口 */}
-                <Link href="/admin/consignment">
-                    <Card className="hover:border-[#ff00ff]/50 transition-colors cursor-pointer bg-[#ff00ff]/10 border-[#ff00ff]/30 shadow-[0_0_15px_rgba(255,0,255,0.1)]">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-bold text-[#ff00ff]">待处理寄卖审核</CardTitle>
-                            <Box className="h-4 w-4 text-[#ff00ff] animate-pulse" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-black text-white">{stats.pendingConsignments}</div>
-                        </CardContent>
-                    </Card>
-                </Link>
-             </div>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>功能开关</CardTitle>
-                    <CardContent className="pt-6 space-y-4">
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="ai-toggle" className="flex items-center gap-2 text-base"><SparklesIcon className="h-4 w-4 text-primary"/> AI 智能分析</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    开启或关闭用户发布商品时使用 AI 生成描述的功能。
-                                </p>
-                            </div>
-                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
-                                <Switch
-                                    id="ai-toggle"
-                                    checked={globalSettings?.isAiAnalysisEnabled ?? false}
-                                    onCheckedChange={(checked) => handleSettingToggle('isAiAnalysisEnabled', checked)}
-                                />
-                            )}
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="pro-toggle" className="flex items-center gap-2 text-base"><Award className="h-4 w-4 text-primary"/> PRO 商户申请</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    开启或关闭用户在个人资料页面申请PRO商户认证的功能。
-                                </p>
-                            </div>
-                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
-                                <Switch
-                                    id="pro-toggle"
-                                    checked={globalSettings?.isProApplicationEnabled ?? false}
-                                    onCheckedChange={(checked) => handleSettingToggle('isProApplicationEnabled', checked)}
-                                />
-                            )}
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="rental-toggle" className="flex items-center gap-2 text-base"><Award className="h-4 w-4 text-primary"/> 房屋租赁功能</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    开启或关闭PRO商户发布房屋租赁信息的功能。
-                                </p>
-                            </div>
-                            {settingsLoading ? <Skeleton className="h-6 w-10" /> : (
-                                <Switch
-                                    id="rental-toggle"
-                                    checked={globalSettings?.isRentalEnabled ?? false}
-                                    onCheckedChange={(checked) => handleSettingToggle('isRentalEnabled', checked)}
-                                />
-                            )}
-                        </div>
-                        <div className="flex items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                                <Label htmlFor="audio-player-toggle" className="flex items-center gap-2 text-base"><Radio className="h-4 w-4 text-primary"/> 全局音乐播放器</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    在全站右下角启用或禁用背景音乐直播浮动窗口。
-                                </p>
-                            </div>
-                            {audioConfigLoading ? <Skeleton className="h-6 w-10" /> : (
-                                <Switch
-                                    id="audio-player-toggle"
-                                    checked={globalAudioPlayerConfig?.display_logic?.isVisible ?? false}
-                                    onCheckedChange={handleAudioPlayerToggle}
-                                />
-                            )}
-                        </div>
-                    </CardContent>
-                </CardHeader>
-             </Card>
-
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>近期活动</CardTitle>
-                        <CardContent className="pl-0">
-                           <p className="text-muted-foreground text-sm py-12 text-center">活动源将在此处显示。</p>
-                        </CardContent>
-                    </CardHeader>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><TrendingUp/> 交易量趋势 (示例)</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pl-2">
-                         <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                            <BarChart accessibilityLayer data={chartData}>
-                                <CartesianGrid vertical={false} />
-                                <XAxis
-                                dataKey="month"
-                                tickLine={false}
-                                tickMargin={10}
-                                axisLine={false}
-                                tickFormatter={(value) => value.slice(0, 3)}
-                                />
-                                <ChartTooltip content={<ChartTooltipContent />} />
-                                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-                            </BarChart>
-                        </ChartContainer>
-                    </CardContent>
-                </Card>
-             </div>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
     );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gradient mb-2">Admin Dashboard</h1>
+          <p className="text-white/60">Manage your LUNA marketplace</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Total Users */}
+          <Card className="glass-morphism border-white/10 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-blue-500/20 rounded-lg">
+                <Users className="h-6 w-6 text-blue-400" />
+              </div>
+              <TrendingUp className="h-5 w-5 text-green-400" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalUsers}</h3>
+            <p className="text-sm text-white/60">Total Users</p>
+            <p className="text-xs text-green-400 mt-2">{stats.activeUsers} active (30d)</p>
+          </Card>
+
+          {/* Total Orders */}
+          <Card className="glass-morphism border-white/10 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-purple-500/20 rounded-lg">
+                <ShoppingBag className="h-6 w-6 text-purple-400" />
+              </div>
+              <TrendingUp className="h-5 w-5 text-green-400" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalOrders}</h3>
+            <p className="text-sm text-white/60">Total Orders</p>
+            <p className="text-xs text-yellow-400 mt-2">{stats.pendingOrders} pending</p>
+          </Card>
+
+          {/* Total Products */}
+          <Card className="glass-morphism border-white/10 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-pink-500/20 rounded-lg">
+                <Package className="h-6 w-6 text-pink-400" />
+              </div>
+              <TrendingUp className="h-5 w-5 text-green-400" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">{stats.totalProducts}</h3>
+            <p className="text-sm text-white/60">Total Products</p>
+          </Card>
+
+          {/* Total Revenue */}
+          <Card className="glass-morphism border-primary/30 p-6 bg-primary/5 md:col-span-2 lg:col-span-3">
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-3 bg-green-500/20 rounded-lg">
+                <DollarSign className="h-6 w-6 text-green-400" />
+              </div>
+              <TrendingUp className="h-5 w-5 text-green-400" />
+            </div>
+            <h3 className="text-4xl font-bold text-gradient mb-1">${stats.totalRevenue.toFixed(2)}</h3>
+            <p className="text-sm text-white/60">Total Revenue (Completed Orders)</p>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link href="/admin/users">
+            <Card className="glass-morphism border-white/10 p-6 hover:border-primary/50 transition-all cursor-pointer hover-lift">
+              <Users className="h-8 w-8 text-blue-400 mb-3" />
+              <h3 className="text-lg font-bold text-white mb-1">Users</h3>
+              <p className="text-sm text-white/60">Manage users</p>
+            </Card>
+          </Link>
+
+          <Link href="/admin/orders">
+            <Card className="glass-morphism border-white/10 p-6 hover:border-primary/50 transition-all cursor-pointer hover-lift">
+              <ShoppingBag className="h-8 w-8 text-purple-400 mb-3" />
+              <h3 className="text-lg font-bold text-white mb-1">Orders</h3>
+              <p className="text-sm text-white/60">Manage orders</p>
+            </Card>
+          </Link>
+
+          <Link href="/admin/products">
+            <Card className="glass-morphism border-white/10 p-6 hover:border-primary/50 transition-all cursor-pointer hover-lift">
+              <Package className="h-8 w-8 text-pink-400 mb-3" />
+              <h3 className="text-lg font-bold text-white mb-1">Products</h3>
+              <p className="text-sm text-white/60">Manage products</p>
+            </Card>
+          </Link>
+
+          <Link href="/admin/settings">
+            <Card className="glass-morphism border-white/10 p-6 hover:border-primary/50 transition-all cursor-pointer hover-lift">
+              <DollarSign className="h-8 w-8 text-green-400 mb-3" />
+              <h3 className="text-lg font-bold text-white mb-1">Settings</h3>
+              <p className="text-sm text-white/60">System settings</p>
+            </Card>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
