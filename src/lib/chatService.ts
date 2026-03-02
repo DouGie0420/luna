@@ -138,18 +138,27 @@ export class ChatService {
     callback: (chats: ChatPreview[]) => void,
     onError?: (error: Error) => void
   ): () => void {
+    let orderChats: ChatPreview[] = [];
+    let directChats: ChatPreview[] = [];
+
+    const updateChats = () => {
+      const allChats = [...orderChats, ...directChats].sort(
+        (a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
+      );
+      callback(allChats);
+    };
+
     // 监听订单聊天
     const orderChatsRef = collection(this.firestore, 'chats');
     const orderQuery = query(
       orderChatsRef,
-      where('participants', 'array-contains', userId),
-      orderBy('lastMessageTimestamp', 'desc')
+      where('participants', 'array-contains', userId)
     );
 
     const unsubscribeOrder = onSnapshot(
       orderQuery,
       (snapshot) => {
-        const orderChats: ChatPreview[] = [];
+        orderChats = [];
         snapshot.forEach((doc) => {
           const data = doc.data() as OrderChat;
           const otherUserId = data.participants.find(id => id !== userId) || '';
@@ -166,48 +175,7 @@ export class ChatService {
             productName: data.productName
           });
         });
-
-        // 监听直接消息
-        const directChatsRef = collection(this.firestore, 'direct_chats');
-        const directQuery = query(
-          directChatsRef,
-          where('participants', 'array-contains', userId),
-          orderBy('lastMessageTimestamp', 'desc')
-        );
-
-        onSnapshot(
-          directQuery,
-          (directSnapshot) => {
-            const directChats: ChatPreview[] = [];
-            directSnapshot.forEach((doc) => {
-              const data = doc.data() as DirectChat;
-              const otherUserId = data.participants.find(id => id !== userId) || '';
-              const otherProfile = data.participantProfiles?.[otherUserId];
-
-              directChats.push({
-                id: doc.id,
-                type: 'direct',
-                otherUserId,
-                otherUserName: otherProfile?.displayName || 'User',
-                otherUserAvatar: otherProfile?.photoURL,
-                lastMessage: data.lastMessage || 'No messages yet',
-                lastMessageTime: data.lastMessageTimestamp?.toDate() || new Date(),
-                unreadCount: data.unreadCount?.[userId] || 0
-              });
-            });
-
-            // 合并并排序
-            const allChats = [...orderChats, ...directChats].sort(
-              (a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime()
-            );
-
-            callback(allChats);
-          },
-          (error) => {
-            console.error('Error listening to direct chats:', error);
-            if (onError) onError(error);
-          }
-        );
+        updateChats();
       },
       (error) => {
         console.error('Error listening to order chats:', error);
@@ -215,7 +183,46 @@ export class ChatService {
       }
     );
 
-    return unsubscribeOrder;
+    // 监听直接消息
+    const directChatsRef = collection(this.firestore, 'direct_chats');
+    const directQuery = query(
+      directChatsRef,
+      where('participants', 'array-contains', userId)
+    );
+
+    const unsubscribeDirect = onSnapshot(
+      directQuery,
+      (snapshot) => {
+        directChats = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data() as DirectChat;
+          const otherUserId = data.participants.find(id => id !== userId) || '';
+          const otherProfile = data.participantProfiles?.[otherUserId];
+
+          directChats.push({
+            id: doc.id,
+            type: 'direct',
+            otherUserId,
+            otherUserName: otherProfile?.displayName || 'User',
+            otherUserAvatar: otherProfile?.photoURL,
+            lastMessage: data.lastMessage || 'No messages yet',
+            lastMessageTime: data.lastMessageTimestamp?.toDate() || new Date(),
+            unreadCount: data.unreadCount?.[userId] || 0
+          });
+        });
+        updateChats();
+      },
+      (error) => {
+        console.error('Error listening to direct chats:', error);
+        if (onError) onError(error);
+      }
+    );
+
+    // 返回清理函数
+    return () => {
+      unsubscribeOrder();
+      unsubscribeDirect();
+    };
   }
 
   /**

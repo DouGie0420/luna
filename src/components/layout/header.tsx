@@ -26,6 +26,8 @@ export function Header() {
       return;
     }
 
+    const unsubscribers: (() => void)[] = [];
+
     // 监听直接消息未读数
     const directChatsRef = collection(firestore, 'direct_chats');
     const directQuery = query(
@@ -33,11 +35,11 @@ export function Header() {
       where('participants', 'array-contains', user.uid)
     );
 
-    const unsubscribeDirect = onSnapshot(directQuery, (snapshot) => {
-      let total = 0;
+    const unsubDirect = onSnapshot(directQuery, (snapshot) => {
+      let directUnread = 0;
       snapshot.forEach((doc) => {
         const data = doc.data();
-        total += data.unreadCount?.[user.uid] || 0;
+        directUnread += data.unreadCount?.[user.uid] || 0;
       });
 
       // 监听订单聊天未读数
@@ -47,17 +49,23 @@ export function Header() {
         where('participants', 'array-contains', user.uid)
       );
 
-      onSnapshot(orderQuery, (orderSnapshot) => {
-        let orderTotal = 0;
+      const unsubOrder = onSnapshot(orderQuery, (orderSnapshot) => {
+        let orderUnread = 0;
         orderSnapshot.forEach((doc) => {
           const data = doc.data();
-          orderTotal += data.unreadCount?.[user.uid] || 0;
+          orderUnread += data.unreadCount?.[user.uid] || 0;
         });
-        setUnreadCount(total + orderTotal);
+        setUnreadCount(directUnread + orderUnread);
       });
+
+      unsubscribers.push(unsubOrder);
     });
 
-    return () => unsubscribeDirect();
+    unsubscribers.push(unsubDirect);
+
+    return () => {
+      unsubscribers.forEach(unsub => unsub());
+    };
   }, [firestore, user]);
 
   return (
@@ -73,32 +81,34 @@ export function Header() {
           <AnnouncementBar />
         </div>
 
-        <div className="flex items-center gap-6 flex-shrink-0">
+        <div className="flex items-center gap-3 flex-shrink-0">
           {loading ? (
             <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
           ) : (
             <>
               {user && (
                 <Link href="/messages" className="relative group">
-                  <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className={cn(
-                    "relative p-2 rounded-full transition-all duration-200",
-                    "bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/50",
-                    unreadCount > 0 && "bg-primary/10 border-primary/30"
+                    "relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2",
+                    "bg-gradient-to-r from-primary to-secondary hover:shadow-[0_0_20px_rgba(255,0,255,0.5)]",
+                    "border border-primary/50 hover:border-primary",
+                    unreadCount > 0 && "animate-pulse"
                   )}>
-                    <MessageSquare className={cn(
-                      "h-5 w-5 transition-colors",
-                      unreadCount > 0 ? "text-primary" : "text-white/70"
-                    )} />
+                    <MessageSquare className="h-4 w-4 text-white" />
+                    <span className="text-white font-medium text-sm">Messages</span>
                     {unreadCount > 0 && (
-                      <Badge className="absolute -top-1 -right-1 h-5 min-w-[20px] flex items-center justify-center bg-primary text-white text-xs px-1.5 animate-pulse">
+                      <span className="bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full">
                         {unreadCount > 99 ? '99+' : unreadCount}
-                      </Badge>
+                      </span>
                     )}
                   </div>
                 </Link>
               )}
-              <ConnectWalletButton />
+              <div className="relative group">
+                <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ConnectWalletButton />
+              </div>
               <div className="relative group">
                 <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <UserNav />
