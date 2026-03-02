@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useUser, useFirestore, useCollection } from "@/firebase";
-import { collection, query, where, addDoc, serverTimestamp, getDocs, doc, getDoc } from "firebase/firestore";
-import { ethers } from 'ethers';
+import { collection, query, where, addDoc, serverTimestamp, getDocs, doc, getDoc, orderBy, limit } from "firebase/firestore";
+import { ethers, formatUnits, parseUnits } from 'ethers'; // 引入 parseUnits 用于处理授权金额
 import type { PaymentChangeRequest, PaymentInfo, UserProfile } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 
@@ -11,14 +11,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X, Gem } from "lucide-react";
+import { Loader2, Wallet, QrCode, PlusCircle, AlertCircle, Edit, Banknote, Building, UploadCloud, X, Gem, CheckCircle } from "lucide-react";
 import Image from 'next/image';
 import { updateUserProfile } from '@/lib/user';
 import { useTranslation } from '@/hooks/use-translation';
 import { cn } from '@/lib/utils';
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
+import { getEthersSigner } from '@/lib/web3-provider'; // 引入我们自己的 getEthersSigner 来触发连接
+import { useUSDTBalanceAndAllowance } from '@/hooks/useUSDTBalanceAndAllowance'; // USDT 余额和授权 Hook
+import { useUSDTApprove } from '@/hooks/useUSDTApprove'; // USDT 授权 Hook
+import { connectToChain } from '@/lib/web3-provider'; // 引入连接链的函数
+
+
+// 定义Luna项目所需的Polygon链ID，与web3-provider.ts保持一致
+const REQUIRED_CHAIN_ID = 8453;
 
 // 🌌 赛博高奢增强样式
 const intenseArtStyles = `
@@ -37,16 +45,6 @@ const intenseArtStyles = `
   .glass-card-cyber { background: rgba(5, 0, 10, 0.8); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .titanium-title { font-family: 'Playfair Display', serif; letter-spacing: -0.02em; }
 `;
-
-const MetaMaskIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 100 100" {...props}><path d="M83.43,26.28,62.26,13.41a4.21,4.21,0,0,0-4-.09L43.83,21.58,36.5,26,25.9,32.45,21.4,35.1l-2.65,1.52L16,38.16a2.4,2.4,0,0,0-1.14,2.12V59.83a2.39,2.b 9,2.39,0,0,0,1.14,2.12l2.74,1.57,11.23,6.48,7.34,4.24,14.67,8.47a4.23,4.23,0,0,0,4,0L78,74.24l13.8-8a2.39,2.39,0,0,0,1.2-2.09V34.59a2.42,2.42,0,0,0-1.19-2.12ZM35.3,49.44,27.18,54.32l-6.23-3.6V43.23l6.23-3.6,8.12,4.88ZM58.31,23.3,62.25,21,73,27.32,62.26,33.57,51.83,27.53Zm-15.6,0,10.43-6.24L62.26,22.8,53,28.24,42.71,22.25Zm-3.11,8.1,9-5.18,10.15,5.92-3.1,1.8-6.88-4.11-8.31,4.86Zm-2.8,1.6,9.15-5.28,3.24,1.87-9.15,5.28Zm13,29.35-10.16-5.9,3.11-1.79,7.05,4.14,8-4.63-3.11-1.79Zm-1.85-20.17,8-4.63,6.23,3.6-8,4.63Zm18.89,12.06L52.06,78.56,42.71,73.1l-6.4-3.79V61.19L42.71,56l14.88,8.63L73,56l-6.23-3.6,6.23-3.6,8.12,4.88v9.42Z" fill="#e57a3b"/></svg>
-);
-const PhantomIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 20 20" fill="currentColor" {...props}><path fillRule="evenodd" d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zm0 2a8 8 0 100 16 8 8 0 000-16zM6 6a4 4 0 014 4h2a6 6 0 10-6-6v2zm1.757 7.071a1 1 0 011.414 0l1.414-1.414a3 3 0 10-4.242 4.242l1.414-1.414a1 1 0 010-1.414zm6.586-4.242a1 1 0 010 1.414l-1.414 1.414a3 3 0 104.242-4.242l-1.414 1.414a1 1 0 01-1.414 0z" clipRule="evenodd"></path></svg>
-);
-const BinanceIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" {...props}><path d="M12 2L6 8l6 6 6-6-6-6z" fill="#F0B90B"></path><path d="M2 12l6 6 6-6-6-6-6 6z" fill="#F0B90B"></path><path d="M12 22l6-6-6-6-6 6 6 6z" fill="#F0B90B"></path><path d="M16.5 12l-4.5 4.5-4.5-4.5 4.5-4.5 4.5 4.5z" fill="#F0B90B"></path><path d="M22 12l-6 6-1.5-1.5 4.5-4.5L16 7.5l6 4.5z" fill="#F0B90B"></path></svg>
-);
 
 const InfoRow = ({ label, value, isMono = false }: { label: string, value: string | null | undefined, isMono?: boolean }) => (
     <div className="flex justify-between items-center text-sm">
@@ -71,6 +69,23 @@ const QrCodeDisplay = ({ label, qrUrl }: { label: string, qrUrl: string | null |
     </div>
 );
 
+interface USDTTransaction {
+  id: string;
+  type: 'lock' | 'release' | 'refund' | 'approval' | 'transfer';
+  amount: string;
+  txHash: string;
+  timestamp: any; // Firestore Timestamp or Date
+  status: 'pending' | 'confirmed' | 'failed';
+  orderId?: string;
+  from?: string;
+  to?: string;
+  userId?: string;
+  network?: string;
+  contractAddress?: string;
+  // Firestore may have additional fields like amountNumber
+  amountNumber?: number;
+}
+
 export default function WalletPage() {
     const { user, profile } = useUser();
     const firestore = useFirestore();
@@ -78,8 +93,12 @@ export default function WalletPage() {
     const { t } = useTranslation();
     const isMounted = useRef(true);
 
-    const [isConnecting, setIsConnecting] = useState(false);
-    const [isWalletSelectorOpen, setIsWalletSelectorOpen] = useState(false);
+    // --- New Web3 Hooks ---
+    const { address, isConnected, chainId } = useUSDTBalanceAndAllowance(); // 使用我们自己的 Hook
+    const { balance, allowance, decimals, symbol, isLoading, error: usdtHookError, refetch: refetchUSDTData } = useUSDTBalanceAndAllowance();
+    const { isApproving, approvalError, approveUSDT } = useUSDTApprove();
+    // --- End New Web3 Hooks ---
+
     const [isRequestDialogOpen, setIsRequestDialogOpen] = useState(false);
     const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
     const [newPaymentInfo, setNewPaymentInfo] = useState<PaymentInfo>({});
@@ -87,6 +106,10 @@ export default function WalletPage() {
     const [wechatPayQrPreview, setWechatPayQrPreview] = useState<string | null>(null);
     const [promptPayQrPreview, setPromptPayQrPreview] = useState<string | null>(null);
     
+    // USDT 授权相关状态
+    const [amountToApprove, setAmountToApprove] = useState<string>('');
+    const [isApproveDialogOpen, setIsApproveDialogOpen] = useState<boolean>(false);
+
     useEffect(() => {
         isMounted.current = true;
         return () => { isMounted.current = false; };
@@ -99,6 +122,20 @@ export default function WalletPage() {
     
     const { data: pendingRequests } = useCollection<PaymentChangeRequest>(pendingRequestQuery);
     const hasPendingRequest = pendingRequests && pendingRequests.length > 0;
+    
+    // USDT Transaction History Query
+    const transactionsQuery = useMemo(() => {
+        if (!firestore || !user) return null;
+        return query(
+            collection(firestore, 'usdt_transactions'),
+            where('userId', '==', user.uid),
+            orderBy('timestamp', 'desc'),
+            limit(10)
+        );
+    }, [firestore, user]);
+    
+    const { data: transactions, loading: loadingTransactions } = useCollection<USDTTransaction>(transactionsQuery);
+    
     const hasExistingPaymentInfo = profile?.paymentInfo && Object.values(profile.paymentInfo).some(v => v);
 
     const resetRequestForm = () => {
@@ -108,63 +145,41 @@ export default function WalletPage() {
         setPromptPayQrPreview(null);
     }
 
-    const handleConnect = async (walletType: 'metamask' | 'phantom' | 'binance') => {
-        if (!firestore || !user) return;
-        
-        // 🛡️ 深度清理 Provider
-        const eth = (window as any).ethereum;
-        if (walletType === 'metamask' && (!eth || !eth.isMetaMask)) {
-            toast({ variant: "destructive", title: "METAMASK_NOT_FOUND", description: "Gateway not detected. Please unlock or install." });
-            return;
+    // --- Old handleConnect function removed as Web3Modal handles connection ---
+    // --- Update user profile with connected wallet address ---
+    useEffect(() => {
+        if (isConnected && address && user && firestore && (!profile?.walletAddress || profile.walletAddress.toLowerCase() !== address.toLowerCase())) {
+            updateUserProfile(firestore, user.uid, { walletAddress: address.toLowerCase(), isWeb3Verified: true })
+                .then(() => {
+                    toast({ title: "HANDSHAKE_COMPLETE", description: "Identity node linked successfully." });
+                })
+                .catch((error) => {
+                    console.error("FIREBASE_PROFILE_UPDATE_ERROR:", error);
+                    toast({ variant: 'destructive', title: 'PROFILE_UPDATE_FAILURE', description: 'Failed to link wallet address to profile.' });
+                });
         }
+    }, [isConnected, address, user, firestore, profile?.walletAddress, toast]);
 
-        setIsConnecting(true);
-        setIsWalletSelectorOpen(false);
-
-        try {
-            // 🛡️ 采用分步握手策略
-            const provider = new ethers.BrowserProvider(eth);
-            
-            // 先尝试静默检查已有账户
-            const accounts = await Promise.race([
-                eth.request({ method: 'eth_accounts' }),
-                new Promise((_, reject) => setTimeout(() => reject(new Error("SILENT_TIMEOUT")), 2000))
-            ]).catch(() => []);
-
-            // 如果没有静默授权，再触发弹出框
-            if (accounts.length === 0) {
-                const connectPromise = eth.request({ method: 'eth_requestAccounts' });
-                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("USER_TIMEOUT")), 30000));
-                await Promise.race([connectPromise, timeoutPromise]);
-            }
-            
-            const signer = await provider.getSigner();
-            const walletAddress = (await signer.getAddress()).toLowerCase();
-            
-            if (!isMounted.current) return;
-
-            const q = query(collection(firestore, 'users'), where("walletAddress", "==", walletAddress));
-            const querySnapshot = await getDocs(q);
-      
-            if (!querySnapshot.empty && querySnapshot.docs.some(doc => doc.id !== user.uid)) {
-                toast({ variant: "destructive", title: "IDENTITY_CONFLICT", description: "Node already bound to another protocol." });
-                setIsConnecting(false);
-                return;
-            }
-
-            await updateUserProfile(firestore, user.uid, { walletAddress, isWeb3Verified: true });
-            toast({ title: "HANDSHAKE_COMPLETE", description: "Identity node linked successfully." });
-        } catch (error: any) {
-            console.error("WEB3_LINK_ERROR:", error);
-            if (!isMounted.current) return;
-            const msg = error.code === 4001 ? "Link rejected by user." : "Matrix interface failure.";
-            toast({ variant: 'destructive', title: 'LINK_FAILURE', description: msg });
-        } finally {
-            if (isMounted.current) setIsConnecting(false);
+    // --- Handle network mismatch ---
+    useEffect(() => {
+        if (isConnected && chainId !== REQUIRED_CHAIN_ID) {
+            toast({
+                variant: "destructive",
+                title: "CHAIN_MISMATCH",
+                description: `Please switch to Base Mainnet (Chain ID: ${REQUIRED_CHAIN_ID}).`,
+                action: (
+                    <Button
+                        onClick={() => connectToChain(REQUIRED_CHAIN_ID)}
+                        className="bg-primary hover:bg-primary-dark text-white"
+                    >
+                        切换网络
+                    </Button>
+                )
+            });
         }
-    };
-    
-    // ... (保留 handleNewInfoChange, handleFileChange, handleRemoveImage, handleSubmitRequest 逻辑)
+    }, [isConnected, chainId, toast]);
+    // --- End network mismatch handling ---
+
     const handleNewInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         if (name.startsWith('bankAccount.')) {
@@ -207,6 +222,36 @@ export default function WalletPage() {
         } catch (error) { console.error(error); } finally { setIsSubmittingRequest(false); }
     };
 
+    // --- USDT 授权处理 ---
+    const handleApproveUSDT = async () => {
+        if (!amountToApprove || parseFloat(amountToApprove) <= 0) {
+            toast({ variant: 'destructive', title: 'INVALID_AMOUNT', description: 'Please enter a valid amount to approve.' });
+            return;
+        }
+        if (!decimals) {
+            toast({ variant: 'destructive', title: 'DECIMALS_UNKNOWN', description: 'USDT decimals not loaded yet.' });
+            return;
+        }
+
+        try {
+            const amountInWei = parseUnits(amountToApprove, decimals);
+            const success = await approveUSDT(amountInWei);
+            if (success) {
+                toast({ title: 'APPROVAL_SUCCESS', description: `Successfully approved ${amountToApprove} ${symbol || 'USDT'}.` });
+                setIsApproveDialogOpen(false);
+                setAmountToApprove('');
+            } else if (!approvalError || approvalError === 'User rejected the transaction.') {
+                // 如果是用户拒绝，useUSDTApprove 已经设置了错误信息，这里不重复设置
+            } else {
+                toast({ variant: 'destructive', title: 'APPROVAL_FAILURE', description: approvalError || 'Failed to approve USDT.' });
+            }
+        } catch (error: any) {
+            console.error('USDT approval error:', error);
+            toast({ variant: 'destructive', title: 'APPROVAL_ERROR', description: error.message || 'An unexpected error occurred during approval.' });
+        }
+    };
+    // --- End USDT 授权处理 ---
+
     return (
         <div className="min-h-screen relative text-white selection:bg-[#ff00ff]/30 pb-32 overflow-hidden">
             <style dangerouslySetInnerHTML={{ __html: intenseArtStyles }} />
@@ -241,7 +286,8 @@ export default function WalletPage() {
                                 </div>
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">USDT Hub (TRC20)</Label>
-                                    <Input className="bg-cyan-400/5 border-cyan-400/20 text-cyan-400 text-xs font-mono" name="usdtAddress" placeholder="Link TRC20 Address" onChange={handleNewInfoChange} />
+                                    {/* 这里原来是TRC20，但我们现在是EVM链，所以保持为通用地址或EVM链地址 */}
+                                    <Input className="bg-cyan-400/5 border-cyan-400/20 text-cyan-400 text-xs font-mono" name="usdtAddress" placeholder="Link EVM USDT Address" onChange={handleNewInfoChange} />
                                 </div>
                             </div>
                             <DialogFooter><Button onClick={handleSubmitRequest} disabled={isSubmittingRequest} className="bg-[#ff00ff] text-white font-black italic uppercase w-full shadow-[0_0_20px_rgba(255,0,255,0.4)]">DEPLOY_LOG</Button></DialogFooter>
@@ -250,6 +296,7 @@ export default function WalletPage() {
                 </div>
 
                 <div className="grid gap-8">
+                    {/* Lunar Soil Credits 保持不变 */}
                     <div className="glass-card-cyber rounded-[2.5rem] p-10 relative group overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity"><Gem size={120} /></div>
                         <p className="text-[10px] font-black uppercase text-[#ff00ff] tracking-[0.4em] mb-4">RESOURCE_RESERVE</p>
@@ -259,26 +306,170 @@ export default function WalletPage() {
                         </div>
                     </div>
 
+                    {/* EVM Linked Address (更新为Web3Modal账户信息) */}
                     <div className="glass-card-cyber rounded-[2.5rem] p-10">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
                             <div>
                                 <p className="text-[10px] font-black uppercase text-cyan-400 tracking-[0.4em] mb-3">IDENTITY_NODE</p>
                                 <h2 className="text-xl font-bold text-white/60">EVM Linked Address</h2>
                             </div>
-                            <Button 
-                                onClick={() => setIsWalletSelectorOpen(true)} 
-                                disabled={isConnecting}
-                                className="bg-[#ff00ff] text-white shadow-[0_0_30px_rgba(255,0,255,0.6)] font-black italic rounded-full px-10 py-6 text-sm transition-all hover:scale-105 active:scale-95 group"
-                            >
-                                {isConnecting ? <Loader2 className="h-5 w-5 animate-spin mr-3" /> : <Wallet className="h-5 w-5 mr-3" />}
-                                {profile?.isWeb3Verified ? 'REFRESH_LINK' : 'INITIALIZE_LINK'}
-                            </Button>
+                            {!isConnected ? (
+                                <Button
+                                    onClick={() => getEthersSigner(toast)}
+                                >
+                                    <Wallet className="h-5 w-5 mr-3" />
+                                    INITIALIZE_LINK
+                                </Button>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-5 w-5 text-green-500" />
+                                    <span className="text-sm text-white/80">已连接</span>
+                                    <Button
+                                        onClick={() => getEthersSigner(toast)} // 触发连接
+                                        variant="ghost"
+                                        className="text-cyan-400 hover:underline text-sm p-0 h-auto"
+                                    >
+                                        REFRESH_LINK / 切换
+                                    </Button>
+                                </div>
+                            )}
                         </div>
-                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
-                            <p className="font-mono text-sm text-cyan-400 break-all">{profile?.walletAddress || '0x0000...DISCONNECTED'}</p>
+                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                            <InfoRow label="Address" value={address ? `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : '0x0000...DISCONNECTED'} isMono />
+                            <InfoRow label="Chain ID" value={chainId ? chainId.toString() : 'N/A'} />
+                            <InfoRow label="Network" value={chainId === REQUIRED_CHAIN_ID ? "Base Mainnet" : "Incorrect Network"} />
                         </div>
                     </div>
 
+                    {/* USDT 资产和授权信息 */}
+                    <div className="glass-card-cyber rounded-[2.5rem] p-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                            <div>
+                                <p className="text-[10px] font-black uppercase text-pink-400 tracking-[0.4em] mb-3">DIGITAL_ASSETS</p>
+                                <h2 className="text-xl font-bold text-white/60">USDT Vault</h2>
+                            </div>
+                            <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        disabled={!isConnected || isLoading || usdtHookError !== null || chainId !== REQUIRED_CHAIN_ID}
+                                        className="bg-purple-600 text-white shadow-[0_0_30px_rgba(168,85,247,0.6)] font-black italic rounded-full px-10 py-6 text-sm transition-all hover:scale-105 active:scale-95 group"
+                                    >
+                                        <PlusCircle className="h-5 w-5 mr-3" />
+                                        {isApproving ? <Loader2 className="h-5 w-5 animate-spin mr-3" /> : 'APPROVE_USDT'}
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md bg-black/95 border-white/10 text-white backdrop-blur-3xl">
+                                    <DialogHeader><DialogTitle className="titanium-title italic uppercase text-xl">USDT Authorization</DialogTitle></DialogHeader>
+                                    <DialogDescription className="text-white/70">
+                                        Authorize Luna Escrow Contract to spend your USDT.
+                                    </DialogDescription>
+                                    <div className="grid gap-4 py-4">
+                                        <Label htmlFor="amount" className="text-white/40">Amount to Approve (USDT)</Label>
+                                        <Input
+                                            id="amount"
+                                            type="number"
+                                            value={amountToApprove}
+                                            onChange={(e) => setAmountToApprove(e.target.value)}
+                                            placeholder="e.g., 1000"
+                                            className="bg-white/5 border-white/10 text-xs font-mono"
+                                        />
+                                        {approvalError && <p className="text-red-400 text-sm">{approvalError}</p>}
+                                    </div>
+                                    <DialogFooter>
+                                        <DialogClose asChild>
+                                            <Button variant="ghost" disabled={isApproving}>Cancel</Button>
+                                        </DialogClose>
+                                        <Button
+                                            onClick={handleApproveUSDT}
+                                            disabled={isApproving || !amountToApprove || parseFloat(amountToApprove) <= 0}
+                                            className="bg-purple-600 text-white font-black italic uppercase"
+                                        >
+                                            {isApproving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                            CONFIRM_APPROVAL
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                            {isLoading ? (
+                                <Loader2 className="h-6 w-6 animate-spin text-white/50 mx-auto" />
+                            ) : usdtHookError ? (
+                                <div className="text-red-400 text-center"><AlertCircle className="inline-block h-5 w-5 mr-2" />{usdtHookError}</div>
+                            ) : (
+                                <>
+                                    <InfoRow
+                                        label="Your Balance"
+                                        value={balance !== null && decimals !== null ? `${parseFloat(formatUnits(balance, decimals)).toFixed(2)} ${symbol || 'USDT'}` : 'N/A'}
+                                        isMono
+                                    />
+                                    <InfoRow
+                                        label="Escrow Allowance"
+                                        value={allowance !== null && decimals !== null ? `${parseFloat(formatUnits(allowance, decimals)).toFixed(2)} ${symbol || 'USDT'}` : 'N/A'}
+                                        isMono
+                                    />
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* USDT Transaction History */}
+                    <div className="glass-card-cyber rounded-[2.5rem] p-10">
+                        <p className="text-[10px] font-black uppercase text-white/40 tracking-[0.4em] mb-10">TRANSACTION_HISTORY</p>
+                        <div className="space-y-4">
+                            {loadingTransactions ? (
+                                <div className="text-center py-10">
+                                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+                                    <p className="text-white/30 font-mono text-[10px] uppercase tracking-[0.4em]">Loading transactions...</p>
+                                </div>
+                            ) : transactions && transactions.length > 0 ? (
+                                <div className="space-y-3">
+                                    {transactions.map((tx) => (
+                                        <div key={tx.id} className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                                            <div className="flex items-center gap-4">
+                                                <div className={cn(
+                                                    "w-10 h-10 rounded-full flex items-center justify-center",
+                                                    tx.type === 'lock' ? "bg-blue-500/20 text-blue-400" :
+                                                    tx.type === 'release' ? "bg-green-500/20 text-green-400" :
+                                                    tx.type === 'refund' ? "bg-yellow-500/20 text-yellow-400" :
+                                                    tx.type === 'approval' ? "bg-purple-500/20 text-purple-400" :
+                                                    "bg-white/20 text-white"
+                                                )}>
+                                                    {tx.type === 'lock' ? '🔒' :
+                                                     tx.type === 'release' ? '💰' :
+                                                     tx.type === 'refund' ? '↩️' :
+                                                     tx.type === 'approval' ? '✅' : '💸'}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-white uppercase text-sm">{tx.type}</p>
+                                                    <p className="text-xs text-white/50 font-mono">{tx.amount} USDT</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs text-white/30 font-mono">
+                                                    {tx.timestamp?.toDate ? new Date(tx.timestamp.toDate()).toLocaleDateString() : 'N/A'}
+                                                </p>
+                                                <p className={cn(
+                                                    "text-xs font-mono",
+                                                    tx.status === 'confirmed' ? "text-green-400" :
+                                                    tx.status === 'pending' ? "text-yellow-400" :
+                                                    "text-red-400"
+                                                )}>
+                                                    {tx.status}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-10 border border-white/5 rounded-2xl bg-white/[0.02]">
+                                    <p className="text-white/30 font-mono text-[10px] uppercase tracking-[0.4em]">No USDT transactions yet</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Settlement Gateways 保持不变，但更新了USDT Hub的placeholder */}
                     <div className="glass-card-cyber rounded-[2.5rem] p-10">
                         <p className="text-[10px] font-black uppercase text-white/40 tracking-[0.4em] mb-10">SETTLEMENT_GATEWAYS</p>
                         {hasExistingPaymentInfo ? (
@@ -309,16 +500,7 @@ export default function WalletPage() {
                 </div>
             </div>
 
-            <Dialog open={isWalletSelectorOpen} onOpenChange={setIsWalletSelectorOpen}>
-                <DialogContent className="max-w-xs bg-black/95 border-white/10 text-white rounded-[2.5rem] p-6 shadow-[0_0_100px_rgba(0,0,0,1)]">
-                    <DialogHeader><DialogTitle className="titanium-title italic uppercase text-center text-lg">Choose Gateway</DialogTitle></DialogHeader>
-                    <div className="grid gap-4 py-6">
-                        <Button variant="outline" className="h-16 justify-start gap-4 border-white/10 bg-white/5 hover:border-[#ff00ff]/50 hover:bg-[#ff00ff]/5 transition-all rounded-2xl group" onClick={() => handleConnect('metamask')}>
-                            <MetaMaskIcon className="h-8 w-8 group-hover:scale-110 transition-transform" /> <span className="font-black italic tracking-widest text-white">METAMASK</span>
-                        </Button>
-                    </div>
-                </DialogContent>
-            </Dialog>
+            {/* 旧的钱包选择对话框已移除，现在由Web3Modal统一管理 */}
         </div>
     );
 }

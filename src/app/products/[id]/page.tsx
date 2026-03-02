@@ -183,8 +183,8 @@ export default function ProductPage() {
 
             <header className="relative h-[32vh] w-full overflow-hidden border-b border-white/5">
                 <div className="absolute inset-0 flex">
-                    <div className="relative w-1/2 h-full"><Image src={product.images?.[0] || '/placeholder.jpg'} alt="P1" fill className="object-cover" /></div>
-                    <div className="relative w-1/2 h-full border-l border-black/50"><Image src={product.images?.[1] || product.images?.[0]} alt="P2" fill className="object-cover" /></div>
+                    <div className="relative w-1/2 h-full"><Image src={product.images?.[0] || '/placeholder.jpg'} alt="P1" fill className="object-cover" priority={true} /></div>
+                    <div className="relative w-1/2 h-full border-l border-black/50"><Image src={product.images?.[1] || product.images?.[0]} alt="P2" fill className="object-cover" priority={true} /></div>
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
                 <div className="absolute bottom-6 left-0 right-0 space-y-1 z-20 text-center">

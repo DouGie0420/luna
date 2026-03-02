@@ -36,8 +36,8 @@ export function GlobalFluidBackground() {
 
             {/* 🌊 2. 中间层：流体层 - 采用高性能 GPU 径向渐变 (Mesh Gradient) */}
             <div className="absolute inset-0 z-10 opacity-60 transform-gpu scale-125 pointer-events-none">
-                <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-[radial-gradient(circle_at_center,_rgba(147,51,234,0.4)_0%,_transparent_75%)] animate-fluid-morph-slow will-change-transform" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle_at_center,_rgba(30,58,138,0.5)_0%,_transparent_75%)] animate-fluid-morph-slower will-change-transform" style={{ animationDelay: '-12s' }} />
+                <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-[radial-gradient(circle_at_center,_rgba(255,0,255,0.4)_0%,_transparent_75%)] animate-fluid-morph-slow will-change-transform" />
+                <div className="absolute bottom-[-20%] right-[-10%] w-[80vw] h-[80vw] bg-[radial-gradient(circle_at_center,_rgba(0,255,255,0.5)_0%,_transparent_75%)] animate-fluid-morph-slower will-change-transform" style={{ animationDelay: '-12s' }} />
                 <div className="absolute top-[20%] left-[30%] w-[50vw] h-[50vw] bg-[radial-gradient(circle_at_center,_rgba(168,85,247,0.3)_0%,_transparent_75%)] animate-fluid-morph-medium will-change-transform" style={{ animationDelay: '-5s' }} />
             </div>
 

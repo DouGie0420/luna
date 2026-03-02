@@ -5,6 +5,7 @@ import { Logo } from "./logo";
 import { UserNav } from "./user-nav";
 import { AnnouncementBar } from "./announcement-bar";
 import { GlowingPixelGrid } from "../glowing-pixel-grid";
+import { ConnectWalletButton } from "../ConnectWalletButton"; // 引入新的钱包连接按钮组件
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function Header() {
@@ -28,11 +29,14 @@ export function Header() {
           {loading ? (
             <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
           ) : (
-            <div className="relative group">
-              <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              {/* 🚀 恢复原版：调用刚刚净化过字体的 UserNav 组件 */}
-              <UserNav />
-            </div>
+            <> {/* 使用 React Fragment 包裹 */}
+              <ConnectWalletButton /> {/* 钱包连接按钮 */}
+              <div className="relative group">
+                <div className="absolute -inset-2 bg-primary/5 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* 🚀 恢复原版：调用刚刚净化过字体的 UserNav 组件 */}
+                <UserNav />
+              </div>
+            </>
           )}
         </div>
       </div>

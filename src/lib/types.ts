@@ -78,6 +78,7 @@ export type Product = {
   likes?: number;
   views?: number;
   acceptedPaymentMethods?: PaymentMethod[];
+  escrowOrderId?: string; // 新增：链上托管订单ID
 };
 
 export type UserProfile = {
@@ -101,7 +102,11 @@ export type Order = {
   productId: string;
   price: number;
   currency: string;
-  status: OrderStatus;
+  status: OrderStatus; 
+  escrowOrderId?: string; // 新增：链上托管订单ID
+  createOrderTxHash?: string; // 新增：创建链上订单的交易哈希 (由后端发起)
+  lockFundsTxHash?: string; // 新增：锁定资金的交易哈希 (由买家发起)
+  confirmDeliveryTxHash?: string; // 新增：确认收货的交易哈希 (由买家发起)
   createdAt: any;
   paymentMethod?: PaymentMethod;
 };

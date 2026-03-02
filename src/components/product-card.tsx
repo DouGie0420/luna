@@ -104,6 +104,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 fill 
                 className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
                 unoptimized={imageSrc.includes('alchemy')}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#08080A] via-transparent to-transparent opacity-60" />
             

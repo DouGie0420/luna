@@ -7,23 +7,43 @@ import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { 
     Package, Truck, CheckCircle2, ShieldCheck, 
     Copy, MapPin, MessageSquare, AlertOctagon, 
-    ChevronLeft, ExternalLink, Timer, Loader2, Info, Sparkles
-} from 'lucide-react';
+    ChevronLeft, ExternalLink, Timer, Loader2, Info, Send, Sparkles, Handshake
+} from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Product, UserProfile } from '@/lib/types';
+import type { Order, Product, UserProfile } from '@/lib/types'; // 引入 Order 类型
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 
-// ✅ Web3 依賴
-import { ethers } from 'ethers';
-import { escrowContractAddress, escrowContractABI } from '@/lib/web3/config';
+// ✅ Web3 核心引入 - 现在使用我们自己的 Hooks
+import { useUSDTBalanceAndAllowance } from '@/hooks/useUSDTBalanceAndAllowance'; // 导入我们自己的 Hook
+import { useEscrowContract } from '@/hooks/useEscrowContract';
+import { connectToChain } from '@/lib/web3-provider'; // 引入连接链的函数
+
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
+import dynamic from 'next/dynamic';
+
+// 懒加载聊天组件
+const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
+  ssr: false,
+  loading: () => (
+    <Card className="mt-8 bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl">
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+        <p className="text-white/60 text-sm">加载聊天组件...</p>
+      </div>
+    </Card>
+  ),
+});
+
+// 定义Luna项目所需的Polygon链ID，与web3-provider.ts保持一致
+const REQUIRED_CHAIN_ID = 8453;
 
 export default function PurchaseOrderDetailPage() {
     const params = useParams();
@@ -32,11 +52,15 @@ export default function PurchaseOrderDetailPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    // 🚀 确保无论文件夹叫 [id] 还是 [orderId] 都能正常工作
     const orderId = (params.id || params.orderId) as string;
 
     const [mounted, setMounted] = useState(false);
-    const [isProcessing, setIsProcessing] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false); // 用于整体支付流程
+
+    // --- Web3 Hooks ---
+    const { address, isConnected, chainId } = useUSDTBalanceAndAllowance();
+    const { isInteracting: isEscrowInteracting, interactionError: escrowInteractionError, confirmDelivery } = useEscrowContract();
+    // --- End Web3 Hooks ---
 
     useEffect(() => { setMounted(true); }, []);
 
@@ -53,47 +77,80 @@ export default function PurchaseOrderDetailPage() {
         if (mounted && !authLoading && !user) router.replace('/'); 
     }, [user, authLoading, router, mounted]);
 
+    // 处理网络不匹配
+    useEffect(() => {
+        if (isConnected && chainId !== REQUIRED_CHAIN_ID && mounted) {
+            toast({
+                variant: "destructive",
+                title: "CHAIN_MISMATCH",
+                description: `请切换到 Base 主网 (Chain ID: ${REQUIRED_CHAIN_ID}) 以执行交易。`,
+                action: (
+                    <Button
+                        onClick={() => connectToChain(REQUIRED_CHAIN_ID, toast)}
+                        className="bg-primary hover:bg-primary-dark text-white"
+                    >
+                        切换网络
+                    </Button>
+                )
+            });
+        }
+    }, [isConnected, chainId, toast, mounted]);
+
+
     const handleConfirmReceipt = async () => {
-        if (!firestore || !order || isProcessing) return;
+        if (!firestore || !user || !order || isProcessing) return;
+
+        if (!isConnected || !address) {
+            toast({ variant: "destructive", title: "钱包未连接", description: "请先连接您的 Web3 钱包。" });
+            return;
+        }
+
+        if (chainId !== REQUIRED_CHAIN_ID) {
+            toast({ variant: "destructive", title: "网络错误", description: `请切换到 Base 主网 (Chain ID: ${REQUIRED_CHAIN_ID})。` });
+            await connectToChain(REQUIRED_CHAIN_ID, toast);
+            return;
+        }
+
+        if (!order.escrowOrderId) {
+            toast({ variant: "destructive", title: "订单协议ID缺失", description: "无法执行链上操作，订单缺乏合约ID。" });
+            return;
+        }
+
         setIsProcessing(true);
-        toast({ title: "Settlement Protocol", description: "正在發起鏈上資金釋放協議..." });
+        toast({ title: "结算协议执行中", description: "正在发起链上确认收货交易..." });
 
         try {
-            if (!window.ethereum) throw new Error("未偵測到 Web3 錢包環境");
-            const provider = new ethers.BrowserProvider(window.ethereum);
-            const signer = await provider.getSigner();
-            const escrowContract = new ethers.Contract(escrowContractAddress, escrowContractABI, signer);
-            
-            const numericId = order.numericOrderId || order.numericId;
-            const confirmTx = await escrowContract.confirmReceipt(numericId);
-            
-            toast({ title: "Transaction Pending", description: "等待區塊鏈打包確認..." });
-            await confirmTx.wait();
+            const confirmTxHash = await confirmDelivery(order.escrowOrderId); // 捕获 confirmDelivery 返回的交易哈希
+
+            if (!confirmTxHash) {
+                throw new Error(escrowInteractionError || "链上确认收货失败，请检查 Gas 或余额。");
+            }
 
             await updateDoc(doc(firestore, 'orders', order.id), { 
                 status: 'Completed', 
-                completedAt: serverTimestamp() 
+                completedAt: serverTimestamp(),
+                confirmDeliveryTxHash: confirmTxHash, // 存储确认收货交易哈希
             });
             
-            toast({ title: "Success", description: "交易已結算。正在進入評價協議..." });
+            toast({ title: "成功", description: "交易已结算。正在进入评价协议..." });
             
-            // ✅ 正确的跳转语法
             router.push(`/account/purchases/${orderId}/review`);
 
-        } catch (e: any) { 
-            console.error("結算失敗:", e);
-            toast({ variant: 'destructive', title: '協議執行失敗', description: e.reason || e.message || "交易中斷" }); 
+        } catch (e: any) {
+            console.error("结算失败:", e);
+            toast({ variant: 'destructive', title: '协议执行失败', description: e.message || "交易中断" }); 
         } finally { setIsProcessing(false); }
     };
 
-    const isLoading = !mounted || orderLoading || productLoading || authLoading;
+    const isLoading = !mounted || orderLoading || productLoading || authLoading || isEscrowInteracting; // 添加 isEscrowInteracting
     if (isLoading) return <div className="h-[80vh] flex flex-col items-center justify-center gap-4 text-primary"><Loader2 className="w-10 h-10 animate-spin" /><p className="font-mono text-[10px] uppercase tracking-[0.4em] animate-pulse">Decrypting Escrow Data...</p></div>;
     if (!order || orderError || order.buyerId !== user?.uid) return <div className="h-[80vh] flex flex-col items-center justify-center gap-6"><AlertOctagon className="w-16 h-16 text-red-500 opacity-30" /><p className="font-mono text-xs tracking-widest text-white/40 uppercase">Unauthorized Protocol Access</p><Button onClick={() => router.push('/account/purchases')} variant="ghost">Return to Index</Button></div>;
 
     const status = (order.status || 'pending').toLowerCase();
-    const isPaid = status === 'paid' || status === 'shipped' || status === 'completed';
-    const isShipped = status === 'shipped' || status === 'completed';
+    const isPaid = status === 'paid' || status === 'shipped' || status === 'completed' || status === 'disputed'; // 争议状态也算已支付，因为资金已锁定
+    const isShipped = status === 'shipped' || status === 'completed' || status === 'disputed';
     const isCompleted = status === 'completed';
+    const isDisputed = status === 'disputed'; // 新增争议状态
 
     return (
         <div className="min-h-screen bg-[#020202] text-white relative overflow-x-hidden pb-32 font-sans">
@@ -126,112 +183,59 @@ export default function PurchaseOrderDetailPage() {
                             )} />
                             <div className="relative flex justify-between">
                                 {[
-                                    { title: 'Ordered', icon: Package, done: true },
-                                    { title: 'Escrowed', icon: ShieldCheck, done: isPaid },
-                                    { title: 'Shipped', icon: Truck, done: isShipped },
-                                    { title: 'Settled', icon: CheckCircle2, done: isCompleted }
-                                ].map((step, idx) => (
-                                    <div key={idx} className="flex flex-col items-center gap-4">
+                                    { step: 1, label: 'Secured', active: isPaid, icon: ShieldCheck },
+                                    { step: 2, label: 'Shipped', active: isShipped, icon: Truck },
+                                    { step: 3, label: 'Completed', active: isCompleted, icon: CheckCircle2 }
+                                ].map((s) => (
+                                    <div key={s.step} className="flex flex-col items-center gap-4 relative z-10 w-24">
                                         <div className={cn(
-                                            "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 z-10",
-                                            step.done ? "bg-primary border-primary text-black shadow-[0_0_20px_rgba(211,58,137,0.4)]" : "bg-[#0a0a0a] border-white/10 text-white/20"
-                                        )}><step.icon className="w-5 h-5" /></div>
-                                        <span className={cn("text-[9px] font-black tracking-[0.2em] uppercase", step.done ? "text-primary" : "text-white/20")}>{step.title}</span>
+                                            "w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-500",
+                                            s.active ? "bg-primary border-primary text-white shadow-[0_0_20px_rgba(211,58,137,0.4)] scale-110" : "bg-[#0A0A0A] border-white/10 text-white/30"
+                                        )}>
+                                            <s.icon className={cn("w-5 h-5", s.active && "animate-pulse")} />
+                                        </div>
+                                        <span className={cn(
+                                            "text-[10px] font-black tracking-widest uppercase",
+                                            s.active ? "text-primary drop-shadow-[0_0_8px_rgba(211,58,137,0.5)]" : "text-white/30"
+                                        )}>{s.label}</span>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="w-full xl:w-80 flex flex-col gap-4 shrink-0 xl:pl-10 border-t xl:border-t-0 xl:border-l border-white/5 pt-8 xl:pt-0">
-                            {status === 'shipped' ? (
-                                <Button onClick={handleConfirmReceipt} disabled={isProcessing} className="w-full h-16 bg-primary hover:bg-primary/80 text-black font-black uppercase tracking-widest rounded-3xl shadow-[0_0_30px_rgba(211,58,137,0.5)] transition-all hover:scale-[1.02] active:scale-95">
-                                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm_Receipt"}
-                                </Button>
-                            ) : isCompleted ? (
-                                <Button onClick={() => router.push(`/account/purchases/${orderId}/review`)} className="w-full h-16 bg-white/5 border border-primary/30 text-primary font-black uppercase tracking-widest rounded-3xl hover:bg-primary/10 transition-all">
-                                    <Sparkles className="w-5 h-5 mr-3" /> Leave_Verdict
+                        <div className="w-full xl:w-1/3 flex flex-col gap-4">
+                            {isShipped && !isCompleted && !isDisputed ? (
+                                <Button
+                                    onClick={handleConfirmReceipt}
+                                    disabled={isProcessing}
+                                    className="w-full py-8 bg-primary hover:bg-primary/80 text-white rounded-3xl font-black text-lg tracking-widest uppercase shadow-[0_10px_40px_-10px_rgba(211,58,137,0.5)] transition-all hover:scale-[1.02] relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]" />
+                                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Handshake className="w-6 h-6 mr-3" />}
+                                    {isProcessing ? 'Executing...' : 'Confirm Receipt'}
                                 </Button>
                             ) : (
-                                <div className="w-full h-16 flex items-center justify-center bg-white/5 border border-white/5 text-white/20 font-black uppercase tracking-widest rounded-3xl">Awaiting_Dispatch</div>
+                                <div className="text-center p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                                    <p className="text-[10px] font-mono text-white/50 tracking-[0.2em] uppercase mb-2">Protocol_Status</p>
+                                    <p className="text-sm font-bold text-white uppercase tracking-wider">
+                                        {isCompleted ? 'Transaction Finalized' : isDisputed ? 'In Dispute Resolution' : 'Awaiting Seller Action'}
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </div>
                 </Card>
 
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    <div className="xl:col-span-2 space-y-8">
-                        <Card className="bg-white/[0.02] border border-white/10 rounded-[40px] p-8 flex flex-col md:flex-row gap-10 shadow-xl overflow-hidden group">
-                            <Link href={`/products/${order.productId}`} className="w-full md:w-56 aspect-square relative rounded-[32px] overflow-hidden border border-white/5 shrink-0">
-                                {product?.images?.[0] ? (
-                                    <Image src={product.images[0]} alt="Asset" fill className="object-cover group-hover:scale-110 transition-transform duration-1000" />
-                                ) : (
-                                    <div className="w-full h-full bg-black flex items-center justify-center text-white/10 font-mono text-xs uppercase">No_Asset_Preview</div>
-                                )}
-                            </Link>
-                            <div className="flex-1 flex flex-col justify-between py-2">
-                                <div>
-                                    <h3 className="text-3xl font-black italic tracking-tight text-white mb-4 uppercase">{order.productName}</h3>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-4xl font-black text-primary italic drop-shadow-[0_0_10px_rgba(211,58,137,0.3)]">{order.totalAmount.toLocaleString()}</span>
-                                        <span className="text-xs font-mono text-white/40 uppercase tracking-widest">USDT / Asset_Value</span>
-                                    </div>
-                                </div>
-                                <Button variant="outline" asChild className="w-fit mt-8 border-white/10 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl px-6">
-                                    <Link href={`/products/${order.productId}`}>ORIGINAL_NODE_PAGE</Link>
-                                </Button>
-                            </div>
-                        </Card>
-
-                        <Card className="bg-black/40 border border-white/5 rounded-[40px] p-8 space-y-8 shadow-inner">
-                            <div className="flex items-center gap-3 text-primary font-black uppercase tracking-[0.3em] text-[10px]">
-                                <Truck className="w-4 h-4" /> Logistics_Transmission_Data
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-5">
-                                    <p className="text-[9px] text-white/20 uppercase font-mono tracking-widest border-b border-white/5 pb-2">Shipping_Endpoint</p>
-                                    <div className="flex gap-5">
-                                        <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20"><MapPin className="w-5 h-5 text-primary" /></div>
-                                        <div className="text-sm text-white/70 leading-relaxed font-medium">
-                                            <p className="font-black text-white uppercase tracking-tight text-base mb-1">{order.shippingAddress?.recipientName}</p>
-                                            <p className="opacity-60">{order.shippingAddress?.phone}</p>
-                                            <p className="mt-2 opacity-60 italic">{order.shippingAddress?.addressLine1}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-5">
-                                    <p className="text-[9px] text-white/20 uppercase font-mono tracking-widest border-b border-white/5 pb-2">Real_Time_Tracking</p>
-                                    {isShipped ? (
-                                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-6 flex justify-between items-center group/track">
-                                            <div>
-                                                <p className="text-[9px] font-mono text-white/30 uppercase mb-2 tracking-widest">{order.shippingProvider || 'Universal_Carrier'}</p>
-                                                <p className="text-lg font-mono text-white tracking-widest font-bold group-hover/track:text-primary transition-colors">{order.trackingNumber}</p>
-                                            </div>
-                                            <Button variant="ghost" size="icon" onClick={() => { navigator.clipboard.writeText(order.trackingNumber || ''); toast({ title: "COPIED" }); }} className="text-white/20 hover:text-primary rounded-full"><Copy className="w-4 h-4" /></Button>
-                                        </div>
-                                    ) : (
-                                        <div className="h-28 flex items-center justify-center border border-dashed border-white/5 rounded-[32px] text-white/10 font-mono text-[10px] uppercase tracking-[0.3em] bg-white/[0.01]">Awaiting_Data_Packet</div>
-                                    )}
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
-
-                    <div className="space-y-8">
-                        <Card className="bg-gradient-to-b from-[#0a0a0a] to-[#020202] border border-white/10 rounded-[40px] p-8 shadow-2xl relative group">
-                            <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-white/20 mb-8 border-b border-white/5 pb-4">Merchant_Profile</h4>
-                            <div className="flex items-center gap-5 mb-10">
-                                <Avatar className="w-16 h-16 border-2 border-white/10"><AvatarImage src={seller?.photoURL} /><AvatarFallback className="bg-primary/10 text-primary font-black">S</AvatarFallback></Avatar>
-                                <div className="overflow-hidden">
-                                    <h5 className="text-xl font-black text-white truncate uppercase italic tracking-tighter">{seller?.displayName || 'Auth_Seller'}</h5>
-                                    <p className="text-[9px] font-mono text-white/20 mt-1 truncate uppercase tracking-widest">{seller?.loginId ? `@NODE_${seller.loginId}` : 'ENCRYPTED_ID'}</p>
-                                </div>
-                            </div>
-                            <Button asChild className="w-full h-14 bg-white/5 hover:bg-primary text-white hover:text-black border border-white/10 rounded-2xl transition-all font-black uppercase text-xs tracking-[0.2em]">
-                                <Link href={`/messages?to=${order.sellerId}`}><MessageSquare className="w-4 h-4 mr-2" /> Start_Transmission</Link>
-                            </Button>
-                        </Card>
-                    </div>
-                </div>
+                {/* 聊天组件 - 放在订单详情 Card 之后 */}
+                <Card className="mt-8 bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl">
+                  <ChatWindow
+                    orderId={order.id}
+                    sellerId={order.sellerId}
+                    buyerId={order.buyerId}
+                    productName={product?.name}
+                  />
+                </Card>
+                
             </main>
         </div>
     );

@@ -44,6 +44,8 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@react-google-maps/api": "^2.20.8",
     "@vis.gl/react-google-maps": "^1.1.0",
+    "@walletconnect/ethereum-provider": "^2.23.7",
+    "@web3modal/ethers": "^5.1.11",
     "alchemy-sdk": "^3.3.1",
     "browser-image-compression": "^2.0.2",
     "class-variance-authority": "^0.7.1",

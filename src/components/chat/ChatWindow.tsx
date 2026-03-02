@@ -1,0 +1,383 @@
+'use client';
+
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Send, Loader2, Bell, BellOff, CheckCircle } from 'lucide-react';
+import { useUser, useFirestore } from '@/firebase';
+import { 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  addDoc, 
+  serverTimestamp,
+  doc,
+  updateDoc,
+  getDoc
+} from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { sendPushNotification } from '@/lib/fcm';
+import { cn } from '@/lib/utils';
+
+interface Message {
+  id: string;
+  text: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar?: string;
+  timestamp: Date;
+  read: boolean;
+  type?: 'text' | 'system';
+}
+
+interface ChatWindowProps {
+  orderId: string;
+  sellerId: string;
+  buyerId: string;
+  productName?: string;
+}
+
+export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWindowProps) {
+  const { user, profile } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notificationEnabled, setNotificationEnabled] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const chatId = `order_${orderId}`;
+  const isSeller = user?.uid === sellerId;
+  const otherUserId = isSeller ? buyerId : sellerId;
+  const otherUserName = isSeller ? 'Buyer' : 'Seller';
+
+  // Subscribe to real-time messages
+  useEffect(() => {
+    if (!firestore || !user) return;
+
+    setIsLoading(true);
+    const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+    const q = query(
+      messagesRef,
+      orderBy('timestamp', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const newMessages: Message[] = [];
+      let unread = 0;
+
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        const message: Message = {
+          id: doc.id,
+          text: data.text,
+          senderId: data.senderId,
+          senderName: data.senderName,
+          senderAvatar: data.senderAvatar,
+          timestamp: data.timestamp?.toDate() || new Date(),
+          read: data.read || false,
+          type: data.type || 'text'
+        };
+        
+        newMessages.push(message);
+        
+        // Count unread messages (sent by others)
+        if (!message.read && message.senderId !== user.uid) {
+          unread++;
+        }
+      });
+
+      setMessages(newMessages);
+      setUnreadCount(unread);
+      setIsLoading(false);
+      scrollToBottom();
+
+      // Mark messages as read when opening chat
+      if (unread > 0) {
+        markMessagesAsRead();
+      }
+    }, (error) => {
+      console.error('Error listening to messages:', error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, user, chatId]);
+
+  // Send push notification for new messages
+  const sendMessageNotification = async (message: Message, otherUserId: string) => {
+    if (!notificationEnabled) return;
+
+    try {
+      await sendPushNotification(
+        otherUserId,
+        `💬 New Message from ${message.senderName}`,
+        message.text.length > 50 ? message.text.substring(0, 50) + '...' : message.text,
+        {
+          url: `/account/${isSeller ? 'sales' : 'purchases'}/${orderId}`,
+          chatId,
+          messageId: message.id,
+          orderId,
+          productName
+        }
+      );
+    } catch (error) {
+      console.error('Failed to send push notification:', error);
+    }
+  };
+
+  // Mark messages as read
+  const markMessagesAsRead = async () => {
+    if (!firestore || !user) return;
+
+    try {
+      const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+      const q = query(
+        messagesRef,
+        where('senderId', '!=', user.uid),
+        where('read', '==', false)
+      );
+
+      // In a real implementation, you'd batch update
+      // For now, we'll just update the state
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
+    }
+  };
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || !user || !firestore) return;
+    
+    setIsSending(true);
+    const messageText = newMessage.trim();
+    
+    try {
+      // Add message to Firestore
+      const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+      const newMessageDoc = {
+        text: messageText,
+        senderId: user.uid,
+        senderName: profile?.displayName || 'You',
+        senderAvatar: profile?.photoURL,
+        timestamp: serverTimestamp(),
+        read: false,
+        type: 'text'
+      };
+
+      const docRef = await addDoc(messagesRef, newMessageDoc);
+      
+      // Update last message timestamp in chat metadata
+      const chatRef = doc(firestore, 'chats', chatId);
+      await updateDoc(chatRef, {
+        lastMessage: messageText,
+        lastMessageTime: serverTimestamp(),
+        lastSenderId: user.uid,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+
+      // Send push notification to the other user
+      const message: Message = {
+        id: docRef.id,
+        text: messageText,
+        senderId: user.uid,
+        senderName: profile?.displayName || 'You',
+        senderAvatar: profile?.photoURL,
+        timestamp: new Date(),
+        read: false
+      };
+
+      await sendMessageNotification(message, otherUserId);
+
+      setNewMessage('');
+      
+      toast({
+        title: 'Message sent',
+        description: 'Your message has been delivered.',
+        variant: 'default'
+      });
+
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast({
+        title: 'Failed to send',
+        description: 'There was an error sending your message.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const toggleNotifications = () => {
+    setNotificationEnabled(!notificationEnabled);
+    toast({
+      title: notificationEnabled ? 'Notifications disabled' : 'Notifications enabled',
+      description: notificationEnabled 
+        ? 'You will not receive push notifications for new messages.' 
+        : 'You will receive push notifications for new messages.',
+      variant: 'default'
+    });
+  };
+
+  const isOwnMessage = (senderId: string) => senderId === user?.uid;
+
+  return (
+    <div className="flex flex-col h-full glass-morphism rounded-2xl border border-white/10 overflow-hidden">
+      {/* Chat header */}
+      <div className="p-4 border-b border-white/10 bg-black/50 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-bold text-white flex items-center gap-2">
+            <span className="text-gradient">Order Chat</span>
+            <span className="text-xs text-white/50">#{orderId.slice(0, 8)}</span>
+            {unreadCount > 0 && (
+              <span className="bg-primary text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                {unreadCount} new
+              </span>
+            )}
+          </h3>
+          <p className="text-sm text-white/60">
+            Chat with {otherUserName} • {productName || 'Product details'}
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleNotifications}
+          className={cn(
+            "rounded-full",
+            notificationEnabled 
+              ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" 
+              : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+          )}
+        >
+          {notificationEnabled ? (
+            <Bell className="h-4 w-4 mr-2" />
+          ) : (
+            <BellOff className="h-4 w-4 mr-2" />
+          )}
+          {notificationEnabled ? 'On' : 'Off'}
+        </Button>
+      </div>
+
+      {/* Messages list */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="ml-2 text-white/60">Loading messages...</span>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center p-8">
+            <div className="p-4 bg-white/5 rounded-2xl mb-4">
+              <Send className="h-12 w-12 text-white/30" />
+            </div>
+            <h4 className="text-xl font-bold text-white mb-2">No messages yet</h4>
+            <p className="text-white/60 mb-6 max-w-sm">
+              Start the conversation with {otherUserName}. Discuss product details, shipping, or ask questions.
+            </p>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={`flex ${isOwnMessage(msg.senderId) ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={cn(
+                  "max-w-[80%] rounded-2xl p-4 transition-all duration-200",
+                  isOwnMessage(msg.senderId)
+                    ? 'bg-primary/20 border border-primary/30'
+                    : 'bg-white/10 border border-white/10',
+                  !msg.read && msg.senderId !== user?.uid && 'border-primary/50 shadow-[0_0_20px_rgba(255,0,255,0.1)]'
+                )}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <Avatar className="h-6 w-6">
+                    {msg.senderAvatar && <AvatarImage src={msg.senderAvatar} />}
+                    <AvatarFallback className="text-xs">
+                      {msg.senderName.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-bold text-white">{msg.senderName}</span>
+                  <span className="text-xs text-white/40">
+                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {!msg.read && msg.senderId === user?.uid && (
+                    <span className="text-xs text-white/40 flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" />
+                      Sent
+                    </span>
+                  )}
+                  {!msg.read && msg.senderId !== user?.uid && (
+                    <span className="text-xs text-primary animate-pulse">New</span>
+                  )}
+                </div>
+                <p className="text-white text-sm">{msg.text}</p>
+              </div>
+            </div>
+          ))
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input area */}
+      <div className="p-4 border-t border-white/10">
+        <div className="flex gap-2">
+          <Textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            placeholder="Type your message..."
+            className="flex-1 bg-black/40 border-white/20 text-white resize-none rounded-xl focus:border-primary/50 focus:ring-1 focus:ring-primary"
+            rows={2}
+            disabled={isSending}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={isSending || !newMessage.trim()}
+            className="btn-liquid glass-morphism bg-gradient-to-r from-primary to-secondary text-white px-6 rounded-xl hover-lift min-w-[100px]"
+          >
+            {isSending ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-white/40">
+            Press Enter to send, Shift + Enter for new line
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/40">
+              {messages.length} messages
+            </span>
+            {unreadCount > 0 && (
+              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
+                {unreadCount} unread
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -70,9 +70,9 @@ export function PromoCarousel() {
                 <h2 className="text-3xl md:text-5xl lg:text-6xl font-headline font-bold drop-shadow-lg">
                   {promo.title}
                 </h2>
-                <p className="text-lg md:text-xl mt-2 text-white/80 drop-shadow-sm max-w-lg">
+                <div className="text-lg md:text-xl mt-2 text-white/80 drop-shadow-sm max-w-lg">
                   {promo.description}
-                </p>
+                </div>
                 <Button asChild className="mt-6" size="lg">
                   <Link href={promo.link}>了解更多</Link>
                 </Button>

@@ -1,33 +1,49 @@
-'use client';
-
-import { ethers } from 'ethers';
+import { JsonRpcSigner, BrowserProvider } from 'ethers';
 import { upsertWalletUser } from '@/lib/user';
+import { getEthersSigner, connectToChain } from './web3-provider'; // 引入新的web3-provider
 import type { Firestore } from 'firebase/firestore';
 import type { UserProfile } from './types';
+import { useToast } from '@/hooks/use-toast'; // 导入 useToast hook 类型定义
 
 function generateNonce() {
-  return `Welcome to LUNA! Click to sign in and accept the LUNA Terms of Service. Nonce: ${Math.random().toString(36).substring(2, 15)}`;
+  return `Welcome to LUNA! Click to sign in and accept the LUNA Terms of Service. Nonce: ${crypto.randomUUID()}`;
 }
 
-export async function signInWithMetaMask(firestore: Firestore): Promise<UserProfile> {
-  // 1. 物理检查
-  if (typeof window.ethereum === 'undefined') {
-    throw new Error('GATEWAY_OFFLINE: MetaMask is not installed.');
-  }
+// 建议的Luna项目所需链ID
+const REQUIRED_CHAIN_ID = 8453; // Luna 项目所需的 Base 主网链ID
+
+/**
+ * 连接钱包并进行签名认证。支持MetaMask和通过Web3Modal连接的钱包。
+ * @param firestore Firestore实例
+ * @returns 用户资料
+ */
+export async function connectWallet(firestore: Firestore, toast?: ReturnType<typeof useToast>['toast']): Promise<UserProfile> {
+  let signer: JsonRpcSigner | undefined;
+  let provider: BrowserProvider | undefined;
 
   try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    
-    // 🚀 核心修复：增加 15 秒超时逻辑，防止弱网环境下死锁
-    const requestPromise = provider.send("eth_requestAccounts", []);
-    const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error("LINK_TIMEOUT: Connection timed out in orbit.")), 15000)
-    );
+    // 尝试通过Web3Modal获取signer (涵盖MetaMask和WalletConnect)
+    signer = await getEthersSigner(toast);
 
-    // 竞速执行
-    await Promise.race([requestPromise, timeoutPromise]);
+    if (!signer) {
+        throw new Error('LINK_DENIED: No wallet connected or user rejected connection.');
+    }
 
-    const signer = await provider.getSigner();
+    // 获取Provider用于网络检查
+    provider = signer.provider as BrowserProvider; // 类型断言
+
+    // 检查并连接到正确的链ID
+    const isConnectedToRequiredChain = await connectToChain(REQUIRED_CHAIN_ID, toast);
+    if (!isConnectedToRequiredChain) {
+        throw new Error(`CHAIN_MISMATCH: Please connect to ${REQUIRED_CHAIN_ID} (Polygon Mainnet).`);
+    }
+
+    // 重新获取signer以确保在正确链上
+    signer = await getEthersSigner(toast);
+    if (!signer) {
+        throw new Error('LINK_DENIED: No wallet connected after chain switch.');
+    }
+
     const address = (await signer.getAddress()).toLowerCase();
 
     const nonce = generateNonce();
@@ -45,11 +61,13 @@ export async function signInWithMetaMask(firestore: Firestore): Promise<UserProf
 
     return profile;
   } catch (error: any) {
-    // 🛡️ 拦截用户取消操作
     if (error.code === 4001) {
         throw new Error('LINK_DENIED: Protocol handshake rejected by user.');
+    } else if (error.message.startsWith('CHAIN_MISMATCH')) {
+        // 将链不匹配错误传递给上层处理，以便UI可以显示特定提示
+        throw error;
     }
-    console.error("LUNA_WEB3_FATAL:", error);
+    console.error('LUNA_WEB3_FATAL:', error);
     throw error;
   }
 }

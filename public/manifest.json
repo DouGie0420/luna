@@ -10,22 +10,16 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=Luna&backgroundColor=0a0a0f&shape1Color=ff00ff&shape2Color=00ffff&shape3Color=ff00ff",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=Luna&backgroundColor=0a0a0f&shape1Color=ff00ff&shape2Color=00ffff&shape3Color=ff00ff",
+      "src": "/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://api.dicebear.com/7.x/shapes/svg?seed=Luna&backgroundColor=0a0a0f&shape1Color=ff00ff&shape2Color=00ffff&shape3Color=ff00ff",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -33,19 +27,40 @@
       "name": "New Product",
       "short_name": "Sell",
       "description": "List a new product for sale",
-      "url": "/products/new"
+      "url": "/products/new",
+      "icons": [
+        {
+          "src": "/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "My Wallet",
       "short_name": "Wallet",
       "description": "View your USDT balance and transactions",
-      "url": "/account/wallet"
+      "url": "/account/wallet",
+      "icons": [
+        {
+          "src": "/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Messages",
       "short_name": "Chat",
       "description": "Check your messages",
-      "url": "/account/messages"
+      "url": "/account/messages",
+      "icons": [
+        {
+          "src": "/icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
     }
   ],
   "categories": ["shopping", "finance", "social"],
