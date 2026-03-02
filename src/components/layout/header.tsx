@@ -12,7 +12,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { useWeb3 } from "@/contexts/Web3Context";
+import { WalletDropdown } from "../wallet/WalletDropdown";
 
 export function Header() {
   const { user, loading } = useUser();
@@ -106,10 +106,6 @@ export function Header() {
     }
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   return (
     <header className="sticky top-0 z-[110] w-full bg-background/80 backdrop-blur-xl relative border-b border-[#c41834]/30 shadow-[0_1px_15px_rgba(196,24,52,0.1)]">
       <GlowingPixelGrid seed="shared-luna-seed" className="-z-10" />
@@ -183,13 +179,7 @@ export function Header() {
 
                   {/* 钱包按钮 - 液态毛玻璃风格 */}
                   {account ? (
-                    <div className="relative group">
-                      <div className="absolute -inset-2 bg-green-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-green-500/10 border border-green-500/30 hover:border-green-500/50">
-                        <Wallet className="h-4 w-4 text-green-400" />
-                        <span className="text-green-400 font-medium text-sm">{formatAddress(account)}</span>
-                      </div>
-                    </div>
+                    <WalletDropdown />
                   ) : (
                     <button
                       onClick={connectWallet}
