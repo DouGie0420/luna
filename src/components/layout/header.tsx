@@ -7,7 +7,7 @@ import { UserNav } from "./user-nav";
 import { AnnouncementBar } from "./announcement-bar";
 import { GlowingPixelGrid } from "../glowing-pixel-grid";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Shield, Globe, Zap } from "lucide-react";
+import { MessageSquare, Shield, Globe, Zap, Wallet } from "lucide-react";
 import Link from "next/link";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -107,27 +107,20 @@ export function Header() {
     }
   };
 
+  const formatAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   return (
     <header className="sticky top-0 z-[110] w-full bg-background/80 backdrop-blur-xl relative border-b border-[#c41834]/30 shadow-[0_1px_15px_rgba(196,24,52,0.1)]">
       <GlowingPixelGrid seed="shared-luna-seed" className="-z-10" />
       
       <div className="flex h-20 w-full items-center justify-between px-6 md:px-12 lg:px-16 relative">
-        {/* 左侧：Logo + 管理员按钮 */}
+        {/* 左侧：Logo */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="hover:scale-105 transition-transform duration-300">
             <Logo />
           </div>
-          
-          {/* 管理员按钮 */}
-          {user && isAdmin && (
-            <Link href="/admin" className="relative group">
-              <div className="absolute -inset-2 bg-yellow-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                <Shield className="h-4 w-4 text-yellow-400" />
-                <span className="text-yellow-400 font-medium text-sm">Admin</span>
-              </div>
-            </Link>
-          )}
         </div>
 
         {/* 中间：公告栏 */}
@@ -141,6 +134,17 @@ export function Header() {
             <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
           ) : (
             <>
+              {/* 管理员按钮 - 胶囊型 */}
+              {user && isAdmin && (
+                <Link href="/admin" className="relative group">
+                  <div className="absolute -inset-2 bg-yellow-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+                    <Shield className="h-4 w-4 text-yellow-400" />
+                    <span className="text-yellow-400 font-medium text-sm">Admin</span>
+                  </div>
+                </Link>
+              )}
+
               {/* 语言切换按钮 */}
               <button
                 onClick={toggleLanguage}
@@ -155,7 +159,7 @@ export function Header() {
 
               {user && (
                 <>
-                  {/* ROLL OUT 快捷发布按钮 - 统一配色 */}
+                  {/* ROLL OUT 快捷发布按钮 - 胶囊型，和Messages一样 */}
                   <Link href="/products/new" className="relative group">
                     <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-secondary/20 to-cyan-500/20 border border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
@@ -164,7 +168,7 @@ export function Header() {
                     </div>
                   </Link>
 
-                  {/* Messages按钮 */}
+                  {/* Messages按钮 - 胶囊型 */}
                   <Link href="/messages" className="relative group">
                     <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-primary/20 to-pink-500/20 border border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]">
@@ -178,7 +182,7 @@ export function Header() {
                     </div>
                   </Link>
 
-                  {/* 钱包按钮 */}
+                  {/* 钱包按钮 - 胶囊型，和Messages一样 */}
                   {account ? (
                     <WalletDropdown />
                   ) : (
@@ -188,6 +192,7 @@ export function Header() {
                     >
                       <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                        <Wallet className="h-4 w-4 text-blue-400" />
                         <span className="text-blue-400 font-medium text-sm">Connect Wallet</span>
                       </div>
                     </button>
