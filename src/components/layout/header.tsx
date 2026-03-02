@@ -11,7 +11,7 @@ import { MessageSquare, Shield, Globe, Zap, Wallet } from "lucide-react";
 import Link from "next/link";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
-import { useWeb3 } from "@/context/Web3Context";
+import { useWeb3 } from "../../context/Web3Context";
 import { WalletDropdown } from "../wallet/WalletDropdown";
 
 export function Header() {
