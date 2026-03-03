@@ -40,7 +40,7 @@
 - **设置NFT头像** - 跳转到 `/account/nft-avatar`
 - 钱包管理 - 跳转到 `/account/wallet`
 - 复制地址
-- 在TronScan查看
+- 在BaseScan查看
 - 断开连接
 
 ### 4. Header更新 ✅
@@ -87,7 +87,7 @@
 │ 💰 Wallet Management       │
 ├─────────────────────────────┤
 │ 📋 Copy Address            │
-│ 🔗 View on TronScan        │
+│ 🔗 View on BaseScan        │
 ├─────────────────────────────┤
 │ 🚪 Disconnect              │
 └─────────────────────────────┘

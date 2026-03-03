@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
-import { onAuthStateChanged, type Auth, type User as FirebaseUser, Unsubscribe } from 'firebase/auth';
+import { useState, useEffect, useContext, useCallback } from 'react';
+import { onAuthStateChanged, type Auth, type User as FirebaseUser, Unsubscribe, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { FirebaseContext } from '@/firebase/provider';
 import type { UserProfile } from '@/lib/types';
@@ -14,7 +14,11 @@ interface UserState {
   error: Error | null;
 }
 
-export const useUser = (): UserState => {
+interface UserContextType extends UserState {
+  signOut: () => Promise<void>;
+}
+
+export const useUser = (): UserContextType => {
   const [userState, setUserState] = useState<UserState>({
     user: null,
     profile: null,
@@ -25,6 +29,21 @@ export const useUser = (): UserState => {
   const firebase = useContext(FirebaseContext);
   const auth = firebase?.auth;
   const firestore = firebase?.firestore;
+
+  // 登出函数
+  const signOut = useCallback(async (): Promise<void> => {
+    if (!auth) {
+      console.error('Auth not initialized');
+      return;
+    }
+    try {
+      await firebaseSignOut(auth);
+      console.log('User signed out successfully');
+    } catch (err) {
+      console.error('Sign out error:', err);
+      throw err;
+    }
+  }, [auth]);
 
   useEffect(() => {
     if (!auth || !firestore) {
@@ -46,10 +65,10 @@ export const useUser = (): UserState => {
 
       // 【关键逻辑】：建立 Firestore 实时监听
       const profileRef = doc(firestore, 'users', authUser.uid);
-      
+
       unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
         const profileData = docSnap.exists() ? (docSnap.data() as UserProfile) : null;
-        
+
         if (profileData) {
             const updatePayload: Partial<UserProfile> = {};
 
@@ -67,7 +86,7 @@ export const useUser = (): UserState => {
             if (!profileData.loginId) {
                 updatePayload.loginId = authUser.uid;
             }
-            
+
             // 3. If any updates are needed, fire them off
             if (Object.keys(updatePayload).length > 0) {
                  updateUserProfile(firestore, authUser.uid, updatePayload);
@@ -94,5 +113,5 @@ export const useUser = (): UserState => {
     };
   }, [auth, firestore]);
 
-  return userState;
+  return { ...userState, signOut };
 };

@@ -5,6 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// 智能合约相关环境变量导出
+// 托管合约地址（Base网）
+export const NEXT_PUBLIC_ESCROW_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_ADDRESS || "0x5CcD28825df05AEAf6F55b62c9a35695B070740F";
+// USDT合约地址（Base网）
+export const NEXT_PUBLIC_USDT_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS || "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+// 链ID（Base主网 = 8453）
+export const NEXT_PUBLIC_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || "8453");
+
 /**
  * Calculates the distance between two geographical coordinates using the Haversine formula.
  * @param lat1 Latitude of the first point.

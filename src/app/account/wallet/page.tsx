@@ -195,7 +195,7 @@ export default function WalletManagementPage() {
                     <Copy className="h-4 w-4" />
                   </Button>
                   <a
-                    href={`https://tronscan.org/#/address/${profile.walletAddress}`}
+                    href={`https://basescan.org/address/${profile.walletAddress}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

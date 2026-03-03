@@ -22,7 +22,9 @@
     "loginFailedTitle": "Login Failed",
     "loginFailedDescription": "Could not sign in with social account. Please try again later.",
     "popupClosedTitle": "Login Cancelled",
-    "popupClosed": "The login window was closed before completion."
+    "popupClosed": "The login window was closed before completion.",
+    "accountExistsTitle": "Email Already In Use",
+    "accountExistsDescription": "This email is already registered with another method (e.g., Google or password). Please use the original method to sign in."
   },
   "registerPage": {
     "title": "Create your LUNA account",

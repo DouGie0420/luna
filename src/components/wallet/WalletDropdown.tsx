@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useWeb3 } from '../../context/Web3Context';
+import { useWeb3 } from '@/contexts/Web3Context';
 import { useUser } from '@/firebase';
 import {
   DropdownMenu,
@@ -93,13 +93,13 @@ export function WalletDropdown() {
         {/* 在区块浏览器查看 */}
         <DropdownMenuItem asChild>
           <a
-            href={`https://tronscan.org/#/address/${account}`}
+            href={`https://basescan.org/address/${account}`}
             target="_blank"
             rel="noopener noreferrer"
             className="cursor-pointer"
           >
             <ExternalLink className="mr-2 h-4 w-4" />
-            <span>View on TronScan</span>
+            <span>View on BaseScan</span>
           </a>
         </DropdownMenuItem>
         

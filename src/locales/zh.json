@@ -22,7 +22,9 @@
     "loginFailedTitle": "登录失败",
     "loginFailedDescription": "无法通过社交账号登录，请稍后再试。",
     "popupClosedTitle": "登录已取消",
-    "popupClosed": "登录窗口在完成前已关闭。"
+    "popupClosed": "登录窗口在完成前已关闭。",
+    "accountExistsTitle": "该邮箱已被使用",
+    "accountExistsDescription": "此邮箱已通过其他方式（如谷歌或密码）注册。请使用原始方式登录。"
   },
   "registerPage": {
     "title": "创建您的 LUNA 账户",

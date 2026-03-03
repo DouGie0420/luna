@@ -14,6 +14,11 @@ self.addEventListener('install', (event) => {
         '/',
         '/offline.html',
         '/manifest.json',
+        '/base-testnet-icon-192x192.svg',
+        '/base-testnet-icon-512x512.svg',
+        '/base-testnet-icon-96x96.svg',
+        // Base测试网核心资产缓存
+        'https://base-sepolia.public.blastapi.io',
         // Add other critical assets here
       ]);
     }).then(() => {
@@ -51,9 +56,9 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Skip Firebase and external API requests
-  if (event.request.url.includes('firebase') || 
+  if (event.request.url.includes('firebase') ||
       event.request.url.includes('googleapis') ||
-      event.request.url.includes('web3')) {
+      (event.request.url.includes('web3') && !event.request.url.includes('base-sepolia.public.blastapi.io'))) {
     return;
   }
 
@@ -107,7 +112,7 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body || 'You have a new notification',
-    icon: '/icon-192x192.png',
+    icon: '/base-testnet-icon-192x192.svg',
     badge: '/badge-72x72.png',
     vibrate: [200, 100, 200],
     data: {
@@ -169,5 +174,83 @@ self.addEventListener('sync', (event) => {
 async function syncMessages() {
   // Implement background sync for offline messages
   console.log('[Service Worker] Syncing messages...');
-  // This would typically sync messages from IndexedDB to Firestore
+
+  // IndexedDB核心配置
+  const DB_NAME = 'luna-offline-chats';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'unsynced-messages';
+
+  try {
+    // 1. 打开或创建IndexedDB数据库
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+      // 数据库版本升级（创建消息存储容器）
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, {
+            keyPath: 'id',
+            autoIncrement: true
+          });
+        }
+      };
+
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+
+    // 2. 获取未同步的聊天消息
+    const unsyncedMessages = await new Promise((resolve, reject) => {
+      const transaction = db.transaction(STORE_NAME, 'readonly');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.getAll();
+
+      request.onsuccess = (event) => resolve(event.target.result);
+      request.onerror = (event) => reject(event.target.error);
+    });
+
+    if (unsyncedMessages.length === 0) {
+      console.log('[Service Worker] 无未同步的离线消息');
+      return;
+    }
+
+    // 3. 同步消息至Firestore（适配现有聊天结构）
+    for (const message of unsyncedMessages) {
+      try {
+        await fetch('/api/sync-message', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chatId: message.chatId,
+            senderId: message.senderId,
+            content: message.content,
+            timestamp: message.timestamp
+          })
+        });
+
+        // 4. 标记消息为已同步并删除
+        await new Promise((resolve, reject) => {
+          const transaction = db.transaction(STORE_NAME, 'readwrite');
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.delete(message.id);
+
+          request.onsuccess = (event) => resolve(event.target.result);
+          request.onerror = (event) => reject(event.target.error);
+        });
+
+        console.log('[Service Worker] 已同步离线消息:', message.id);
+      } catch (syncError) {
+        console.error('[Service Worker] 消息同步失败:', syncError, message);
+        // 保留失败消息待下次同步
+        break;
+      }
+    }
+
+    db.close();
+  } catch (dbError) {
+    console.error('[Service Worker] IndexedDB操作失败:', dbError);
+  }
 }

@@ -120,8 +120,8 @@ from-blue-500/20 to-indigo-500/20
 #### 4. 在区块浏览器查看
 ```
 图标：ExternalLink（外部链接）
-文字：View on TronScan
-功能：在新标签页打开TronScan
+文字：View on BaseScan
+功能：在新标签页打开BaseScan
 ```
 
 #### 5. 断开连接

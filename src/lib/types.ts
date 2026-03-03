@@ -95,10 +95,10 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
-  
+
   // 用户类型
   userType: UserType;
-  
+
   // 头像系统
   avatarType: AvatarType;
   pixelAvatarSeed?: string; // 像素头像种子
@@ -106,18 +106,25 @@ export interface UserProfile {
   nftAvatarUrl?: string; // NFT头像
   nftTokenId?: string; // NFT Token ID
   nftContractAddress?: string; // NFT合约地址
-  
+
   // 钱包相关
   walletAddress?: string;
   walletBindTime?: any; // Firestore timestamp
-  
+
   // 勋章
   badges?: string[]; // ['WEB3', 'NFT', 'PRO', ...]
-  
+
   // 管理员
   role?: UserRole;
   isAdmin?: boolean;
-  
+
+  // 用户资料补充字段
+  bio?: string;
+  location?: string;
+  gender?: string;
+  loginId?: string;
+  emailVerified?: boolean;
+
   createdAt: any;
   updatedAt?: any;
 }

@@ -2,7 +2,16 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  
+
+  // Firebase Hosting 靜態導出配置
+  output: 'export',
+  distDir: 'dist',
+
+  // 排除 Firebase Functions 目錄，避免 TypeScript 編譯錯誤
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
   // ✅ 正確寫法：包在 experimental 裡面
   experimental: {
     serverActions: {
@@ -10,12 +19,6 @@ const nextConfig: NextConfig = {
     },
   },
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -102,11 +105,6 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       }
-    ],
-  },
-  devIndicators: {
-    allowedDevOrigins: [
-      'https://6000-firebase-studio-1769731865538.cluster-c36dgv2kibakqwbbbsgmia3fny.cloudworkstations.dev',
     ],
   },
   async rewrites() {

@@ -86,7 +86,6 @@ export async function connectWalletConnect(): Promise<BrowserProvider> {
     // Create ethers provider
     const ethersProvider = new BrowserProvider(provider);
     
-    console.log('[WalletConnect] Connected successfully');
     return ethersProvider;
   } catch (error) {
     console.error('[WalletConnect] Connection failed:', error);
@@ -129,21 +128,17 @@ export function getWalletConnectProvider(): EthereumProvider | null {
  */
 function setupEventListeners(provider: EthereumProvider): void {
   provider.on('display_uri', (uri: string) => {
-    console.log('[WalletConnect] Display URI:', uri);
     // You could display a custom QR code here if needed
   });
 
   provider.on('session_delete', () => {
-    console.log('[WalletConnect] Session deleted');
     walletConnectProvider = null;
   });
 
   provider.on('chainChanged', (chainId: string) => {
-    console.log('[WalletConnect] Chain changed:', chainId);
   });
 
   provider.on('accountsChanged', (accounts: string[]) => {
-    console.log('[WalletConnect] Accounts changed:', accounts);
   });
 }
 

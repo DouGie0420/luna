@@ -109,11 +109,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <div className="absolute inset-0 bg-gradient-to-t from-[#08080A] via-transparent to-transparent opacity-60" />
             
             {/* 🚀 孟菲斯高对比度 Badge */}
-            <div className="absolute top-4 left-4 flex gap-2 z-20">
+            <div className="absolute top-4 left-4 flex flex-wrap gap-2 z-20 max-w-[calc(100%-2rem)]">
+              {/* 寄售标签 - 如果是寄售商品则显示 */}
+              {(product as any).isConsignment === true && (
+                <Badge className="px-3 py-1 text-[9px] font-black uppercase tracking-widest border shadow-xl backdrop-blur-md bg-[#ff00ff]/20 border-[#ff00ff]/50 text-[#ff00ff]">
+                  寄售
+                </Badge>
+              )}
               <Badge className={cn(
                 "px-3 py-1 text-[9px] font-black uppercase tracking-widest border shadow-xl backdrop-blur-md",
-                isRentalMode 
-                  ? "bg-purple-500/20 border-purple-500/50 text-purple-400" 
+                isRentalMode
+                  ? "bg-purple-500/20 border-purple-500/50 text-purple-400"
                   : "bg-cyan-500/20 border-cyan-500/50 text-cyan-400"
               )}>
                 {product.category || (isRentalMode ? 'Property' : 'Asset')}

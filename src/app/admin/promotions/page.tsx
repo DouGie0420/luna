@@ -31,22 +31,24 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFirestore, useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { doc, setDoc, getDoc, serverTimestamp, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { cn } from "@/lib/utils";
+
+// 🚀 引入全局支付通道控制 Hook
+import { usePaymentMethods } from '@/hooks/use-payment-methods';
 
 export default function AdminPromotionsPage() {
     const { profile } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    // 🛡️ 权限检查逻辑 [cite: 2026-02-03]
+    // 🛡️ 权限检查逻辑：广告位下放给 ghost/staff，但支付网关强制锁定 admin
     const canManageAds = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
-    const canManagePayments = profile && ['admin', 'ghost'].includes(profile.role || '');
+    const canManagePayments = profile && profile.role === 'admin';
 
     // 1. 顶部公告状态
     const [announcementTitle, setAnnouncementTitle] = useState('');
@@ -54,8 +56,8 @@ export default function AdminPromotionsPage() {
     const [isSubmittingAnnouncement, setIsSubmittingAnnouncement] = useState(false);
     const [isLoadingAnnouncement, setIsLoadingAnnouncement] = useState(true);
 
-    // 2. 支付协议状态 (核心控制)
-    const [paymentMethods, setPaymentMethods] = useState({ usdt: true, alipay: false, wechat: false, promptpay: false });
+    // 2. 支付协议状态 (已由 hook 全局接管)
+    const { methods: paymentMethods } = usePaymentMethods();
 
     // 3. 轮播图状态 (全量 20 个 Slot)
     const [carouselCount, setCarouselCount] = useState('10');
@@ -91,13 +93,6 @@ export default function AdminPromotionsPage() {
             setIsLoadingAnnouncement(false);
         });
 
-        // 实时监听支付协议控制面板
-        const unsubPayments = onSnapshot(doc(firestore, 'settings', 'global'), (s) => {
-            if (s.exists() && s.data().paymentMethods) {
-                setPaymentMethods(s.data().paymentMethods);
-            }
-        });
-
         // 加载商户、轮播、推荐配置
         const loadConfigs = async () => {
             const mSnap = await getDoc(doc(firestore, 'configs', 'verified_merchants'));
@@ -122,13 +117,14 @@ export default function AdminPromotionsPage() {
         };
         loadConfigs();
 
-        return () => unsubPayments();
+        // 卸载时不再需要清理 onSnapshot，因为支付状态已交由 Hook 处理
     }, [firestore]);
 
     // --- 🛠️ 业务逻辑函数 ---
 
     const handleTogglePayment = async (method: string) => {
         if (!firestore || !canManagePayments) return;
+        
         const newVal = !paymentMethods[method as keyof typeof paymentMethods];
         try {
             await updateDoc(doc(firestore, 'settings', 'global'), { [`paymentMethods.${method}`]: newVal });
@@ -219,14 +215,14 @@ export default function AdminPromotionsPage() {
                         ].map((m) => (
                             <div key={m.id} className={cn(
                                 "flex flex-col gap-6 p-8 rounded-[32px] border transition-all duration-500",
-                                paymentMethods[m.id as keyof typeof paymentMethods] ? `${m.bg} border-primary/20 shadow-lg` : "bg-white/[0.02] border-white/5 opacity-30 grayscale"
+                                paymentMethodsConfig[m.id as keyof typeof paymentMethodsConfig] ? `${m.bg} border-primary/20 shadow-lg` : "bg-white/[0.02] border-white/5 opacity-30 grayscale"
                             )}>
                                 <m.icon className={cn("w-10 h-10", m.color)} />
                                 <div className="flex items-center justify-between">
                                     <span className="font-black italic uppercase text-xs text-white tracking-widest">{m.label}</span>
-                                    <Switch 
-                                        checked={paymentMethods[m.id as keyof typeof paymentMethods]} 
-                                        onCheckedChange={() => handleTogglePayment(m.id)} 
+                                    <Switch
+                                        checked={paymentMethodsConfig[m.id as keyof typeof paymentMethodsConfig]}
+                                        onCheckedChange={() => handleTogglePayment(m.id)}
                                         disabled={!canManagePayments}
                                     />
                                 </div>

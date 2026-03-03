@@ -44,7 +44,7 @@ const GlobalFluidBackground = dynamic(
 );
 
 // 🚀 引入 Web3 总闸（全局提供钱包连接环境）
-
+import { Web3Provider } from '@/contexts/Web3Context';
 
 export default function RootLayout({
   children,
@@ -68,23 +68,26 @@ export default function RootLayout({
           <FirebaseClientProvider>
               <SettingsProvider>
                 <LanguageProvider>
-                  
-                  {/* ✅ 唯一个背景入口：所有动效、网格、边缘蛇都在这里统一调度，极致省电 */}
-                  <GlobalFluidBackground />
+                  {/* ✅ 将 Web3Provider 包裹在主体内容外层 */}
+                  <Web3Provider>
+                    
+                    {/* ✅ 唯一个背景入口：所有动效、网格、边缘蛇都在这里统一调度，极致省电 */}
+                    <GlobalFluidBackground />
 
-                  <div className="flex flex-col min-h-screen relative z-10">
-                      <Header />
-                      <main className="flex-grow flex flex-col">{children}</main>
-                      <Footer />
-                  </div>
-                  
-                  <Toaster />
-                  <FirebaseErrorListener />
-                  <FloatingSupportButton />
-                  <GlobalAudioPlayer />
-                  <PWAInitializer />
-                  <GlobalChatNotifier />
-                  
+                    <div className="flex flex-col min-h-screen relative z-10">
+                        <Header />
+                        <main className="flex-grow flex flex-col">{children}</main>
+                        <Footer />
+                    </div>
+                    
+                    <Toaster />
+                    <FirebaseErrorListener />
+                    <FloatingSupportButton />
+                    <GlobalAudioPlayer />
+                    <PWAInitializer />
+                    <GlobalChatNotifier />
+
+                  </Web3Provider>
                 </LanguageProvider>
               </SettingsProvider>
             </FirebaseClientProvider>

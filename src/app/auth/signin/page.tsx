@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider } from 'firebase/auth';
-import { auth } from '@/firebase';
+import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -14,12 +14,17 @@ import { useToast } from '@/hooks/use-toast';
 export default function SignInPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [isTwitterLoading, setIsTwitterLoading] = useState(false);
+
+  if (!auth) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>;
+  }
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,6 +49,43 @@ export default function SignInPage() {
     }
   };
 
+  const handleSocialSignInError = (error: any, provider: string) => {
+    console.error(`${provider} sign in error:`, error);
+
+    // 精准错误处理
+    if (error.code === 'auth/invalid-credential') {
+      toast({
+        title: '授权验证失败',
+        description: '授权验证失败，请重新尝试快捷登录。',
+        variant: 'destructive',
+      });
+    } else if (error.code === 'auth/account-exists-with-different-credential' || error.code === 'auth/email-already-in-use') {
+      toast({
+        title: '账号已存在',
+        description: '你尝试快捷登录的账号绑定的邮箱已经注册过了，请使用原方式登录。',
+        variant: 'destructive',
+      });
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      toast({
+        title: '登录已取消',
+        description: '你关闭了登录窗口，如需登录请重新尝试。',
+        variant: 'default',
+      });
+    } else if (error.code === 'auth/popup-blocked') {
+      toast({
+        title: '弹窗被阻止',
+        description: '浏览器阻止了登录弹窗，请允许弹窗后重试。',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: '登录失败',
+        description: error.message || `无法使用${provider}登录，请稍后重试。`,
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
@@ -55,12 +97,7 @@ export default function SignInPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Google sign in error:', error);
-      toast({
-        title: 'Sign in failed',
-        description: error.message || 'Failed to sign in with Google.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Google');
     } finally {
       setIsGoogleLoading(false);
     }
@@ -77,12 +114,7 @@ export default function SignInPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Facebook sign in error:', error);
-      toast({
-        title: 'Sign in failed',
-        description: error.message || 'Failed to sign in with Facebook.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Facebook');
     } finally {
       setIsFacebookLoading(false);
     }
@@ -99,12 +131,7 @@ export default function SignInPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Twitter sign in error:', error);
-      toast({
-        title: 'Sign in failed',
-        description: error.message || 'Failed to sign in with Twitter.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Twitter');
     } finally {
       setIsTwitterLoading(false);
     }

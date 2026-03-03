@@ -4,9 +4,9 @@ import { ethers, Contract, BigNumberish } from 'ethers';
 import USDT_ABI from '@/contracts/USDT_ABI.json'; // 引入 USDT ABI
 import { getEthersProvider } from '@/lib/web3-provider'; // 引入我们自己的 getEthersProvider
 
-// 从环境变量获取合约地址
-const USDT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS;
-const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS;
+// 从环境变量获取合约地址（带默认值）
+const USDT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS || "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || process.env.NEXT_PUBLIC_ESCROW_ADDRESS || "0x5CcD28825df05AEAf6F55b62c9a35695B070740F";
 
 interface USDTBalanceAndAllowance {
   balance: BigNumberish | null;

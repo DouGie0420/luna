@@ -130,9 +130,7 @@ service cloud.firestore {
     // ✅ 新增：專門為 ChatWindow 組件配置的訂單聊天集合
     match /chats/{chatId} {
       allow read, write: if isSignedIn() && (
-        request.auth.uid in resource.data.participants || 
-        request.auth.uid == resource.data.buyerId ||      
-        request.auth.uid == resource.data.sellerId ||     
+        request.auth.uid in resource.data.participants ||
         isAdminGroup()
       );
       

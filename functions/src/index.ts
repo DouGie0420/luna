@@ -12,14 +12,20 @@ const db = admin.firestore();
 // --- 配置 Web3 相关的环境变量 ---
 // 这些变量需要在 Firebase Functions 中配置
 // 例如：firebase functions:config:set web3.private_key="..." web3.rpc_url="..." web3.escrow_contract_address="..."
-const WEB3_PRIVATE_KEY = functions.config().web3?.private_key;
-const WEB3_RPC_URL = functions.config().web3?.rpc_url;
-const ESCROW_CONTRACT_ADDRESS = functions.config().web3?.escrow_contract_address;
+// 使用类型断言解决 TypeScript 类型问题
+const config = (functions as any).config();
+const WEB3_PRIVATE_KEY = config.web3?.private_key;
+const WEB3_RPC_URL = config.web3?.rpc_url;
+const ESCROW_CONTRACT_ADDRESS = config.web3?.escrow_contract_address;
 
 if (!WEB3_PRIVATE_KEY || !WEB3_RPC_URL || !ESCROW_CONTRACT_ADDRESS) {
-    console.error('Missing Web3 configuration for Cloud Functions. Please set web3.private_key, web3.rpc_url, web3.escrow_contract_address.');
-    // 在生产环境中，可以考虑更详细的错误处理或告警
-    // throw new Error('Web3 configuration is missing.'); // 在初始化阶段抛出错误
+    const error = new Error('Missing Web3 configuration for Cloud Functions. Please set web3.private_key, web3.rpc_url, webbase.escrow_contract_address.');
+    functions.logger.error('配置缺失:', {
+        hasPrivateKey: !!WEB3_PRIVATE_KEY,
+        hasRpcUrl: !!WEB3_RPC_URL,
+        hasEscrowAddress: !!ESCROW_CONTRACT_ADDRESS
+    });
+    throw error;
 }
 
 // 确保私钥和RPC URL存在且有效
@@ -42,13 +48,15 @@ const escrowContract = new Contract(ESCROW_CONTRACT_ADDRESS!, ESCROW_ABI, signer
  */
 export const createEscrowOrder = functions.https.onCall(async (data, context) => {
     // 1. 验证用户认证
-    if (!context.auth) {
+    // 使用类型断言解决 context 可能为 undefined 的问题
+    const authContext = (context as any)?.auth;
+    if (!authContext) {
         throw new functions.https.HttpsError(
             'unauthenticated',
             'Authentication required to create an escrow order.'
         );
     }
-    const userId = context.auth.uid; // 当前认证用户的ID
+    const userId = authContext.uid; // 当前认证用户的ID
 
     // 2. 验证输入数据
     const { productId, sellerId, buyerId, amount: rawAmount } = data; // rawAmount 是已处理过小数位的 USDT 金额

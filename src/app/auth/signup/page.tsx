@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, TwitterAuthProvider } from 'firebase/auth';
-import { auth, firestore } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,10 +12,17 @@ import { Loader2, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { generatePixelAvatar } from '@/lib/avatarUtils';
+import { useAuth } from '@/firebase';
 
 export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
+  const firestore = useFirestore();
+
+  if (!auth || !firestore) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-white" /></div>;
+  }
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -23,6 +30,43 @@ export default function SignUpPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [isTwitterLoading, setIsTwitterLoading] = useState(false);
+
+  const handleSocialSignInError = (error: any, provider: string) => {
+    console.error(`${provider} sign in error:`, error);
+
+    // 精准错误处理
+    if (error.code === 'auth/invalid-credential') {
+      toast({
+        title: '授权验证失败',
+        description: '授权验证失败，请重新尝试快捷登录。',
+        variant: 'destructive',
+      });
+    } else if (error.code === 'auth/account-exists-with-different-credential' || error.code === 'auth/email-already-in-use') {
+      toast({
+        title: '账号已存在',
+        description: '你尝试快捷登录的账号绑定的邮箱已经注册过了，请使用原方式登录。',
+        variant: 'destructive',
+      });
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      toast({
+        title: '登录已取消',
+        description: '你关闭了登录窗口，如需登录请重新尝试。',
+        variant: 'default',
+      });
+    } else if (error.code === 'auth/popup-blocked') {
+      toast({
+        title: '弹窗被阻止',
+        description: '浏览器阻止了登录弹窗，请允许弹窗后重试。',
+        variant: 'destructive',
+      });
+    } else {
+      toast({
+        title: '登录失败',
+        description: error.message || `无法使用${provider}登录，请稍后重试。`,
+        variant: 'destructive',
+      });
+    }
+  };
 
   const createUserProfile = async (userId: string, email: string, displayName: string) => {
     const pixelAvatarSeed = userId;
@@ -86,12 +130,7 @@ export default function SignUpPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Google sign up error:', error);
-      toast({
-        title: 'Sign up failed',
-        description: error.message || 'Failed to sign up with Google.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Google');
     } finally {
       setIsGoogleLoading(false);
     }
@@ -115,12 +154,7 @@ export default function SignUpPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Facebook sign up error:', error);
-      toast({
-        title: 'Sign up failed',
-        description: error.message || 'Failed to sign up with Facebook.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Facebook');
     } finally {
       setIsFacebookLoading(false);
     }
@@ -144,12 +178,7 @@ export default function SignUpPage() {
       });
       router.push('/');
     } catch (error: any) {
-      console.error('Twitter sign up error:', error);
-      toast({
-        title: 'Sign up failed',
-        description: error.message || 'Failed to sign up with Twitter.',
-        variant: 'destructive',
-      });
+      handleSocialSignInError(error, 'Twitter');
     } finally {
       setIsTwitterLoading(false);
     }
