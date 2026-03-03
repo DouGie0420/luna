@@ -1,3 +1,6 @@
+// 徽章类型
+export type BadgeType = 'admin' | 'pro' | 'vip' | 'verified' | 'moderator' | 'contributor';
+
 // 用户类型
 export type UserType = 'normal' | 'pro';
 
@@ -157,6 +160,14 @@ export interface Product {
   isBoosted?: boolean;
   boostExpiresAt?: any;
 
+  // 统计数据
+  likes?: number;
+  favorites?: number;
+  views?: number;
+
+  // 货币
+  currency?: string;
+
   createdAt: any;
   updatedAt?: any;
 }
@@ -257,6 +268,22 @@ export interface UserAddress {
   updatedAt?: any;
 }
 
+// 评论
+export interface Comment {
+  id: string;
+  productId: string;
+  userId: string;
+  userName?: string;
+  userAvatar?: string;
+  content: string;
+  rating?: number;
+  likes?: number;
+  parentId?: string; // 用于回复
+  replies?: Comment[];
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 // BBS 帖子
 export interface BbsPost {
   id: string;
@@ -286,4 +313,28 @@ export interface ChatPreview {
   lastMessage: string;
   lastMessageTime: Date;
   unreadCount: number;
+}
+
+// 全局设置
+export interface GlobalSettings {
+  maintenanceMode?: boolean;
+  registrationEnabled?: boolean;
+  defaultCurrency?: string;
+  commissionRate?: number;
+  minWithdrawalAmount?: number;
+  maxUploadSize?: number;
+  allowedImageTypes?: string[];
+  supportEmail?: string;
+  socialLinks?: {
+    twitter?: string;
+    facebook?: string;
+    instagram?: string;
+    discord?: string;
+  };
+  featureFlags?: {
+    enableWeb3?: boolean;
+    enableBoost?: boolean;
+    enableBBS?: boolean;
+    enableChat?: boolean;
+  };
 }

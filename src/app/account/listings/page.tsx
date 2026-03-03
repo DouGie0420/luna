@@ -6,7 +6,7 @@ import { useFirestore, useUser } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslation } from '@/hooks/use-translation';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc, getDoc } from "firebase/firestore";
-import type { Product } from '@/lib/types';
+import type { Product, ProductStatus } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from '@/components/ui/badge';
@@ -26,7 +26,7 @@ import { Loader2, Edit, Trash2, Plus, PackageOpen, Eye, Heart, Star, Rocket, Zap
 const BOOST_COST = 500; 
 
 function ListingCard({ item, onDeleteClick, onBoostClick }: { item: Product, onDeleteClick: (id: string) => void, onBoostClick: (item: Product) => void }) {
-    const getStatusBadge = (status?: 'active' | 'under_review' | 'hidden') => {
+    const getStatusBadge = (status?: any) => {
         switch (status) {
             case 'active':
                 return <Badge variant="default" className="bg-green-500/20 text-green-300 border-green-500/50">Active</Badge>;

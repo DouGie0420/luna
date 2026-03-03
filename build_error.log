@@ -1,0 +1,46 @@
+
+> nextn@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of C:\Users\Administrator\package-lock.json as the root directory.
+ To silence this warning, set `outputFileTracingRoot` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/output#caveats for more information.
+ Detected additional lockfiles: 
+   * C:\Users\Administrator\Website\package-lock.json
+
+   ▲ Next.js 15.5.9
+   - Environments: .env.local, .env.production, .env
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled successfully in 22.8s
+   Linting and checking validity of types ...
+ ⨯ ESLint must be installed in order to run during builds: npm install --save-dev eslint
+Failed to compile.
+
+./src/app/account/page.tsx:38:15
+Type error: Module '"@/lib/types"' has no exported member 'BadgeType'.
+
+[0m [90m 36 |[39m [36mimport[39m { collection[33m,[39m query[33m,[39m where[33m,[39m getDocs[33m,[39m addDoc[33m,[39m serverTimestamp[33m,[39m doc } [36mfrom[39m [32m"firebase/firestore"[39m[33m;[39m
+ [90m 37 |[39m [36mimport[39m { cn } [36mfrom[39m [32m"@/lib/utils"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 38 |[39m [36mimport[39m { type [33mBadgeType[39m[33m,[39m type [33mProduct[39m[33m,[39m type [33mGlobalSettings[39m } [36mfrom[39m [32m'@/lib/types'[39m[33m;[39m
+ [90m    |[39m               [31m[1m^[22m[39m
+ [90m 39 |[39m [36mimport[39m { [33mRadioGroup[39m[33m,[39m [33mRadioGroupItem[39m } [36mfrom[39m [32m"@/components/ui/radio-group"[39m[33m;[39m
+ [90m 40 |[39m [36mimport[39m { [33mAdminBadgeIcon[39m } [36mfrom[39m [32m"@/components/ui/admin-badge-icon"[39m[33m;[39m
+ [90m 41 |[39m [36mimport[39m { compressImage } [36mfrom[39m [32m"@/lib/image-compressor"[39m[33m;[39m[0m
+Next.js build worker exited with code: 1 and signal: null
