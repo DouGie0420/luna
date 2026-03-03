@@ -58,7 +58,7 @@ const EthereumIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, React.FC<{ className?: string }>> = {
+const badgeIcons: Partial<Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, React.FC<{ className?: string }>>> = {
     kyc: (props) => <Fingerprint {...props} />,
     web3: (props) => <Globe {...props} />,
     nft: (props) => <EthereumIcon {...props} />,
@@ -66,7 +66,7 @@ const badgeIcons: Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>,
     contributor: (props) => <Sparkles {...props} />,
 };
 
-const badgeColors: Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, string> = {
+const badgeColors: Partial<Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 'admin'>, string>> = {
     kyc: 'text-yellow-400',
     web3: 'text-blue-400',
     nft: 'text-blue-400',

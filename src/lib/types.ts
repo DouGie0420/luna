@@ -1,5 +1,5 @@
 // 徽章类型
-export type BadgeType = 'admin' | 'pro' | 'vip' | 'verified' | 'moderator' | 'contributor';
+export type BadgeType = 'none' | 'admin' | 'pro' | 'email' | 'kyc' | 'web3' | 'nft' | 'influencer' | 'contributor' | 'vip' | 'verified' | 'moderator';
 
 // 用户类型
 export type UserType = 'normal' | 'pro';
