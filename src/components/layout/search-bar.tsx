@@ -10,7 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { smartSearchSuggestions } from '@/ai/flows/smart-search-suggestions';
+import { smartSearchSuggestions } from '@/ai';
 import { useDebounce } from '@/hooks/use-debounce';
 import Link from 'next/link';
 import { useUser } from '@/firebase';

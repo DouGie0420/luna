@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { VerifiedMerchants } from '@/components/verified-merchants';
 import { CanyonOfTheMoon } from '@/components/canyon-of-the-moon';
 import { SeaOfTranquility } from '@/components/sea-of-tranquility';
-import { getTrendingKeywords } from '@/ai/flows/trending-keywords';
+import { getTrendingKeywords } from '@/ai';
 import { SanctumPool } from '@/components/home/SanctumPool';
 
 // 🚀 默认关键词，防止 AI 响应慢导致首页留白

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - LUNA Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #020203;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 500px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+        
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(90deg, #ff00ff, #00ffff);
+            color: black;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 0, 255, 0.3);
+        }
+        
+        .network-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: left;
+        }
+        
+        .network-info h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .tips {
+            margin-top: 30px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>Connection Lost</h1>
+        <div class="status">OFFLINE MODE</div>
+        <p>
+            You're currently offline. Some features may be unavailable.
+            Your messages and transactions will sync automatically when you're back online.
+        </p>
+        <button class="button" onclick="location.reload()">Retry Connection</button>
+        
+        <div class="network-info">
+            <h3>Network Status</h3>
+            <p>• Internet Connection: <span id="connection-status">Checking...</span></p>
+            <p>• Service Worker: <span id="sw-status">Active</span></p>
+            <p>• Cache Status: <span id="cache-status">Ready</span></p>
+        </div>
+        
+        <div class="tips">
+            <p>💡 Tip: Check your internet connection and try again</p>
+        </div>
+    </div>
+
+    <script>
+        // Check network status
+        function updateNetworkStatus() {
+            const connectionStatus = document.getElementById('connection-status');
+            const swStatus = document.getElementById('sw-status');
+            const cacheStatus = document.getElementById('cache-status');
+            
+            // Check online status
+            if (navigator.onLine) {
+                connectionStatus.textContent = 'Online';
+                connectionStatus.style.color = '#00ff00';
+            } else {
+                connectionStatus.textContent = 'Offline';
+                connectionStatus.style.color = '#ff5555';
+            }
+            
+            // Check service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(() => {
+                    swStatus.textContent = 'Active';
+                    swStatus.style.color = '#00ff00';
+                }).catch(() => {
+                    swStatus.textContent = 'Inactive';
+                    swStatus.style.color = '#ff5555';
+                });
+            } else {
+                swStatus.textContent = 'Not Supported';
+                swStatus.style.color = '#ffaa00';
+            }
+            
+            // Check cache
+            if ('caches' in window) {
+                caches.has('luna-cache-v1').then((hasCache) => {
+                    cacheStatus.textContent = hasCache ? 'Ready' : 'Empty';
+                    cacheStatus.style.color = hasCache ? '#00ff00' : '#ffaa00';
+                });
+            } else {
+                cacheStatus.textContent = 'Not Supported';
+                cacheStatus.style.color = '#ffaa00';
+            }
+        }
+        
+        // Update status on load and when network changes
+        updateNetworkStatus();
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        
+        // Auto-retry when coming back online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

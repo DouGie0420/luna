@@ -17,7 +17,7 @@ import { useTranslation } from '@/hooks/use-translation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeProductImage } from '@/ai/flows/analyze-product-image';
+import { analyzeProductImage } from '@/ai';
 import type { PaymentMethod, GlobalSettings } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
