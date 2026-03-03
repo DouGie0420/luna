@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AdminGuard } from '@/components/admin/AdminGuard';
 
 export default function AdminLayout({

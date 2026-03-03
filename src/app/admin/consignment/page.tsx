@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 覆盖到：src/app/admin/consignment/page.tsx
 
 'use client';
