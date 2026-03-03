@@ -98,6 +98,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   photoURL?: string;
+  bannerUrl?: string;
 
   // 用户类型
   userType: UserType;
@@ -112,6 +113,7 @@ export interface UserProfile {
 
   // 钱包相关
   walletAddress?: string;
+  ensName?: string;
   walletBindTime?: any; // Firestore timestamp
 
   // 勋章
@@ -133,6 +135,47 @@ export interface UserProfile {
   kycIdPhotoUrl?: string;
   kycSelfieUrl?: string;
 
+  // Web3/NFT 验证状态
+  isWeb3Verified?: boolean;
+  isNftVerified?: boolean;
+
+  // 社交统计
+  followersCount?: number;
+  featuredCount?: number;
+  isInfluencer?: boolean;
+  isContributor?: boolean;
+
+  // 徽章显示
+  displayedBadge?: BadgeType;
+
+  // PRO用户字段
+  isPro?: boolean;
+  proExpiresAt?: any;
+
+  // 社交统计
+  followersCount?: number;
+  followingCount?: number;
+  postsCount?: number;
+
+  // 商家统计
+  onSaleCount?: number;
+  salesCount?: number;
+  purchasesCount?: number;
+  rating?: number;
+  reviewsCount?: number;
+
+  // 精选商品
+  featuredProductId?: string;
+
+  // 积分系统
+  lunarSoil?: number;
+  creditLevel?: number;
+  creditScore?: number;
+
+  // 其他字段
+  following?: string[];
+  lastLogin?: any;
+
   createdAt: any;
   updatedAt?: any;
 }
@@ -141,6 +184,7 @@ export interface UserProfile {
 export interface Product {
   id: string;
   name: string;
+  title?: string; // 用于购买/评价页面的标题字段
   description: string;
   price: number;
   category: ProductCategory;
@@ -150,11 +194,13 @@ export interface Product {
   reviewedBy?: string; // 审核人
   reviewedAt?: any; // 审核时间
   sellerId: string;
-  sellerWalletAddress?: string;
+  sellerAddress?: string; // 卖家钱包地址（简化字段）
+  sellerWalletAddress?: string; // 卖家钱包地址
   imageUrl?: string;
   images?: string[];
   condition?: string;
   location?: string;
+  shippingMethod?: string; // 配送方式
 
   // 加速推广
   isBoosted?: boolean;
@@ -218,6 +264,198 @@ export interface ChatMessage {
     lat: number;
     lng: number;
   };
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+// 订单
+export interface Order {
+  id: string;
+  productId: string;
+  productName: string;
+  productImage?: string;
+  price: number;
+  quantity: number;
+  total: number;
+  sellerId: string;
+  sellerName?: string;
+  buyerId: string;
+  buyerName?: string;
+  status: OrderStatus;
+  paymentStatus: 'pending' | 'paid' | 'refunded' | 'failed';
+  shippingStatus: 'pending' | 'shipped' | 'delivered';
+  paymentMethod?: string;
+  shippingMethod?: string;
+  transactionHash?: string;
+  escrowAddress?: string;
+  createdAt: any;
+  updatedAt?: any;
+}
+
+// 订单状态
+export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'completed' | 'cancelled' | 'refunded' | 'disputed';
+
+// 支持工单
+export interface SupportTicket {
+  id: string;
+  userId: string;
+  userName?: string;
+  title: string;
+  content: string;
+  type: 'general' | 'order' | 'payment' | 'technical' | 'other';
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assignedTo?: string;
+  orderId?: string;
+  messages?: SupportMessage[];
+  createdAt: any;
+  updatedAt?: any;
+}
+
+// 支持消息
+export interface SupportMessage {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderName?: string;
+  isStaff?: boolean;
+  content: string;
+  attachments?: string[];
+  createdAt: any;
+}
+
+// PRO申请
+export interface ProApplication {
+  id: string;
+  userId: string;
+  userName?: string;
+  email?: string;
+  reason: string;
+  experience?: string;
+  portfolioUrl?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewedBy?: string;
+  reviewNote?: string;
+  createdAt: any;
+  reviewedAt?: any;
+}
+
+// KYC状态类型
+export type KycStatus = 'Not Verified' | 'Pending' | 'Verified' | 'Rejected';
+
+// 音频播放器配置
+export interface GlobalAudioPlayerConfig {
+  enabled: boolean;
+  autoPlay?: boolean;
+  loop?: boolean;
+  volume?: number;
+  trackUrl?: string;
+  trackName?: string;
+}
+
+// 其他缺失的类型
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'order' | 'system' | 'message' | 'promo';
+  title: string;
+  content: string;
+  read: boolean;
+  data?: any;
+  createdAt: any;
+}
+
+export interface Promo {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed' | 'shipping';
+  value: number;
+  minOrder?: number;
+  maxDiscount?: number;
+  usageLimit?: number;
+  usedCount: number;
+  startDate: any;
+  endDate: any;
+  status: 'active' | 'expired' | 'disabled';
+  applicableProducts?: 'all' | string[];
+  createdAt: any;
+}
+
+export interface PaymentMethod {
+  id: string;
+  type: 'usdt' | 'alipay' | 'wechat' | 'promptpay' | 'credit_card' | 'paypal' | 'bank_transfer';
+  name: string;
+  icon?: string;
+  enabled: boolean;
+  config?: any;
+  minAmount?: number;
+  maxAmount?: number;
+  fee?: number;
+  feeType?: 'fixed' | 'percentage';
+  processingTime?: string;
+}
+
+export interface PaymentInfo {
+  method: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  amount: number;
+  fee?: number;
+  transactionId?: string;
+  transactionHash?: string;
+  paidAt?: any;
+  refundedAt?: any;
+  refundReason?: string;
+}
+
+export interface Booking {
+  id: string;
+  propertyId: string;
+  propertyName?: string;
+  guestId: string;
+  guestName?: string;
+  hostId: string;
+  checkIn: any;
+  checkOut: any;
+  guests: number;
+  totalPrice: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  paymentStatus: 'pending' | 'paid' | 'refunded';
+  specialRequests?: string;
+  createdAt: any;
+}
+
+export interface RentalProperty {
+  id: string;
+  hostId: string;
+  hostName?: string;
+  title: string;
+  description: string;
+  type: 'apartment' | 'house' | 'villa' | 'room' | 'other';
+  location: {
+    address: string;
+    city: string;
+    country: string;
+    lat?: number;
+    lng?: number;
+  };
+  images: string[];
+  pricePerNight: number;
+  currency: string;
+  maxGuests: number;
+  bedrooms: number;
+  bathrooms: number;
+  amenities: string[];
+  houseRules?: string[];
+  availability?: {
+    availableFrom?: any;
+    availableTo?: any;
+    blockedDates?: any[];
+  };
+  status: 'active' | 'inactive' | 'pending_review';
+  rating?: number;
+  reviewCount?: number;
+  createdAt: any;
+  updatedAt?: any;
 }
 
 // 订单聊天
@@ -291,12 +529,17 @@ export interface BbsPost {
   authorName?: string;
   authorAvatar?: string;
   content: string;
+  title?: string;
   images?: string[];
+  videos?: string[];
   likes?: number;
   favorites?: number;
   comments?: number;
   favoritedBy?: string[];
   likedBy?: string[];
+  tags?: string[];
+  location?: string;
+  replies?: BbsPost[];
   createdAt?: any;
   updatedAt?: any;
 }
@@ -336,5 +579,17 @@ export interface GlobalSettings {
     enableBoost?: boolean;
     enableBBS?: boolean;
     enableChat?: boolean;
+  };
+  // PRO 申请功能开关
+  isProApplicationEnabled?: boolean;
+
+  // 支付通道开关
+  paymentMethods?: {
+    usdt?: boolean;
+    alipay?: boolean;
+    wechat?: boolean;
+    promptpay?: boolean;
+    creditCard?: boolean;
+    paypal?: boolean;
   };
 }
