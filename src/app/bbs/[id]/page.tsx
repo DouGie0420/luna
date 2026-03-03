@@ -366,3 +366,12 @@ export default function BbsPostPage() {
         </div>
     );
 }
+
+// 为静态导出生成参数
+export function generateStaticParams() {
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+  ];
+}
