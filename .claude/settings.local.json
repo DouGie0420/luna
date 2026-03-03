@@ -16,7 +16,11 @@
       "Bash(netstat:*)",
       "Bash(git add:*)",
       "Bash(timeout 5 git log:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(git push:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(firebase hosting:channel:list:*)",
+      "Bash(git:*)"
     ]
   }
 }

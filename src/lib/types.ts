@@ -231,6 +231,39 @@ export interface DirectChat {
   updatedAt?: any;
 }
 
+// 用户地址
+export interface UserAddress {
+  id: string;
+  recipientName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  country: string;
+  isDefault?: boolean;
+  createdAt?: any;
+  updatedAt?: any;
+}
+
+// BBS 帖子
+export interface BbsPost {
+  id: string;
+  authorId: string;
+  authorName?: string;
+  authorAvatar?: string;
+  content: string;
+  images?: string[];
+  likes?: number;
+  favorites?: number;
+  comments?: number;
+  favoritedBy?: string[];
+  likedBy?: string[];
+  createdAt?: any;
+  updatedAt?: any;
+}
+
 // 聊天预览
 export interface ChatPreview {
   id: string;
