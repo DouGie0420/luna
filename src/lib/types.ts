@@ -8,7 +8,7 @@ export type UserRole = 'user' | 'pro' | 'support' | 'staff' | 'ghost' | 'admin';
 export type AvatarType = 'pixel' | 'custom' | 'nft';
 
 // 产品状态
-export type ProductStatus = 'pending' | 'approved' | 'rejected' | 'inactive';
+export type ProductStatus = 'pending' | 'approved' | 'rejected' | 'inactive' | 'hidden' | 'active' | 'under_review';
 
 // 产品分类
 export const PRODUCT_CATEGORIES = [
@@ -125,6 +125,11 @@ export interface UserProfile {
   loginId?: string;
   emailVerified?: boolean;
 
+  // KYC 状态
+  kycStatus?: 'Not Verified' | 'Pending' | 'Verified';
+  kycIdPhotoUrl?: string;
+  kycSelfieUrl?: string;
+
   createdAt: any;
   updatedAt?: any;
 }
@@ -147,6 +152,11 @@ export interface Product {
   images?: string[];
   condition?: string;
   location?: string;
+
+  // 加速推广
+  isBoosted?: boolean;
+  boostExpiresAt?: any;
+
   createdAt: any;
   updatedAt?: any;
 }
