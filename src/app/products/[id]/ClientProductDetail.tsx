@@ -6,10 +6,9 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
-// 🚀 内置类型声明，防止因外部文件缺失导致的编译报错
 interface GlobalSettings {
   paymentMethods?: {
-    usdt: boolean;
+    eth: boolean;
     alipay: boolean;
     wechat: boolean;
     promptpay: boolean;
@@ -21,7 +20,6 @@ import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-a
 import { ProductImageGallery } from '@/components/product-image-gallery';
 import { ProductTitleWithBadge } from '@/components/product-title-with-badge';
 import { SellerProfileCard } from '@/components/seller-profile-card';
-import { ProductPurchaseActions } from '@/components/product-purchase-actions';
 import { ProductCommentSection } from '@/components/product-comment-section';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser, useFirestore, useDoc } from '@/firebase';
@@ -32,28 +30,25 @@ import {
   Zap, UserPlus, MessageSquare, TerminalSquare,
   Wallet, QrCode, Smartphone, CreditCard, ShieldCheck 
 } from 'lucide-react';
-import { ProductEditForm } from '@/components/product-edit-form';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
 import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, limit, getDocs, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { MapComponent } from '@/components/map';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
-// 🚀 引入我们之前修复好的确认弹窗组件和类型
 import { OrderConfirmDialog } from '@/components/checkout/OrderConfirmDialog';
 import type { PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
 
-// 🚀 安全样式合并函数
 const safeClass = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ');
 
 function ProductPageSkeleton() {
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-[#050508]">
             <PageHeaderWithBackAndClose />
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-                    <div className="lg:col-span-3 space-y-4"><Skeleton className="aspect-video w-full rounded-[32px] bg-black/75 border border-white/10" /></div>
-                    <div className="lg:col-span-2 space-y-6"><Skeleton className="h-64 w-full rounded-[32px] bg-black/75 border border-white/10" /></div>
+                    <div className="lg:col-span-3 space-y-4"><Skeleton className="aspect-video w-full rounded-[32px] bg-white/5 border border-white/10" /></div>
+                    <div className="lg:col-span-2 space-y-6"><Skeleton className="h-[600px] w-full rounded-[32px] bg-white/5 border border-white/10" /></div>
                 </div>
             </div>
         </div>
@@ -72,28 +67,21 @@ export default function ClientProductDetail() {
     const productRef = useMemo(() => (firestore && id ? doc(firestore, 'products', id) : null), [firestore, id]);
     const { data: product, loading } = useDoc<any>(productRef);
     
-    // 🚀 全局支付控制中心：实时监听后台开关
     const settingsRef = useMemo(() => (firestore ? doc(firestore, 'settings', 'payment_methods') : null), [firestore]);
     const { data: globalSettings } = useDoc<any>(settingsRef);
     
-    // 逻辑：精确映射数据库里的开关
     const pms = {
-        usdt: globalSettings?.USDT ?? true,
+        eth: globalSettings?.ETH ?? true, 
         alipay: globalSettings?.Alipay ?? false,
         wechat: globalSettings?.WeChat ?? false,
         promptpay: globalSettings?.PromptPay ?? false,
     };
 
-    // 🚀 新增：控制支付选择和弹窗的状态
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null);
     const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
     const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
     const [loadingRecs, setLoadingRecs] = useState(true);
-    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
-
     const [isFollowing, setIsFollowing] = useState(false);
     const [localFollowerCount, setLocalFollowerCount] = useState(0);
 
@@ -135,7 +123,6 @@ export default function ClientProductDetail() {
     if (!product) notFound();
 
     const isOwner = !!(user && product && user.uid === product.sellerId);
-    const hasAdminAccess = !!(profile && ['staff', 'ghost', 'admin', 'support'].includes(profile.role || ''));
     const isLiked = user && product && product.likedBy?.includes(user.uid);
     const isFavorited = user && product && product.favoritedBy?.includes(user.uid);
 
@@ -151,25 +138,6 @@ export default function ClientProductDetail() {
         updateDoc(ref, updateData).catch(() => toast({ variant: 'destructive', title: `Failed to update ${type}` }));
     };
 
-    const handleToggleFollow = async () => {
-        if (!user || !firestore || !product?.sellerId) return;
-        const userRef = doc(firestore, 'users', user.uid);
-        const hostRef = doc(firestore, 'users', product.sellerId);
-        try {
-            if (isFollowing) {
-                await updateDoc(userRef, { following: arrayRemove(product.sellerId) });
-                await updateDoc(hostRef, { followerCount: increment(-1) });
-                setLocalFollowerCount(prev => Math.max(0, prev - 1));
-            } else {
-                await updateDoc(userRef, { following: arrayUnion(product.sellerId) });
-                await updateDoc(hostRef, { followerCount: increment(1) });
-                setLocalFollowerCount(prev => prev + 1);
-            }
-            setIsFollowing(!isFollowing);
-        } catch (error) { console.error(error); }
-    };
-
-    // 🚀 新增：打开弹窗校验逻辑
     const handleOpenPurchaseDialog = () => {
         if (!user) {
             toast({ title: 'Please sign in', description: 'You need to sign in to make a purchase.', variant: 'destructive' });
@@ -183,7 +151,6 @@ export default function ClientProductDetail() {
         setIsOrderDialogOpen(true);
     };
 
-    // 🚀 新增：弹窗确认后的真实订单创建逻辑
     const handlePurchaseConfirm = async (finalMethod: PaymentMethod) => {
         if (!user || !firestore || !product) return;
         try {
@@ -203,7 +170,7 @@ export default function ClientProductDetail() {
             
             toast({ title: 'Order created!', description: 'Redirecting to payment...' });
             
-            if (finalMethod === 'usdt') {
+            if (finalMethod === 'eth' || finalMethod === 'usdt') { 
                 router.push(`/checkout/${orderRef.id}`);
             } else {
                 router.push(`/account/purchases/${orderRef.id}`);
@@ -216,20 +183,27 @@ export default function ClientProductDetail() {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden pb-20">
-            <div className="fixed inset-0 bg-black/50 pointer-events-none z-[-1]" />
-            <PageHeaderWithBackAndClose />
+        <div className="min-h-screen relative overflow-hidden bg-[#050508] pb-20">
+            {/* 全局背景氛围流动光 */}
+            <div className="fixed inset-0 pointer-events-none z-0 opacity-40 mix-blend-screen">
+                <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 blur-[120px] rounded-full animate-blob" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-900/10 blur-[150px] rounded-full animate-blob animation-delay-2000" />
+            </div>
 
-            <header className="relative h-[32vh] w-full overflow-hidden border-b border-white/5">
+            <div className="relative z-50">
+                <PageHeaderWithBackAndClose />
+            </div>
+
+            <header className="relative h-[32vh] w-full overflow-hidden border-b border-white/5 z-10">
                 <div className="absolute inset-0 flex">
                     <div className="relative w-1/2 h-full"><Image src={product.images?.[0] || '/placeholder.jpg'} alt="P1" fill className="object-cover" priority={true} /></div>
                     <div className="relative w-1/2 h-full border-l border-black/50"><Image src={product.images?.[1] || product.images?.[0]} alt="P2" fill className="object-cover" priority={true} /></div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050508] via-[#050508]/40 to-transparent" />
                 <div className="absolute bottom-6 left-0 right-0 space-y-1 z-20 text-center">
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                        <h1 className="text-4xl font-black titanium-title tracking-tighter uppercase text-white drop-shadow-[0_0_20px_rgba(0,0,0,1)]">{product.title || product.name}</h1>
-                        <p className="text-purple-400 font-bold tracking-[0.4em] uppercase text-[10px] flex items-center justify-center gap-2 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
+                        <h1 className="text-4xl font-black titanium-title tracking-tighter uppercase text-white drop-shadow-[0_0_30px_rgba(0,0,0,1)]">{product.title || product.name}</h1>
+                        <p className="text-cyan-400 font-bold tracking-[0.4em] uppercase text-[10px] flex items-center justify-center gap-2 drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]">
                             <MapPin className="w-3 h-3 shrink-0" /> 
                             <span className="translate-y-[0.5px]">{product.location?.address || product.location?.city}</span>
                         </p>
@@ -237,53 +211,88 @@ export default function ClientProductDetail() {
                 </div>
             </header>
             
-            <main className="container mx-auto px-4 py-12 relative z-10">
-                {/* 省略顶部的提示框... */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-12 gap-y-12">
-                    <div className="lg:col-span-3 flex flex-col gap-12">
-                        {/* 图片和描述区域保持不变 */}
-                        <div className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl p-6">
-                            <ProductImageGallery product={product} isLiked={!!isLiked} isFavorited={!!isFavorited} onLikeToggle={() => handleInteraction('like')} onFavoriteToggle={() => handleInteraction('favorite')} />
+            <main className="container mx-auto px-4 py-12 relative z-20">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-x-10 gap-y-12">
+                    
+                    {/* ========== 左侧：展示区 ========== */}
+                    <div className="lg:col-span-3 flex flex-col gap-10">
+                        
+                        {/* 图片相册：流体毛玻璃 */}
+                        <div className="relative bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[32px] overflow-hidden shadow-[0_0_40px_rgba(0,0,0,0.5)] p-6 group transition-all duration-700 hover:bg-white/[0.04]">
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                            <div className="relative z-10">
+                                <ProductImageGallery product={product} isLiked={!!isLiked} isFavorited={!!isFavorited} onLikeToggle={() => handleInteraction('like')} onFavoriteToggle={() => handleInteraction('favorite')} />
+                            </div>
                         </div>
-                        <Card className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl">
-                            <CardHeader className="border-b border-white/5 p-8 flex flex-row items-center justify-between">
+                        
+                        {/* 描述卡片：赛博风细节 */}
+                        <Card className="relative overflow-hidden bg-[#0A0A0E]/80 backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-2xl group transition-all duration-500 hover:border-white/20">
+                            {/* 卡片内部呼吸灯 */}
+                            <div className="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-700" />
+                            
+                            <CardHeader className="border-b border-white/5 p-8 flex flex-row items-center justify-between relative z-10">
                                 <CardTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-white">
-                                    <Sparkles className="h-5 w-5 text-primary" /> {t('product.description')}
+                                    <Sparkles className="h-5 w-5 text-cyan-400 animate-pulse" /> {t('product.description')}
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-8 space-y-8">
-                                <p className="text-white/70 leading-relaxed italic whitespace-pre-wrap text-lg">{product.description}</p>
+                            <CardContent className="p-8 space-y-8 relative z-10">
+                                <p className="text-white/70 leading-relaxed italic whitespace-pre-wrap text-lg font-light">{product.description}</p>
                             </CardContent>
                         </Card>
+
+                        {/* ✅ 调整位置：Communication Terminal (留言板) 移至描述下方 */}
+                        <div className="relative overflow-hidden bg-gradient-to-b from-[#0A0A0E]/90 to-[#050508]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-8 group transition-all duration-500 hover:border-white/20">
+                            {/* 顶部赛博扫描线 */}
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-50" />
+                            <div className="absolute -bottom-24 -left-10 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
+                            
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-black italic text-purple-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
+                                    <TerminalSquare className="w-4 h-4" /> Communication Terminal
+                                </h3>
+                                <ProductCommentSection productId={product.id} sellerId={product.sellerId} />
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div className="lg:col-span-2 flex flex-col gap-12">
-                        <div className="sticky top-24 space-y-12 pb-12">
-                            <div className="relative overflow-hidden bg-black/85 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-2xl flex flex-col gap-8 group">
-                                <div className="absolute -top-10 -right-10 w-64 h-64 bg-primary/20 rounded-full filter blur-[80px] animate-blob opacity-40 transition-opacity duration-1000 pointer-events-none" />
+                    {/* ========== 右侧：操作与信息区 ========== */}
+                    <div className="lg:col-span-2 flex flex-col gap-10">
+                        {/* 粘性滚动容器，确保右侧在滚动时始终优雅固定 */}
+                        <div className="sticky top-28 space-y-10 pb-12">
+                            
+                            {/* 核心支付交易卡片 */}
+                            <div className="relative overflow-hidden bg-[#0A0A0C]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.8)] flex flex-col gap-8 group transition-all hover:border-white/20">
+                                {/* 高级流体发光体 */}
+                                <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/10 rounded-full filter blur-[80px] animate-blob opacity-50 pointer-events-none transition-all duration-700 group-hover:bg-primary/20 group-hover:scale-110" />
+                                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/10 rounded-full filter blur-[80px] animate-blob animation-delay-2000 opacity-30 pointer-events-none" />
                                 
                                 <div className="relative z-10 space-y-4">
                                     <ProductTitleWithBadge product={product} />
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-4xl font-black titanium-title text-primary italic drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                                            ฿{(product.price || 0).toLocaleString()}
+                                        <span className="text-5xl font-black titanium-title text-primary italic drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
+                                            {Number(product.price || 0).toLocaleString('en-US', { maximumFractionDigits: 6 })} ETH
                                         </span>
                                     </div>
-                                    <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 animate-pulse">Node Execution Protocol</p>
+                                    <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                        Node Execution Protocol
+                                    </p>
                                 </div>
 
-                                {/* 🚀 修复点 1：赋予这 4 个按钮真正的生命力（高亮+点击选中） */}
-                                <div className="relative z-10 grid grid-cols-2 gap-3 pt-4">
+                                {/* 支付通道网格 */}
+                                <div className="relative z-10 grid grid-cols-2 gap-4 pt-2">
                                     <Button 
                                         variant="outline" 
-                                        disabled={!pms.usdt} 
-                                        onClick={() => setSelectedPaymentMethod('usdt')}
+                                        disabled={!pms.eth} 
+                                        onClick={() => setSelectedPaymentMethod('eth')}
                                         className={safeClass(
-                                            "h-14 flex items-center justify-center gap-2 border-white/5 transition-all rounded-2xl relative overflow-hidden", 
-                                            !pms.usdt ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'usdt' ? "border-green-400 bg-green-400/10 shadow-[0_0_15px_rgba(74,222,128,0.2)]" : "bg-black/40"
+                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem] relative overflow-hidden", 
+                                            !pms.eth ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
+                                            selectedPaymentMethod === 'eth' ? "border-primary bg-primary/10 shadow-[0_0_20px_rgba(168,85,247,0.25)] scale-[1.02]" : "bg-black/40"
                                         )}>
-                                      <Wallet className="w-5 h-5 text-green-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">USDT</span>
+                                      <Wallet className={safeClass("w-5 h-5", selectedPaymentMethod === 'eth' ? "text-primary" : "text-white/50")} /> 
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'eth' ? "text-white" : "text-white/50")}>BASE ETH</span>
                                     </Button>
 
                                     <Button 
@@ -291,11 +300,12 @@ export default function ClientProductDetail() {
                                         disabled={!pms.alipay} 
                                         onClick={() => setSelectedPaymentMethod('alipay')}
                                         className={safeClass(
-                                            "h-14 flex items-center justify-center gap-2 border-white/5 transition-all rounded-2xl", 
+                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
                                             !pms.alipay ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'alipay' ? "border-blue-400 bg-blue-400/10 shadow-[0_0_15px_rgba(96,165,250,0.2)]" : "bg-black/40"
+                                            selectedPaymentMethod === 'alipay' ? "border-blue-400 bg-blue-400/10 shadow-[0_0_20px_rgba(96,165,250,0.25)] scale-[1.02]" : "bg-black/40"
                                         )}>
-                                      <Smartphone className="w-5 h-5 text-blue-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">Alipay</span>
+                                      <Smartphone className={safeClass("w-5 h-5", selectedPaymentMethod === 'alipay' ? "text-blue-400" : "text-white/50")} /> 
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'alipay' ? "text-white" : "text-white/50")}>Alipay</span>
                                     </Button>
 
                                     <Button 
@@ -303,11 +313,12 @@ export default function ClientProductDetail() {
                                         disabled={!pms.wechat} 
                                         onClick={() => setSelectedPaymentMethod('wechat')}
                                         className={safeClass(
-                                            "h-14 flex items-center justify-center gap-2 border-white/5 transition-all rounded-2xl", 
+                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
                                             !pms.wechat ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'wechat' ? "border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.2)]" : "bg-black/40"
+                                            selectedPaymentMethod === 'wechat' ? "border-green-500 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.25)] scale-[1.02]" : "bg-black/40"
                                         )}>
-                                      <QrCode className="w-5 h-5 text-green-500" /> <span className="font-black italic uppercase tracking-widest text-[10px]">WeChat</span>
+                                      <QrCode className={safeClass("w-5 h-5", selectedPaymentMethod === 'wechat' ? "text-green-500" : "text-white/50")} /> 
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'wechat' ? "text-white" : "text-white/50")}>WeChat</span>
                                     </Button>
 
                                     <Button 
@@ -315,44 +326,71 @@ export default function ClientProductDetail() {
                                         disabled={!pms.promptpay} 
                                         onClick={() => setSelectedPaymentMethod('promptpay')}
                                         className={safeClass(
-                                            "h-14 flex items-center justify-center gap-2 border-white/5 transition-all rounded-2xl", 
+                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
                                             !pms.promptpay ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'promptpay' ? "border-sky-400 bg-sky-400/10 shadow-[0_0_15px_rgba(56,189,248,0.2)]" : "bg-black/40"
+                                            selectedPaymentMethod === 'promptpay' ? "border-sky-400 bg-sky-400/10 shadow-[0_0_20px_rgba(56,189,248,0.25)] scale-[1.02]" : "bg-black/40"
                                         )}>
-                                      <CreditCard className="w-5 h-5 text-sky-400" /> <span className="font-black italic uppercase tracking-widest text-[10px]">PromptPay</span>
+                                      <CreditCard className={safeClass("w-5 h-5", selectedPaymentMethod === 'promptpay' ? "text-sky-400" : "text-white/50")} /> 
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'promptpay' ? "text-white" : "text-white/50")}>PromptPay</span>
                                     </Button>
                                 </div>
                                 
-                                {/* 🚀 修复点 2：把真正的弹窗触发接通到这颗大粉色按钮上 */}
-                                <div className="relative z-10 pt-4">
+                                <div className="relative z-10 pt-6">
                                     <Button 
                                         onClick={handleOpenPurchaseDialog}
                                         disabled={isOwner || !selectedPaymentMethod}
                                         className={safeClass(
-                                            "w-full h-16 font-black uppercase italic tracking-[0.3em] transition-transform rounded-2xl text-lg",
+                                            "w-full h-20 font-black uppercase italic tracking-[0.3em] transition-all rounded-[1.5rem] text-xl",
                                             (!selectedPaymentMethod || isOwner) 
-                                                ? "bg-white/10 text-white/30 cursor-not-allowed border border-white/5" 
-                                                : "bg-gradient-to-r from-primary to-purple-600 text-black shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02]"
+                                                ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/5" 
+                                                : "bg-gradient-to-r from-primary to-purple-600 text-black shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-[0.98]"
                                         )}
                                     >
-                                        {isOwner ? 'Your Own Product' : (selectedPaymentMethod ? '立即购买 / Purchase' : 'Please select payment')}
+                                        {isOwner ? 'Your Own Product' : (selectedPaymentMethod ? 'EXECUTE / 立即购买' : 'Select Gateway')}
                                     </Button>
-                                    <p className="mt-3 text-center text-[10px] text-white/30 font-mono uppercase tracking-widest flex items-center justify-center gap-1">
-                                      <ShieldCheck className="w-3 h-3 text-primary/50" /> Security Escrow Active
-                                    </p>
+                                    <div className="mt-5 p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center gap-2">
+                                        <ShieldCheck className="w-4 h-4 text-primary/70" />
+                                        <p className="text-[10px] text-white/50 font-mono uppercase tracking-widest">
+                                            Smart Escrow Protection Active
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <div className="relative z-10 pt-8 border-t border-white/5 space-y-6">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 pl-1">Authorized Provider</h3>
-                                    <SellerProfileCard seller={{...product.seller, followerCount: localFollowerCount}} className="bg-transparent border-none p-0 shadow-none" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 pl-1 flex items-center gap-2">
+                                        <UserPlus className="w-3 h-3" /> Authorized Provider
+                                    </h3>
+                                    <div className="bg-white/[0.02] rounded-2xl p-2 border border-white/5 hover:border-white/10 transition-colors">
+                                        <SellerProfileCard seller={{...product.seller, followerCount: localFollowerCount}} className="bg-transparent border-none p-0 shadow-none" />
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* ✅ 调整位置：地图模块紧跟在卖家名片下方，并提升美学质感 */}
+                            {product.location && (
+                                <Card className="relative overflow-hidden bg-[#0A0A0C]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] group hover:border-cyan-500/30 transition-all duration-500">
+                                    <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
+                                    <div className="absolute -top-24 -right-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none" />
+                                    
+                                    <CardHeader className="border-b border-white/5 p-6 relative z-10">
+                                        <CardTitle className="text-sm font-black italic uppercase tracking-widest flex items-center gap-2 text-cyan-400">
+                                            <MapPin className="h-4 w-4" /> Location Node
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0 h-[250px] relative z-10">
+                                         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                                            <MapComponent center={product.location} zoom={13} markerPosition={product.location} readOnly />
+                                        </APIProvider>
+                                        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(10,10,12,1)]" />
+                                    </CardContent>
+                                </Card>
+                            )}
+
                         </div>
                     </div>
                 </div>
             </main>
 
-            {/* 🚀 修复点 3：在这里渲染真正的确认弹窗 */}
             <OrderConfirmDialog 
                 open={isOrderDialogOpen}
                 onOpenChange={setIsOrderDialogOpen}

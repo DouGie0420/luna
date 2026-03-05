@@ -11,7 +11,10 @@ import { LanguageProvider } from '@/context/language-provider';
 import { SettingsProvider } from '@/context/settings-provider';
 import dynamic from 'next/dynamic';
 
-// 懒加载非关键组件 - ✅ 统一添加了 .then() 提取器，兼容所有导出方式
+// 🚀 引入 Web3 总闸（全局提供钱包连接环境）
+import { Web3Provider } from '@/contexts/Web3Context';
+
+// 懒加载非关键组件
 const FloatingSupportButton = dynamic(
   () => import('@/components/floating-support-button').then((mod) => mod.FloatingSupportButton || mod.default as any), 
   { ssr: false, loading: () => null }
@@ -32,19 +35,19 @@ const GlobalChatNotifier = dynamic(
   { ssr: false, loading: () => null }
 );
 
-// 🚀 唯一的全局背景引擎 (包含：大尺寸流体 + 边缘巡逻蛇 + 像素网格) - 懒加载
+/**
+ * 🚀 唯一的全局背景引擎
+ * 确保 loading 状态的 z-index 与组件内部一致
+ */
 const GlobalFluidBackground = dynamic(
   () => import('@/components/global-fluid-background').then((mod) => mod.GlobalFluidBackground || mod.default as any), 
   {
     ssr: false,
     loading: () => (
-      <div className="fixed inset-0 bg-gradient-to-br from-[#020203] via-[#0a0a0f] to-[#020203] z-0" />
+      <div className="fixed inset-0 bg-[#020203] z-[-1]" />
     ),
   }
 );
-
-// 🚀 引入 Web3 总闸（全局提供钱包连接环境）
-import { Web3Provider } from '@/contexts/Web3Context';
 
 export default function RootLayout({
   children,
@@ -63,34 +66,37 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={cn("font-sans", "bg-[#020203] text-foreground")}>
+      <body className={cn("font-sans", "bg-[#020203] text-foreground antialiased")}>
         
-          <FirebaseClientProvider>
-              <SettingsProvider>
-                <LanguageProvider>
-                  {/* ✅ 将 Web3Provider 包裹在主体内容外层 */}
-                  <Web3Provider>
-                    
-                    {/* ✅ 唯一个背景入口：所有动效、网格、边缘蛇都在这里统一调度，极致省电 */}
-                    <GlobalFluidBackground />
+        <FirebaseClientProvider>
+          <SettingsProvider>
+            <LanguageProvider>
+              <Web3Provider>
+                
+                {/* 1. 背景引擎：确保它在最底层渲染 */}
+                <GlobalFluidBackground />
 
-                    <div className="flex flex-col min-h-screen relative z-10">
-                        <Header />
-                        <main className="flex-grow flex flex-col">{children}</main>
-                        <Footer />
-                    </div>
-                    
-                    <Toaster />
-                    <FirebaseErrorListener />
-                    <FloatingSupportButton />
-                    <GlobalAudioPlayer />
-                    <PWAInitializer />
-                    <GlobalChatNotifier />
+                {/* 2. 内容包装层：必须显式声明 bg-transparent 和 z-index */}
+                <div className="flex flex-col min-h-screen relative z-10 bg-transparent">
+                  <Header />
+                  <main className="flex-grow flex flex-col bg-transparent">
+                    {children}
+                  </main>
+                  <Footer />
+                </div>
+                
+                {/* 3. 功能性组件 */}
+                <Toaster />
+                <FirebaseErrorListener />
+                <FloatingSupportButton />
+                <GlobalAudioPlayer />
+                <PWAInitializer />
+                <GlobalChatNotifier />
 
-                  </Web3Provider>
-                </LanguageProvider>
-              </SettingsProvider>
-            </FirebaseClientProvider>
+              </Web3Provider>
+            </LanguageProvider>
+          </SettingsProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
