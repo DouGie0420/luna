@@ -47,7 +47,7 @@ export default function AdminPromotionsPage() {
     const firestore = useFirestore();
     const { toast } = useToast();
 
-    // 🛡️ 权限检查逻辑：广告位下放给 ghost/staff，但支付网关强制锁定 admin
+    // 🛡️ 权限检查逻辑：广告位下放给 ghost/staff，但支付网关强制锁定 admin [cite: 2026-02-03]
     const canManageAds = profile && ['admin', 'ghost', 'staff'].includes(profile.role || '');
     const canManagePayments = profile && profile.role === 'admin';
 
@@ -57,8 +57,8 @@ export default function AdminPromotionsPage() {
     const [isSubmittingAnnouncement, setIsSubmittingAnnouncement] = useState(false);
     const [isLoadingAnnouncement, setIsLoadingAnnouncement] = useState(true);
 
-    // 2. 支付协议状态 (已由 hook 全局接管)
-    const { methods: paymentMethods } = usePaymentMethods();
+    // 2. 支付协议状态 (🛠️ 修复：将变量名对齐为 paymentMethodsConfig 以消除报错)
+    const { methods: paymentMethodsConfig } = usePaymentMethods();
 
     // 3. 轮播图状态 (全量 20 个 Slot)
     const [carouselCount, setCarouselCount] = useState('10');
@@ -103,7 +103,6 @@ export default function AdminPromotionsPage() {
             if (cSnap.exists()) {
                 const data = cSnap.data();
                 const items = data.items || [];
-                // 补全到 20 个 slot 确保输入框不报错
                 const fullItems = [...items, ...Array(20 - items.length).fill({ title: '', desc: '', img: '', link: '' })];
                 setCarouselItems(fullItems);
                 setCarouselCount(data.count?.toString() || '10');
@@ -117,8 +116,6 @@ export default function AdminPromotionsPage() {
             }
         };
         loadConfigs();
-
-        // 卸载时不再需要清理 onSnapshot，因为支付状态已交由 Hook 处理
     }, [firestore]);
 
     // --- 🛠️ 业务逻辑函数 ---
@@ -126,11 +123,16 @@ export default function AdminPromotionsPage() {
     const handleTogglePayment = async (method: string) => {
         if (!firestore || !canManagePayments) return;
         
-        const newVal = !paymentMethods[method as keyof typeof paymentMethods];
+        // 使用对齐后的变量名
+        const currentVal = paymentMethodsConfig[method as keyof typeof paymentMethodsConfig];
+        const newVal = !currentVal;
+        
         try {
             await updateDoc(doc(firestore, 'settings', 'global'), { [`paymentMethods.${method}`]: newVal });
-            toast({ title: "Broadcast Success", description: `${method.toUpperCase()} 支付通道已更新` });
-        } catch (e) { toast({ variant: "destructive", title: "Access Denied" }); }
+            toast({ title: "Protocol Broadcasted", description: `${method.toUpperCase()} 通道状态已同步至全局` });
+        } catch (e) { 
+            toast({ variant: "destructive", title: "Access Denied", description: "仅限 ADMIN 级别操作支付网关" }); 
+        }
     };
 
     const handleSaveCarousel = async () => {
@@ -209,10 +211,11 @@ export default function AdminPromotionsPage() {
                     </CardHeader>
                     <CardContent className="p-10 grid grid-cols-1 md:grid-cols-4 gap-8">
                         {[
-                            { id: 'usdt', label: 'USDT (TRC20)', icon: Wallet, color: 'text-green-400', bg: 'bg-green-400/5' },
-                            { id: 'alipay', label: 'Alipay', icon: Smartphone, color: 'text-blue-400', bg: 'bg-blue-400/5' },
-                            { id: 'wechat', label: 'WeChat Pay', icon: QrCode, color: 'text-green-500', bg: 'bg-green-500/5' },
-                            { id: 'promptpay', label: 'PromptPay', icon: CreditCard, color: 'text-sky-400', bg: 'bg-sky-400/5' }
+                            // 🛠️ 修改：USDT 改为 ETH，名称大写
+                            { id: 'eth', label: 'ETH (ETHEREUM)', icon: Zap, color: 'text-blue-500', bg: 'bg-blue-500/5' },
+                            { id: 'alipay', label: 'ALIPAY', icon: Smartphone, color: 'text-blue-400', bg: 'bg-blue-400/5' },
+                            { id: 'wechat', label: 'WECHAT PAY', icon: QrCode, color: 'text-green-500', bg: 'bg-green-500/5' },
+                            { id: 'promptpay', label: 'PROMPTPAY', icon: CreditCard, color: 'text-sky-400', bg: 'bg-sky-400/5' }
                         ].map((m) => (
                             <div key={m.id} className={cn(
                                 "flex flex-col gap-6 p-8 rounded-[32px] border transition-all duration-500",
@@ -222,7 +225,7 @@ export default function AdminPromotionsPage() {
                                 <div className="flex items-center justify-between">
                                     <span className="font-black italic uppercase text-xs text-white tracking-widest">{m.label}</span>
                                     <Switch
-                                        checked={paymentMethodsConfig[m.id as keyof typeof paymentMethodsConfig]}
+                                        checked={!!paymentMethodsConfig[m.id as keyof typeof paymentMethodsConfig]}
                                         onCheckedChange={() => handleTogglePayment(m.id)}
                                         disabled={!canManagePayments}
                                     />
@@ -269,7 +272,7 @@ export default function AdminPromotionsPage() {
                     </CardContent>
                 </Card>
 
-                {/* 🖼️ 首页轮播管理：逻辑完整补全 */}
+                {/* 🖼️ 首页轮播管理 */}
                 <Card className="bg-black/75 backdrop-blur-3xl border border-white/10 rounded-[40px]">
                     <CardHeader className="border-b border-white/5 p-10 flex flex-row items-center justify-between">
                         <CardTitle className="flex items-center gap-4 text-white uppercase italic font-black"><ImageIcon className="text-primary w-6 h-6" /> Hero Carousel Protocol</CardTitle>
@@ -334,7 +337,7 @@ export default function AdminPromotionsPage() {
                     </CardContent>
                 </Card>
 
-                {/* 🏆 认证商户展示：逻辑完整补全 */}
+                {/* 🏆 认证商户展示 */}
                 <Card className="bg-black/75 backdrop-blur-3xl border border-white/10 rounded-[40px]">
                     <CardHeader className="border-b border-white/5 p-10 flex flex-row items-center justify-between">
                         <div>
@@ -371,7 +374,7 @@ export default function AdminPromotionsPage() {
                     </CardContent>
                 </Card>
 
-                {/* 📰 社区推荐：逻辑完整补全 */}
+                {/* 📰 社区推荐 */}
                 <Card className="bg-black/75 backdrop-blur-2xl border border-white/10 rounded-[40px]">
                     <CardHeader className="border-b border-white/5 p-10"><CardTitle className="flex items-center gap-4 text-white uppercase italic font-black"><Newspaper className="text-primary w-6 h-6" /> Lake of Dreams Recommendations</CardTitle></CardHeader>
                     <CardContent className="p-10 grid md:grid-cols-2 gap-16">
@@ -398,7 +401,7 @@ export default function AdminPromotionsPage() {
                 </Card>
             </div>
 
-            {/* 媒体插入 Dialogs 保持不变 */}
+            {/* 媒体插入 Dialogs */}
             <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
                 <DialogContent className="bg-black/95 border-white/10 backdrop-blur-3xl rounded-[32px] text-white">
                     <DialogHeader><DialogTitle className="titanium-title italic uppercase">Insert Image Node</DialogTitle></DialogHeader>

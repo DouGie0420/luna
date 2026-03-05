@@ -1,5 +1,96 @@
 {
-  "node": {},
+  "node": {
+    "4003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b": {
+      "workers": {
+        "app/products/new/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/products/new/page": "action-browser",
+        "app/page": "action-browser"
+      },
+      "filename": "../C:\\Users\\Administrator\\Website - 副本\\src\\ai\\index.ts",
+      "exportedName": "smartSearchSuggestions"
+    },
+    "4014a034891c57c5f4119d3d337e130f906c5ae45d": {
+      "workers": {
+        "app/products/new/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/products/new/page": "action-browser",
+        "app/page": "action-browser"
+      },
+      "filename": "../C:\\Users\\Administrator\\Website - 副本\\src\\ai\\index.ts",
+      "exportedName": "translateText"
+    },
+    "404119a3e3accccc645e872f7398cfd90ba889e982": {
+      "workers": {
+        "app/products/new/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/products/new/page": "action-browser",
+        "app/page": "action-browser"
+      },
+      "filename": "../C:\\Users\\Administrator\\Website - 副本\\src\\ai\\index.ts",
+      "exportedName": "recommendProducts"
+    },
+    "40cb2e680205b5eb0e9bdac996eeb8a3cc0492a571": {
+      "workers": {
+        "app/products/new/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/products/new/page": "action-browser",
+        "app/page": "action-browser"
+      },
+      "filename": "../C:\\Users\\Administrator\\Website - 副本\\src\\ai\\index.ts",
+      "exportedName": "analyzeProductImage"
+    },
+    "40f9b6f556eb067796b0a78512a21ce4409376c565": {
+      "workers": {
+        "app/products/new/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
+        "app/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%2C%5B%7B%22id%22%3A%224003e4196254ac7b586a8dd8ebdc9d8cbcce4ac64b%22%2C%22exportedName%22%3A%22smartSearchSuggestions%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%224014a034891c57c5f4119d3d337e130f906c5ae45d%22%2C%22exportedName%22%3A%22translateText%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%22404119a3e3accccc645e872f7398cfd90ba889e982%22%2C%22exportedName%22%3A%22recommendProducts%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240cb2e680205b5eb0e9bdac996eeb8a3cc0492a571%22%2C%22exportedName%22%3A%22analyzeProductImage%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%2C%7B%22id%22%3A%2240f9b6f556eb067796b0a78512a21ce4409376c565%22%2C%22exportedName%22%3A%22getTrendingKeywords%22%2C%22filename%22%3A%22..%2FC%3A%5C%5CUsers%5C%5CAdministrator%5C%5CWebsite%20-%20%E5%89%AF%E6%9C%AC%5C%5Csrc%5C%5Cai%5C%5Cindex.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        }
+      },
+      "layer": {
+        "app/products/new/page": "action-browser",
+        "app/page": "action-browser"
+      },
+      "filename": "../C:\\Users\\Administrator\\Website - 副本\\src\\ai\\index.ts",
+      "exportedName": "getTrendingKeywords"
+    }
+  },
   "edge": {},
   "encryptionKey": "i71EdTnrxj2ny1HGnBLeEbTDr9fTOexmoa2GWwXtbl0="
 }
