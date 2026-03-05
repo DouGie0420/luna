@@ -29,23 +29,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import dynamic from 'next/dynamic';
 
-// Lazy load chat component
-const ChatWindow = dynamic(() => import('@/components/chat/ChatWindow'), {
-  ssr: false,
-  loading: () => (
-    <Card className="mt-8 bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl">
-      <div className="flex flex-col items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
-        <p className="text-white/60 text-sm">加载聊天组件...</p>
-      </div>
-    </Card>
-  ),
-});
+// ✅ 修复：显式处理动态导入的 default 导出，防止 [object Module] 报错
+const ChatWindow = dynamic(
+  () => import('@/components/chat/ChatWindow').then((mod) => mod.default || mod),
+  {
+    ssr: false,
+    loading: () => (
+      <Card className="mt-8 bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl">
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+          <p className="text-white/60 text-sm font-mono tracking-widest uppercase animate-pulse">Establishing Secure Link...</p>
+        </div>
+      </Card>
+    ),
+  }
+);
 
 const REQUIRED_CHAIN_ID = 8453;
 
 interface ClientPurchaseDetailProps {
-  id: string;
+    id: string;
 }
 
 export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) {
@@ -129,7 +132,7 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
             }
 
             await updateDoc(doc(firestore, 'orders', order.id), {
-                status: 'Completed',
+                status: 'completed',
                 completedAt: serverTimestamp(),
                 confirmDeliveryTxHash: confirmTxHash,
             });
@@ -159,21 +162,27 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
             <div className="fixed inset-0 z-0 opacity-30 pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full mix-blend-screen" />
             </div>
-            <PageHeaderWithBackAndClose />
+
+            {/* ✅ 修正：固定导航栏布局，防止 BACK 按钮错位 */}
+            <div className="fixed top-0 left-0 right-0 z-[100] bg-black/40 backdrop-blur-xl border-b border-white/5">
+                <PageHeaderWithBackAndClose />
+            </div>
+
             <main className="container mx-auto max-w-6xl px-4 pt-36 relative z-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-3xl md:text-5xl font-black italic tracking-tighter text-white uppercase flex items-center gap-4">
                             <div className="w-3 h-10 bg-primary rounded-full shadow-[0_0_20px_rgba(211,58,137,0.6)]" />
-                            Purchase Order
+                            Purchase Protocol
                         </h1>
-                        <p className="text-[11px] font-mono text-white/30 tracking-[0.3em] uppercase mt-3 pl-7">Protocol_ID: {order.id}</p>
+                        <p className="text-[11px] font-mono text-white/30 tracking-[0.3em] uppercase mt-3 pl-7">ORD_HASH: {order.id}</p>
                     </div>
                     <div className="flex items-center gap-3 px-5 py-2.5 bg-lime-500/10 border border-lime-500/20 rounded-full text-lime-400 text-[10px] font-black font-mono tracking-widest uppercase shadow-[0_0_15px_rgba(132,204,22,0.1)]">
-                        <ShieldCheck className="w-4 h-4 animate-pulse" /> Escrow_Secured
+                        <ShieldCheck className="w-4 h-4 animate-pulse" /> Escrow_Secured_V3
                     </div>
                 </div>
 
+                {/* 进度显示区：75% 透明毛玻璃 */}
                 <Card className="bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] rounded-full pointer-events-none" />
                     <div className="relative z-10 flex flex-col xl:flex-row items-center justify-between gap-10">
@@ -181,7 +190,7 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                             <div className="absolute top-5 left-10 right-10 h-1 bg-white/5 rounded-full" />
                             <div className={cn(
                                 "absolute top-5 left-10 h-1 bg-gradient-to-r from-primary/50 to-primary rounded-full shadow-[0_0_15px_rgba(211,58,137,0.8)] transition-all duration-1000",
-                                isCompleted ? "w-full" : isShipped ? "w-2/3" : isPaid ? "w-1/3" : "w-0"
+                                isCompleted ? "w-[calc(100%-80px)]" : isShipped ? "w-[66%]" : isPaid ? "w-[33%]" : "w-0"
                             )} />
                             <div className="relative flex justify-between">
                                 {[
@@ -214,13 +223,13 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] animate-[shimmer_2s_infinite]" />
                                     {isProcessing ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Handshake className="w-6 h-6 mr-3" />}
-                                    {isProcessing ? 'Executing...' : 'Confirm Receipt'}
+                                    {isProcessing ? 'Executing...' : 'Finalize Contract'}
                                 </Button>
                             ) : (
-                                <div className="text-center p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm">
+                                <div className="text-center p-6 bg-white/5 border border-white/10 rounded-3xl backdrop-blur-sm shadow-inner">
                                     <p className="text-[10px] font-mono text-white/50 tracking-[0.2em] uppercase mb-2">Protocol_Status</p>
                                     <p className="text-sm font-bold text-white uppercase tracking-wider">
-                                        {isCompleted ? 'Transaction Finalized' : isDisputed ? 'In Dispute Resolution' : 'Awaiting Seller Action'}
+                                        {isCompleted ? 'Transaction Finalized' : isDisputed ? 'In Dispute Resolution' : 'Awaiting Settlement'}
                                     </p>
                                 </div>
                             )}
@@ -228,17 +237,25 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                     </div>
                 </Card>
 
-                {/* Chat component */}
-                <Card className="mt-8 bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl">
+                {/* ✅ 聊天组件区域：已修复 [object Module] 报错 */}
+                <Card className="mt-8 bg-[#080808]/90 backdrop-blur-3xl border-white/5 rounded-[40px] p-6 shadow-2xl min-h-[450px] overflow-hidden">
+                  <div className="flex items-center gap-3 mb-6 pl-4 border-l-2 border-primary">
+                    <MessageSquare className="w-5 h-5 text-primary" />
+                    <h3 className="text-sm font-black italic text-white uppercase tracking-[0.2em]">Secure Communication Channel</h3>
+                  </div>
                   <ChatWindow
                     orderId={order.id}
                     sellerId={order.sellerId}
                     buyerId={order.buyerId}
-                    productName={product?.name}
+                    productName={product?.name || order.productName}
                   />
                 </Card>
 
             </main>
+
+            <style jsx global>{`
+                @keyframes shimmer { 100% { transform: translate(100%); } }
+            `}</style>
         </div>
     );
 }

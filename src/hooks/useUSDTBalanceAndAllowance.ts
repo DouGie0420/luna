@@ -1,11 +1,11 @@
-// G:\Luna Website\src\\hooks\\useUSDTBalanceAndAllowance.ts
+// G:\Luna Website\src\hooks\useUSDTBalanceAndAllowance.ts
 import { useState, useEffect, useCallback, useRef } from 'react'; // 引入 useRef
 import { ethers, Contract, BigNumberish } from 'ethers';
 import USDT_ABI from '@/contracts/USDT_ABI.json'; // 引入 USDT ABI
 import { getEthersProvider } from '@/lib/web3-provider'; // 引入我们自己的 getEthersProvider
 
-// 从环境变量获取合约地址（带默认值）
-const USDT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS || "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+// ✅ 修复 1：去掉写死的 Base 主网地址。如果 .env 里没有或被注释掉，就默认为空字符串。
+const USDT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_USDT_CONTRACT_ADDRESS || "";
 const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || process.env.NEXT_PUBLIC_ESCROW_ADDRESS || "0x5CcD28825df05AEAf6F55b62c9a35695B070740F";
 
 interface USDTBalanceAndAllowance {
@@ -23,8 +23,8 @@ interface USDTBalanceAndAllowance {
 
 /**
  * React Hook 用于获取用户的 USDT 余额和 Luna 托管合约的 USDT 授权额度。
- * 
- * @returns {USDTBalanceAndAllowance} 包含余额、授权额度、代币小数位、符号、连接状态、地址、链ID、加载状态、错误信息和刷新函数。
+ * （如果未配置 USDT 地址，则降级为只提供钱包连接状态的 Hook，适用于原生 ETH 支付）
+ * * @returns {USDTBalanceAndAllowance} 包含余额、授权额度、代币小数位、符号、连接状态、地址、链ID、加载状态、错误信息和刷新函数。
  */
 export function useUSDTBalanceAndAllowance(): USDTBalanceAndAllowance {
   const [address, setAddress] = useState<string | null>(null);
@@ -83,7 +83,10 @@ export function useUSDTBalanceAndAllowance(): USDTBalanceAndAllowance {
     // 初始加载时检查连接状态
     ethereum.request({ method: 'eth_accounts' })
       .then(handleAccountsChanged)
-      .catch(console.error);
+      .catch((err: any) => {
+        console.error(err);
+        if (isMounted.current) setError(`钱包账户检测失败: ${err.message || err.toString()}`);
+      });
 
     ethereum.request({ method: 'eth_chainId' })
       .then((currentChainId: string) => {
@@ -111,25 +114,32 @@ export function useUSDTBalanceAndAllowance(): USDTBalanceAndAllowance {
 
       if (!isConnected || !address || chainId === null) {
         // 如果未连接或缺少必要信息，不尝试获取USDT数据
-        setBalance(null);
-        setAllowance(null);
-        // setDecimals(null); // 保留 decimals 和 symbol，因为它们通常不变
-        // setSymbol(null);
         setIsLoading(false);
         return;
       }
 
-      if (!USDT_CONTRACT_ADDRESS || !ESCROW_CONTRACT_ADDRESS) {
-        setError('Missing USDT or Escrow contract address in environment variables.');
-        setIsLoading(false);
+      // ✅ 修复 2：如果 USDT 地址为空，说明当前是“原生 ETH 模式”，直接结束加载，不报任何错！
+      if (!USDT_CONTRACT_ADDRESS) {
+        if (isMounted.current) {
+          setIsLoading(false);
+          setError(null);
+        }
+        return;
+      }
+
+      if (!ESCROW_CONTRACT_ADDRESS) {
+        if (isMounted.current) {
+          setError('Missing Escrow contract address in environment variables.');
+          setIsLoading(false);
+        }
         return;
       }
 
       try {
         const provider = await getEthersProvider();
         if (!provider) {
-            setError('Web3 provider not found.');
-            setIsLoading(false);
+            if (isMounted.current) setError('Web3 provider not found.');
+            if (isMounted.current) setIsLoading(false);
             return;
         }
         
@@ -162,7 +172,7 @@ export function useUSDTBalanceAndAllowance(): USDTBalanceAndAllowance {
     };
 
     fetchUSDTData();
-  }, [address, chainId, isConnected, refetchTrigger, decimals, symbol]); // 依赖项减少对 walletProvider 的依赖
+  }, [address, chainId, isConnected, refetchTrigger, decimals, symbol]); 
 
   return { balance, allowance, decimals, symbol, isConnected, address, chainId, isLoading, error, refetch };
 }

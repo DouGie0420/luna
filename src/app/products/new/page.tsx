@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-// 🚀 核心修复：在这里加上了 MessageSquare
 import { Upload, X, Sparkles, Loader2, Home, MapPin, AlertCircle, CheckCircle2, Video, Globe, ArrowLeft, ShieldCheck, Coins, QrCode, MessageCircle, MessageSquare, CreditCard, Image as ImageIcon, Box, Lock, Rocket, Send, Phone, Mail } from "lucide-react"
 import Link from 'next/link';
 import { useTranslation } from '@/hooks/use-translation';
@@ -28,7 +27,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
-// 🌌 高级工业化黑曜石样式
 const intenseArtStyles = `
   .fluid-bg-container { position: fixed; inset: 0; background: #050508; overflow: hidden; z-index: 0; }
   .cyber-grid {
@@ -61,7 +59,6 @@ const intenseArtStyles = `
   @keyframes success-pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(0, 255, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 255, 0); } }
   .success-halo { animation: success-pulse 2s infinite; }
 
-  /* 🌟 Google Maps 下拉框全局重写，强制点击权限 */
   .pac-container {
       pointer-events: auto !important; 
       background-color: #0A0A0C !important;
@@ -90,7 +87,6 @@ const intenseArtStyles = `
 
 const MAP_LIBS: ("places" | "geometry" | "drawing" | "visualization" | "marker" | "geocoding")[] = ['places', 'geocoding'];
 
-// 🚀 定义多渠道类型
 type ContactMethod = 'Telegram' | 'LINE' | 'Wechat' | 'Phone' | 'Email';
 
 export default function NewProductPage() {
@@ -102,14 +98,16 @@ export default function NewProductPage() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
-  const [currency, setCurrency] = useState<'THB' | 'USDT'>('THB');
+  
+  // ✅ 默认币种修改为 ETH
+  const [currency, setCurrency] = useState<'THB' | 'ETH'>('ETH');
+  
   const [category, setCategory] = useState<string>('Streetwear'); 
   const [shippingMethod, setShippingMethod] = useState<'Seller Pays' | 'Buyer Pays'>('Buyer Pays');
   const [shippingCarrier, setShippingCarrier] = useState<'SF' | 'YTO' | null>('SF');
   const [shippingCost, setShippingCost] = useState('');
   const [isConsignment, setIsConsignment] = useState(false);
   
-  // 🚀 多渠道联系方式状态
   const [contactMethod, setContactMethod] = useState<ContactMethod>('Telegram');
   const [consignmentContact, setConsignmentContact] = useState('');
   const [isConsignmentDialogOpen, setIsConsignmentDialogOpen] = useState(false);
@@ -122,7 +120,10 @@ export default function NewProductPage() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>([]);
+  
+  // ✅ 核心修改：将默认收款通道改为 ETH
+  const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>(['ETH']);
+  
   const [currentUserLocation, setCurrentUserLocation] = useState<{lat: number; lng: number} | null>(null);
   const [productLocation, setProductLocation] = useState<any | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -225,7 +226,6 @@ export default function NewProductPage() {
     if (!user || !profile || !firestore || !productLocation) return;
     setIsSubmitting(true);
     
-    // 🚀 自动拼接并格式化联系方式给后台
     let finalContact = consignmentContact.trim();
     if (contactMethod === 'Telegram' && !finalContact.startsWith('@')) {
         finalContact = '@' + finalContact;
@@ -234,15 +234,30 @@ export default function NewProductPage() {
     }
     const formattedConsignmentInfo = isConsignment ? `[${contactMethod}] ${finalContact}` : null;
 
+    // ✅ 核心修复：提交到数据库时，不再限制为整数，完全保留小数精度
+    const parsedPrice = parseFloat(price);
+
     const newProductData = {
-      name, description, price: Number(price), currency, images: imagePreviews, videoUrls, sellerId: user.uid,
+      name, 
+      description, 
+      price: isNaN(parsedPrice) ? 0 : parsedPrice, // ✅ 保存高精度价格
+      currency, 
+      images: imagePreviews, 
+      videoUrls, 
+      sellerId: user.uid,
       acceptedPaymentMethods: acceptedMethods,
-      usdtReceivingAddress: acceptedMethods.includes('USDT') ? (profile?.walletAddress || '') : null, 
-      shippingCost: shippingMethod === 'Buyer Pays' ? (Number(shippingCost) || 0) : 0, 
-      consignmentContact: formattedConsignmentInfo, // 🚀 写入拼接好的美观格式
+      usdtReceivingAddress: acceptedMethods.includes('ETH') ? (profile?.walletAddress || '') : null, // 兼容现有数据库结构
+      shippingCost: shippingMethod === 'Buyer Pays' ? (parseFloat(shippingCost) || 0) : 0, 
+      consignmentContact: formattedConsignmentInfo, 
       seller: { id: user.uid, name: profile?.displayName || user.displayName || 'Unknown', photoURL: profile?.photoURL || user.photoURL || '' },
-      location: productLocation, category: category || 'Streetwear', isConsignment, shippingMethod, createdAt: serverTimestamp(),
-      status: isConsignment ? 'under_review' : 'active', likes: 0, views: 0
+      location: productLocation, 
+      category: category || 'Streetwear', 
+      isConsignment, 
+      shippingMethod, 
+      createdAt: serverTimestamp(),
+      status: isConsignment ? 'under_review' : 'active', 
+      likes: 0, 
+      views: 0
     };
 
     try {
@@ -480,12 +495,23 @@ export default function NewProductPage() {
                                 <div className="space-y-4">
                                     <Label className="text-sm font-bold text-white/80 ml-2">定价与货币</Label>
                                     <div className="flex gap-4 items-center">
-                                        <Input type="number" className="prime-input h-16 text-3xl font-bold px-6 flex-1 rounded-[1.2rem]" placeholder="0.00" value={price} onChange={e => setPrice(e.target.value)} required />
+                                        {/* 🚀 核心修改：允许无缝输入 0.0001 这样的高精度数字 */}
+                                        <Input 
+                                            type="number" 
+                                            step="0.00000001" 
+                                            min="0"
+                                            className="prime-input h-16 text-3xl font-bold px-6 flex-1 rounded-[1.2rem]" 
+                                            placeholder="0.00" 
+                                            value={price} 
+                                            onChange={e => setPrice(e.target.value)} 
+                                            required 
+                                        />
                                         <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
                                             <SelectTrigger className="prime-input w-36 h-16 font-bold text-base rounded-[1.2rem]" translate="no"><SelectValue /></SelectTrigger>
                                             <SelectContent className="bg-[#121214] border-white/10 text-white rounded-xl shadow-2xl" translate="no">
                                                 <SelectItem value="THB" className="py-3 font-bold text-sm">THB ฿</SelectItem>
-                                                <SelectItem value="USDT" className="py-3 font-bold text-sm">USDT</SelectItem>
+                                                {/* ✅ 选项修改为 ETH */}
+                                                <SelectItem value="ETH" className="py-3 font-bold text-sm">ETH</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -494,19 +520,20 @@ export default function NewProductPage() {
                                 <div className="space-y-4">
                                     <Label className="text-sm font-bold text-white/80 ml-2">收款通道 (Payment Gateways)</Label>
                                     <div className="grid grid-cols-2 gap-3">
+                                        {/* ✅ 收款通道改为 ETH */}
                                         <div 
-                                          onClick={() => { if(profile?.walletAddress) handleAcceptedMethodsChange(!acceptedMethods.includes('USDT'), 'USDT') }} 
-                                          className={cn("p-4 rounded-2xl border transition-all flex flex-col gap-3", !profile?.walletAddress ? "opacity-50 border-white/5 bg-black/40 cursor-not-allowed" : acceptedMethods.includes('USDT') ? "border-[#ff00ff] bg-[#ff00ff]/10 shadow-[0_0_20px_rgba(255,0,255,0.1)]" : "border-white/10 bg-white/[0.02] hover:border-white/30 cursor-pointer")}
+                                          onClick={() => { if(profile?.walletAddress) handleAcceptedMethodsChange(!acceptedMethods.includes('ETH'), 'ETH') }} 
+                                          className={cn("p-4 rounded-2xl border transition-all flex flex-col gap-3", !profile?.walletAddress ? "opacity-50 border-white/5 bg-black/40 cursor-not-allowed" : acceptedMethods.includes('ETH') ? "border-[#ff00ff] bg-[#ff00ff]/10 shadow-[0_0_20px_rgba(255,0,255,0.1)]" : "border-white/10 bg-white/[0.02] hover:border-white/30 cursor-pointer")}
                                         >
                                             <div className="flex justify-between items-center">
                                                 <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-[#ff00ff] border border-white/5"><Coins size={18} /></div>
                                                 {profile?.walletAddress ? (
-                                                    <div className={cn("h-5 w-5 rounded-md border flex items-center justify-center transition-all", acceptedMethods.includes('USDT') ? "bg-[#ff00ff] border-[#ff00ff]" : "border-white/20")}>
-                                                        {acceptedMethods.includes('USDT') && <CheckCircle2 size={14} className="text-white" />}
+                                                    <div className={cn("h-5 w-5 rounded-md border flex items-center justify-center transition-all", acceptedMethods.includes('ETH') ? "bg-[#ff00ff] border-[#ff00ff]" : "border-white/20")}>
+                                                        {acceptedMethods.includes('ETH') && <CheckCircle2 size={14} className="text-white" />}
                                                     </div>
                                                 ) : <Lock size={16} className="text-white/20"/>}
                                             </div>
-                                            <div><p className="text-base font-bold text-white tracking-wide">USDT</p><p className="text-[10px] text-white/40 mt-0.5 uppercase font-mono">Web3 Wallet</p></div>
+                                            <div><p className="text-base font-bold text-white tracking-wide">Base ETH</p><p className="text-[10px] text-white/40 mt-0.5 uppercase font-mono">Web3 Wallet</p></div>
                                         </div>
 
                                         <div className="p-4 rounded-2xl border border-white/5 bg-black/40 opacity-40 flex flex-col gap-3 cursor-not-allowed">
@@ -534,15 +561,15 @@ export default function NewProductPage() {
                                         </div>
                                     </div>
 
-                                    {acceptedMethods.includes('USDT') && profile?.walletAddress && (
+                                    {acceptedMethods.includes('ETH') && profile?.walletAddress && (
                                         <div className="mt-4 p-5 rounded-[1.2rem] bg-[#ff00ff]/5 border border-[#ff00ff]/20 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
                                             <Label className="text-xs font-bold text-[#ff00ff] uppercase tracking-widest flex items-center gap-2">
-                                                <Lock size={14} /> USDT 收款地址已锚定
+                                                <Lock size={14} /> ETH 结算地址已锚定
                                             </Label>
                                             <div className="prime-input min-h-[56px] h-auto text-sm font-mono px-4 py-3.5 rounded-xl text-white/80 bg-black/60 cursor-not-allowed break-all leading-relaxed">
                                                 {formatWalletAddress(profile.walletAddress)}
                                             </div>
-                                            <p className="text-[10px] text-white/40 leading-relaxed font-medium">此地址为系统绑定的专属收款地址，发布后将写入底层不可更改。如需变动，请前往「个人中心」提交人工申请。</p>
+                                            <p className="text-[10px] text-white/40 leading-relaxed font-medium">此地址为系统绑定的专属收款地址，发布后将写入底层智能合约不可更改。如需变动，请前往「个人中心」提交人工申请。</p>
                                         </div>
                                     )}
                                 </div>
@@ -562,7 +589,8 @@ export default function NewProductPage() {
                                         {shippingMethod === 'Buyer Pays' && (
                                             <div className="p-5 rounded-[1.2rem] bg-cyan-500/5 border border-cyan-500/20 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 ml-4">
                                                 <Label className="text-xs font-bold text-cyan-400 uppercase tracking-widest">设定运费价格 ({currency})</Label>
-                                                <Input type="number" className="prime-input h-14 text-xl font-bold px-4 rounded-xl" placeholder="0.00" value={shippingCost} onChange={e => setShippingCost(e.target.value)} required={shippingMethod === 'Buyer Pays'} />
+                                                {/* 🚀 运费输入框也解锁高精度 */}
+                                                <Input type="number" step="0.00000001" min="0" className="prime-input h-14 text-xl font-bold px-4 rounded-xl" placeholder="0.00" value={shippingCost} onChange={e => setShippingCost(e.target.value)} required={shippingMethod === 'Buyer Pays'} />
                                             </div>
                                         )}
 
