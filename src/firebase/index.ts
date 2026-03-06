@@ -30,9 +30,9 @@ function initializeFirebase(): { app: FirebaseApp; auth: Auth; firestore: Firest
       firebaseApp = initializeApp(firebaseConfig);
       auth = getAuth(firebaseApp);
 
-      // 🚀 2. 核心修復：強制使用輪詢模式繞過 WebChannel 404 報錯
+      // 🚀 2. 核心修復：強制使用長輪詢模式 (Force)，徹底繞過 WebChannel 404 報錯
       firestore = initializeFirestore(firebaseApp, {
-        experimentalAutoDetectLongPolling: true
+        experimentalForceLongPolling: true // 注意：这里必须是 Force，不能是 AutoDetect
       });
 
       // ✅ 在 Firestore 實例化後立即開啟持久化
