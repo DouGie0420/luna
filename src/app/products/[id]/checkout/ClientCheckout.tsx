@@ -39,8 +39,8 @@ const SHIPPING_FEES = {
 type ShippingMethod = 'Seller Pays' | 'Buyer Pays' | 'In-person';
 type ShippingMethodOption = 'Buyer Pays' | 'In-person';
 
-// 定义Luna项目所需的Polygon链ID，与web3-provider.ts保持一致
-const REQUIRED_CHAIN_ID = 8453;
+// 定义Luna项目所ChainID，与web3-provider.ts保持一致
+const REQUIRED_CHAIN_ID = 84532;
 
 // 🌌 赛博高奢增强样式
 const intenseArtStyles = `
@@ -154,7 +154,7 @@ export default function ClientCheckout() {
         toast({
             variant: "destructive",
             title: "CHAIN_MISMATCH",
-            description: `请切换到 Base 主网 (Chain ID: ${REQUIRED_CHAIN_ID}) 进行交易。`,
+            description: `请切换到 Base Testnet (Chain ID: ${REQUIRED_CHAIN_ID}) 进行交易。`,
             action: (
                 <Button
                     onClick={() => connectToChain(REQUIRED_CHAIN_ID, toast)}
@@ -224,12 +224,12 @@ export default function ClientCheckout() {
         return;
     }
 
-    // 🚨 战略拦截：法币支付暂停，强制 USDT
-    if (paymentMethod !== 'USDT') {
+    // 🚨 战略拦截：法币支付暂停，强制 ETH
+    if (paymentMethod !== 'ETH') {
       toast({ 
         variant: "destructive", 
         title: "法币通道维护中", 
-        description: "因金融合规要求，法币支付暂时关闭，请使用 USDT 进行真实测试。" 
+        description: "因金融合规要求，法币支付暂时关闭，请使用 ETH 进行支付。" 
       });
       return;
     }
@@ -248,7 +248,7 @@ export default function ClientCheckout() {
 
     // --- USDT 相关检查 ---
     if (isUSDTDataLoading || usdtDataError || usdtBalance === null || usdtAllowance === null || usdtDecimals === null) {
-        toast({ variant: "destructive", title: "USDT 数据加载中", description: "请稍候，USDT 余额和授权信息正在加载。" });
+        toast({ variant: "destructive", title: "数据加载中", description: "余额和授权信息正在加载。" });
         refetchUSDTData(); 
         return;
     }
@@ -256,26 +256,26 @@ export default function ClientCheckout() {
     const amountInUnits = parseUnits(totalAmount.toString(), usdtDecimals); 
 
     if (usdtBalance < amountInUnits) {
-        toast({ variant: "destructive", title: "USDT 余额不足", description: `您的 USDT 余额为 ${parseFloat(formatUnits(usdtBalance, usdtDecimals)).toFixed(2)}，不足以支付 ${totalAmount} ${usdtSymbol || 'USDT'}。` });
+        toast({ variant: "destructive", title: "余额不足", description: `您的 ETH 余额为 ${parseFloat(formatUnits(usdtBalance, usdtDecimals)).toFixed(2)}，不足以支付 ${totalAmount} ${usdtSymbol || 'USDT'}。` });
         return;
     }
 
     if (usdtAllowance < amountInUnits) {
-        toast({ variant: "destructive", title: "授权额度不足", description: `请授权 Luna 托管合约至少 ${totalAmount} ${usdtSymbol || 'USDT'}。` });
+        toast({ variant: "destructive", title: "授权额度不足", description: `请授权托管合约至少 ${totalAmount} ${usdtSymbol || 'ETH'}。` });
         setIsApproveDialogOpen(true); 
         return;
     }
-    // --- End USDT 相关检查 ---
+
 
 
     setIsProcessing(true);
     setProgress(10);
-    toast({ title: "🚀 启动 Web3 交易协议", description: "正在与智能合约建立安全连接，准备锁定 USDT..." });
+    toast({ title: "🚀 启动 Web3 交易协议", description: "正在与智能合约建立安全连接，准备锁定 ETH..." });
 
     try {
       // STEP 1: 链上锁仓 (Lock Funds) - 使用 useEscrowContract Hook
       setProgress(30);
-      toast({ title: "🔒 链上资金锁定中", description: "步骤 1/1：请在您的钱包中确认交易，将 USDT 安全锁定至 Luna 托管合约..." });
+      toast({ title: "🔒 链上资金锁定中", description: "步骤 1/1：请在您的钱包中确认交易，将 ETH 安全锁定至托管合约..." });
       
       const lockResult = await lockFunds(product.escrowOrderId);
 
@@ -300,14 +300,14 @@ export default function ClientCheckout() {
         price: product.price,
         shippingFee,
         totalAmount,
-        currency: 'USDT',
+        currency: 'ETH',
         status: 'paid', 
         escrowOrderId: product.escrowOrderId, 
         txHash: lockResult.hash || 'N/A', 
         createdAt: serverTimestamp(),
         shippingAddress,
         shippingMethod,
-        paymentMethod: 'USDT',
+        paymentMethod: 'ETH',
       };
 
       const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
@@ -356,7 +356,7 @@ export default function ClientCheckout() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black text-white mb-2">Secure Checkout</h1>
-          <p className="text-white/60">Complete your purchase securely with USDT</p>
+          <p className="text-white/60">Complete your purchase securely with ETH</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-primary text-xs font-bold">
           <ShieldCheck className="w-4 h-4" /> Escrow Protected
@@ -483,8 +483,8 @@ export default function ClientCheckout() {
                   <span className="text-2xl font-black text-white">${totalAmount.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-white/60 text-sm">In USDT</span>
-                  <span className="text-primary font-bold">{totalAmount.toFixed(2)} USDT</span>
+                  <span className="text-white/60 text-sm">In ETH</span>
+                  <span className="text-primary font-bold">{totalAmount.toFixed(2)} ETH</span>
                 </div>
               </div>
             </div>
@@ -547,10 +547,10 @@ export default function ClientCheckout() {
       <Dialog open={isApproveDialogOpen} onOpenChange={setIsApproveDialogOpen}>
         <DialogContent className="max-w-md bg-[#0a0a0f] border-white/10">
           <DialogHeader>
-            <DialogTitle className="text-white">Approve USDT</DialogTitle>
+            <DialogTitle className="text-white">Approve ETH</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <p className="text-white/60 text-sm">Allow Luna to spend your USDT for this purchase</p>
+            <p className="text-white/60 text-sm">Allow system to spend your ETH for this purchase</p>
             <Input
               type="number"
               value={amountToApprove}
@@ -559,11 +559,11 @@ export default function ClientCheckout() {
               className="bg-white/10 border-white/20 text-white"
             />
             <Button
-              onClick={handleApproveUSDT}
+              onClick={handleApproveETH}
               disabled={isApproving}
               className="w-full"
             >
-              {isApproving ? 'Approving...' : 'Approve USDT'}
+              {isApproving ? 'Approving...' : 'Approve ETH'}
             </Button>
           </div>
         </DialogContent>

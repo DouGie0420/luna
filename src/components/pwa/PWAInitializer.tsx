@@ -851,7 +851,7 @@ export function PWAInitializer() {
               <Download className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-white mb-1">Install LUNA App</h3>
+              <h3 className="font-bold text-white mb-1">INSTALL MESSAGES SYSTEM</h3>
               <p className="text-sm text-white/60 mb-3">
                 Get faster access, push notifications, and work offline.
               </p>

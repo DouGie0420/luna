@@ -6,6 +6,7 @@ import {
   onSnapshot, 
   addDoc, 
   updateDoc,
+  setDoc, // 🚀 终极修复：引入 setDoc
   doc,
   serverTimestamp,
   increment,
@@ -43,38 +44,47 @@ export class ChatService {
     const messagesRef = collection(this.firestore, collectionName, chatId, 'messages');
     
     try {
-      // 添加消息
-      const docRef = await addDoc(messagesRef, {
-        text: message.text,
-        senderId: message.senderId,
+      // 杜绝 undefined
+      const safeMessageData = {
+        text: message.text || '',
+        senderId: message.senderId || 'unknown',
         senderName: message.senderName || 'User',
-        senderAvatar: message.senderAvatar,
+        senderAvatar: message.senderAvatar || null,
         type: message.type || 'text',
-        metadata: message.metadata,
+        metadata: message.metadata || null,
         timestamp: serverTimestamp(),
         createdAt: serverTimestamp(),
         read: false
-      });
+      };
 
-      // 更新聊天元数据
+      // 1. 添加具体消息
+      const docRef = await addDoc(messagesRef, safeMessageData);
+
+      // 2. 更新聊天元数据 (聊天房间)
       const chatRef = doc(this.firestore, collectionName, chatId);
       const displayText = message.type === 'text' ? message.text : `[${message.type}]`;
       
-      await updateDoc(chatRef, {
-        lastMessage: displayText,
+      // 🚀 终极修复：使用 setDoc + merge: true，如果不存在直接创建！
+      await setDoc(chatRef, {
+        participants: [message.senderId || 'unknown', otherUserId], // 确保建房时加入参与者
+        orderId: notificationData?.orderId || chatId.replace('order_', ''),
+        productName: notificationData?.productName || 'Target Artifact',
+        lastMessage: displayText || '',
         lastMessageTime: serverTimestamp(),
         lastMessageTimestamp: serverTimestamp(),
-        lastSenderId: message.senderId,
+        lastSenderId: message.senderId || 'unknown',
         [`unreadCount.${otherUserId}`]: increment(1),
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true }); // <--- 核心：如果文档不存在就创建，存在就合并修改
 
-      // 发送推送通知
+      // 3. 发送推送通知
       await this.sendNotification(
         {
           ...message,
           id: docRef.id,
-          timestamp: new Date()
+          timestamp: new Date(),
+          type: message.type || 'text',
+          senderId: message.senderId || 'unknown'
         },
         otherUserId,
         chatId,
@@ -218,7 +228,6 @@ export class ChatService {
       }
     );
 
-    // 返回清理函数
     return () => {
       unsubscribeOrder();
       unsubscribeDirect();
@@ -237,10 +246,11 @@ export class ChatService {
     const chatRef = doc(this.firestore, collectionName, chatId);
     
     try {
-      await updateDoc(chatRef, {
+      // ✅ 这里同样修改为 setDoc，防止用户在房间建好前就触发已读导致崩溃
+      await setDoc(chatRef, {
         [`unreadCount.${userId}`]: 0,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
     } catch (error) {
       console.error('Error marking as read:', error);
       throw error;
@@ -254,22 +264,19 @@ export class ChatService {
     const batch = writeBatch(this.firestore);
 
     try {
-      // 标记订单聊天
       const orderChatsRef = collection(this.firestore, 'chats');
       const orderQuery = query(
         orderChatsRef,
         where('participants', 'array-contains', userId)
       );
-      const orderSnapshot = await getDoc(doc(this.firestore, 'chats', 'temp')); // Placeholder
+      const orderSnapshot = await getDoc(doc(this.firestore, 'chats', 'temp')); 
       
-      // 标记直接消息
       const directChatsRef = collection(this.firestore, 'direct_chats');
       const directQuery = query(
         directChatsRef,
         where('participants', 'array-contains', userId)
       );
 
-      // 批量更新
       await batch.commit();
     } catch (error) {
       console.error('Error marking all as read:', error);
@@ -286,16 +293,14 @@ export class ChatService {
     user1Profile: { displayName: string; photoURL?: string },
     user2Profile: { displayName: string; photoURL?: string }
   ): Promise<string> {
-    // 查找现有聊天
     const chatsRef = collection(this.firestore, 'direct_chats');
     const q = query(
       chatsRef,
       where('participants', 'array-contains', userId1)
     );
 
-    // 简化版：直接创建新聊天
     const newChatRef = doc(collection(this.firestore, 'direct_chats'));
-    await updateDoc(newChatRef, {
+    await setDoc(newChatRef, {
       participants: [userId1, userId2],
       participantProfiles: {
         [userId1]: user1Profile,
@@ -310,7 +315,7 @@ export class ChatService {
       },
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    }, { merge: true });
 
     return newChatRef.id;
   }
@@ -352,7 +357,6 @@ export class ChatService {
       );
     } catch (error) {
       console.error('Failed to send push notification:', error);
-      // 不抛出错误，推送失败不应该影响消息发送
     }
   }
 
@@ -363,21 +367,18 @@ export class ChatService {
     let totalUnread = 0;
 
     try {
-      // 订单聊天未读数
       const orderChatsRef = collection(this.firestore, 'chats');
       const orderQuery = query(
         orderChatsRef,
         where('participants', 'array-contains', userId)
       );
       
-      // 直接消息未读数
       const directChatsRef = collection(this.firestore, 'direct_chats');
       const directQuery = query(
         directChatsRef,
         where('participants', 'array-contains', userId)
       );
 
-      // 简化版：返回0，实际应该查询并累加
       return totalUnread;
     } catch (error) {
       console.error('Error getting unread count:', error);
@@ -386,7 +387,6 @@ export class ChatService {
   }
 }
 
-// 导出单例工厂函数
 let chatServiceInstance: ChatService | null = null;
 
 export function getChatService(firestore: Firestore): ChatService {

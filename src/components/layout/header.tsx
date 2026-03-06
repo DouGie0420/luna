@@ -7,7 +7,7 @@ import { UserNav } from "./user-nav";
 import { AnnouncementBar } from "./announcement-bar";
 import { GlowingPixelGrid } from "../glowing-pixel-grid";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Shield, Globe, Zap, Wallet } from "lucide-react";
+import { MessageSquare, Shield, Globe, Zap, Wallet, UserPlus } from "lucide-react";
 import Link from "next/link";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { cn } from "@/lib/utils";
@@ -107,10 +107,6 @@ export function Header() {
     }
   };
 
-  const formatAddress = (address: string) => {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`;
-  };
-
   return (
     <header className="sticky top-0 z-[110] w-full bg-background/80 backdrop-blur-xl relative border-b border-[#c41834]/30 shadow-[0_1px_15px_rgba(196,24,52,0.1)]">
       <GlowingPixelGrid seed="shared-luna-seed" className="-z-10" />
@@ -157,9 +153,9 @@ export function Header() {
                 </div>
               </button>
 
-              {user && (
+              {user ? (
                 <>
-                  {/* ROLL OUT 快捷发布按钮 - 胶囊型，和Messages一样 */}
+                  {/* ROLL OUT 快捷发布按钮 */}
                   <Link href="/products/new" className="relative group">
                     <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-secondary/20 to-cyan-500/20 border border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
@@ -168,7 +164,7 @@ export function Header() {
                     </div>
                   </Link>
 
-                  {/* Messages按钮 - 胶囊型 */}
+                  {/* Messages按钮 */}
                   <Link href="/messages" className="relative group">
                     <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-primary/20 to-pink-500/20 border border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]">
@@ -182,7 +178,7 @@ export function Header() {
                     </div>
                   </Link>
 
-                  {/* 钱包按钮 - 胶囊型，和Messages一样 */}
+                  {/* 钱包按钮 */}
                   {account ? (
                     <WalletDropdown />
                   ) : (
@@ -198,9 +194,20 @@ export function Header() {
                     </button>
                   )}
                 </>
+              ) : (
+                /* 🚀 这里的 href 已经修复为指向你真实的 /register 页面 */
+                <Link href="/register" className="relative group ml-2">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-pulse" />
+                  <div className="relative px-5 py-2 rounded-full bg-black border border-white/10 flex items-center gap-2 hover:bg-black/50 transition-colors">
+                    <UserPlus className="h-4 w-4 text-purple-400" />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-black text-sm uppercase tracking-widest">
+                      Sign Up
+                    </span>
+                  </div>
+                </Link>
               )}
 
-              {/* 用户菜单 */}
+              {/* 用户菜单 (包含 Login) */}
               <UserNav />
             </>
           )}

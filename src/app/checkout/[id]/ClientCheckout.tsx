@@ -1,324 +1,273 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore } from '@/firebase';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { 
-  Wallet, Copy, CheckCircle, Clock, AlertCircle,
-  ArrowLeft, Home, Loader2, Shield, Zap, MessageSquare
+import { useUser, useFirestore, useDoc } from "@/firebase";
+import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+    ShieldCheck, AlertOctagon, ChevronLeft, Loader2, Wallet, 
+    CreditCard, Globe, Cpu, Lock, ArrowRight
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { useToast } from '@/hooks/use-toast';
+import type { Order, Product, UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import dynamic from 'next/dynamic';
 
-// 🚀 新增引入：用于前端直接处理数据类型转换
-import { ethers } from 'ethers'; 
-
-import { useEscrowContract } from '@/hooks/useEscrowContract';
+// Web3 imports
 import { useUSDTBalanceAndAllowance } from '@/hooks/useUSDTBalanceAndAllowance';
+import { useEscrowContract } from '@/hooks/useEscrowContract';
+import { connectToChain } from '@/lib/web3-provider';
+import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
+import { Card, CardContent } from '@/components/ui/card';
 
-const ChatWindow = dynamic(
-  async () => {
-    const mod = await import('@/components/chat/ChatWindow');
-    return mod.default || mod.ChatWindow || (mod as any);
-  },
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[600px] flex items-center justify-center bg-black/40 rounded-[40px] animate-pulse text-xs text-white/30 font-mono tracking-[0.2em] border border-white/5">
-        INITIALIZING SECURE CHAT...
-      </div>
-    ),
-  }
-);
+// ✅ 静态引入聊天组件
+import { ChatWindow } from '@/components/chat/ChatWindow';
 
-interface Order {
-  id: string;
-  productId: string;
-  productName: string;
-  productImage?: string;
-  price: number;
-  buyerId: string;
-  sellerId: string;
-  paymentMethod: string;
-  status: string;
-  createdAt: any;
-  escrowOrderId?: string;
+const REQUIRED_CHAIN_ID = 84532; 
+
+interface ClientCheckoutProps {
+    id: string;
 }
 
-const REQUIRED_CHAIN_ID = 84532; // Base Sepolia 测试网
+export default function ClientCheckout({ id }: ClientCheckoutProps) {
+    const router = useRouter();
+    const { user, loading: authLoading } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
 
-export default function ClientCheckout() {
-  const params = useParams();
-  const router = useRouter();
-  const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
+    const orderId = id;
+    const [mounted, setMounted] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-  // ✅ 修改：直接解构出底层的 createOrder
-  const { createOrder, isInteracting: isContractLoading } = useEscrowContract();
-  const { isConnected, chainId } = useUSDTBalanceAndAllowance();
+    // Web3 Hooks
+    const { address, isConnected, chainId } = useUSDTBalanceAndAllowance();
+    const { lockFunds, isInteracting: isEscrowInteracting, interactionError } = useEscrowContract();
 
-  const [order, setOrder] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [txHash, setTxHash] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isWeb3Processing, setIsWeb3Processing] = useState(false);
-  const [copied, setCopied] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
 
-  const orderId = params.id as string;
-  
-  // 测试用的 ETH 接收地址（作为卖家的备用地址，防止合约报 ZeroAddress 错）
-  const ETH_BACKUP_ADDRESS = '0x84000F9F8fB788Eb17de295fC135e9C903b8681a'; 
+    const orderRef = useMemo(() => (firestore && orderId) ? doc(firestore, 'orders', orderId) : null, [firestore, orderId]);
+    const { data: order, loading: orderLoading, error: orderError } = useDoc<Order>(orderRef);
 
-  useEffect(() => {
-    if (!firestore || !orderId || !user) return;
-    const loadOrder = async () => {
-      try {
-        const orderDoc = await getDoc(doc(firestore, 'orders', orderId));
-        if (orderDoc.exists()) {
-          const orderData = { id: orderDoc.id, ...orderDoc.data() } as Order;
-          if (orderData.buyerId !== user.uid) { router.push('/'); return; }
-          setOrder(orderData);
+    const productRef = useMemo(() => firestore && order?.productId ? doc(firestore, 'products', order.productId) : null, [firestore, order]);
+    const { data: product } = useDoc<Product>(productRef);
+
+    // 🚀 获取卖家资料，以便在 order.sellerEthAddress 缺失时作为替补方案
+    const sellerRef = useMemo(() => firestore && order?.sellerId ? doc(firestore, 'users', order.sellerId) : null, [firestore, order]);
+    const { data: seller } = useDoc<UserProfile>(sellerRef);
+
+    useEffect(() => {
+        if (mounted && !authLoading && !user) {
+            router.replace('/');
         }
-      } catch (error) { console.error("Protocol Fetch Error:", error); } 
-      finally { setIsLoading(false); }
+    }, [user, authLoading, router, mounted]);
+
+    const formatPrice = (price: any) => {
+        return Number(price || 0).toLocaleString('en-US', { maximumFractionDigits: 6 });
     };
-    loadOrder();
-  }, [firestore, orderId, user, router]);
 
-  const handleWeb3Pay = async () => {
-    if (!order || !firestore) return;
+    // 防死循环网络检测
+    const hasPromptedNetwork = useRef(false);
+    useEffect(() => {
+        if (!mounted || !isConnected || chainId == null) return;
+        const currentId = typeof chainId === 'string' && chainId.startsWith('0x') ? parseInt(chainId, 16) : Number(chainId);
 
-    setIsWeb3Processing(true);
-    try {
-      const ethereum = (window as any).ethereum;
-      if (!ethereum) throw new Error("No crypto wallet found. Please install MetaMask or Zalien.");
-
-      // 1. 检查并强制请求连接
-      if (!isConnected) {
-        toast({ title: "AUTHORIZATION_PENDING", description: "请在钱包中允许连接此站点..." });
-        await ethereum.request({ method: 'eth_requestAccounts' });
-        toast({ title: "连接成功", description: "网站已授权，请再次点击执行合约按钮。" });
-        setIsWeb3Processing(false);
-        return;
-      }
-
-      // 2. 自动切换到 Base Sepolia
-      if (Number(chainId) !== REQUIRED_CHAIN_ID) {
-        toast({ title: "正在请求切换网络", description: "正在同步至 Base Sepolia 节点..." });
-        try {
-          await ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${REQUIRED_CHAIN_ID.toString(16)}` }],
-          });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
-             await ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                  chainId: `0x${REQUIRED_CHAIN_ID.toString(16)}`,
-                  chainName: 'Base Sepolia',
-                  rpcUrls: ['https://sepolia.base.org'],
-                  nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-                  blockExplorerUrls: ['https://sepolia.basescan.org'],
-                }],
-             });
-          } else { throw switchError; }
+        if (currentId !== REQUIRED_CHAIN_ID) {
+            if (!hasPromptedNetwork.current) {
+                hasPromptedNetwork.current = true;
+                toast({
+                    variant: "destructive",
+                    title: "NETWORK_MISMATCH",
+                    description: `请切换到 Base Sepolia (ID: ${REQUIRED_CHAIN_ID}) 进行支付。`,
+                    action: (
+                        <Button onClick={async () => { await connectToChain(REQUIRED_CHAIN_ID, toast); hasPromptedNetwork.current = false; }} className="bg-primary text-white text-[10px]">
+                            切换网络
+                        </Button>
+                    ),
+                    duration: 5000,
+                });
+            }
+        } else {
+            hasPromptedNetwork.current = false;
         }
-        setIsWeb3Processing(false);
-        return; 
-      }
+    }, [isConnected, chainId, mounted, toast]);
 
-      // ✅ 核心修复 1：将包含字母的 Firebase ID 哈希转换为纯数字，满足合约 uint256 的要求
-      const rawId = order.escrowOrderId || order.id;
-      let numericId = rawId;
-      if (!/^\d+$/.test(rawId)) {
-        numericId = ethers.toBigInt(ethers.id(rawId)).toString();
-      }
+    // 🚀 核心支付逻辑
+    const handlePayment = async () => {
+        if (!firestore || !user || !order || isProcessing) return;
 
-      toast({ title: "🚀 启动原生 ETH 结算协议", description: "请在钱包中签名确认锁仓..." });
-      
-      // ✅ 核心修复 2：严格绕开 lockFunds，直接使用底层的 createOrder
-      // 按照绝对正确的顺序传入：(订单ID, 卖家地址, 支付金额)
-      const result = await createOrder(numericId, ETH_BACKUP_ADDRESS, order.price.toString());
+        if (!isConnected || !address) {
+            toast({ variant: "destructive", title: "钱包未连接", description: "请先连接 MetaMask 钱包。" });
+            return;
+        }
 
-      if (result && result.hash) {
-        await updateDoc(doc(firestore, 'orders', orderId), {
-          status: 'paid',
-          txHash: result.hash,
-          updatedAt: serverTimestamp()
-        });
-        toast({ title: 'PROTOCOL_EXECUTED', description: 'ETH 已安全进入 Base 网络锁仓。' });
-        router.push(`/account/purchases/${orderId}`);
-      }
-    } catch (error: any) {
-      console.error("Payment Execution Error:", error);
-      toast({ title: 'EXECUTION_FAILED', description: error.message || "用户拒绝了签名", variant: 'destructive' });
-    } finally {
-      setIsWeb3Processing(false);
-    }
-  };
+        const currentChainId = typeof chainId === 'string' && chainId.startsWith('0x') ? parseInt(chainId, 16) : Number(chainId);
+        if (currentChainId !== REQUIRED_CHAIN_ID) {
+            toast({ variant: "destructive", title: "网络错误", description: `请切换到 Base 测试网。` });
+            await connectToChain(REQUIRED_CHAIN_ID, toast);
+            return;
+        }
 
-  const handleCopyAddress = () => {
-    navigator.clipboard.writeText(ETH_BACKUP_ADDRESS);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+        setIsProcessing(true);
 
-  const handleSubmitManualPayment = async () => {
-    if (!txHash.trim() || !firestore || !orderId) return;
-    setIsSubmitting(true);
-    try {
-      await updateDoc(doc(firestore, 'orders', orderId), {
-        status: 'payment_submitted',
-        txHash: txHash.trim(),
-        updatedAt: serverTimestamp()
-      });
-      router.push(`/account/purchases/${orderId}`);
-    } catch (error) { setIsSubmitting(false); }
-  };
-
-  if (isLoading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
-  if (!order) return null;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-[#0f051a] to-black pb-20 selection:bg-primary/30 flex flex-col">
-      
-      <nav className="sticky top-0 z-50 w-full bg-black/40 backdrop-blur-xl border-b border-white/10 h-16 shrink-0">
-        <div className="w-full h-full flex items-center justify-between px-6 md:px-10">
-          <Button variant="ghost" onClick={() => router.back()} className="text-white/70 hover:text-white font-black italic tracking-tighter transition-all hover:-translate-x-1">
-            <ArrowLeft className="h-4 w-4 mr-2" /> BACK
-          </Button>
-          <div className="hidden lg:flex items-center gap-4">
-            <span className="text-[10px] text-white/10 font-mono tracking-[1em] uppercase">LUNA_PAYMENT_SYSTEM</span>
-          </div>
-          <Button variant="ghost" onClick={() => router.push('/')} className="text-white/70 hover:text-white font-black italic tracking-tighter transition-all hover:translate-x-1">
-            HOME <Home className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-      </nav>
-
-      <div className="container mx-auto px-4 py-12 max-w-7xl relative flex-1">
-        <div className="text-center mb-16 space-y-4 animate-in fade-in duration-1000">
-          <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-            Complete Payment
-          </h1>
-          <p className="text-white/30 font-mono text-[10px] uppercase tracking-[0.5em]">Waiting for Protocol Authorization...</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-          <div className="lg:col-span-3 space-y-8">
+        try {
+            if (typeof lockFunds !== 'function') throw new Error("支付模块未正确加载！");
             
-            <Card className="relative overflow-hidden border-primary/40 bg-primary/5 p-10 backdrop-blur-md rounded-[40px] border shadow-2xl group">
-              <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-all duration-700">
-                <Zap className="h-32 w-32 text-primary" />
-              </div>
-              <div className="relative z-10">
-                <h2 className="text-3xl font-black text-white italic mb-4 flex items-center gap-3">
-                  <Zap className="h-8 w-8 text-primary animate-pulse" />
-                  NATIVE ETH ESCROW
-                </h2>
-                <p className="text-white/60 text-sm mb-10 leading-relaxed max-w-md">
-                   使用 Base Sepolia 原生代币 (ETH) 执行锁仓协议。您的资金将安全保留在合约中，直到确认收货。
-                </p>
-                <Button 
-                  onClick={handleWeb3Pay}
-                  disabled={isWeb3Processing || isContractLoading}
-                  className="w-full h-20 bg-gradient-to-r from-primary to-[#8b5cf6] text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_50px_rgba(168,85,247,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all rounded-3xl text-xl"
-                >
-                  {isWeb3Processing || isContractLoading ? <Loader2 className="animate-spin mr-3 h-6 w-6" /> : <Wallet className="mr-3 h-6 w-6" />}
-                  {isWeb3Processing || isContractLoading ? "SYNCING..." : "PAY WITH ETH"}
-                </Button>
-              </div>
-            </Card>
+            // 🎯 终极解法：全方位提取卖家的收款钱包地址
+            // 有的系统存 sellerEthAddress，有的叫 walletAddress，有的叫 ethAddress，全部兼容。
+            const finalSellerAddress = order.sellerEthAddress || seller?.walletAddress || seller?.ethAddress || (seller as any)?.address;
 
-            <Card className="bg-black/40 border-white/10 p-8 rounded-[40px] border backdrop-blur-sm shadow-xl">
-              <h2 className="text-lg font-bold text-white/50 mb-8 flex items-center gap-2 italic uppercase tracking-widest">
-                <Shield className="h-4 w-4" /> Manual Gateway
-              </h2>
-              <div className="space-y-8">
-                <div className="flex gap-6 items-start">
-                  <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary font-black italic shrink-0">01</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-white/30 uppercase tracking-[0.2em] mb-2 font-mono">Receiver (BASE ETH)</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 text-white font-mono text-[10px] sm:text-xs break-all bg-black/60 p-4 rounded-2xl border border-white/5">
-                        {ETH_BACKUP_ADDRESS}
-                      </code>
-                      <Button variant="outline" size="icon" onClick={handleCopyAddress} className="h-14 w-14 rounded-2xl border-white/10 hover:bg-white/5 shrink-0">
-                        {copied ? <CheckCircle className="text-green-400" /> : <Copy className="h-5 w-5 text-white/40" />}
-                      </Button>
+            // 拦截 1：卖家根本没有设置钱包
+            if (!finalSellerAddress) {
+                throw new Error("未获取到卖家的收款地址，无法执行智能合约。请联系卖家在个人中心绑定 Web3 钱包。");
+            }
+
+            // 拦截 2：买家和卖家是同一个钱包地址（防刷单拦截）
+            if (finalSellerAddress.toLowerCase() === address.toLowerCase()) {
+                throw new Error("智能合约安全拦截：买家和卖家不能使用同一个钱包地址！请更换钱包账户或测试账号。");
+            }
+
+            toast({ title: "唤起智能合约", description: "请在 MetaMask 中确认支付交易..." });
+
+            // 🚀 调用 Hook 里的 lockFunds，传入真实的卖家地址
+            const result = await lockFunds(order.id, order.price, finalSellerAddress);
+            
+            if (!result || !result.success || !result.hash) {
+                throw new Error(result?.error || interactionError || "交易被拒绝或失败。");
+            }
+
+            // 支付成功，更新数据库
+            await updateDoc(doc(firestore, 'orders', order.id), {
+                status: 'paid',
+                paidAt: serverTimestamp(),
+                txHash: result.hash, 
+                paymentMethod: 'Base ETH'
+            });
+
+            toast({ title: "支付成功！", description: "资产已锁定至智能合约。正在返回订单页..." });
+            
+            setTimeout(() => {
+                router.push(`/account/purchases/${order.id}`);
+            }, 1500);
+
+        } catch (e: any) {
+            console.error("支付失败:", e);
+            toast({ variant: 'destructive', title: '交易中断', description: e.message || "支付未能完成" });
+        } finally { 
+            setIsProcessing(false); 
+        }
+    };
+
+    if (!mounted || orderLoading || authLoading) {
+        return <div className="h-[80vh] flex flex-col items-center justify-center text-primary"><Loader2 className="w-10 h-10 animate-spin" /><p className="font-mono mt-4 text-[10px] tracking-widest uppercase">Initializing Secure Gateway...</p></div>;
+    }
+    
+    if (!order || orderError || (user && order.buyerId !== user.uid)) {
+        return <div className="h-[80vh] flex flex-col items-center justify-center"><AlertOctagon className="w-16 h-16 text-red-500 opacity-30" /><p className="font-mono mt-4">UNAUTHORIZED</p></div>;
+    }
+
+    return (
+        <div className="min-h-screen bg-[#020202] text-white relative overflow-x-hidden pb-32 font-sans selection:bg-primary/30">
+            <div className="fixed inset-0 z-0 opacity-30 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[150px] rounded-full mix-blend-screen" />
+            </div>
+
+            <div className="fixed top-0 left-0 right-0 z-[100] bg-black/40 backdrop-blur-xl border-b border-white/5">
+                <PageHeaderWithBackAndClose />
+            </div>
+
+            <main className="container mx-auto max-w-6xl px-4 pt-36 relative z-10 space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+                
+                <div>
+                    <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-white uppercase flex items-center gap-4">
+                        <div className="w-3 h-12 bg-primary rounded-full shadow-[0_0_25px_rgba(211,58,137,0.7)] animate-pulse" />
+                        Checkout Gateway
+                    </h1>
+                    <p className="text-[11px] font-mono text-white/30 tracking-[0.4em] uppercase mt-3 pl-8">SECURE_NODE: {order.id}</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+                    
+                    <div className="lg:col-span-2 space-y-12">
+                        <Card className="bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[48px] overflow-hidden shadow-2xl relative group border-b-primary/10">
+                            <CardContent className="p-12 flex flex-col md:flex-row gap-12">
+                                <div className="w-full md:w-48 h-48 rounded-[32px] overflow-hidden border border-white/10 relative shadow-2xl">
+                                    <Image src={order.productImage || '/placeholder.jpg'} alt="Artifact" fill className="object-cover" />
+                                </div>
+                                <div className="flex-1 space-y-6 flex flex-col justify-center">
+                                    <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-tight">{order.productName}</h2>
+                                    <div className="flex items-center gap-3">
+                                        <span className="px-3 py-1 bg-primary/10 border border-primary/20 rounded-md text-primary font-mono text-[9px] font-black tracking-widest uppercase">Target Artifact</span>
+                                        <p className="text-white/40 font-mono text-xs tracking-[0.2em]">{order.productId}</p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-[#080808]/90 backdrop-blur-3xl border-white/5 rounded-[48px] p-12 shadow-3xl min-h-[500px] overflow-hidden relative">
+                            <div className="relative z-10 h-full flex flex-col">
+                                <div className="flex items-center gap-5 mb-10 pl-8 border-l-4 border-primary">
+                                    <Lock className="w-7 h-7 text-primary" />
+                                    <h3 className="text-xl font-black italic text-white uppercase tracking-[0.3em]">Pre-Transaction Chat</h3>
+                                </div>
+                                {/* ✅ 聊天组件安全渲染 */}
+                                <ChatWindow orderId={order.id} sellerId={order.sellerId} buyerId={order.buyerId} productName={product?.name || order.productName} />
+                            </div>
+                        </Card>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex gap-6 items-start">
-                  <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-primary font-black italic shrink-0">02</div>
-                  <div className="flex-1 space-y-4">
-                    <Input
-                      value={txHash}
-                      onChange={(e) => setTxHash(e.target.value)}
-                      placeholder="Paste Transaction Hash (TxID)"
-                      className="bg-black/60 border-white/10 text-white h-16 rounded-2xl font-mono focus:ring-primary/50"
-                    />
-                    <Button
-                      onClick={handleSubmitManualPayment}
-                      disabled={isSubmitting || !txHash.trim()}
-                      className="w-full h-14 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl font-bold uppercase tracking-widest text-xs transition-colors"
-                    >
-                      {isSubmitting ? <Loader2 className="animate-spin" /> : "Verify Hash"}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </div>
+                    <div className="space-y-8 sticky top-32">
+                        <Card className="bg-gradient-to-b from-[#111] to-[#050505] border border-primary/30 rounded-[40px] overflow-hidden shadow-[0_0_50px_rgba(211,58,137,0.15)] relative">
+                            <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent" />
+                            <div className="p-10 space-y-8 relative z-10">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                                    <span className="text-[11px] font-mono text-white/50 tracking-widest uppercase">Payment Network</span>
+                                    <div className="flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black border border-blue-500/20">
+                                        <Globe className="w-3 h-3" /> Base Sepolia L2
+                                    </div>
+                                </div>
 
-          <div className="lg:col-span-2 flex flex-col gap-8 h-full">
-            <Card className="bg-black/60 border-white/10 p-6 rounded-[40px] shadow-2xl border backdrop-blur-md shrink-0">
-              <div className="flex flex-col gap-6">
-                <div className="relative aspect-square rounded-[32px] overflow-hidden border border-white/10">
-                  {order.productImage ? (
-                    <img src={order.productImage} className="object-cover w-full h-full transition-transform duration-700 hover:scale-110" alt="Product" />
-                  ) : (
-                    <div className="w-full h-full bg-white/5 flex items-center justify-center font-mono text-white/10">NO_IMAGE</div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-bold text-white text-lg line-clamp-2 uppercase italic leading-tight">{order.productName}</h3>
-                  <p className="text-3xl font-black text-primary italic">{order.price} ETH</p>
-                </div>
-                <div className="pt-6 border-t border-white/5 space-y-4 font-mono text-[10px] uppercase tracking-[0.2em]">
-                   <div className="flex justify-between"><span className="text-white/20">Protocol</span><span className="text-white">BASE_NATIVE_ETH</span></div>
-                   <div className="flex justify-between"><span className="text-white/20">Status</span><span className="text-yellow-500 animate-pulse">Awaiting Signal</span></div>
-                </div>
-              </div>
-            </Card>
+                                <div className="space-y-2 text-center py-6">
+                                    <p className="text-[10px] font-mono text-white/40 tracking-[0.5em] uppercase">Total to Lock</p>
+                                    <p className="text-6xl font-black text-white italic drop-shadow-[0_0_30px_rgba(211,58,137,0.5)] flex justify-center items-baseline gap-2">
+                                        {formatPrice(order.price)} <span className="text-xl text-primary font-mono not-italic uppercase">ETH</span>
+                                    </p>
+                                </div>
 
-            <Card className="bg-[#080808]/90 border-white/10 rounded-[40px] shadow-2xl border backdrop-blur-md flex-1 flex flex-col overflow-hidden h-[600px] min-h-[500px]">
-               <div className="p-6 border-b border-white/5 bg-white/5 shrink-0 flex items-center justify-between">
-                 <h3 className="text-xs font-black italic text-primary uppercase tracking-[0.2em] flex items-center gap-2">
-                   <MessageSquare className="w-4 h-4" /> Order Chat
-                 </h3>
-                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-               </div>
-               
-               <div className="flex-1 relative overflow-hidden bg-black/40">
-                 <ChatWindow 
-                   orderId={order.id} 
-                   sellerId={order.sellerId} 
-                   buyerId={order.buyerId} 
-                 />
-               </div>
-            </Card>
-          </div>
+                                {/* 真正的支付按钮 */}
+                                <Button
+                                    onClick={handlePayment}
+                                    disabled={isProcessing || order.status !== 'pending_payment'}
+                                    className="w-full h-20 bg-primary hover:bg-primary/80 text-white rounded-3xl font-black text-xl tracking-[0.2em] uppercase shadow-[0_15px_40px_-10px_rgba(211,58,137,0.7)] transition-all hover:-translate-y-1 group relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent translate-x-[-100%] group-hover:animate-[shimmer_1.5s_infinite]" />
+                                    {isProcessing ? (
+                                        <Loader2 className="w-7 h-7 animate-spin mr-3" />
+                                    ) : (
+                                        <Wallet className="w-7 h-7 mr-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                                    )}
+                                    {isProcessing ? 'Processing TX...' : 'PAY WITH ETH'}
+                                </Button>
+
+                                <div className="p-5 bg-primary/5 border border-primary/20 rounded-2xl flex items-start gap-4">
+                                    <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                                    <p className="text-[9px] text-white/50 leading-relaxed font-mono uppercase tracking-widest">
+                                        Your funds will be locked securely in the <span className="text-primary font-bold">Base Escrow Contract</span>. The seller cannot access the funds until you confirm receipt.
+                                    </p>
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+
+                </div>
+            </main>
+
+            <style jsx global>{`
+                @keyframes shimmer { 100% { transform: translate(100%); } }
+                ::-webkit-scrollbar { width: 4px; }
+                ::-webkit-scrollbar-track { background: transparent; }
+                ::-webkit-scrollbar-thumb { background: rgba(211,58,137,0.2); border-radius: 10px; }
+            `}</style>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

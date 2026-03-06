@@ -5,7 +5,7 @@ import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { query, collection, where, orderBy, doc, getDocs, limit, startAfter, type QueryDocumentSnapshot, type DocumentData } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Image as ImageIcon, Package, MessageSquare, Clock, CheckCircle2, Timer, ChevronRight, Loader2 } from "lucide-react";
+import { DollarSign, Image as ImageIcon, Package, MessageSquare, Clock, CheckCircle2, Timer, ChevronRight, Loader2, Wallet } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation } from '@/hooks/use-translation';
 import Link from 'next/link';
@@ -27,18 +27,28 @@ function SalesOrderCard({ order }: { order: Order }) {
     const buyerRef = useMemo(() => (firestore && order.buyerId ? doc(firestore, 'users', order.buyerId) : null), [firestore, order.buyerId]);
     const { data: buyer } = useDoc<UserProfile>(buyerRef);
 
-    const safeStatus = order.status || 'pending';
-    const statusKey = `accountPurchases.status.${safeStatus.charAt(0).toLowerCase() + safeStatus.slice(1).replace(/\s/g, '')}`;
-    const displayStatus = safeStatus === 'paid' ? "買家已付款" : (t(statusKey) === statusKey ? safeStatus : t(statusKey));
+    // 🚀 核心修复：高精度格式化，支持 0.0001 ETH 显示
+    const formatPrice = (price: any) => {
+        return Number(price || 0).toLocaleString('en-US', { 
+            maximumFractionDigits: 6 
+        });
+    };
 
-    // 🔗 定義商品詳情頁路由 (如果你的路由是 /product/id，請把這裡的 products 改成 product)
+    const safeStatus = (order.status || 'pending').toLowerCase();
+    
+    // ✅ 逻辑同步：判断是否已支付
+    const isPaidStatus = ['paid', 'shipped', 'completed', 'disputed'].includes(safeStatus);
+    
+    const statusKey = `accountPurchases.status.${safeStatus.charAt(0).toLowerCase() + safeStatus.slice(1).replace(/\s/g, '')}`;
+    const displayStatus = isPaidStatus ? "買家已付款" : (t(statusKey) === statusKey ? safeStatus : t(statusKey));
+
     const productDetailUrl = `/products/${order.productId}`;
 
     return (
         <div className="group relative bg-[#130812]/80 backdrop-blur-xl rounded-[2rem] border border-white/10 p-6 md:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.5),_inset_0_1px_1px_rgba(255,255,255,0.05)] hover:border-[#D33A89]/30 hover:shadow-[0_15px_40px_rgba(211,58,137,0.15)] transition-all duration-500 overflow-hidden flex flex-col md:flex-row gap-6 md:gap-8">
             <div className="absolute -top-24 -right-24 w-64 h-64 bg-[#D33A89]/10 blur-[80px] rounded-full pointer-events-none group-hover:bg-[#D33A89]/20 transition-colors" />
 
-            {/* ✅ 左側：商品圖片 (加上 Link 包裹並增加獨立 hover 放大效果) */}
+            {/* 左側：商品圖片 */}
             <Link href={productDetailUrl} className="w-full md:w-48 h-48 relative bg-black/40 rounded-2xl shrink-0 overflow-hidden border border-white/5 shadow-inner block group/img cursor-pointer">
                 {productLoading ? (
                     <Skeleton className="w-full h-full bg-white/5" />
@@ -67,18 +77,18 @@ function SalesOrderCard({ order }: { order: Order }) {
                         </div>
                     </div>
                     
-                    {safeStatus === 'completed' || safeStatus === 'paid' ? (
+                    {/* ✅ 状态标签根据逻辑变色 */}
+                    {isPaidStatus ? (
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 text-[11px] font-bold shadow-[0_0_10px_rgba(34,197,94,0.1)] uppercase tracking-wider">
                             <CheckCircle2 className="w-3.5 h-3.5" /> {displayStatus}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-400 text-[11px] font-bold shadow-[0_0_10px_rgba(234,179,8,0.1)] uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-yellow-400 text-[11px] font-bold shadow-[0_0_10px_rgba(234,179,8,0.1)] uppercase tracking-wider animate-pulse">
                             <Timer className="w-3.5 h-3.5" /> {displayStatus}
                         </div>
                     )}
                 </div>
 
-                {/* ✅ 標題 (加上 Link 包裹，鼠標懸停時變粉色) */}
                 <Link href={productDetailUrl} className="block w-fit mb-6">
                     <h3 className="text-xl font-bold text-white leading-snug hover:text-[#D33A89] transition-colors line-clamp-2 cursor-pointer">
                         {order.productName || 'LUNA ASSET'}
@@ -94,8 +104,12 @@ function SalesOrderCard({ order }: { order: Order }) {
                         <div className="flex flex-col gap-1">
                             <span className="text-[11px] text-white/40 uppercase tracking-widest font-semibold mb-0.5">訂單總額</span>
                             <div className="flex items-baseline gap-1">
-                                <span className="font-black text-2xl text-[#D33A89] leading-none drop-shadow-[0_0_15px_rgba(211,58,137,0.4)]">{(order.totalAmount || 0).toLocaleString()}</span>
-                                <span className="font-mono text-[10px] text-[#D33A89]/70">USDT</span>
+                                {/* ✅ 修复：显示高精度数值 */}
+                                <span className="font-black text-2xl text-[#D33A89] leading-none drop-shadow-[0_0_15px_rgba(211,58,137,0.4)]">
+                                    {formatPrice(order.totalAmount || order.price)}
+                                </span>
+                                {/* ✅ 修复：根据数据库字段显示单位 */}
+                                <span className="font-mono text-[10px] text-[#D33A89]/70">{order.currency || 'ETH'}</span>
                             </div>
                         </div>
                     </div>
@@ -190,13 +204,13 @@ export default function SalesPage() {
             </div>
 
             {loading && (
-                <div key="state-loading" className="space-y-6">
+                <div className="space-y-6">
                     {[...Array(3)].map((_, i) => <Skeleton key={`skel-${i}`} className="h-56 w-full bg-[#130812]/50 rounded-[2rem] border border-white/5" />)}
                 </div>
             )}
             
             {!loading && salesOrders.length === 0 && (
-                <div key="state-empty" className="py-32 text-center border border-dashed border-white/10 rounded-[2.5rem] bg-white/[0.01] backdrop-blur-sm">
+                <div className="py-32 text-center border border-dashed border-white/10 rounded-[2.5rem] bg-white/[0.01] backdrop-blur-sm">
                     <Package className="mx-auto h-16 w-16 mb-6 text-white/20" />
                     <p className="text-lg font-black italic uppercase tracking-widest text-white/40">Revenue Archive Empty</p>
                     <p className="text-[10px] font-mono text-white/20 mt-2 tracking-widest">No sales records found.</p>
@@ -204,7 +218,7 @@ export default function SalesPage() {
             )}
 
             {!loading && salesOrders.length > 0 && (
-                <div key="state-list" className="space-y-6">
+                <div className="space-y-6">
                     {salesOrders.map((order, index) => (
                         <SalesOrderCard key={`${order.id}-${index}`} order={order} />
                     ))}

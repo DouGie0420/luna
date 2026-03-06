@@ -30,10 +30,10 @@ export function PaymentMethodSelector({
   const firestore = useFirestore();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodOption[]>([
     {
-      id: 'usdt',
-      name: 'USDT',
+      id: 'eth',
+      name: 'ETH',
       icon: <Wallet className="h-6 w-6" />,
-      description: 'Pay with USDT cryptocurrency',
+      description: 'Pay on the Ethereum network',
       enabled: true // 默认启用
     },
     {

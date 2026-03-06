@@ -35,7 +35,6 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
   const otherUserId = isSeller ? buyerId : sellerId;
   const otherUserName = isSeller ? 'Buyer' : 'Seller';
 
-  // Subscribe to real-time messages using ChatService
   useEffect(() => {
     if (!firestore || !user) return;
 
@@ -48,7 +47,6 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
       (newMessages) => {
         setMessages(newMessages);
         
-        // Count unread messages (sent by others)
         const unread = newMessages.filter(
           msg => !msg.read && msg.senderId !== user.uid
         ).length;
@@ -57,7 +55,6 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
         setIsLoading(false);
         scrollToBottom();
 
-        // Mark messages as read when opening chat
         if (unread > 0) {
           markMessagesAsRead();
         }
@@ -76,10 +73,8 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
     return () => unsubscribe();
   }, [firestore, user, chatId]);
 
-  // Mark messages as read
   const markMessagesAsRead = async () => {
     if (!firestore || !user) return;
-
     try {
       const chatService = getChatService(firestore);
       await chatService.markAsRead(chatId, 'order', user.uid);
@@ -104,21 +99,28 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
     try {
       const chatService = getChatService(firestore);
       
+      // 🛑 终极隔离：强制将所有参数转为字符串，消灭任何潜在的 undefined！
+      const safeMessage = {
+        text: String(messageText),
+        senderId: String(user.uid),
+        senderName: profile?.displayName ? String(profile.displayName) : 'User',
+        senderAvatar: profile?.photoURL ? String(profile.photoURL) : '',
+        type: 'text'
+      };
+
+      const safeMetadata = {
+        productName: productName ? String(productName) : 'Target Artifact',
+        orderId: orderId ? String(orderId) : ''
+      };
+      
+      const safeOtherUserId = otherUserId ? String(otherUserId) : '';
+
       await chatService.sendMessage(
         chatId,
         'order',
-        {
-          text: messageText,
-          senderId: user.uid,
-          senderName: profile?.displayName || 'You',
-          senderAvatar: profile?.photoURL,
-          type: 'text'
-        },
-        otherUserId,
-        {
-          productName,
-          orderId
-        }
+        safeMessage,
+        safeOtherUserId,
+        safeMetadata
       );
 
       setNewMessage('');
@@ -158,7 +160,6 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
 
   return (
     <div className="flex flex-col h-full glass-morphism rounded-2xl border border-white/10 overflow-hidden">
-      {/* Chat header */}
       <div className="p-4 border-b border-white/10 bg-black/50 flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -185,16 +186,11 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
               : "bg-red-500/20 text-red-400 hover:bg-red-500/30"
           )}
         >
-          {notificationEnabled ? (
-            <Bell className="h-4 w-4 mr-2" />
-          ) : (
-            <BellOff className="h-4 w-4 mr-2" />
-          )}
+          {notificationEnabled ? <Bell className="h-4 w-4 mr-2" /> : <BellOff className="h-4 w-4 mr-2" />}
           {notificationEnabled ? 'On' : 'Off'}
         </Button>
       </div>
 
-      {/* Messages list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
@@ -213,35 +209,25 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
           </div>
         ) : (
           messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${isOwnMessage(msg.senderId) ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={msg.id} className={`flex ${isOwnMessage(msg.senderId) ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={cn(
                   "max-w-[80%] rounded-2xl p-4 transition-all duration-200",
-                  isOwnMessage(msg.senderId)
-                    ? 'bg-primary/20 border border-primary/30'
-                    : 'bg-white/10 border border-white/10',
+                  isOwnMessage(msg.senderId) ? 'bg-primary/20 border border-primary/30' : 'bg-white/10 border border-white/10',
                   !msg.read && msg.senderId !== user?.uid && 'border-primary/50 shadow-[0_0_20px_rgba(255,0,255,0.1)]'
                 )}
               >
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="h-6 w-6">
                     {msg.senderAvatar && <AvatarImage src={msg.senderAvatar} />}
-                    <AvatarFallback className="text-xs">
-                      {(msg.senderName || 'U').charAt(0)}
-                    </AvatarFallback>
+                    <AvatarFallback className="text-xs">{(msg.senderName || 'U').charAt(0)}</AvatarFallback>
                   </Avatar>
                   <span className="text-sm font-bold text-white">{msg.senderName || 'User'}</span>
                   <span className="text-xs text-white/40">
                     {msg.timestamp?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                   {!msg.read && msg.senderId === user?.uid && (
-                    <span className="text-xs text-white/40 flex items-center gap-1">
-                      <CheckCircle className="h-3 w-3" />
-                      Sent
-                    </span>
+                    <span className="text-xs text-white/40 flex items-center gap-1"><CheckCircle className="h-3 w-3" />Sent</span>
                   )}
                   {!msg.read && msg.senderId !== user?.uid && (
                     <span className="text-xs text-primary animate-pulse">New</span>
@@ -255,7 +241,6 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
       <div className="p-4 border-t border-white/10">
         <div className="flex gap-2">
           <Textarea
@@ -277,25 +262,15 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
             disabled={isSending || !newMessage.trim()}
             className="btn-liquid glass-morphism bg-gradient-to-r from-primary to-secondary text-white px-6 rounded-xl hover-lift min-w-[100px]"
           >
-            {isSending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <Send className="h-5 w-5" />
-            )}
+            {isSending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
           </Button>
         </div>
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-white/40">
-            Press Enter to send, Shift + Enter for new line
-          </p>
+          <p className="text-xs text-white/40">Press Enter to send, Shift + Enter for new line</p>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-white/40">
-              {messages.length} messages
-            </span>
+            <span className="text-xs text-white/40">{messages.length} messages</span>
             {unreadCount > 0 && (
-              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">
-                {unreadCount} unread
-              </span>
+              <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">{unreadCount} unread</span>
             )}
           </div>
         </div>

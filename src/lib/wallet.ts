@@ -9,8 +9,8 @@ function generateNonce() {
   return `Welcome to LUNA! Click to sign in and accept the LUNA Terms of Service. Nonce: ${crypto.randomUUID()}`;
 }
 
-// 建议的Luna项目所需链ID
-const REQUIRED_CHAIN_ID = 8453; // Luna 项目所需的 Base 主网链ID
+// 建议所需链ID
+const REQUIRED_CHAIN_ID = 84532; 
 
 /**
  * 连接钱包并进行签名认证。支持MetaMask和通过Web3Modal连接的钱包。
@@ -35,7 +35,7 @@ export async function connectWallet(firestore: Firestore, toast?: ReturnType<typ
     // 检查并连接到正确的链ID
     const isConnectedToRequiredChain = await connectToChain(REQUIRED_CHAIN_ID, toast);
     if (!isConnectedToRequiredChain) {
-        throw new Error(`CHAIN_MISMATCH: Please connect to ${REQUIRED_CHAIN_ID} (Polygon Mainnet).`);
+        throw new Error(`CHAIN_MISMATCH: Please connect to ${REQUIRED_CHAIN_ID} (Base Testnet).`);
     }
 
     // 重新获取signer以确保在正确链上

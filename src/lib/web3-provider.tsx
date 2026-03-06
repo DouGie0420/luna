@@ -36,6 +36,14 @@ const CHAINS: { [key: number]: ChainInfo } = {
     explorerUrl: 'https://basescan.org',
     rpcUrl: 'https://mainnet.base.org',
   },
+  // 🚀 核心修复：新增 Base Sepolia 测试网配置，解决“未配置”的弹窗死循环
+  84532: { 
+    chainId: 84532,
+    name: 'Base Sepolia Testnet',
+    currency: 'ETH',
+    explorerUrl: 'https://sepolia.basescan.org',
+    rpcUrl: 'https://sepolia.base.org',
+  },
 };
 
 /**

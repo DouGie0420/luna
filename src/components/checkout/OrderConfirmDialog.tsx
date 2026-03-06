@@ -33,7 +33,7 @@ export function OrderConfirmDialog({
 }: OrderConfirmDialogProps) {
   const { user } = useUser();
   const firestore = useFirestore();
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('usdt');
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('eth');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false); // 🚀 控制地址列表展開

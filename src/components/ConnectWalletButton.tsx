@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast'; // 引入 useToast Hook
 import { connectWalletConnect, disconnectWalletConnect, isWalletConnectConnected } from '@/lib/walletconnect-provider'; // WalletConnect 集成
 
 // 定义Luna项目所需的Polygon链ID，与web3-provider.ts保持一致
-const REQUIRED_CHAIN_ID = 8453;
+const REQUIRED_CHAIN_ID = 84532;
 
 export function ConnectWalletButton() {
   const { toast } = useToast(); // 初始化 toast 实例
@@ -360,7 +360,7 @@ export function ConnectWalletButton() {
                 <Diamond className="h-4 w-4 text-red-400" />
               </div>
               <div>
-                <span className="text-white block">切换到 Base 主网</span>
+                <span className="text-white block">切换到 Base Testnet</span>
                 <span className="text-xs text-red-400">链不匹配</span>
               </div>
             </DropdownMenuItem>

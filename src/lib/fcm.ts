@@ -195,11 +195,13 @@ export async function sendPushNotification(
   data?: Record<string, any>
 ): Promise<boolean> {
   try {
-    // In a real implementation, you would call a Cloud Function or backend API
-    // to send the push notification. This is just a placeholder.
-    console.log('[FCM] Would send notification:', { userId, title, body, data });
+    // 🚨 真正的逻辑需要调用 Firebase Cloud Functions (后端 API)
+    console.log('[FCM] Target Recipient:', userId);
+    console.log('[FCM] Notification Data:', { title, body, data });
     
-    // For now, we'll simulate by showing a local notification
+    /* 🛑 终极修复：已经将本地模拟弹窗注释掉，防止发送方自己发消息时弹自己！
+    如果以后有了后端云函数，直接用 fetch 请求你的后端接口即可。
+    
     if ('Notification' in window && Notification.permission === 'granted') {
       const notification = new Notification(title, {
         body,
@@ -213,6 +215,7 @@ export async function sendPushNotification(
         }
       };
     }
+    */
     
     return true;
   } catch (error) {
