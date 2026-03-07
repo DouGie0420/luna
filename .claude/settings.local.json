@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude install:*)",
+      "Bash(claude:*)",
+      "Bash(/c/Users/Administrator/.local/bin/claude.exe:*)",
+      "Bash(/c/Users/Administrator/.vscode/extensions/anthropic.claude-code-2.1.63-win32-x64/resources/native-binary/claude.exe:*)",
+      "Bash(export:*)",
+      "Bash(npm run:*)",
+      "Bash(xargs ls:*)",
+      "Bash(do:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(FIREBASE_DEPLOY.md:*)",
+      "Bash(netstat:*)",
+      "Bash(git add:*)",
+      "Bash(timeout 5 git log:*)",
+      "Bash(pkill:*)",
+      "Bash(git push:*)",
+      "Bash(firebase deploy:*)",
+      "Bash(firebase hosting:channel:list:*)",
+      "Bash(git:*)",
+      "WebFetch(domain:www.getluna.org)",
+      "Bash(tail:*)",
+      "Bash(cat:*)",
+      "Bash(npx firebase-tools:*)"
+    ]
+  }
+}

@@ -1,0 +1,1058 @@
+
+{
+  "entities": {
+    "RentalProperty": {
+        "title": "Rental Property",
+        "description": "Represents a property listed for short-term rental.",
+        "type": "object",
+        "properties": {
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+            "ownerId": { "type": "string" },
+            "location": {
+                "type": "object",
+                "properties": {
+                    "lat": { "type": "number" },
+                    "lng": { "type": "number" },
+                    "city": { "type": "string" },
+                    "country": { "type": "string" },
+                    "countryCode": { "type": "string" }
+                }
+            },
+            "pricePerDay": { "type": "number" },
+            "maxGuests": { "type": "number" },
+            "propertyType": { "type": "string" },
+            "amenities": { "type": "array", "items": { "type": "string" } },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["title", "ownerId", "location", "pricePerDay", "maxGuests"]
+    },
+    "Booking": {
+        "title": "Booking",
+        "description": "Represents a reservation for a rental property.",
+        "type": "object",
+        "properties": {
+            "propertyId": { "type": "string" },
+            "userId": { "type": "string" },
+            "ownerId": { "type": "string" },
+            "checkIn": { "type": "string", "format": "date" },
+            "checkOut": { "type": "string", "format": "date" },
+            "totalPrice": { "type": "number" },
+            "guests": { "type": "number" },
+            "status": { "type": "string", "enum": ["pending", "confirmed", "cancelled"] },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["propertyId", "userId", "ownerId", "checkIn", "checkOut", "totalPrice", "status", "createdAt"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Represents a site-wide announcement banner.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The text displayed in the scrolling bar." },
+        "content": { "type": "string", "description": "The full HTML content displayed in the popup dialog." },
+        "isActive": { "type": "boolean", "description": "Whether the announcement is currently active." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "isActive", "createdAt"]
+    },
+    "DirectChat": {
+      "title": "Direct Chat",
+      "description": "Represents a private conversation channel between two or more users.",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" }, "description": "Array of user UIDs participating in the chat." },
+        "participantProfiles": {
+            "type": "object",
+            "description": "A map of participant UIDs to their basic profile info for quick display.",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "displayName": { "type": "string" },
+                    "photoURL": { "type": "string" }
+                }
+            }
+        },
+        "lastMessage": { "type": "string", "description": "The text of the last message sent in the chat for list previews." },
+        "lastMessageTimestamp": { "type": "string", "format": "date-time", "description": "Timestamp of the last message." },
+        "unreadCount": { 
+          "type": "object",
+          "description": "A map of user UIDs to their unread message count in this chat.",
+          "additionalProperties": { "type": "number" }
+        },
+        "isFriendMode": { "type": "boolean", "description": "True if participants mutually follow each other, allowing unlimited messages." },
+        "hasReplied": { "type": "boolean", "description": "True if the non-initiator has sent at least one message." },
+        "initiatorId": { "type": "string", "description": "The UID of the user who started the conversation." },
+        "initialMessageCount": { "type": "number", "description": "The number of messages sent by the initiator before the other user replies." }
+      },
+      "required": ["participants", "lastMessageTimestamp", "initiatorId"]
+    },
+    "ChatMessage": {
+      "title": "Chat Message",
+      "description": "A single message within a direct chat.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string", "description": "The UID of the user who sent the message." },
+        "text": { "type": "string", "description": "The text content of the message." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "imageUrl": { "type": "string", "format": "uri", "description": "URL for an image sent in the chat." },
+        "originalText": {
+          "type": "string",
+          "description": "The original, untranslated text of the message, if translation occurred."
+        },
+        "isTranslated": {
+            "type": "boolean",
+            "description": "Set to true if the 'text' field is a translation."
+        }
+      },
+      "required": ["senderId", "text", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Represents an item listed for sale on the platform.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "price": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "enum": [
+            "THB",
+            "USDT",
+            "RMB"
+          ]
+        },
+        "sellerId": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "isConsignment": {
+          "type": "boolean"
+        },
+        "shippingMethod": {
+          "type": "string",
+          "enum": [
+            "Seller Pays",
+            "Buyer Pays"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "under_review",
+            "hidden"
+          ],
+          "description": "The current status of the product listing."
+        },
+        "reviewReason": {
+          "type": "string",
+          "description": "The reason a product is under review."
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "city": { "type": "string" },
+            "country": { "type": "string" },
+            "countryCode": { "type": "string" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "locationHidden": {
+            "type": "boolean",
+            "description": "Whether the user has chosen to hide the precise location of the product."
+        },
+        "views": {
+          "type": "number",
+          "description": "Total number of views."
+        },
+        "searchHits": {
+          "type": "number",
+          "description": "How many times this item appeared in search results."
+        },
+        "likes": {
+          "type": "number"
+        },
+        "favorites": {
+          "type": "number"
+        },
+        "likedBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "favoritedBy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "price",
+        "currency",
+        "sellerId",
+        "category",
+        "location"
+      ]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile in the system.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID from Firebase Auth."
+        },
+        "loginId": {
+          "type": "string",
+          "description": "The user's unique login ID, chosen at registration."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether the user's email address has been verified."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "The user's public key for end-to-end encryption."
+        },
+        "walletAddress": {
+          "type": "string",
+          "description": "The user's associated Web3 wallet address."
+        },
+        "gender": {
+          "type": "string",
+          "description": "The user's gender.",
+          "enum": [
+            "男",
+            "女",
+            "其他",
+            "保密"
+          ]
+        },
+        "location": {
+          "type": "string",
+          "description": "The user's city."
+        },
+        "bio": {
+          "type": "string",
+          "description": "The user's personal biography or introduction."
+        },
+        "kycStatus": {
+          "type": "string",
+          "description": "The user's KYC verification status.",
+          "enum": [
+            "Not Verified",
+            "Pending",
+            "Verified"
+          ]
+        },
+        "kycIdPhotoUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's uploaded ID document for KYC."
+        },
+        "kycSelfieUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's uploaded selfie for KYC."
+        },
+        "isNftVerified": {
+          "type": "boolean",
+          "description": "Whether the user's avatar is a verified NFT."
+        },
+        "isInfluencer": {
+          "type": "boolean",
+          "description": "Whether the user is manually granted the 'Influencer' badge."
+        },
+        "isContributor": {
+          "type": "boolean",
+          "description": "Whether the user is manually granted the 'Contributor' badge."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rating": {
+          "type": "number",
+          "description": "The user's average rating out of 5."
+        },
+        "reviewsCount": {
+          "type": "number",
+          "description": "Total number of reviews the user has received."
+        },
+        "salesCount": {
+          "type": "number",
+          "description": "Total number of items sold by the user."
+        },
+        "purchasesCount": {
+          "type": "number",
+          "description": "Total number of items purchased by the user."
+        },
+        "followersCount": {
+          "type": "number",
+          "description": "The number of users following this user."
+        },
+        "followingCount": {
+          "type": "number",
+          "description": "The number of users this user is following."
+        },
+        "followers": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of user UIDs who are following this user."
+        },
+        "following": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array of user UIDs who this user is following."
+        },
+        "featuredCount": {
+          "type": "number",
+          "description": "Total number of times the user's posts have been featured."
+        },
+        "creditScore": {
+          "type": "number",
+          "description": "A calculated score representing user's trustworthiness."
+        },
+        "creditLevel": {
+          "type": "string",
+          "description": "The user's credit level.",
+          "enum": [
+            "Newcomer",
+            "Bronze",
+            "Silver",
+            "Gold",
+            "Platinum",
+            "Diamond"
+          ]
+        },
+        "lunarSoil": {
+          "type": "number",
+          "description": "The user's balance of Lunar Soil, the platform's loyalty points, measured in grams (克)."
+        },
+        "role": {
+          "type": "string",
+          "description": "User role",
+          "enum": [
+            "guest",
+            "user",
+            "staff",
+            "support",
+            "admin",
+            "ghost"
+          ]
+        },
+        "postsCount": {
+          "type": "number"
+        },
+        "preferredLanguage": {
+          "type": "string",
+          "description": "The user's preferred language for translation.",
+          "enum": ["en", "zh", "th"],
+          "default": "zh"
+        }
+      },
+      "required": [
+        "uid",
+        "loginId",
+        "kycStatus",
+        "createdAt"
+      ]
+    },
+    "UserAddress": {
+      "title": "User Address",
+      "description": "Represents a user's shipping address.",
+      "type": "object",
+      "properties": {
+        "recipientName": {
+          "type": "string",
+          "description": "The name of the recipient."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The recipient's phone number."
+        },
+        "country": {
+          "type": "string",
+          "description": "Country of the address."
+        },
+        "province": {
+          "type": "string",
+          "description": "Province or state of the address."
+        },
+        "city": {
+          "type": "string",
+          "description": "City of the address."
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "The primary line of the address."
+        },
+        "addressLine2": {
+          "type": "string",
+          "description": "The secondary line of the address (optional)."
+        },
+        "postalCode": {
+          "type": "string",
+          "description": "The postal code."
+        },
+        "isDefault": {
+          "type": "boolean",
+          "description": "Whether this is the default shipping address."
+        }
+      },
+      "required": [
+        "recipientName",
+        "phone",
+        "country",
+        "province",
+        "city",
+        "addressLine1",
+        "postalCode"
+      ]
+    },
+    "Promo": {
+      "title": "Promotion",
+      "description": "Represents a promotional event or page, like Cyber Monday.",
+      "type": "object",
+      "properties": {
+        "heroTitle": {
+          "type": "string",
+          "description": "The main headline of the promo page."
+        },
+        "heroDescription": {
+          "type": "string",
+          "description": "The descriptive text under the main headline."
+        },
+        "heroBackgroundGif": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for the animated GIF in the hero section background."
+        },
+        "primaryButtonText": {
+          "type": "string",
+          "description": "Text for the main call-to-action button."
+        },
+        "secondaryButtonText": {
+          "type": "string",
+          "description": "Text for the secondary action button."
+        },
+        "productsSectionTitle": {
+          "type": "string",
+          "description": "The title for the featured products section."
+        },
+        "featuredProductIds": {
+          "type": "array",
+          "description": "A list of product IDs to feature in this promotion.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "heroTitle",
+        "heroDescription",
+        "heroBackgroundGif",
+        "primaryButtonText",
+        "secondaryButtonText",
+        "productsSectionTitle"
+      ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a transaction between a buyer and a seller.",
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "string"
+        },
+        "buyerId": {
+          "type": "string"
+        },
+        "sellerId": {
+          "type": "string"
+        },
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Array containing the buyerId and sellerId for rules."
+        },
+        "price": {
+          "type": "number",
+          "description": "The original price of the product."
+        },
+        "shippingFee": {
+          "type": "number",
+          "description": "The calculated shipping fee."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total amount (price + shippingFee)."
+        },
+        "currency": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Pending",
+            "In Escrow",
+            "Shipped",
+            "Awaiting Confirmation",
+            "Completed",
+            "Cancelled"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "buyerReviewId": {
+          "type": "string"
+        },
+        "sellerReviewId": {
+          "type": "string"
+        },
+        "shippingAddress": {
+          "type": "object",
+          "description": "A snapshot of the selected shipping address at the time of order.",
+          "properties": {
+            "recipientName": {
+              "type": "string"
+            },
+            "phone": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "province": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            },
+            "addressLine1": {
+              "type": "string"
+            },
+            "addressLine2": {
+              "type": "string"
+            },
+            "postalCode": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "recipientName",
+            "phone",
+            "country",
+            "province",
+            "city",
+            "addressLine1",
+            "postalCode"
+          ]
+        },
+        "shippingMethod": {
+          "type": "string",
+          "enum": [
+            "Seller Pays",
+            "Buyer Pays",
+            "In-person"
+          ]
+        },
+        "shippingProvider": {
+          "type": "string",
+          "description": "The shipping company used for the order."
+        },
+        "trackingNumber": {
+          "type": "string",
+          "description": "The tracking number provided by the shipping company."
+        }
+      },
+      "required": [
+        "productId",
+        "buyerId",
+        "sellerId",
+        "participants",
+        "price",
+        "shippingFee",
+        "totalAmount",
+        "currency",
+        "status",
+        "createdAt",
+        "shippingAddress",
+        "shippingMethod"
+      ]
+    },
+    "Review": {
+      "title": "Transaction Review",
+      "description": "A review submitted by a user for a transaction.",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string"
+        },
+        "reviewerId": {
+          "type": "string"
+        },
+        "revieweeId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "buyer",
+            "seller"
+          ]
+        },
+        "rating": {
+          "type": "string",
+          "enum": [
+            "Good",
+            "Neutral",
+            "Bad"
+          ]
+        },
+        "comment": {
+          "type": "string"
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "orderId",
+        "reviewerId",
+        "revieweeId",
+        "role",
+        "rating",
+        "createdAt"
+      ]
+    },
+    "LunarSoilLedgerEntry": {
+      "title": "Lunar Soil Ledger Entry",
+      "description": "Represents a single transaction of Lunar Soil, used to track expiration.",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "earnedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "description": "e.g., 'review', 'daily-login', 'purchase'"
+        }
+      },
+      "required": [
+        "amount",
+        "earnedAt",
+        "expiresAt",
+        "source"
+      ]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Represents a system notification for a user.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "read": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "info",
+            "success",
+            "warning",
+            "error"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "message",
+        "createdAt"
+      ]
+    },
+    "SupportTicket": {
+      "title": "Support Ticket",
+      "description": "Represents a user's support request.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "subject": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["Open", "Pending", "Resolved", "Closed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "assignedTo": { "type": "string" }
+      },
+      "required": ["userId", "userName", "userEmail", "subject", "category", "description", "status", "createdAt"]
+    },
+    "BbsPost": {
+      "title": "BBS Post",
+      "description": "Represents a post in the community forum.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "author": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "avatarUrl": { "type": "string", "format": "uri" }
+          }
+        },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "number", "description": "Total number of likes." },
+        "favorites": { "type": "number", "description": "Total number of favorites." },
+        "views": { "type": "number" },
+        "replies": { "type": "number" },
+        "isFeatured": { "type": "boolean" },
+        "status": {
+          "type": "string",
+          "enum": ["active", "under_review", "hidden"],
+          "description": "The current status of the BBS post."
+        },
+        "reviewReason": {
+          "type": "string",
+          "description": "The reason a post is under review."
+        },
+        "likedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who liked the post." },
+        "favoritedBy": { "type": "array", "items": { "type": "string" }, "description": "List of UIDs of users who favorited the post." },
+        "location": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" },
+            "city": { "type": "string" },
+            "country": { "type": "string" },
+            "countryCode": { "type": "string" }
+          },
+          "required": ["lat", "lng"]
+        },
+        "searchHits": {
+          "type": "number",
+          "description": "How many times this item appeared in search results."
+        }
+      },
+      "required": ["title", "content", "authorId", "createdAt", "location"]
+    },
+    "Comment": {
+      "title": "BBS Comment",
+      "description": "Represents a comment on a BBS post.",
+      "type": "object",
+      "properties": {
+        "authorId": { "type": "string" },
+        "text": { "type": "string" },
+        "parentId": { "type": "string", "description": "The ID of the parent comment, if it's a reply." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "likes": { "type": "number" },
+        "dislikes": { "type": "number" },
+        "likedBy": { "type": "array", "items": { "type": "string" } },
+        "dislikedBy": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["authorId", "text", "createdAt"]
+    },
+    "PaymentChangeRequest": {
+      "title": "Payment Change Request",
+      "description": "A user's request to change their payment information.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "reviewerId": { "type": "string" },
+        "rejectionReason": { "type": "string" },
+        "requestedPaymentInfo": {
+          "type": "object",
+          "properties": {
+            "bankAccount": {
+              "type": "object",
+              "properties": {
+                "accountName": { "type": "string" },
+                "accountNumber": { "type": "string" },
+                "bankName": { "type": "string" }
+              }
+            },
+            "usdtAddress": { "type": "string" },
+            "alipayQrUrl": { "type": "string", "format": "uri" },
+            "wechatPayQrUrl": { "type": "string", "format": "uri" },
+            "promptPayQrUrl": { "type": "string", "format": "uri" }
+          }
+        }
+      },
+      "required": ["userId", "userName", "status", "createdAt", "requestedPaymentInfo"]
+    },
+    "ProApplication": {
+      "title": "PRO Merchant Application",
+      "description": "A user's request to become a PRO merchant.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "plan": { "type": "string", "enum": ["tier1", "tier2", "tier3"] },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "reviewerId": { "type": "string" }
+      },
+      "required": ["userId", "userName", "status", "createdAt", "plan"]
+    },
+    "GlobalAudioPlayerConfig": {
+      "title": "Global Audio Player Configuration",
+      "description": "Settings for the site-wide floating audio player.",
+      "type": "object",
+      "properties": {
+        "display_logic": {
+          "type": "object",
+          "properties": {
+            "isVisible": { "type": "boolean" },
+            "isMinimized": { "type": "boolean" },
+            "enableOnMobile": { "type": "boolean" }
+          }
+        },
+        "content_source": {
+          "type": "object",
+          "properties": {
+            "platform": { "type": "string", "enum": ["youtube_live"] },
+            "videoId": { "type": "string" },
+            "fallbackUrl": { "type": "string" },
+            "autoPlay": { "type": "boolean" }
+          }
+        },
+        "ui_customization": {
+          "type": "object",
+          "properties": {
+            "position": { "type": "string", "enum": ["bottom-left"] },
+            "theme": { "type": "string", "enum": ["cyberpunk_neon"] },
+            "primaryColor": { "type": "string" },
+            "secondaryColor": { "type": "string" },
+            "opacity": { "type": "number" },
+            "blur": { "type": "string" },
+            "showLiveBadge": { "type": "boolean" }
+          }
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "stationName": { "type": "string" },
+            "channelIcon": { "type": "string", "format": "uri" }
+          }
+        }
+      }
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com"
+    ]
+  },
+  "firestore": {
+    "/rentalProperties/{propertyId}": {
+        "schema": { "$ref": "#/entities/RentalProperty" },
+        "description": "Stores rental property listings."
+    },
+    "/rentalProperties/{propertyId}/bookings/{bookingId}": {
+        "schema": { "$ref": "#/entities/Booking" },
+        "description": "Stores bookings for a rental property."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/Announcement" },
+      "description": "Stores the site-wide announcement. Only the document with ID 'live' is actively used."
+    },
+    "/direct_chats/{chatId}": {
+        "schema": { "$ref": "#/entities/DirectChat" },
+        "description": "Stores metadata for a private conversation between users."
+    },
+    "/direct_chats/{chatId}/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/ChatMessage" },
+        "description": "Stores the messages within a direct chat."
+    },
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/Product"
+      },
+      "description": "Stores individual product listings."
+    },
+    "/products/{productId}/comments/{commentId}": {
+      "schema": {
+        "$ref": "#/entities/Comment"
+      },
+      "description": "Stores comments for a specific product."
+    },
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores public user profile data."
+    },
+    "/users/{userId}/addresses/{addressId}": {
+      "schema": {
+        "$ref": "#/entities/UserAddress"
+      },
+      "description": "Stores a user's shipping addresses."
+    },
+    "/promos/{promoId}": {
+      "schema": {
+        "$ref": "#/entities/Promo"
+      },
+      "description": "Stores data for promotional pages."
+    },
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Stores transaction data between users."
+    },
+    "/reviews/{reviewId}": {
+      "schema": {
+        "$ref": "#/entities/Review"
+      },
+      "description": "Stores reviews for transactions."
+    },
+    "/users/{userId}/lunarSoilLedger/{ledgerEntryId}": {
+      "schema": {
+        "$ref": "#/entities/LunarSoilLedgerEntry"
+      },
+      "description": "Ledger for a user's Lunar Soil transactions to handle expiration."
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": {
+        "$ref": "#/entities/Notification"
+      },
+      "description": "Stores notifications for a specific user."
+    },
+    "/support_tickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "Stores user-submitted support tickets."
+    },
+    "/support_tickets/{ticketId}/messages/{messageId}": {
+        "schema": { "$ref": "#/entities/ChatMessage" },
+        "description": "Stores messages for a support ticket."
+    },
+    "/bbs/{postId}": {
+      "schema": { "$ref": "#/entities/BbsPost" },
+      "description": "Stores community forum posts."
+    },
+    "/bbs/{postId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Stores comments for a specific BBS post."
+    },
+    "/paymentChangeRequests/{requestId}": {
+      "schema": {
+        "$ref": "#/entities/PaymentChangeRequest"
+      },
+      "description": "Stores user requests to change their payment information."
+    },
+    "/proApplications/{applicationId}": {
+      "schema": { "$ref": "#/entities/ProApplication" },
+      "description": "Stores user requests to become a PRO merchant."
+    },
+    "/settings/{settingsId}": {
+      "schema": {
+        "title": "Global Settings",
+        "description": "Stores global feature flags and settings for the application.",
+        "type": "object",
+        "properties": {
+          "isAiAnalysisEnabled": {
+            "type": "boolean",
+            "description": "Toggles the AI product analysis feature for users."
+          },
+          "isProApplicationEnabled": {
+            "type": "boolean",
+            "description": "Toggles the ability for users to apply for PRO merchant status."
+          },
+          "isRentalEnabled": {
+            "type": "boolean",
+            "description": "Toggles the ability for PRO users to post rental properties."
+          }
+        }
+      },
+      "description": "Contains global settings for the app. Typically only the 'global' document is used."
+    },
+    "/configs/{configId}": {
+        "schema": { "$ref": "#/entities/GlobalAudioPlayerConfig" },
+        "description": "Stores global configuration documents, like for the audio player."
+    }
+  }
+}

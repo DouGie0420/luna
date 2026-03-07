@@ -1,0 +1,408 @@
+src/app/account/page.tsx(877,96): error TS2322: Type 'string | null' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/app/account/purchases/[id]/page.tsx(19,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/account/purchases/[id]/page.tsx(33,28): error TS2345: Argument of type '() => Promise<typeof import("C:/Users/Administrator/Website/src/components/chat/ChatWindow")>' is not assignable to parameter of type 'DynamicOptions<{}> | Loader<{}>'.
+  Type '() => Promise<typeof import("C:/Users/Administrator/Website/src/components/chat/ChatWindow")>' is not assignable to type '() => LoaderComponent<{}>'.
+    Type 'Promise<typeof import("C:/Users/Administrator/Website/src/components/chat/ChatWindow")>' is not assignable to type 'LoaderComponent<{}>'.
+      Type 'typeof import("C:/Users/Administrator/Website/src/components/chat/ChatWindow")' is not assignable to type 'ComponentType<{}> | ComponentModule<{}>'.
+src/app/account/purchases/[id]/page.tsx(232,21): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: {}, context?: any): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...> | null | undefined', gave the following error.
+    Type '{ orderId: any; sellerId: any; buyerId: any; productName: string | undefined; }' is not assignable to type 'IntrinsicAttributes'.
+      Property 'orderId' does not exist on type 'IntrinsicAttributes'.
+  Overload 2 of 2, '(props: {}): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | Promise<...> | Component<...> | null | undefined', gave the following error.
+    Type '{ orderId: any; sellerId: any; buyerId: any; productName: string | undefined; }' is not assignable to type 'IntrinsicAttributes'.
+      Property 'orderId' does not exist on type 'IntrinsicAttributes'.
+src/app/account/purchases/[id]/review/page.tsx(7,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/account/purchases/[id]/review/page.tsx(52,57): error TS2339: Property 'title' does not exist on type 'Product'.
+src/app/account/purchases/[id]/review/page.tsx(125,22): error TS2304: Cannot find name 'Card'.
+src/app/account/purchases/[id]/review/page.tsx(132,114): error TS2339: Property 'title' does not exist on type 'Product'.
+src/app/account/purchases/[id]/review/page.tsx(188,23): error TS2304: Cannot find name 'Card'.
+src/app/account/purchases/page.tsx(11,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/account/sales/[id]/page.tsx(19,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/account/sales/page.tsx(11,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/admin/kyc-list/page.tsx(100,61): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(101,67): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(112,59): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(113,69): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(141,61): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(142,69): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(153,59): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(154,69): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/kyc-list/page.tsx(180,16): error TS2304: Cannot find name 'AlertCircle'.
+src/app/admin/kyc-list/page.tsx(232,74): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/live-settings/page.tsx(7,15): error TS2305: Module '"@/lib/types"' has no exported member 'GlobalAudioPlayerConfig'.
+src/app/admin/orders/page.tsx(32,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/app/admin/orders/page.tsx(32,22): error TS2305: Module '"@/lib/types"' has no exported member 'OrderStatus'.
+src/app/admin/orders/page.tsx(82,89): error TS2339: Property 'resolveDispute' does not exist on type 'UseEscrowContractResult'.
+src/app/admin/orders/page.tsx(125,114): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/orders/page.tsx(125,191): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/orders/page.tsx(161,27): error TS2304: Cannot find name 'serverTimestamp'.
+src/app/admin/orders/page.tsx(272,57): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/orders/page.tsx(282,110): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/orders/page.tsx(314,82): error TS2552: Cannot find name 'ExternalLink'. Did you mean 'External'?
+src/app/admin/orders/page.tsx(333,41): error TS2322: Type '"success" | "warning" | "default" | "destructive" | "secondary"' is not assignable to type '"default" | "destructive" | "secondary" | "outline" | null | undefined'.
+  Type '"success"' is not assignable to type '"default" | "destructive" | "secondary" | "outline" | null | undefined'.
+src/app/admin/orders/page.tsx(334,79): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/orders/page.tsx(347,42): error TS2304: Cannot find name 'Info'.
+src/app/admin/orders/page.tsx(367,81): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/payment-requests/page.tsx(62,15): error TS2724: '"@/lib/types"' has no exported member named 'PaymentChangeRequest'. Did you mean 'WalletChangeRequest'?
+src/app/admin/payment-requests/page.tsx(62,37): error TS2305: Module '"@/lib/types"' has no exported member 'PaymentInfo'.
+src/app/admin/payment-requests/page.tsx(133,26): error TS2345: Argument of type 'QueryStartAtConstraint' is not assignable to parameter of type 'QueryOrderByConstraint | QueryLimitConstraint | QueryFieldFilterConstraint'.
+  Type 'QueryStartAtConstraint' is not assignable to type 'QueryFieldFilterConstraint'.
+    Types of property 'type' are incompatible.
+      Type '"startAt" | "startAfter"' is not assignable to type '"where"'.
+        Type '"startAt"' is not assignable to type '"where"'.
+src/app/admin/pro-applications/page.tsx(40,15): error TS2305: Module '"@/lib/types"' has no exported member 'ProApplication'.
+src/app/admin/pro-applications/page.tsx(88,26): error TS2345: Argument of type 'QueryStartAtConstraint' is not assignable to parameter of type 'QueryOrderByConstraint | QueryLimitConstraint | QueryFieldFilterConstraint'.
+  Type 'QueryStartAtConstraint' is not assignable to type 'QueryFieldFilterConstraint'.
+    Types of property 'type' are incompatible.
+      Type '"startAt" | "startAfter"' is not assignable to type '"where"'.
+        Type '"startAt"' is not assignable to type '"where"'.
+src/app/admin/promotions/page.tsx(218,33): error TS2552: Cannot find name 'paymentMethodsConfig'. Did you mean 'paymentMethods'?
+src/app/admin/promotions/page.tsx(218,75): error TS2552: Cannot find name 'paymentMethodsConfig'. Did you mean 'paymentMethods'?
+src/app/admin/promotions/page.tsx(224,50): error TS2552: Cannot find name 'paymentMethodsConfig'. Did you mean 'paymentMethods'?
+src/app/admin/promotions/page.tsx(224,92): error TS2304: Cannot find name 'paymentMethodsConfig'.
+src/app/admin/support/page.tsx(18,15): error TS2305: Module '"@/lib/types"' has no exported member 'SupportTicket'.
+src/app/admin/support/page.tsx(143,120): error TS2554: Expected 1 arguments, but got 2.
+src/app/admin/support/page.tsx(261,88): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/admin/support/page.tsx(261,112): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/admin/support/page.tsx(274,99): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/admin/support/page.tsx(274,123): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/admin/users/page.tsx(6,28): error TS2305: Module '"@/lib/types"' has no exported member 'KycStatus'.
+src/app/bbs/[id]/page.tsx(300,55): error TS2339: Property 'city' does not exist on type 'string'.
+src/app/bbs/[id]/page.tsx(339,34): error TS18048: 'post.tags' is possibly 'undefined'.
+src/app/bbs/[id]/page.tsx(347,160): error TS2339: Property 'replies' does not exist on type 'BbsPost'.
+src/app/bbs/new/page.tsx(15,15): error TS2305: Module '"@/lib/types"' has no exported member 'User'.
+src/app/bbs/page.tsx(134,88): error TS2339: Property 'replies' does not exist on type 'BbsPost'.
+src/app/bbs/page.tsx(134,125): error TS2339: Property 'replies' does not exist on type 'BbsPost'.
+src/app/bbs/page.tsx(136,84): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ lat: number; lng: number; }'.
+src/app/bbs/page.tsx(136,156): error TS2345: Argument of type 'string' is not assignable to parameter of type '{ lat: number; lng: number; }'.
+src/app/layout.tsx(16,103): error TS2339: Property 'default' does not exist on type 'typeof import("C:/Users/Administrator/Website/src/components/floating-support-button")'.
+src/app/layout.tsx(21,95): error TS2339: Property 'default' does not exist on type 'typeof import("C:/Users/Administrator/Website/src/components/global-audio-player")'.
+src/app/layout.tsx(26,91): error TS2339: Property 'default' does not exist on type 'typeof import("C:/Users/Administrator/Website/src/components/pwa/PWAInitializer")'.
+src/app/layout.tsx(31,100): error TS2339: Property 'default' does not exist on type 'typeof import("C:/Users/Administrator/Website/src/components/chat/GlobalChatNotifier")'.
+src/app/layout.tsx(37,103): error TS2339: Property 'default' does not exist on type 'typeof import("C:/Users/Administrator/Website/src/components/global-fluid-background")'.
+src/app/merchants/page.tsx(56,55): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/merchants/page.tsx(56,82): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/merchants/page.tsx(59,77): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/merchants/page.tsx(59,98): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/merchants/page.tsx(60,77): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/merchants/page.tsx(60,98): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/app/messages/page_old.tsx(102,22): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/messages/page_old.tsx(102,53): error TS2339: Property 'createdAt' does not exist on type 'ChatMessage'.
+src/app/messages/page_old.tsx(125,67): error TS18048: 'chat.participantProfiles' is possibly 'undefined'.
+src/app/messages/page_old.tsx(128,46): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(129,68): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(133,25): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(140,33): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(147,78): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(280,55): error TS2352: Conversion of type '{ id: string; }' to type 'DirectChat' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; }' is missing the following properties from type 'DirectChat': participants, createdAt
+src/app/messages/page_old.tsx(285,60): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(291,92): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(296,43): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(318,47): error TS18048: 'c.participantProfiles' is possibly 'undefined'.
+src/app/messages/page_old.tsx(319,71): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(321,49): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/messages/page_old.tsx(321,90): error TS2339: Property 'id' does not exist on type 'DirectChat'.
+src/app/nearby/page.tsx(54,65): error TS18048: 'product.location' is possibly 'undefined'.
+src/app/nearby/page.tsx(54,82): error TS2339: Property 'lat' does not exist on type 'string'.
+src/app/nearby/page.tsx(54,87): error TS18048: 'product.location' is possibly 'undefined'.
+src/app/nearby/page.tsx(54,104): error TS2339: Property 'lng' does not exist on type 'string'.
+src/app/nearby/page.tsx(102,48): error TS2322: Type 'string | undefined' is not assignable to type 'LatLng | LatLngLiteral | null | undefined'.
+  Type 'string' is not assignable to type 'LatLng | LatLngLiteral | null | undefined'.
+src/app/products/[id]/checkout/page.tsx(6,50): error TS2305: Module '"@/lib/types"' has no exported member 'PaymentMethod'.
+src/app/products/[id]/checkout/page.tsx(80,202): error TS2607: JSX element class does not support attributes because it does not have a 'props' property.
+src/app/products/[id]/checkout/page.tsx(80,203): error TS2786: 'Image' cannot be used as a JSX component.
+  Its type 'new (width?: number | undefined, height?: number | undefined) => HTMLImageElement' is not a valid JSX element type.
+    Type 'new (width?: number | undefined, height?: number | undefined) => HTMLImageElement' is not assignable to type 'new (props: any, context: any) => Component<any, any, any>'.
+      Type 'HTMLImageElement' is missing the following properties from type 'Component<any, any, any>': context, setState, forceUpdate, render, and 2 more.
+src/app/products/[id]/checkout/page.tsx(171,14): error TS2339: Property 'shippingMethod' does not exist on type 'Product'.
+src/app/products/[id]/checkout/page.tsx(245,18): error TS2339: Property 'escrowOrderId' does not exist on type 'Product'.
+src/app/products/[id]/checkout/page.tsx(260,9): error TS2365: Operator '<' cannot be applied to types 'BigNumberish' and 'bigint'.
+src/app/products/[id]/checkout/page.tsx(265,9): error TS2365: Operator '<' cannot be applied to types 'BigNumberish' and 'bigint'.
+src/app/products/[id]/checkout/page.tsx(282,50): error TS2339: Property 'escrowOrderId' does not exist on type 'Product'.
+src/app/products/[id]/checkout/page.tsx(307,32): error TS2339: Property 'escrowOrderId' does not exist on type 'Product'.
+src/app/products/[id]/checkout/page.tsx(416,65): error TS2339: Property 'fullName' does not exist on type 'UserAddress'.
+src/app/products/[id]/checkout/page.tsx(417,66): error TS2339: Property 'street' does not exist on type 'UserAddress'.
+src/app/products/[id]/checkout/page.tsx(418,79): error TS2339: Property 'state' does not exist on type 'UserAddress'.
+src/app/products/[id]/checkout/page.tsx(542,13): error TS2322: Type '{ onSuccess: () => void; onCancel: () => void; }' is not assignable to type 'IntrinsicAttributes & AddressFormProps'.
+  Property 'onSuccess' does not exist on type 'IntrinsicAttributes & AddressFormProps'.
+src/app/products/[id]/page_new.tsx(118,20): error TS2345: Argument of type 'DocumentReference<DocumentData, DocumentData>' is not assignable to parameter of type 'CollectionReference<{ orderId: string; productId: string; productName: string; sellerId: string; buyerId: string; participants: [string, string]; lastMessage: "Order created"; lastMessageTimestamp: FieldValue; unreadCount: { ...; }; createdAt: FieldValue; updatedAt: FieldValue; }, DocumentData>'.
+  Types of property 'type' are incompatible.
+    Type '"document"' is not assignable to type '"collection"'.
+src/app/products/new/page.tsx(21,15): error TS2305: Module '"@/lib/types"' has no exported member 'PaymentMethod'.
+src/app/products/new/page.tsx(135,46): error TS2339: Property 'isAiAnalysisEnabled' does not exist on type 'GlobalSettings'.
+src/app/products/new/page.tsx(136,43): error TS2339: Property 'isRentalEnabled' does not exist on type 'GlobalSettings'.
+src/app/products/page.tsx(141,30): error TS2345: Argument of type 'QueryStartAtConstraint' is not assignable to parameter of type 'QueryLimitConstraint | QueryFieldFilterConstraint'.
+  Type 'QueryStartAtConstraint' is not assignable to type 'QueryFieldFilterConstraint'.
+    Types of property 'type' are incompatible.
+      Type '"startAt" | "startAfter"' is not assignable to type '"where"'.
+        Type '"startAt"' is not assignable to type '"where"'.
+src/app/products/rental/[id]/page.tsx(164,73): error TS2339: Property 'ownerId' does not exist on type '{ id: string; }'.
+src/app/products/rental/[id]/page.tsx(171,106): error TS2339: Property 'ownerId' does not exist on type '{ id: string; }'.
+src/app/products/rental/[id]/page.tsx(245,77): error TS2339: Property 'nickname' does not exist on type 'UserProfile'.
+src/app/products/rental/[id]/page.tsx(253,73): error TS2551: Property 'avatarUrl' does not exist on type 'UserProfile'. Did you mean 'nftAvatarUrl'?
+src/app/products/rental/[id]/page.tsx(253,124): error TS2339: Property 'city' does not exist on type 'string'.
+src/app/products/rental/[id]/page.tsx(257,52): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(firestore: Firestore, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'Firestore'.
+      Type 'null' is not assignable to type 'Firestore'.
+  Overload 2 of 3, '(reference: CollectionReference<unknown, DocumentData>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'CollectionReference<unknown, DocumentData>'.
+      Type 'null' is not assignable to type 'CollectionReference<unknown, DocumentData>'.
+  Overload 3 of 3, '(reference: DocumentReference<unknown, DocumentData>, path: string, ...pathSegments: string[]): CollectionReference<DocumentData, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'DocumentReference<unknown, DocumentData>'.
+      Type 'null' is not assignable to type 'DocumentReference<unknown, DocumentData>'.
+src/app/products/rental/[id]/page.tsx(261,37): error TS2769: No overload matches this call.
+  Overload 1 of 3, '(firestore: Firestore, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'Firestore'.
+      Type 'null' is not assignable to type 'Firestore'.
+  Overload 2 of 3, '(reference: CollectionReference<unknown, DocumentData>, path?: string | undefined, ...pathSegments: string[]): DocumentReference<unknown, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'CollectionReference<unknown, DocumentData>'.
+      Type 'null' is not assignable to type 'CollectionReference<unknown, DocumentData>'.
+  Overload 3 of 3, '(reference: DocumentReference<unknown, DocumentData>, path: string, ...pathSegments: string[]): DocumentReference<DocumentData, DocumentData>', gave the following error.
+    Argument of type 'Firestore | null' is not assignable to parameter of type 'DocumentReference<unknown, DocumentData>'.
+      Type 'null' is not assignable to type 'DocumentReference<unknown, DocumentData>'.
+src/app/products/rental/[id]/page.tsx(284,43): error TS18047: 'currentUser' is possibly 'null'.
+src/app/promo/cyber-monday/page.tsx(12,24): error TS2305: Module '"@/lib/types"' has no exported member 'Promo'.
+src/app/register/page.tsx(166,9): error TS2353: Object literal may only specify known properties, and 'phone' does not exist in type 'Partial<UserProfile>'.
+src/app/rentals/[id]/page.tsx(10,15): error TS2305: Module '"@/lib/types"' has no exported member 'RentalProperty'.
+src/app/rentals/[id]/page.tsx(100,44): error TS2322: Type '{ product: any; }' is not assignable to type 'IntrinsicAttributes & { seller: any; className?: string | undefined; }'.
+  Property 'product' does not exist on type 'IntrinsicAttributes & { seller: any; className?: string | undefined; }'.
+src/app/u/[loginId]/followers/page.tsx(85,27): error TS2339: Property 'followers' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/followers/page.tsx(85,50): error TS2339: Property 'followers' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/followers/page.tsx(86,86): error TS2339: Property 'followers' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(79,48): error TS2352: Conversion of type '{ id: string; }' to type 'UserProfile' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; }' is missing the following properties from type 'UserProfile': uid, email, displayName, userType, and 2 more.
+src/app/u/[loginId]/page.tsx(90,99): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(91,94): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(92,102): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(93,114): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(118,83): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(122,87): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(126,83): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(130,98): error TS2339: Property 'id' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(156,37): error TS2322: Type '{ backPath: string; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'backPath' does not exist on type 'IntrinsicAttributes'.
+src/app/u/[loginId]/page.tsx(167,35): error TS2551: Property 'web3Verified' does not exist on type 'UserProfile'. Did you mean 'isWeb3Verified'?
+src/app/u/[loginId]/page.tsx(168,35): error TS2339: Property 'kycVerified' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(201,62): error TS2339: Property 'goodReviews' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(202,61): error TS2339: Property 'neutralReviews' does not exist on type 'UserProfile'.
+src/app/u/[loginId]/page.tsx(203,62): error TS2339: Property 'badReviews' does not exist on type 'UserProfile'.
+src/app/user/[id]/followers/page.tsx(11,15): error TS2305: Module '"@/lib/types"' has no exported member 'User'.
+src/app/user/[id]/following/page.tsx(11,15): error TS2305: Module '"@/lib/types"' has no exported member 'User'.
+src/components/admin-user-detail-panel.tsx(90,76): error TS2554: Expected 1 arguments, but got 2.
+src/components/admin-user-detail-panel.tsx(138,76): error TS2554: Expected 1 arguments, but got 2.
+src/components/admin-user-detail-panel.tsx(190,25): error TS2322: Type 'string | number' is not assignable to type 'string | undefined'.
+  Type 'number' is not assignable to type 'string'.
+src/components/admin-user-detail-panel.tsx(191,94): error TS2352: Conversion of type 'string' to type 'number' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+src/components/admin-user-detail-panel.tsx(285,44): error TS2339: Property 'displayPriority' does not exist on type 'UserProfile'.
+src/components/background-snake.tsx(22,28): error TS2554: Expected 1 arguments, but got 0.
+src/components/bbs-post-card.tsx(53,48): error TS2551: Property 'contentKey' does not exist on type 'BbsPost'. Did you mean 'content'?
+src/components/bbs-post-card.tsx(62,28): error TS2551: Property 'contentKey' does not exist on type 'BbsPost'. Did you mean 'content'?
+src/components/bbs-post-card.tsx(100,42): error TS2339: Property 'isFeatured' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(199,40): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/bbs-post-card.tsx(199,63): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/bbs-post-card.tsx(225,59): error TS2339: Property 'titleKey' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(227,52): error TS2339: Property 'imageHints' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(243,57): error TS2339: Property 'isFeatured' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(265,51): error TS2339: Property 'titleKey' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(268,35): error TS2339: Property 'isFeatured' does not exist on type 'BbsPost'.
+src/components/bbs-post-card.tsx(274,30): error TS18048: 'post.tags' is possibly 'undefined'.
+src/components/bbs-post-card.tsx(294,59): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/bbs-post-card.tsx(297,92): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/bbs-post-card.tsx(299,62): error TS2339: Property 'city' does not exist on type 'string'.
+src/components/bbs-post-card.tsx(299,89): error TS2339: Property 'city' does not exist on type 'string'.
+src/components/bbs-post-card.tsx(299,112): error TS2339: Property 'countryCode' does not exist on type 'string'.
+src/components/bbs-post-card.tsx(307,49): error TS2339: Property 'replies' does not exist on type 'BbsPost'.
+src/components/bbs-post-image-gallery.tsx(46,27): error TS2339: Property 'imageHints' does not exist on type 'BbsPost'.
+src/components/bbs-post-image-gallery.tsx(48,42): error TS2339: Property 'titleKey' does not exist on type 'BbsPost'.
+src/components/bbs-post-image-gallery.tsx(53,13): error TS2345: Argument of type '() => (() => EventHandlerType) | undefined' is not assignable to parameter of type 'EffectCallback'.
+  Type '(() => EventHandlerType) | undefined' is not assignable to type 'void | Destructor'.
+    Type '() => EventHandlerType' is not assignable to type 'void | Destructor'.
+      Type '() => EventHandlerType' is not assignable to type 'Destructor'.
+        Type 'EventHandlerType' is not assignable to type 'void | { [UNDEFINED_VOID_ONLY]: never; }'.
+src/components/booking-calendar.tsx(10,15): error TS2305: Module '"@/lib/types"' has no exported member 'RentalProperty'.
+src/components/booking-calendar.tsx(10,31): error TS2305: Module '"@/lib/types"' has no exported member 'Booking'.
+src/components/chat/ChatWindow.tsx(53,23): error TS2339: Property 'read' does not exist on type 'ChatMessage'.
+src/components/chat/ChatWindow.tsx(226,24): error TS2339: Property 'read' does not exist on type 'ChatMessage'.
+src/components/chat/ChatWindow.tsx(240,25): error TS2339: Property 'read' does not exist on type 'ChatMessage'.
+src/components/chat/ChatWindow.tsx(246,25): error TS2339: Property 'read' does not exist on type 'ChatMessage'.
+src/components/chat/GlobalChatNotifier.tsx(79,15): error TS2322: Type 'Element' is not assignable to type 'string | (string & ReactElement<unknown, string | JSXElementConstructor<any>>) | (string & Iterable<ReactNode>) | (string & ReactPortal) | (string & Promise<...>) | undefined'.
+  Type 'ReactElement<any, any>' is not assignable to type 'string & ReactPortal'.
+    Type 'ReactElement<any, any>' is not assignable to type 'string'.
+src/components/ConnectWalletButton.tsx(32,56): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(36,29): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(82,39): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(95,80): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(147,23): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(147,42): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(150,22): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/components/ConnectWalletButton.tsx(345,13): error TS2322: Type '(walletType?: "metamask" | "walletconnect") => Promise<void>' is not assignable to type 'MouseEventHandler<HTMLDivElement>'.
+  Types of parameters 'walletType' and 'event' are incompatible.
+    Type 'MouseEvent<HTMLDivElement, MouseEvent>' is not assignable to type '"metamask" | "walletconnect" | undefined'.
+src/components/global-audio-player.tsx(8,15): error TS2305: Module '"@/lib/types"' has no exported member 'GlobalAudioPlayerConfig'.
+src/components/glowing-pixel-grid.tsx(46,28): error TS2554: Expected 1 arguments, but got 0.
+src/components/layout/logo.tsx(8,9): error TS2741: Property 'seed' is missing in type '{ className: string; }' but required in type 'GlowingPixelGridProps'.
+src/components/merchant-card.tsx(49,43): error TS2339: Property 'imageHints' does not exist on type 'Product'.
+src/components/notification-bell.tsx(6,15): error TS2305: Module '"@/lib/types"' has no exported member 'Notification'.
+src/components/order-card.tsx(8,15): error TS2305: Module '"@/lib/types"' has no exported member 'Order'.
+src/components/order-card.tsx(153,67): error TS2554: Expected 1 arguments, but got 2.
+src/components/order-card.tsx(250,174): error TS2554: Expected 1 arguments, but got 2.
+src/components/product-card.tsx(38,49): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-card.tsx(38,80): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-card.tsx(48,32): error TS2339: Property 'isRental' does not exist on type 'Product'.
+src/components/product-card.tsx(52,35): error TS2339: Property 'likedBy' does not exist on type 'Product'.
+src/components/product-card.tsx(54,39): error TS2551: Property 'favoritedBy' does not exist on type 'Product'. Did you mean 'favorites'?
+src/components/product-card.tsx(55,42): error TS2551: Property 'favoritedBy' does not exist on type 'Product'. Did you mean 'favorites'?
+src/components/product-card.tsx(78,46): error TS2339: Property 'city' does not exist on type 'string'.
+src/components/product-card.tsx(78,70): error TS2339: Property 'countryCode' does not exist on type 'string'.
+src/components/product-card.tsx(146,83): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-card.tsx(147,78): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-card.tsx(150,29): error TS2322: Type '{ profile: { displayName: any; photoURL: any; }; className: string; style: { filter: any; }; }' is not assignable to type 'IntrinsicAttributes & UserAvatarProps'.
+  Property 'style' does not exist on type 'IntrinsicAttributes & UserAvatarProps'.
+src/components/product-card.tsx(155,59): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-comment-section.tsx(105,92): error TS2339: Property 'authorId' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(107,34): error TS2339: Property 'likedBy' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(108,37): error TS2339: Property 'dislikedBy' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(109,53): error TS2339: Property 'authorId' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(131,87): error TS2339: Property 'text' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(139,108): error TS2339: Property 'dislikes' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(148,40): error TS2339: Property 'authorId' does not exist on type 'NestedComment'.
+src/components/product-comment-section.tsx(211,62): error TS18047: 'replyingTo' is possibly 'null'.
+src/components/product-comment-section.tsx(320,13): error TS2322: Type 'boolean | null' is not assignable to type 'boolean'.
+  Type 'null' is not assignable to type 'boolean'.
+src/components/product-edit-form.tsx(63,49): error TS2339: Property 'shippingMethod' does not exist on type 'Product'.
+src/components/product-edit-form.tsx(144,33): error TS2339: Property 'shippingMethod' does not exist on type 'Product'.
+src/components/product-image-gallery.tsx(48,17): error TS2339: Property 'imageHints' does not exist on type 'Product'.
+src/components/product-image-gallery.tsx(48,39): error TS2339: Property 'imageHints' does not exist on type 'Product'.
+src/components/product-image-gallery.tsx(49,24): error TS2339: Property 'imageHints' does not exist on type 'Product'.
+src/components/product-image-gallery.tsx(52,15): error TS2339: Property 'imageHints' does not exist on type 'Product'.
+src/components/product-image-gallery.tsx(55,13): error TS2345: Argument of type '() => (() => EventHandlerType) | undefined' is not assignable to parameter of type 'EffectCallback'.
+  Type '(() => EventHandlerType) | undefined' is not assignable to type 'void | Destructor'.
+    Type '() => EventHandlerType' is not assignable to type 'void | Destructor'.
+      Type '() => EventHandlerType' is not assignable to type 'Destructor'.
+        Type 'EventHandlerType' is not assignable to type 'void | { [UNDEFINED_VOID_ONLY]: never; }'.
+src/components/product-price-and-payment.tsx(130,11): error TS2451: Cannot redeclare block-scoped variable 'getButtonVariant'.
+src/components/product-price-and-payment.tsx(135,11): error TS2451: Cannot redeclare block-scoped variable 'shouldShowMethod'.
+src/components/product-price-and-payment.tsx(141,11): error TS2451: Cannot redeclare block-scoped variable 'isMethodDisabled'.
+src/components/product-price-and-payment.tsx(150,21): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-price-and-payment.tsx(151,28): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-price-and-payment.tsx(290,11): error TS2451: Cannot redeclare block-scoped variable 'getButtonVariant'.
+src/components/product-price-and-payment.tsx(295,11): error TS2451: Cannot redeclare block-scoped variable 'shouldShowMethod'.
+src/components/product-price-and-payment.tsx(300,11): error TS2451: Cannot redeclare block-scoped variable 'isMethodDisabled'.
+src/components/product-price-and-payment.tsx(330,30): error TS2339: Property 'shippingMethod' does not exist on type 'Product'.
+src/components/product-purchase-actions.tsx(32,34): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(50,52): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(60,50): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(66,30): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(67,46): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(68,43): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/product-purchase-actions.tsx(78,56): error TS2551: Property 'seller' does not exist on type 'Product'. Did you mean 'sellerId'?
+src/components/pwa/PWAInitializer.tsx(1024,76): error TS2339: Property 'isLocalhost' does not exist on type '{ hasManifest: boolean; hasServiceWorker: boolean; isHTTPS: boolean; isInBrowser: boolean; userAgent: string; }'.
+src/components/recommended-merchants.tsx(56,45): error TS2322: Type '{ user: any; className: string; }' is not assignable to type 'IntrinsicAttributes & UserAvatarProps'.
+  Property 'user' does not exist on type 'IntrinsicAttributes & UserAvatarProps'.
+src/components/sea-of-tranquility.tsx(105,209): error TS2339: Property 'titleKey' does not exist on type 'BbsPost'.
+src/components/sea-of-tranquility.tsx(117,93): error TS2339: Property 'city' does not exist on type 'string'.
+src/components/sea-of-tranquility.tsx(127,47): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/sea-of-tranquility.tsx(128,89): error TS2551: Property 'author' does not exist on type 'BbsPost'. Did you mean 'authorId'?
+src/components/snake-border.tsx(24,28): error TS2554: Expected 1 arguments, but got 0.
+src/components/ui/calendar.tsx(57,9): error TS2353: Object literal may only specify known properties, and 'IconLeft' does not exist in type 'Partial<CustomComponents>'.
+src/components/ui/calendar.tsx(57,22): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/calendar.tsx(60,23): error TS7031: Binding element 'className' implicitly has an 'any' type.
+src/components/ui/user-avatar.tsx(34,7): error TS2739: Type '{ kyc: (props: { className?: string | undefined; }) => Element; web3: (props: { className?: string | undefined; }) => Element; nft: (props: { className?: string | undefined; }) => Element; influencer: (props: { ...; }) => Element; contributor: (props: { ...; }) => Element; }' is missing the following properties from type 'Record<"kyc" | "web3" | "nft" | "influencer" | "contributor" | "vip" | "verified" | "moderator", FC<{ className?: string | undefined; }>>': vip, verified, moderator
+src/components/ui/user-avatar.tsx(42,7): error TS2739: Type '{ kyc: string; web3: string; nft: string; influencer: string; contributor: string; }' is missing the following properties from type 'Record<"kyc" | "web3" | "nft" | "influencer" | "contributor" | "vip" | "verified" | "moderator", string>': vip, verified, moderator
+src/components/user-products-map.tsx(14,78): error TS2339: Property 'lat' does not exist on type 'string'.
+src/components/user-products-map.tsx(14,96): error TS2339: Property 'lng' does not exist on type 'string'.
+src/components/user-products-map.tsx(28,42): error TS18048: 'product.location' is possibly 'undefined'.
+src/components/user-products-map.tsx(28,59): error TS2339: Property 'lat' does not exist on type 'string'.
+src/components/user-products-map.tsx(28,64): error TS18048: 'product.location' is possibly 'undefined'.
+src/components/user-products-map.tsx(28,81): error TS2339: Property 'lng' does not exist on type 'string'.
+src/components/user-products-map.tsx(35,9): error TS2322: Type 'LatLngBounds' is not assignable to type 'LatLngBoundsLiteral & { padding?: number | Padding | undefined; }'.
+  Type 'LatLngBounds' is missing the following properties from type 'LatLngBoundsLiteral': east, north, south, west
+src/components/user-products-map.tsx(42,44): error TS2322: Type 'string | undefined' is not assignable to type 'LatLng | LatLngLiteral | null | undefined'.
+  Type 'string' is not assignable to type 'LatLng | LatLngLiteral | null | undefined'.
+src/components/verified-merchants.tsx(55,60): error TS2339: Property 'featuredProductId' does not exist on type '{ id: string; }'.
+src/components/verified-merchants.tsx(73,63): error TS2339: Property 'loginId' does not exist on type '{ id: string; }'.
+src/components/verified-merchants.tsx(75,48): error TS2339: Property 'featuredProductId' does not exist on type '{ id: string; }'.
+src/components/verified-merchants.tsx(79,69): error TS2339: Property 'photoURL' does not exist on type '{ id: string; }'.
+src/components/verified-merchants.tsx(79,83): error TS2339: Property 'bannerUrl' does not exist on type '{ id: string; }'.
+src/components/verified-merchants.tsx(80,63): error TS2339: Property 'bio' does not exist on type '{ id: string; }'.
+src/contexts/Web3Context.tsx(50,56): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(53,63): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(76,56): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(81,20): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(88,22): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(103,56): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(109,67): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(130,12): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(131,12): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(133,14): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/contexts/Web3Context.tsx(134,14): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/firebase/auth/use-user.tsx(76,44): error TS2367: This comparison appears to be unintentional because the types 'UserRole | undefined' and '"guest"' have no overlap.
+src/firebase/auth/use-user.tsx(77,21): error TS2367: This comparison appears to be unintentional because the types 'UserRole | undefined' and '"guest"' have no overlap.
+src/hooks/contracts/useEthPaymentAdapter.ts(123,3): error TS2484: Export declaration conflicts with exported declaration of 'PaymentDisplayInfo'.
+src/hooks/contracts/useEthPaymentAdapter.ts(124,3): error TS2484: Export declaration conflicts with exported declaration of 'OrderDisplayInfo'.
+src/hooks/contracts/useLunaEscrow.ts(18,14): error TS2323: Cannot redeclare exported variable 'OrderStatusText'.
+src/hooks/contracts/useLunaEscrow.ts(85,50): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/contracts/useLunaEscrow.ts(94,49): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/contracts/useLunaEscrow.ts(106,17): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/contracts/useLunaEscrow.ts(109,20): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/contracts/useLunaEscrow.ts(117,24): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/contracts/useLunaEscrow.ts(492,15): error TS2484: Export declaration conflicts with exported declaration of 'Order'.
+src/hooks/contracts/useLunaEscrow.ts(492,22): error TS2484: Export declaration conflicts with exported declaration of 'OrderInfo'.
+src/hooks/contracts/useLunaEscrow.ts(493,10): error TS2484: Export declaration conflicts with exported declaration of 'OrderStatus'.
+src/hooks/contracts/useLunaEscrow.ts(493,23): error TS2323: Cannot redeclare exported variable 'OrderStatusText'.
+src/hooks/contracts/useLunaEscrow.ts(493,23): error TS2484: Export declaration conflicts with exported declaration of 'OrderStatusText'.
+src/hooks/useUSDTBalanceAndAllowance.ts(51,56): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/hooks/useUSDTBalanceAndAllowance.ts(58,29): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/alchemy.ts(71,38): error TS2339: Property 'media' does not exist on type 'OwnedNft'.
+src/lib/alchemy.ts(72,38): error TS2339: Property 'media' does not exist on type 'OwnedNft'.
+src/lib/alchemy.ts(73,38): error TS2339: Property 'media' does not exist on type 'OwnedNft'.
+src/lib/chatService.ts(74,9): error TS2345: Argument of type '{ id: string; timestamp: Date; text: string; senderId: string; senderName?: string; senderAvatar?: string; type?: "text" | "image" | "location" | "system"; metadata?: any; }' is not assignable to parameter of type 'ChatMessage'.
+  Types of property 'type' are incompatible.
+    Type '"text" | "image" | "location" | "system" | undefined' is not assignable to type '"text" | "image" | "location"'.
+      Type 'undefined' is not assignable to type '"text" | "image" | "location"'.
+src/lib/chatService.ts(118,13): error TS2353: Object literal may only specify known properties, and 'createdAt' does not exist in type 'ChatMessage'.
+src/lib/data.ts(1,24): error TS2305: Module '"./types"' has no exported member 'User'.
+src/lib/data.ts(1,30): error TS2305: Module '"./types"' has no exported member 'KycStatus'.
+src/lib/data.ts(1,63): error TS2305: Module '"./types"' has no exported member 'Order'.
+src/lib/fcm.ts(247,5): error TS2322: Type 'string | null' is not assignable to type 'null'.
+  Type 'string' is not assignable to type 'null'.
+src/lib/firebase-functions-web3.ts(3,38): error TS2307: Cannot find module '@/firebase/client' or its corresponding type declarations.
+src/lib/notifications.ts(3,15): error TS2305: Module '"./types"' has no exported member 'Notification'.
+src/lib/notifications.ts(3,60): error TS2305: Module '"./types"' has no exported member 'Order'.
+src/lib/notifications.ts(3,67): error TS2724: '"./types"' has no exported member named 'PaymentChangeRequest'. Did you mean 'WalletChangeRequest'?
+src/lib/types.ts(92,10): error TS7053: Element implicitly has an 'any' type because expression of type '"level" | "canAccessAdmin" | "canManageUsers" | "canManageOrders" | "canManageProducts" | "canManageRentals" | "canManageSettings" | "canManageRoles"' can't be used to index type '{ readonly level: 5; readonly canAccessAdmin: true; readonly canManageUsers: true; readonly canManageOrders: true; readonly canManageProducts: true; readonly canManageRentals: true; readonly canManageSettings: true; readonly canManageRoles: true; } | ... 4 more ... | { ...; }'.
+  Property 'canManageUsers' does not exist on type '{ readonly level: 5; readonly canAccessAdmin: true; readonly canManageUsers: true; readonly canManageOrders: true; readonly canManageProducts: true; readonly canManageRentals: true; readonly canManageSettings: true; readonly canManageRoles: true; } | ... 4 more ... | { ...; }'.
+src/lib/types.ts(143,3): error TS2300: Duplicate identifier 'followersCount'.
+src/lib/types.ts(156,3): error TS2300: Duplicate identifier 'followersCount'.
+src/lib/usdt-transactions.ts(96,32): error TS2345: Argument of type '{ type: "approval"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; contractAddress: string | undefined; network: string; }' is not assignable to parameter of type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+  Property 'timestamp' is missing in type '{ type: "approval"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; contractAddress: string | undefined; network: string; }' but required in type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+src/lib/usdt-transactions.ts(116,32): error TS2345: Argument of type '{ type: "lock"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' is not assignable to parameter of type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+  Property 'timestamp' is missing in type '{ type: "lock"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' but required in type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+src/lib/usdt-transactions.ts(137,32): error TS2345: Argument of type '{ type: "release"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' is not assignable to parameter of type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+  Property 'timestamp' is missing in type '{ type: "release"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' but required in type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+src/lib/usdt-transactions.ts(158,32): error TS2345: Argument of type '{ type: "refund"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' is not assignable to parameter of type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+  Property 'timestamp' is missing in type '{ type: "refund"; amount: string; txHash: string; status: "pending" | "confirmed" | "failed"; orderId: string; contractAddress: string | undefined; network: string; }' but required in type 'Omit<USDTTransactionData, "userId" | "createdAt">'.
+src/lib/user.ts(25,36): error TS2367: This comparison appears to be unintentional because the types 'UserRole | undefined' and '"guest"' have no overlap.
+src/lib/user.ts(26,17): error TS2367: This comparison appears to be unintentional because the types 'UserRole | undefined' and '"guest"' have no overlap.
+src/lib/user.ts(74,13): error TS2322: Type 'string' is not assignable to type 'number'.
+src/lib/user.ts(75,13): error TS2322: Type '"user" | "guest"' is not assignable to type 'UserRole | undefined'.
+  Type '"guest"' is not assignable to type 'UserRole | undefined'.
+src/lib/user.ts(124,13): error TS2322: Type 'string' is not assignable to type 'number'.
+src/lib/walletconnect-provider.ts(46,28): error TS2749: 'EthereumProvider' refers to a value, but is being used as a type here. Did you mean 'typeof EthereumProvider'?
+src/lib/walletconnect-provider.ts(51,52): error TS2749: 'EthereumProvider' refers to a value, but is being used as a type here. Did you mean 'typeof EthereumProvider'?
+src/lib/walletconnect-provider.ts(61,57): error TS2345: Argument of type '{ projectId: string; chains: number[]; showQrModal: boolean; metadata?: { name: string; description: string; url: string; icons: string[]; }; }' is not assignable to parameter of type 'EthereumProviderOptions'.
+  Type '{ projectId: string; chains: number[]; showQrModal: boolean; metadata?: { name: string; description: string; url: string; icons: string[]; }; }' is not assignable to type '{ projectId: string; methods?: string[] | undefined; optionalMethods?: string[] | undefined; events?: string[] | undefined; optionalEvents?: string[] | undefined; rpcMap?: EthereumRpcMap | undefined; ... 5 more ...; storageOptions?: KeyValueStorageOptions | undefined; } & { ...; } & UniversalProviderOpts'.
+    Property 'optionalChains' is missing in type '{ projectId: string; chains: number[]; showQrModal: boolean; metadata?: { name: string; description: string; url: string; icons: string[]; }; }' but required in type '{ chains?: number[] | undefined; optionalChains: ArrayOneOrMore<number>; }'.
+src/lib/walletconnect-provider.ts(122,45): error TS2749: 'EthereumProvider' refers to a value, but is being used as a type here. Did you mean 'typeof EthereumProvider'?
+src/lib/walletconnect-provider.ts(129,40): error TS2749: 'EthereumProvider' refers to a value, but is being used as a type here. Did you mean 'typeof EthereumProvider'?
+src/lib/web3-provider.tsx(45,54): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(55,37): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(66,18): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(88,54): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(97,47): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(119,18): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.
+src/lib/web3-provider.tsx(127,22): error TS2339: Property 'ethereum' does not exist on type 'Window & typeof globalThis'.

@@ -1,0 +1,22 @@
+﻿{
+  " name\: \crypto-arbitrage-tools\,
+ \version\: \0.1.0\,
+ \description\: \15美元加密货币高频交易和Polymarket套利系统\,
+ \main\: \src/arbitrage-system.js\,
+ \scripts\: {
+ \start\: \node src/arbitrage-system.js\,
+ \monitor\: \node src/arbitrage-system.js monitor\,
+ \paper\: \node src/arbitrage-system.js paper\,
+ \live\: \node src/arbitrage-system.js live\,
+ \polymarket\: \node src/polymarket-arb.js\,
+ \twitter\: \node src/monitor-twitter.js\,
+ \price\: \node src/price-monitor.js\,
+ \telegram-test\: \node src/telegram-test.js\
+ },
+ \dependencies\: {
+ \dotenv\: \^16.0.0\,
+ \axios\: \^1.6.0\,
+ \ccxt\: \^4.0.0\,
+ \technicalindicators\: \^3.1.0\
+ }
+}

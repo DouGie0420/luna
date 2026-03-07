@@ -1,0 +1,40 @@
+﻿{
+  " committee_name\: \ArbiterNova Trading Committee\,
+ \coordinator\: \ArbiterNova\,
+ \version\: \0.1.0\,
+ \status\: \initializing\,
+ \members\: {
+ \gemini\: {
+ \name\: \Gemini 2.5\,
+ \provider\: \Google AI Studio\,
+ \access_method\: \api\,
+ \status\: \ready\,
+ \config_ref\: \ai-keys.json#gemini\
+ },
+ \chatgpt\: {
+ \name\: \ChatGPT\,
+ \provider\: \OpenAI\,
+ \access_method\: \browser_automation\,
+ \status\: \pending_setup\,
+ \notes\: \Requires logged-in browser session\
+ },
+ \grok\: {
+ \name\: \Grok\,
+ \provider\: \xAI\,
+ \access_method\: \browser_automation\,
+ \status\: \pending_setup\,
+ \notes\: \Via Twitter/X logged-in session\
+ },
+ \twitter\: {
+ \name\: \Twitter Monitor\,
+ \provider\: \Twitter/X\,
+ \access_method\: \api_or_browser\,
+ \status\: \pending_setup\,
+ \priority\: \high\
+ }
+ },
+ \voting_algorithm\: \weighted_confidence\,
+ \decision_threshold\: 0.7,
+ \created_at\: \2026-03-03T09:19:00\,
+ \next_checkpoint\: \Implement Gemini + Twitter API integration\
+}

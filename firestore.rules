@@ -1,0 +1,280 @@
+﻿rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- 杓斿姪鍑芥暩 ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // 淇京鐗?getRole锛氬鍔犲皪鏈櫥鍏ョ媭鎱嬬殑淇濊锛岄槻姝㈠牨閷?
+    function getRole() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role 
+        : 'guest';
+    }
+
+    function hasRole(roles) {
+      return isSignedIn() && getRole() in roles;
+    }
+
+    function isAdminGroup() {
+      // 鍙湁鍦ㄧ櫥鍏ョ媭鎱嬩笅鎵嶅幓鏍￠绠＄悊绲勬瑠闄?(admin/ghost/staff/support)
+      return isSignedIn() && hasRole(['admin', 'ghost', 'staff', 'support']);
+    }
+
+    function walletBindingFieldsChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'walletAddress',
+        'walletBindTime',
+        'isWeb3Verified'
+      ]);
+    }
+
+    function isFirstWalletBindingUpdate(userId) {
+      return request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'walletAddress',
+          'walletBindTime',
+          'isWeb3Verified'
+        ]) &&
+        (
+          !('walletAddress' in resource.data) ||
+          resource.data.walletAddress == null ||
+          resource.data.walletAddress == ''
+        ) &&
+        request.resource.data.walletAddress is string &&
+        request.resource.data.walletAddress.size() >= 10 &&
+        request.resource.data.isWeb3Verified == true;
+    }
+
+    function isAdminWalletBindingUpdate(userId) {
+      return request.auth.uid != userId &&
+        isAdminGroup() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'walletAddress',
+          'walletBindTime',
+          'isWeb3Verified'
+        ]);
+    }
+    // --- 1. 閰嶇疆鑸囧叏灞€璩囪▕ ---
+    match /configs/{configId} {
+      allow read: if true; 
+      allow write: if hasRole(['admin', 'ghost', 'staff']);
+    }
+    match /settings/{settingsId} {
+      allow read: if true;
+      allow write: if hasRole(['admin', 'ghost']); // 鍤存牸闄愬埗锛歴taff鍜宻upport鐒℃瑠淇敼绯荤当瑷疆
+    }
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if hasRole(['admin', 'ghost', 'staff']);
+    }
+    match /promos/{promoId} {
+        allow read: if true;
+        allow write: if hasRole(['admin', 'ghost', 'staff']);
+    }
+
+    // --- 鍟嗘埗闆嗗悎 (merchants) ---
+    match /merchants/{merchantId} {
+      allow get: if true;
+      allow list: if ("limit" in request.query && request.query.limit <= 50) || isAdminGroup(); 
+      allow write: if isAdminGroup();
+    }
+
+    // --- 2. 鐢ㄦ埗闆嗗悎 (users) ---
+    match /users/{userId} {
+      allow get: if true;
+      
+      // 鍤存牸閹栨鏈€澶ф姄鍙栦笂闄愮偤 50 鍊嬫枃妾?
+      allow list: if ("limit" in request.query && request.query.limit <= 50) || isAdminGroup(); 
+
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if hasRole(['admin', 'ghost']);
+      
+      // 鉁?娆婇檺淇京锛氬毚鏍奸檺鍒?staff 鍜?support 涓嶈兘淇敼鐢ㄦ埗璩囨枡 (闄や簡鐗瑰畾鐨勫叕闁嬭▓鏁稿櫒)
+      allow update: if isSignedIn() && (
+        (
+          request.auth.uid == userId &&
+          !('role' in request.resource.data.diff(resource.data).affectedKeys()) &&
+          !walletBindingFieldsChanged()
+        ) ||
+        isFirstWalletBindingUpdate(userId) ||
+        (request.auth.uid != userId && hasRole(['admin', 'ghost'])) || 
+        isAdminWalletBindingUpdate(userId) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followers', 'followersCount', 'following', 'followingCount']))
+      );
+
+      match /notifications/{notificationId} { 
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
+      match /addresses/{addressId} { 
+        allow read, write: if isSignedIn() && request.auth.uid == userId; 
+      }
+      match /lunarSoilLedger/{ledgerEntryId} { 
+        allow read, write: if isSignedIn() && request.auth.uid == userId; 
+      }
+    }
+
+    // --- 3. 鍏у闆嗗悎 (products, bbs) ---
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.sellerId == request.auth.uid || isAdminGroup());
+      allow update: if isSignedIn() && (
+        (resource.data.sellerId == request.auth.uid || isAdminGroup()) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'views'])) ||
+        (request.resource.data.status == 'under_review' && resource.data.status == 'active')
+      );
+      match /comments/{commentId} {
+          allow read: if true;
+          allow create: if isSignedIn();
+          allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdminGroup());
+      }
+    }
+
+    match /bbs/{postId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdminGroup());
+      allow update: if isSignedIn() && (
+        (resource.data.authorId == request.auth.uid || isAdminGroup()) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'replies', 'views']))
+      );
+
+      match /comments/{commentId} {
+          allow read: if true;
+          allow create: if isSignedIn();
+          allow update, delete: if isSignedIn() && (resource.data.authorId == request.auth.uid || isAdminGroup());
+      }
+    }
+
+    // --- 4. 浜ゆ槗鑸囪▊鍠?(orders) ---
+    match /orders/{orderId} {
+      allow list: if isAdminGroup() || (isSignedIn() && ("limit" in request.query && request.query.limit <= 50));
+      allow get: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
+      // 鉁?淇京锛歴taff 鍜?support 鎿佹湁瑷傚柈绠＄悊鐨勫叏閮ㄦ瑠闄愶紝鍏佽ū鍒櫎
+      allow delete: if isAdminGroup(); 
+    }
+
+    match /reviews/{reviewId} {
+      allow get: if true;
+      allow write: if isSignedIn() && (request.resource.data.reviewerId == request.auth.uid || isAdminGroup());
+      allow list: if ("limit" in request.query && request.query.limit <= 50);
+    }
+
+    // --- 5. 鑱婂ぉ鑸囨敮鎸?---
+    
+    // 鉁?鏂板锛氬皥闁€鐐?ChatWindow 绲勪欢閰嶇疆鐨勮▊鍠亰澶╅泦鍚?
+    match /chats/{chatId} {
+      allow read, write: if isSignedIn() && (
+        request.auth.uid in resource.data.participants ||
+        isAdminGroup()
+      );
+      
+      match /messages/{messageId} {
+        // 鍙湁瑭茶亰澶╃殑璨疯常闆欐柟鎴栫鐞嗙祫鍙互璁€鍙栧拰鐧奸€佹秷鎭?
+        allow read, create: if isSignedIn() && (
+          request.auth.uid == get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId ||
+          request.auth.uid == get(/databases/$(database)/documents/chats/$(chatId)).data.sellerId ||
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants ||
+          isAdminGroup()
+        );
+        allow update, delete: if isAdminGroup(); // 鍙湁绠＄悊鍝″彲浠ユ挙鍥?鍒櫎娑堟伅
+      }
+    }
+
+    match /direct_chats/{chatId} {
+      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      
+      match /messages/{messageId} {
+        // 浣跨敤 get 纰轰繚鍗充究鍙畝鍙栦竴姊濊▕鎭紝涔熻兘鏍￠鐖剁礆灏嶈┍鐨?participants
+        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants;
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
+      }
+    }
+
+    match /support_tickets/{ticketId} {
+      allow list: if isAdminGroup();
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow read, update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdminGroup());
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid || isAdminGroup());
+        allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
+      }
+    }
+
+    // --- 6. FCM 浠ょ墝绠＄悊 ---
+    match /fcm_tokens/{userId} {
+      // 鐢ㄦ埗鍙兘璁€瀵嚜宸辩殑FCM浠ょ墝
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+      // 绠＄悊鍝″彲浠ヨ畝鍙栨墍鏈塅CM浠ょ墝
+      allow read: if isAdminGroup();
+    }
+
+    // --- 7. USDT 浜ゆ槗瑷橀寗 ---
+    match /usdt_transactions/{txId} {
+      // 鐢ㄦ埗鍙互鍓靛缓鑷繁鐨勪氦鏄撹閷?
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      // 鐢ㄦ埗鍙互璁€鍙栬嚜宸辩殑浜ゆ槗瑷橀寗
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // 绠＄悊鍝″彲浠ヨ畝鍙栨墍鏈変氦鏄撹閷?
+      allow read: if isAdminGroup();
+      // 浜ゆ槗瑷橀寗涓€鏃﹀壍寤轰笉鍙慨鏀癸紙闃叉绡℃敼锛?
+      allow update, delete: if false;
+    }
+
+    // --- 8. 寰屽彴绠＄悊妯＄祫 ---
+    match /walletChangeRequests/{requestId} {
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.oldWalletAddress is string &&
+        request.resource.data.newWalletAddress is string &&
+        request.resource.data.newWalletAddress.size() >= 10 &&
+        request.resource.data.source in ['auto_switch', 'manual'];
+
+      allow get, list: if isSignedIn() &&
+        (resource.data.userId == request.auth.uid || isAdminGroup());
+
+      allow update: if isAdminGroup() &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.oldWalletAddress == resource.data.oldWalletAddress &&
+        request.resource.data.newWalletAddress == resource.data.newWalletAddress;
+
+      allow delete: if hasRole(['admin', 'ghost']);
+    }
+    match /paymentChangeRequests/{reqId} {
+        allow create: if isSignedIn();
+        allow read, update, delete: if isAdminGroup();
+    }
+    match /proApplications/{applicationId} {
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdminGroup());
+      allow list, update: if isAdminGroup();
+      // 鉁?淇京锛歴taff 鍜?support 鎿佹湁 KYC 鐢宠珛鐨勫叏閮ㄦ瑠闄愶紝鍏佽ū鍒櫎
+      allow delete: if isAdminGroup();
+    }
+
+    // --- 8. 馃彔 鎴垮眿绉熻硟妯＄祫 (rentalProperties) ---
+    match /rentalProperties/{propertyId} {
+      allow read: if resource.data.status == 'active' || (isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdminGroup()));
+      allow create: if isSignedIn() && 
+                      request.resource.data.ownerId == request.auth.uid &&
+                      (isAdminGroup() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isPro', false) == true);
+      allow update, delete: if isSignedIn() && 
+                              (request.auth.uid == resource.data.ownerId || isAdminGroup());
+    }
+
+    // --- 榛樿獚鎷掔禃 ---
+    match /{document=**} {
+      allow read, write: if false; 
+    }
+  }
+}
+

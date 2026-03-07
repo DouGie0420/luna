@@ -1,0 +1,19 @@
+// 备份文件 - 请手动按照下面的说明修复 functions/src/index.ts
+
+// 修复说明：
+// 1. 找到 functions.config() 的调用
+// 2. 将其改为 (functions as any).config()
+// 3. 或者直接使用环境变量代替配置
+
+// 示例修复代码：
+/*
+import * as functions from 'firebase-functions';
+
+// 方法1: 使用类型断言
+const config = (functions as any).config();
+const BASE_TESTNET_RPC = config.base?.rpc_url || 'https://base-sepolia.public.blastapi.io';
+
+// 方法2: 使用环境变量 (推荐)
+const BASE_TESTNET_RPC = process.env.BASE_RPC_URL || 'https://base-sepolia.public.blastapi.io';
+const BASE_TESTNET_CHAIN_ID = parseInt(process.env.BASE_CHAIN_ID || '84531', 10);
+*/

@@ -1,0 +1,74 @@
+'use client';
+
+import { useUser } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from './ui/button';
+import { useRouter } from 'next/navigation';
+import type { Product } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
+import { useTranslation } from '@/hooks/use-translation';
+
+type PaymentMethod = 'USDT' | 'Alipay' | 'WeChat' | 'PromptPay';
+
+export function BuyNowButton({ product, selectedPayment }: { product: Product, selectedPayment: PaymentMethod | null }) {
+    const { t } = useTranslation();
+    const { user, profile, loading } = useUser();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const handleClick = () => {
+        if (!user) {
+            router.push(`/login?redirect=/products/${product.id}`);
+            return;
+        }
+
+        if (!user.emailVerified) {
+             toast({
+                variant: 'destructive',
+                title: t('common.verifyToInteract'),
+                description: t('registerPage.checkYourInbox'),
+            });
+            return;
+        }
+
+        if (profile?.kycStatus !== 'Verified') {
+            toast({
+                variant: 'destructive',
+                title: t('buyNowButton.kycRequiredTitle'),
+                description: t('buyNowButton.kycRequiredDescription'),
+            });
+            // Optionally redirect to KYC page
+            setTimeout(() => router.push('/account/kyc'), 2000);
+            return;
+        }
+        
+        if (!selectedPayment) {
+            toast({
+                variant: 'destructive',
+                title: t('buyNowButton.selectPaymentTitle'),
+                description: t('buyNowButton.selectPaymentDescription'),
+            });
+            return;
+        }
+        
+        // Proceed to checkout, passing the selected payment method
+        router.push(`/products/${product.id}/checkout?paymentMethod=${selectedPayment}`);
+    };
+
+    if (loading) {
+        return (
+             <Button size="lg" className="flex-1 h-14 text-lg" disabled>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {t('buyNowButton.loading')}
+            </Button>
+        )
+    }
+
+    return (
+        <Button size="lg" className="flex-1 h-14 text-lg" onClick={handleClick}>
+            {t('buyNowButton.buyNow')}
+        </Button>
+    );
+}
+
+    
