@@ -75,7 +75,6 @@ const badgeColors: Partial<Record<Exclude<BadgeType, 'none' | 'pro' | 'email' | 
     contributor: 'text-pink-500',
 };
 
-
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
     const firestore = useFirestore();
@@ -83,7 +82,7 @@ export default function AccountProfilePage() {
     const { toast } = useToast();
 
     const [displayName, setDisplayName] = useState('');
-    const [gender, setGender] = useState('淇濆瘑');
+    const [gender, setGender] = useState('保密');
     const [location, setLocation] = useState('');
     const [bio, setBio] = useState('');
     const [bannerPreview, setBannerPreview] = useState<string | null>(null);
@@ -92,7 +91,6 @@ export default function AccountProfilePage() {
     const [isSavingId, setIsSavingId] = useState(false);
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
-
 
     const [isSyncingNfts, setIsSyncingNfts] = useState(false);
     const [isUpdatingAvatar, setIsUpdatingAvatar] = useState(false);
@@ -129,11 +127,10 @@ export default function AccountProfilePage() {
         }
     }, [fetchedProducts]);
 
-
     useEffect(() => {
         if (profile) {
             setDisplayName(profile.displayName || '');
-            setGender(profile.gender || '淇濆瘑');
+            setGender(profile.gender || '保密');
             setLocation(profile.location || '');
             setBio(profile.bio || '');
             setBannerPreview(profile.bannerUrl || null);
@@ -236,7 +233,7 @@ export default function AccountProfilePage() {
         if (!/^\d{3,}$/.test(newLoginId)) {
             toast({
                 variant: "destructive",
-                title: '鏃犳晥鐨勪笓灞濱D',
+                title: '无效的专属ID',
                 description: 'ID 必须是 3 位或更长的纯数字。',
             });
             return;
@@ -251,7 +248,7 @@ export default function AccountProfilePage() {
             if (!querySnapshot.empty) {
                 toast({
                     variant: "destructive",
-                    title: 'ID宸茶鍗犵敤',
+                    title: 'ID已被占用',
                     description: '该专属 ID 已被其他用户使用，请更换。',
                 });
                 setIsSavingId(false);
@@ -261,14 +258,14 @@ export default function AccountProfilePage() {
             await updateUserProfile(firestore, user.uid, { loginId: newLoginId });
             toast({
                 title: '专属 ID 设置成功',
-                description: `鎮ㄧ殑鏂颁笓灞濱D鏄?@${newLoginId}`,
+                description: `您的新专属ID是 @${newLoginId}`,
             });
             setNewLoginId('');
         } catch (error) {
             console.error('Failed to set Login ID:', error);
             toast({
                 variant: 'destructive',
-                title: '璁剧疆澶辫触',
+                title: '设置失败',
                 description: '更新您的 ID 时出错，请稍后再试。',
             });
         } finally {
@@ -475,7 +472,6 @@ export default function AccountProfilePage() {
 
     const canCustomize = profile?.isPro || ['admin', 'ghost', 'staff', 'support'].includes(profile?.role || '');
 
-
     if (loading || loadingStats) {
         return (
             <div className="p-6 md:p-8 lg:p-12">
@@ -533,19 +529,19 @@ export default function AccountProfilePage() {
                 
                 <div className="grid gap-8">
                     
-                    {/* 馃殌 鏂板锛氶《绾ц瑙?- Lunar Vault 鏈堝￥閲戝簱闈㈡澘 */}
+                    {/* 🚀 新增：顶级视觉 - Lunar Vault 月壤金库面板 */}
                     <Card className="bg-black/60 backdrop-blur-2xl border border-primary/30 shadow-[0_0_40px_rgba(168,85,247,0.15)] relative overflow-hidden group">
-                        {/* 鍔ㄦ€佸厜鏁堣儗鏅?*/}
+                        {/* 动态光效背景 */}
                         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full filter blur-[80px] group-hover:bg-primary/20 transition-all duration-700" />
                         
                         <CardContent className="p-8 md:p-10 relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                             <div className="flex items-center gap-6">
-                                {/* 鍙戝厜鐨勬暟鎹簱鍥炬爣 */}
+                                {/* 发光的数据库图标 */}
                                 <div className="w-20 h-20 rounded-full bg-primary/10 border-2 border-primary/50 flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.4)] group-hover:scale-105 transition-transform duration-500">
                                     <Database className="w-10 h-10 text-primary animate-pulse" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-primary/70 drop-shadow-md">Lunar Vault / 鏈堝￥閲戝簱</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.4em] text-primary/70 drop-shadow-md">Lunar Vault / 月壤金库</p>
                                     <div className="flex items-baseline gap-3 mt-1">
                                         <span className="text-6xl font-black titanium-title text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
                                             {profile?.lunarSoil || 0}
@@ -575,29 +571,29 @@ export default function AccountProfilePage() {
                             
                             {profile && user && profile.loginId === user.uid ? (
                                 <div className="border-2 border-dashed border-primary/50 p-4 rounded-lg bg-primary/5">
-                                    <p className="text-sm text-primary mb-2 italic">妫€娴嬪埌鎮ㄥ皻鏈縺娲讳笓灞炶禌鍗氬煙鍚?</p>
+                                    <p className="text-sm text-primary mb-2 italic">检测到您尚未激活专属赛博域名</p>
                                     <div className="flex gap-2">
                                     <Input 
-                                        placeholder="杈撳叆3浣嶄互涓婃暟瀛?.." 
+                                        placeholder="输入3位以上数字..." 
                                         value={newLoginId}
                                         onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
                                         disabled={isSavingId}
                                     />
                                     <Button onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()}>
                                         {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                        绔嬪嵆婵€娲?
+                                        立即激活
                                     </Button>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="grid gap-2">
-                                    <Label>涓撳睘ID</Label>
+                                    <Label>专属ID</Label>
                                     <div className="flex items-center gap-2">
                                         <Input value={`@${profile?.loginId}`} readOnly className="border-dashed" />
                                         <Button variant="outline" size="sm" onClick={() => {
-                                            navigator.clipboard.writeText(`https://luna.io/@${profile?.loginId}`);
-                                            toast({ title: '宸插鍒舵偍鐨勪笓灞為摼鎺ワ紒' });
-                                        }}>澶嶅埗閾炬帴</Button>
+                                            navigator.clipboard.writeText(`https://luna.gift/@${profile?.loginId}`);
+                                            toast({ title: '已复制您的专属链接！' });
+                                        }}>复制链接</Button>
                                     </div>
                                 </div>
                             )}
@@ -633,8 +629,8 @@ export default function AccountProfilePage() {
                                         <SelectContent>
                                             <SelectItem value="男">{t('accountPage.genderMale')}</SelectItem>
                                             <SelectItem value="女">{t('accountPage.genderFemale')}</SelectItem>
-                                            <SelectItem value="鍏朵粬">{t('accountPage.genderOther')}</SelectItem>
-                                            <SelectItem value="淇濆瘑">{t('accountPage.genderSecret')}</SelectItem>
+                                            <SelectItem value="其他">其他</SelectItem>
+                                            <SelectItem value="保密">保密</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -747,15 +743,15 @@ export default function AccountProfilePage() {
                                     <ShieldCheck className="h-8 w-8 text-green-400"/>
                                     <div>
                                         <h3 className="font-semibold text-green-300">{t('accountPage.proCertification.alreadyPro')}</h3>
-                                        <p className="text-sm text-green-400/80">鎮ㄥ凡瑙ｉ攣鎵€鏈塒RO鍟嗘埛鐗规潈銆?</p>
+                                        <p className="text-sm text-green-400/80">您已解锁所有PRO商户特权。</p>
                                     </div>
                                 </div>
                             ) : hasPendingApplication ? (
                                 <div className="flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50">
                                     <Loader2 className="h-8 w-8 text-yellow-400 animate-spin"/>
                                     <div>
-                                        <h3 className="font-semibold text-yellow-300">鎮ㄧ殑 PRO 鐢宠姝ｅ湪瀹℃牳涓?</h3>
-                                        <p className="text-sm text-yellow-400/80">鎴戜滑浼氬湪瀹℃牳瀹屾垚鍚庨€氱煡鎮ㄣ€?</p>
+                                        <h3 className="font-semibold text-yellow-300">您的 PRO 申请正在审核中</h3>
+                                        <p className="text-sm text-yellow-400/80">我们会在审核完成后通知您。</p>
                                     </div>
                                 </div>
                             ) : (
@@ -768,7 +764,7 @@ export default function AccountProfilePage() {
                                 </DialogTrigger>
                                 {!isProApplicationEnabled && !settingsLoading && (
                                     <p className="text-xs text-muted-foreground text-center mt-2">
-                                        PRO璁よ瘉鐢宠鍔熻兘褰撳墠宸茬敱绠＄悊鍛樺叧闂€?
+                                        PRO认证申请功能当前已由管理员关闭。
                                     </p>
                                 )}
                                 </>
@@ -779,17 +775,17 @@ export default function AccountProfilePage() {
                     {canCustomize && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>鑷畾涔夊ご鍍?</CardTitle>
+                                <CardTitle>自定义头像 & 横幅</CardTitle>
                                 <CardDescription>
-                                    浣滀负璁よ瘉鍟嗘埛鎴栫鐞嗗憳锛屾偍鍙互涓婁紶鏂板ご鍍忓拰鍟嗘埛妯箙銆?
+                                    作为认证商户或管理员，您可以上传新头像和商户横幅。
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="grid gap-8">
                                 {/* Avatar Upload */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                     <div className="md:col-span-1 grid gap-2">
-                                        <Label htmlFor="avatar-upload">涓婁紶鏂板ご鍍?</Label>
-                                        <p className="text-xs text-muted-foreground">鐐瑰嚮鎸夐敭浠ヤ笂浼犳柊澶村儚銆?</p>
+                                        <Label htmlFor="avatar-upload">上传新头像</Label>
+                                        <p className="text-xs text-muted-foreground">点击按键以上传新头像。</p>
                                     </div>
                                     <div className="md:col-span-2 grid gap-4">
                                         <label htmlFor="avatar-upload" className="cursor-pointer w-fit">
@@ -811,7 +807,7 @@ export default function AccountProfilePage() {
                                         <input id="avatar-upload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploadingAvatar} />
                                         <Button onClick={handleSaveAvatar} disabled={isUploadingAvatar || !avatarPreview || avatarPreview === profile?.photoURL} className="w-fit">
                                             {isUploadingAvatar ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                            淇濆瓨澶村儚
+                                            保存头像
                                         </Button>
                                     </div>
                                 </div>
@@ -822,8 +818,8 @@ export default function AccountProfilePage() {
                                 {profile?.isPro && (
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
                                         <div className="md:col-span-1 grid gap-2">
-                                            <Label htmlFor="banner-upload">鑷畾涔夊晢鎴锋í骞?</Label>
-                                            <p className="text-xs text-muted-foreground">鎺ㄨ崘灏哄: 1080x432. 灏嗗睍绀哄湪鎮ㄧ殑鍏紑璧勬枡椤靛拰璁よ瘉鍟嗘埛鍒楄〃涓€?</p>
+                                            <Label htmlFor="banner-upload">自定义商户横幅</Label>
+                                            <p className="text-xs text-muted-foreground">推荐尺寸: 1080x432. 将展示在您的公开资料页和认证商户列表中。</p>
                                         </div>
                                         <div className="md:col-span-2 grid gap-4">
                                             {bannerPreview ? (
@@ -844,15 +840,15 @@ export default function AccountProfilePage() {
                                                 <label htmlFor="banner-upload" className="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-accent transition-colors">
                                                     <div className="flex flex-col items-center justify-center pt-5 pb-6 text-center">
                                                         <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                                                        <p className="text-xs text-muted-foreground"><span className="font-semibold">鐐瑰嚮涓婁紶</span> 鎴栨嫋鎷?</p>
+                                                        <p className="text-xs text-muted-foreground"><span className="font-semibold">点击上传</span> 或拖拽</p>
                                                     </div>
                                                     <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
                                                 </label>
                                             )}
-                                            {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 姝ｅ湪澶勭悊鍥剧墖...</p>}
+                                            {isUploadingBanner && <p className="text-sm text-muted-foreground flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/> 正在处理图片...</p>}
                                             <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview} className="w-fit">
                                                 {isUploadingBanner ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                                淇濆瓨妯箙
+                                                保存横幅
                                             </Button>
                                         </div>
                                     </div>
@@ -865,14 +861,14 @@ export default function AccountProfilePage() {
                     {profile?.isPro && (
                         <Card>
                             <CardHeader>
-                                <CardTitle>绮鹃€夊晢鍝佸睍绀?</CardTitle>
+                                <CardTitle>精选商品展示</CardTitle>
                                 <CardDescription>
-                                    閫夋嫨涓€浠舵偍鐨勫晢鍝侊紝瀹冨皢琚睍绀哄湪棣栭〉鈥滆璇佸晢鎴封€濆尯鍩熸偍鐨勫悕鐗囦笅鏂广€?
+                                    选择一件您的商品，它将被展示在首页“认证商户”区域您的名片下方。
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
                             <div className="grid gap-2">
-                                    <Label htmlFor="featured-product-select">閫夋嫨绮鹃€夊晢鍝?</Label>
+                                    <Label htmlFor="featured-product-select">选择精选商品</Label>
                                     {productsLoading ? <Skeleton className="h-10 w-full" /> : (
                                         <Select 
                                             value={profile.featuredProductId || 'none'}
@@ -880,14 +876,14 @@ export default function AccountProfilePage() {
                                                 if (!firestore || !user) return;
                                                 const newFeaturedId = value === 'none' ? null : value;
                                                 await updateUserProfile(firestore, user.uid, { featuredProductId: newFeaturedId });
-                                                toast({ title: "绮鹃€夊晢鍝佸凡鏇存柊" });
+                                                toast({ title: "精选商品已更新" });
                                             }}
                                         >
                                             <SelectTrigger id="featured-product-select">
-                                                <SelectValue placeholder="閫夋嫨涓€浠跺晢鍝佹潵灞曠ず" />
+                                                <SelectValue placeholder="选择一件商品来展示" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="none">鏃?(涓嶅睍绀?</SelectItem>
+                                                <SelectItem value="none">无(不展示)</SelectItem>
                                                 {userProducts.map(product => (
                                                     <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
                                                 ))}
@@ -902,15 +898,15 @@ export default function AccountProfilePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Crypto Wallet</CardTitle>
-                            <CardDescription>灏嗘偍鐨勬暟瀛楄祫浜у睍绀哄湪鏈堜箣濂崇鐨勯潤璋т腑</CardDescription>
+                            <CardDescription>将您的数字资产展示在月之女神的静谧中</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.isWeb3Verified}>
                                 {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                楠岃瘉 NFT 璧勪骇
+                                验证 NFT 资产
                             </Button>
                             {!profile?.isWeb3Verified && (
-                                <p className="text-xs text-muted-foreground mt-2">璇峰厛浣跨敤閽卞寘鐧诲綍浠ュ惎鐢ㄦ鍔熻兘銆?</p>
+                                <p className="text-xs text-muted-foreground mt-2">请先使用钱包登录以启用此功能。</p>
                             )}
                         </CardContent>
                     </Card>
@@ -1089,4 +1085,3 @@ export default function AccountProfilePage() {
         </>
     )
 }
-

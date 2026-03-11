@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <h2 className="text-foreground">4. Contact Us</h2>
             <p>
-              If you have any questions about this Privacy Policy, please contact us at support@luna.io.
+              If you have any questions about this Privacy Policy, please contact us at support@luna.gift.
             </p>
           </CardContent>
         </Card>

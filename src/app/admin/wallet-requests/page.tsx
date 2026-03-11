@@ -12,6 +12,8 @@ import {
   updateDoc,
   where,
   writeBatch,
+  // 🚀 核心引入：arrayUnion
+  arrayUnion,
 } from 'firebase/firestore';
 import {
   Table,
@@ -169,10 +171,13 @@ export default function WalletRequestsAdminPage() {
       const userRef = doc(firestore, 'users', row.userId);
       const batch = writeBatch(firestore);
 
+      // 🚀 核心修复区：在 users 档案中打上时间戳烙印
       batch.update(userRef, {
         walletAddress: row.newWalletAddress,
         walletBindTime: serverTimestamp(),
         isWeb3Verified: true,
+        // 🚀 将本次修改时间压入数组，用于前端限额计算
+        walletChangeDates: arrayUnion(serverTimestamp()), 
       });
 
       batch.update(reqRef, {

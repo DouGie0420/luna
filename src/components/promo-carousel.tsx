@@ -22,35 +22,12 @@ type PromoItem = {
   enabled?: boolean;
 };
 
-const FALLBACK_PROMOS: PromoItem[] = [
-  {
-    title: '未来已来',
-    description: '探索最新潮的数字体验',
-    imageUrl: 'https://picsum.photos/seed/promo1/1920/822',
-    link: '/promo/cyber-monday?id=future-is-here',
-    enabled: true,
-  },
-  {
-    title: '城市霓虹',
-    description: '穿梭在光影之间的精选内容',
-    imageUrl: 'https://picsum.photos/seed/promo2/1920/822',
-    link: '/promo/cyber-monday?id=city-neon',
-    enabled: true,
-  },
-  {
-    title: '数字浪潮',
-    description: '体验前所未有的虚拟现实',
-    imageUrl: 'https://picsum.photos/seed/promo3/1920/822',
-    link: '/promo/cyber-monday?id=digital-wave',
-    enabled: true,
-  },
-];
-
+// 规范化后台传来的数据结构
 const normalizePromo = (item: any): PromoItem => ({
-  title: item?.title || '推广内容',
+  title: item?.title || '',
   description: item?.desc || item?.description || '',
   imageUrl: item?.img || item?.imageUrl || '',
-  link: item?.link || '/promo/cyber-monday',
+  link: item?.link || '/',
   enabled: item?.enabled !== false,
 });
 
@@ -58,7 +35,10 @@ const isExternalUrl = (url: string) => /^https?:\/\//i.test(url);
 
 export function PromoCarousel() {
   const firestore = useFirestore();
-  const [promos, setPromos] = useState<PromoItem[]>(FALLBACK_PROMOS);
+  // 初始状态设为空数组，彻底抛弃占位图
+  const [promos, setPromos] = useState<PromoItem[]>([]);
+  // 增加一个 loading 状态，防止刚加载时闪烁
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!firestore) return;
@@ -68,7 +48,8 @@ export function PromoCarousel() {
       ref,
       (snapshot) => {
         if (!snapshot.exists()) {
-          setPromos(FALLBACK_PROMOS);
+          setPromos([]);
+          setLoading(false);
           return;
         }
 
@@ -78,15 +59,17 @@ export function PromoCarousel() {
 
         const active = rawItems
           .map(normalizePromo)
-          .filter((item) => item.imageUrl.trim() !== '')
-          .filter((item) => item.enabled !== false)
+          .filter((item) => item.imageUrl.trim() !== '') // 必须有图片
+          .filter((item) => item.enabled !== false)      // 必须是启用状态
           .slice(0, maxCount);
 
-        setPromos(active.length > 0 ? active : FALLBACK_PROMOS);
+        setPromos(active);
+        setLoading(false);
       },
       (error) => {
         console.error('Failed to subscribe home carousel:', error);
-        setPromos(FALLBACK_PROMOS);
+        setPromos([]);
+        setLoading(false);
       }
     );
 
@@ -102,6 +85,11 @@ export function PromoCarousel() {
     []
   );
 
+  // 🚀 核心逻辑：如果在加载中，或者后台没有任何有效广告，直接隐藏整个组件！
+  if (loading || promos.length === 0) {
+    return null;
+  }
+
   return (
     <Carousel className="w-full" plugins={[plugin]} opts={{ loop: true }}>
       <CarouselContent>
@@ -116,30 +104,42 @@ export function PromoCarousel() {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
               <div className="absolute inset-0 flex flex-col justify-center items-start p-8 md:p-16 lg:p-24 text-white">
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-headline font-bold drop-shadow-lg">
-                  {promo.title}
-                </h2>
-                <div className="text-lg md:text-xl mt-2 text-white/80 drop-shadow-sm max-w-lg">
-                  {promo.description}
-                </div>
-                {isExternalUrl(promo.link) ? (
-                  <Button asChild className="mt-6" size="lg">
-                    <a href={promo.link} target="_blank" rel="noreferrer">
-                      了解更多
-                    </a>
-                  </Button>
-                ) : (
-                  <Button asChild className="mt-6" size="lg">
-                    <Link href={promo.link}>了解更多</Link>
-                  </Button>
+                {promo.title && (
+                    <h2 className="text-3xl md:text-5xl lg:text-6xl font-headline font-bold drop-shadow-lg">
+                    {promo.title}
+                    </h2>
+                )}
+                {promo.description && (
+                    <div className="text-lg md:text-xl mt-2 text-white/80 drop-shadow-sm max-w-lg">
+                    {promo.description}
+                    </div>
+                )}
+                
+                {promo.link && promo.link !== '/' && (
+                    isExternalUrl(promo.link) ? (
+                    <Button asChild className="mt-6" size="lg">
+                        <a href={promo.link} target="_blank" rel="noreferrer">
+                        了解更多
+                        </a>
+                    </Button>
+                    ) : (
+                    <Button asChild className="mt-6" size="lg">
+                        <Link href={promo.link}>了解更多</Link>
+                    </Button>
+                    )
                 )}
               </div>
             </div>
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious className="left-4 hidden md:flex" />
-      <CarouselNext className="right-4 hidden md:flex" />
+      {/* 如果只有一张广告，就隐藏左右切换箭头 */}
+      {promos.length > 1 && (
+          <>
+            <CarouselPrevious className="left-4 hidden md:flex" />
+            <CarouselNext className="right-4 hidden md:flex" />
+          </>
+      )}
     </Carousel>
   );
 }
