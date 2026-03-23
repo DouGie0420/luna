@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, User, MapPin, Mail, Calendar, Shield, Edit3, Camera, Settings, Sparkles } from 'lucide-react';
+import { Loader2, User, MapPin, Mail, Calendar, Shield, Edit3, Camera, Settings, Sparkles, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -31,6 +31,7 @@ export default function ProfilePage() {
     bio: '',
     location: '',
     gender: '保密',
+    mainProduct: '',
   });
 
   useEffect(() => {
@@ -50,6 +51,7 @@ export default function ProfilePage() {
             bio: initialProfile.bio || '',
             location: initialProfile.location || '',
             gender: initialProfile.gender || '保密',
+            mainProduct: (initialProfile as any).mainProduct || '',
           });
         } else if (firestore) {
           const userDoc = await getDoc(doc(firestore, 'users', user.uid));
@@ -61,6 +63,7 @@ export default function ProfilePage() {
               bio: userData.bio || '',
               location: userData.location || '',
               gender: userData.gender || '保密',
+              mainProduct: (userData as any).mainProduct || '',
             });
           }
         }
@@ -99,6 +102,7 @@ export default function ProfilePage() {
       bio: profile?.bio || '',
       location: profile?.location || '',
       gender: profile?.gender || '保密',
+      mainProduct: (profile as any)?.mainProduct || '',
     });
     setIsEditing(false);
   };
@@ -356,6 +360,26 @@ export default function ProfilePage() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Main Product — PRO merchants only */}
+                  {(profile as any)?.isPro && (
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <Label htmlFor="mainProduct" className="text-xs font-medium text-yellow-400/80 flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-yellow-400" />
+                        主营产品 <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 font-black uppercase tracking-wider">PRO</span>
+                      </Label>
+                      <Input
+                        id="mainProduct"
+                        value={formData.mainProduct}
+                        onChange={(e) => setFormData(prev => ({ ...prev, mainProduct: e.target.value }))}
+                        disabled={!isEditing}
+                        className="bg-background/50 border-yellow-500/20 hover:border-yellow-500/40 focus:border-yellow-500/60 focus-visible:ring-yellow-500/20 h-10 text-sm transition-colors disabled:opacity-60"
+                        placeholder="例如：奢侈手表、电子产品、珠宝首饰..."
+                        maxLength={30}
+                      />
+                      <p className="text-[10px] text-muted-foreground/40">将显示在首页 Verified Merchants 区域的商户卡片上</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

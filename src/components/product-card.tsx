@@ -151,7 +151,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                         />
                     </div>
                 </div>
-                <span className="flex-1 text-[11px] font-sans text-white/40 font-black uppercase tracking-widest truncate group-hover:text-white/70 transition-colors">
+                <span className="flex-1 text-xs font-sans text-white/70 font-black uppercase tracking-widest truncate group-hover:text-white transition-colors">
                     {latestSeller?.displayName || product.seller?.name || 'Protocol Node Synchronization'}
                 </span>
             </div>
@@ -170,19 +170,19 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 
                 {/* 📍 地图位置信息 */}
                 {locationDisplay && (
-                    <div className="flex items-center text-[10px] text-primary/60 font-mono uppercase tracking-[0.15em] font-black overflow-hidden group-hover:text-primary transition-colors">
-                        <MapPin className="h-3 w-3 mr-1.5 shrink-0" />
+                    <div className="flex items-center text-xs text-primary font-mono uppercase tracking-[0.15em] font-black overflow-hidden group-hover:text-white transition-colors">
+                        <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                         <span className="truncate">{locationDisplay}</span>
                     </div>
                 )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-                <Button variant="ghost" size="sm" className={cn("h-10 w-10 p-0 rounded-xl border transition-all", isFavorited ? "bg-yellow-500/10 border-yellow-500/40 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.2)]" : "bg-white/5 border-white/10 text-white/20")} onClick={(e) => handleInteraction(e, 'favorite')}>
-                    <Star className={cn("h-4.5 w-4.5", isFavorited && "fill-yellow-400")} />
+                <Button variant="ghost" size="sm" className={cn("h-10 w-10 p-0 rounded-xl border transition-all", isFavorited ? "bg-yellow-500/15 border-yellow-500/60 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.3)]" : "bg-yellow-500/5 border-yellow-500/30 text-yellow-400/60 hover:text-yellow-400 hover:border-yellow-500/50")} onClick={(e) => handleInteraction(e, 'favorite')}>
+                    <Star className={cn("h-4 w-4", isFavorited && "fill-yellow-400")} />
                 </Button>
-                <Button variant="ghost" size="sm" className={cn("h-10 px-4 flex gap-2 rounded-xl border transition-all", isLiked ? "bg-pink-500/10 border-pink-500/40 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.2)]" : "bg-white/5 border-white/10 text-white/20")} onClick={(e) => handleInteraction(e, 'like')}>
-                    <Heart className={cn("h-4.5 w-4.5", isLiked && "fill-pink-400")} />
+                <Button variant="ghost" size="sm" className={cn("h-10 px-4 flex gap-2 rounded-xl border transition-all", isLiked ? "bg-pink-500/15 border-pink-500/60 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.3)]" : "bg-pink-500/5 border-pink-500/30 text-pink-400/60 hover:text-pink-400 hover:border-pink-500/50")} onClick={(e) => handleInteraction(e, 'like')}>
+                    <Heart className={cn("h-4 w-4", isLiked && "fill-pink-400")} />
                     <span className="text-xs font-black">{likesCount > 0 ? likesCount : ''}</span>
                 </Button>
             </div>

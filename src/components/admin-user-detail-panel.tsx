@@ -67,7 +67,7 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
         if (!firestore || modificationDisabled) return;
 
         let processedValue = value;
-        if (['creditScore', 'lunarSoil', 'salesCount', 'purchasesCount', 'followersCount', 'followingCount', 'displayPriority'].includes(field)) {
+        if (['creditScore', 'lunarSoil', 'salesCount', 'purchasesCount', 'displayPriority'].includes(field)) {
             processedValue = Number(value);
             if (isNaN(processedValue)) {
                 toast({ variant: "destructive", title: 'Invalid Input', description: 'Please enter a valid number.' });
@@ -313,12 +313,18 @@ export function AdminUserDetailPanel({ user, currentUserProfile }: AdminUserDeta
                             <Input id={`purchases-${user.uid}`} type="number" defaultValue={user.purchasesCount || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'purchasesCount', e.target.value)} disabled={modificationDisabled || isSubmitting} />
                         </div>
                          <div className="grid gap-2">
-                            <Label htmlFor={`followers-${user.uid}`} className="text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> {t('userProfile.followers')}</Label>
-                            <Input id={`followers-${user.uid}`} type="number" defaultValue={user.followersCount || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'followersCount', e.target.value)} disabled={modificationDisabled || isSubmitting} />
+                            <Label className="text-muted-foreground flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> {t('userProfile.followers')}</Label>
+                            <div className="h-10 px-3 flex items-center rounded-md border border-white/10 bg-background/30 text-sm text-muted-foreground select-none">
+                                {user.followersCount ?? (user.followers?.length || 0)}
+                                <span className="ml-2 text-[10px] text-white/20 uppercase tracking-wider">auto-sync</span>
+                            </div>
                         </div>
                          <div className="grid gap-2">
-                            <Label htmlFor={`following-${user.uid}`} className="text-muted-foreground flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary" /> {t('userProfile.following')}</Label>
-                            <Input id={`following-${user.uid}`} type="number" defaultValue={user.followingCount || 0} onBlur={(e) => handleFieldUpdate(user.uid, 'followingCount', e.target.value)} disabled={modificationDisabled || isSubmitting} />
+                            <Label className="text-muted-foreground flex items-center gap-2"><UserPlus className="h-4 w-4 text-primary" /> {t('userProfile.following')}</Label>
+                            <div className="h-10 px-3 flex items-center rounded-md border border-white/10 bg-background/30 text-sm text-muted-foreground select-none">
+                                {user.followingCount ?? (user.following?.length || 0)}
+                                <span className="ml-2 text-[10px] text-white/20 uppercase tracking-wider">auto-sync</span>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -84,14 +84,7 @@ export function WalletDropdown() {
       return;
     }
 
-    if (!profile?.isWeb3Verified && !boundWallet) {
-      toast({
-        variant: 'destructive',
-        title: 'Wallet not verified',
-        description: 'Please complete wallet binding before verifying NFT assets.',
-      });
-      return;
-    }
+    // Proceed as long as we have any wallet address to query
 
     setIsSyncingNfts(true);
     try {
@@ -201,7 +194,20 @@ export function WalletDropdown() {
             <span className="font-medium">Set NFT Avatar</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => connectWallet()} className="cursor-pointer">
+          <DropdownMenuItem
+            onClick={() => connectWallet().catch((err) => {
+              toast({
+                variant: 'destructive',
+                title: '连接失败',
+                description: err.message?.includes('METAMASK_UNAVAILABLE')
+                  ? 'MetaMask 未响应，请解锁钱包后重试。'
+                  : err.message?.includes('USER_REJECTED')
+                  ? '用户拒绝了连接请求。'
+                  : '无法连接钱包，请重试。',
+              });
+            })}
+            className="cursor-pointer"
+          >
             <RefreshCw className="mr-2 h-4 w-4" />
             <span>Switch / Reconnect Wallet</span>
           </DropdownMenuItem>

@@ -42,7 +42,10 @@ export function NftSelectorDialog({ open, onOpenChange, nfts, onSelect, isUpdati
                 </DialogHeader>
                 <ScrollArea className="h-96 pr-6">
                     {nfts.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-10">No image-based NFTs found in your wallet.</p>
+                        <div className="text-center py-10 space-y-2">
+                            <p className="text-muted-foreground text-sm">No image-based NFTs found in your wallet.</p>
+                            <p className="text-muted-foreground/50 text-xs">Checked: ETH, Polygon, Base, Optimism</p>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
                             {nfts.map((nft) => (

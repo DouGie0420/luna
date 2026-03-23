@@ -125,6 +125,14 @@ export function Web3Provider({ children }: { children: React.ReactNode }) {
       setChainId(Number(network.chainId));
       setWalletBindingStatus('idle');
       setWalletBindingMessage(null);
+    } catch (error: any) {
+      if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
+        throw new Error('USER_REJECTED: Wallet connection rejected by user.');
+      }
+      if (error.message?.includes('Failed to connect to MetaMask')) {
+        throw new Error('METAMASK_UNAVAILABLE: MetaMask is not responding. Please unlock MetaMask and try again.');
+      }
+      throw error;
     } finally {
       isConnectingRef.current = false;
       setIsConnecting(false);

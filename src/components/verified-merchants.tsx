@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button'; 
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Sparkles, Loader2, Crown, ShieldCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Loader2, MapPin, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -183,19 +183,30 @@ export function VerifiedMerchants() {
                                     ))}
                                 </div>
 
-                                {/* 认证徽章 */}
+                                {/* 主营产品徽章 */}
+                                {merchant.mainProduct && (
+                                    <div className="mt-2 flex w-full justify-center">
+                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-violet-900/30 to-purple-900/50" />
+                                            <Tag className="relative z-10 w-3 h-3 text-purple-400 shrink-0" />
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-purple-300 truncate max-w-[120px]">{merchant.mainProduct}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 城市位置徽章 */}
                                 <div className="mt-2 flex w-full justify-center">
-                                    {merchant.isPro ? (
-                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-yellow-400/40 shadow-[0_0_12px_rgba(234,179,8,0.25)]">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/60 via-amber-800/40 to-yellow-900/60" />
-                                            <Crown className="relative z-10 w-3 h-3 text-yellow-400 shrink-0" />
-                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300">Elite Merchant</span>
+                                    {merchant.location ? (
+                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/15 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
+                                            <div className="absolute inset-0 bg-white/5" />
+                                            <MapPin className="relative z-10 w-3 h-3 text-white/50 shrink-0" />
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/60 truncate max-w-[120px]">{merchant.location}</span>
                                         </div>
                                     ) : (
-                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-cyan-400/30 shadow-[0_0_10px_rgba(34,211,238,0.15)]">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/50 via-sky-900/30 to-cyan-900/50" />
-                                            <ShieldCheck className="relative z-10 w-3 h-3 text-cyan-400 shrink-0" />
-                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">Verified Node</span>
+                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/10">
+                                            <div className="absolute inset-0 bg-white/[0.03]" />
+                                            <MapPin className="relative z-10 w-3 h-3 text-white/30 shrink-0" />
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/30">Location TBD</span>
                                         </div>
                                     )}
                                 </div>

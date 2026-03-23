@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useUser, useFirestore, useCollection, useDoc } from "@/firebase";
+import { useWeb3 } from '@/contexts/Web3Context'; // 🚀 新增：引入你的 Web3 上下文
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/hooks/use-translation";
@@ -128,6 +129,7 @@ function StatBox({ icon: Icon, label, value, href, iconColor = 'text-purple-400'
 export default function AccountProfilePage() {
     const { user, profile, loading } = useUser();
     const firestore = useFirestore();
+    const { account, connectWallet } = useWeb3(); // 🚀 新增：调用 Web3 Context
     const { t } = useTranslation();
     const { toast } = useToast();
 
@@ -316,17 +318,31 @@ export default function AccountProfilePage() {
         } finally { setIsVerifying(false); }
     };
 
+    // 🚀 修改：完美融合了 Web3Context 的智能同步逻辑
     const handleSyncNfts = async () => {
-        if (!user || !profile?.walletAddress) {
-            toast({ variant: 'destructive', title: t('accountPageNew.walletNotLinked'), description: t('accountPageNew.walletNotLinkedDesc') });
+        const targetWallet = profile?.walletAddress || account;
+
+        if (!targetWallet) {
+            toast({ variant: 'destructive', title: t('accountPageNew.walletNotLinked') || '未连接钱包', description: t('accountPageNew.walletNotLinkedDesc') || '请先连接钱包后再验证 NFT 资产。' });
             return;
         }
+        
         setIsSyncingNfts(true);
         try {
-            setNfts(await getNftsForOwner(profile.walletAddress));
+            const ownerNfts = await getNftsForOwner(targetWallet);
+            setNfts(ownerNfts);
             setIsNftDialogOpen(true);
+
+            // 如果是第一次获取成功，顺便把地址存入 Firebase 绑定并点亮徽章
+            if (!profile?.walletAddress && user && firestore) {
+                await updateUserProfile(firestore, user.uid, { 
+                    walletAddress: targetWallet,
+                    isWeb3Verified: true 
+                });
+            }
         } catch (error) {
-            toast({ variant: 'destructive', title: t('accountPageNew.nftSyncFailed'), description: t('accountPageNew.nftSyncFailedDesc') });
+            console.error(error);
+            toast({ variant: 'destructive', title: t('accountPageNew.nftSyncFailed') || '同步失败', description: t('accountPageNew.nftSyncFailedDesc') || '无法获取 NFT 数据。' });
         } finally { setIsSyncingNfts(false); }
     };
 
@@ -334,7 +350,14 @@ export default function AccountProfilePage() {
         if (!firestore || !user) return;
         setIsUpdatingAvatar(true);
         try {
-            await updateUserProfile(firestore, user.uid, { photoURL: nft.imageUrl, isNftVerified: true });
+            await updateUserProfile(firestore, user.uid, {
+                photoURL: nft.imageUrl,
+                avatarType: 'nft',
+                nftAvatarUrl: nft.imageUrl,
+                nftTokenId: nft.tokenId,
+                nftContractAddress: nft.contractAddress,
+                isNftVerified: true,
+            });
             toast({ title: t('accountPageNew.nftAvatarUpdated'), description: t('accountPageNew.nftAvatarUpdatedDesc') });
             setIsNftDialogOpen(false);
         } catch {
@@ -487,12 +510,21 @@ export default function AccountProfilePage() {
                                         </div>
                                     )}
 
-                                    {/* NFT avatar */}
-                                    {canCustomize && profile?.isWeb3Verified && (
-                                        <button onClick={handleSyncNfts} disabled={isSyncingNfts} className="w-full flex items-center justify-center gap-1.5 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-blue-400/30 text-blue-200 hover:border-blue-400/60 transition-all text-xs font-semibold disabled:opacity-40">
-                                            {isSyncingNfts && <Loader2 className="w-3 h-3 animate-spin" />}
-                                            {t('accountPageNew.useNftAvatar')}
-                                        </button>
+                                    {/* 🚀 修复：NFT avatar 按钮交互逻辑，未绑定时唤起 MetaMask */}
+                                    {canCustomize && (
+                                        <div className="w-full">
+                                            {(!profile?.walletAddress && !account) ? (
+                                                <button onClick={connectWallet} className="w-full flex items-center justify-center gap-1.5 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-blue-400/30 text-blue-200 hover:border-blue-400/60 transition-all text-xs font-semibold">
+                                                    <Globe className="w-3 h-3" />
+                                                    绑定钱包以使用 NFT 头像
+                                                </button>
+                                            ) : (
+                                                <button onClick={handleSyncNfts} disabled={isSyncingNfts} className="w-full flex items-center justify-center gap-1.5 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-blue-400/30 text-blue-200 hover:border-blue-400/60 transition-all text-xs font-semibold disabled:opacity-40">
+                                                    {isSyncingNfts ? <Loader2 className="w-3 h-3 animate-spin" /> : <EthereumIcon className="w-3 h-3 stroke-blue-200" />}
+                                                    {t('accountPageNew.useNftAvatar') || '扫描并设置 NFT 头像'}
+                                                </button>
+                                            )}
+                                        </div>
                                     )}
 
                                     {/* Verification badges */}

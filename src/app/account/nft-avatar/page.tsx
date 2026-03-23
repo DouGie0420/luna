@@ -60,21 +60,26 @@ export default function NftAvatarPage() {
   const walletForVerification = boundWallet || connectedWallet;
   const isMismatch = !!connectedWallet && !!boundWallet && connectedWallet !== boundWallet;
 
+  // 🚀 优化：融合无错版本的智能同步与静默绑定逻辑
   const handleVerifyNfts = async () => {
     if (!walletForVerification) {
       toast({ variant: 'destructive', title: 'Wallet not available', description: 'Connect and bind a wallet before verifying NFT assets.' });
       return;
     }
-    if (!profile?.isWeb3Verified && !boundWallet) {
-      toast({ variant: 'destructive', title: 'Wallet not verified', description: 'Please complete wallet binding first.' });
-      return;
-    }
-
+    
     setIsSyncing(true);
     try {
       const ownerNfts = await getNftsForOwner(walletForVerification);
       setNfts(ownerNfts);
       setIsDialogOpen(true);
+
+      // 💡 智能细节：如果尚未绑定钱包，第一次获取 NFT 成功时自动存入 Firebase 并点亮 Web3 徽章
+      if (!profile?.walletAddress && user && firestore && connectedWallet) {
+          await updateUserProfile(firestore, user.uid, {
+              walletAddress: connectedWallet,
+              isWeb3Verified: true
+          });
+      }
     } catch (error) {
       console.error('Failed to verify NFT assets:', error);
       toast({ variant: 'destructive', title: 'NFT verification failed', description: 'Could not fetch NFTs from this wallet.' });
