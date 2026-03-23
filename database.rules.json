@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "universe": {
+      "plaza": {
+        "agents": {
+          ".read": true,
+          "$wallet": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['walletAddress', 'aiName', 'x', 'y'])"
+          }
+        },
+        "messages": {
+          ".read": true,
+          ".write": true,
+          "$messageId": {
+            ".validate": "newData.hasChildren(['from', 'fromName', 'text', 'timestamp', 'expiresAt'])"
+          }
+        },
+        "dj": {
+          ".read": true,
+          ".write": true
+        }
+      }
+    }
+  }
+}

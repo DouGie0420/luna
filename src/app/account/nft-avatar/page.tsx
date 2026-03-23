@@ -1,279 +1,262 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useUser, useFirestore } from '@/firebase';
-import { useWeb3 } from '@/contexts/Web3Context';
-import { doc, updateDoc, serverTimestamp, arrayUnion } from 'firebase/firestore';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2, Image as ImageIcon, CheckCircle, AlertCircle } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useFirestore, useUser } from '@/firebase';
+import { useWeb3 } from '@/contexts/Web3Context';
+import { updateUserProfile } from '@/lib/user';
+import { getNftsForOwner, type SimplifiedNft } from '@/lib/alchemy';
+import { NftSelectorDialog } from '@/components/nft-selector-dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { AlertCircle, CheckCircle2, Image as ImageIcon, Loader2, RefreshCw, Wallet, Link2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
-interface NFT {
-  tokenId: string;
-  contractAddress: string;
-  name: string;
-  imageUrl: string;
-  collection: string;
+function GlassCard({ children, className, delay = 0, accentColor = 'purple' }: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  accentColor?: 'purple' | 'blue' | 'green' | 'yellow';
+}) {
+  const accents: Record<string, string> = {
+    purple: 'via-purple-500/30',
+    blue: 'via-blue-500/30',
+    green: 'via-green-500/30',
+    yellow: 'via-yellow-500/30',
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={cn('relative', className)}
+    >
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-white/5 via-transparent to-white/[0.02] pointer-events-none" />
+      <div className="relative bg-card/40 backdrop-blur-sm rounded-2xl border border-white/8 overflow-hidden">
+        <div className={cn('h-px w-full bg-gradient-to-r from-transparent to-transparent', accents[accentColor])} />
+        <div className="p-6">
+          {children}
+        </div>
+      </div>
+    </motion.div>
+  );
 }
 
-export default function NFTAvatarPage() {
+export default function NftAvatarPage() {
   const { user, profile } = useUser();
-  const { account, connectWallet } = useWeb3();
   const firestore = useFirestore();
+  const { account, connectWallet, boundWalletAddress } = useWeb3();
   const { toast } = useToast();
-  const router = useRouter();
 
-  const [nfts, setNfts] = useState<NFT[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSettingAvatar, setIsSettingAvatar] = useState(false);
-  const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [nfts, setNfts] = useState<SimplifiedNft[]>([]);
 
-  // 获取用户的NFT
-  useEffect(() => {
-    if (!account) return;
+  const connectedWallet = account?.toLowerCase() || null;
+  const boundWallet = boundWalletAddress || profile?.walletAddress?.toLowerCase() || null;
+  const walletForVerification = boundWallet || connectedWallet;
+  const isMismatch = !!connectedWallet && !!boundWallet && connectedWallet !== boundWallet;
 
-    const fetchNFTs = async () => {
-      setIsLoading(true);
-      try {
-        // TODO: 实现真实的NFT获取逻辑
-        // 这里使用模拟数据
-        const mockNFTs: NFT[] = [
-          {
-            tokenId: '1',
-            contractAddress: '0x1234567890abcdef',
-            name: 'Cool NFT #1',
-            imageUrl: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=nft1',
-            collection: 'Cool Collection'
-          },
-          {
-            tokenId: '2',
-            contractAddress: '0x1234567890abcdef',
-            name: 'Cool NFT #2',
-            imageUrl: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=nft2',
-            collection: 'Cool Collection'
-          },
-          {
-            tokenId: '3',
-            contractAddress: '0x1234567890abcdef',
-            name: 'Cool NFT #3',
-            imageUrl: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=nft3',
-            collection: 'Cool Collection'
-          }
-        ];
+  const handleVerifyNfts = async () => {
+    if (!walletForVerification) {
+      toast({ variant: 'destructive', title: 'Wallet not available', description: 'Connect and bind a wallet before verifying NFT assets.' });
+      return;
+    }
+    if (!profile?.isWeb3Verified && !boundWallet) {
+      toast({ variant: 'destructive', title: 'Wallet not verified', description: 'Please complete wallet binding first.' });
+      return;
+    }
 
-        setNfts(mockNFTs);
-      } catch (error) {
-        console.error('Error fetching NFTs:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to fetch your NFTs.',
-          variant: 'destructive'
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchNFTs();
-  }, [account, toast]);
-
-  const handleSetAvatar = async () => {
-    if (!selectedNFT || !user || !firestore) return;
-
-    setIsSettingAvatar(true);
-
+    setIsSyncing(true);
     try {
-      const userRef = doc(firestore, 'users', user.uid);
-      
-      await updateDoc(userRef, {
-        avatarType: 'nft',
-        nftAvatarUrl: selectedNFT.imageUrl,
-        nftTokenId: selectedNFT.tokenId,
-        nftContractAddress: selectedNFT.contractAddress,
-        photoURL: selectedNFT.imageUrl,
-        badges: arrayUnion('NFT'),
-        updatedAt: serverTimestamp()
-      });
-
-      toast({
-        title: 'Success!',
-        description: 'Your NFT avatar has been set. NFT badge awarded!',
-      });
-
-      router.push('/account/profile');
+      const ownerNfts = await getNftsForOwner(walletForVerification);
+      setNfts(ownerNfts);
+      setIsDialogOpen(true);
     } catch (error) {
-      console.error('Error setting NFT avatar:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to set NFT avatar. Please try again.',
-        variant: 'destructive'
-      });
+      console.error('Failed to verify NFT assets:', error);
+      toast({ variant: 'destructive', title: 'NFT verification failed', description: 'Could not fetch NFTs from this wallet.' });
     } finally {
-      setIsSettingAvatar(false);
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSelectNft = async (nft: SimplifiedNft) => {
+    if (!firestore || !user) return;
+    setIsUpdating(true);
+    try {
+      await updateUserProfile(firestore, user.uid, {
+        avatarType: 'nft',
+        photoURL: nft.imageUrl,
+        nftAvatarUrl: nft.imageUrl,
+        nftTokenId: nft.tokenId,
+        nftContractAddress: nft.contractAddress,
+        isNftVerified: true,
+      });
+      toast({ title: 'NFT avatar updated', description: 'Your profile avatar is now set from your NFT asset.' });
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to update NFT avatar:', error);
+      toast({ variant: 'destructive', title: 'Update failed', description: 'Could not save NFT avatar to your profile.' });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black flex items-center justify-center">
-        <Card className="glass-morphism border-white/10 p-8 text-center">
-          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Please Sign In</h2>
-          <p className="text-white/60 mb-6">You need to sign in to set your NFT avatar.</p>
-          <Link href="/auth/signin">
-            <Button className="bg-gradient-to-r from-primary to-secondary">
-              Sign In
-            </Button>
-          </Link>
-        </Card>
-      </div>
-    );
-  }
-
-  if (!account) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black flex items-center justify-center">
-        <Card className="glass-morphism border-white/10 p-8 text-center max-w-md">
-          <ImageIcon className="h-12 w-12 text-purple-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Connect Your Wallet</h2>
-          <p className="text-white/60 mb-6">
-            Connect your Web3 wallet to view and select your NFTs as avatar.
-          </p>
-          <Button
-            onClick={connectWallet}
-            className="bg-gradient-to-r from-primary to-secondary"
-          >
-            Connect Wallet
-          </Button>
-        </Card>
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative max-w-sm w-full text-center"
+        >
+          <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 pointer-events-none" />
+          <div className="relative bg-card/50 backdrop-blur-sm rounded-2xl border border-white/8 p-8">
+            <div className="p-4 rounded-2xl bg-yellow-500/15 border border-yellow-500/20 inline-flex mb-4">
+              <AlertCircle className="h-8 w-8 text-yellow-400" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">请先登录</h2>
+            <p className="text-muted-foreground/70 text-sm mb-6">您需要登录才能配置 NFT 头像。</p>
+            <Link href="/auth/signin">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 border-0">登录</Button>
+            </Link>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gradient mb-2">Set NFT Avatar</h1>
-          <p className="text-white/60">
-            Select one of your NFTs to use as your profile avatar
-          </p>
+    <>
+      <NftSelectorDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        nfts={nfts}
+        onSelect={handleSelectNft}
+        isUpdating={isUpdating}
+      />
+
+      <div className="relative py-10 px-4 sm:px-6">
+        {/* Background */}
+        <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/3 right-1/4 w-[350px] h-[350px] bg-blue-600/6 rounded-full blur-[100px]" />
         </div>
 
-        {/* Current Avatar */}
-        {profile?.avatarType === 'nft' && (
-          <Card className="glass-morphism border-primary/30 p-6 mb-8 bg-primary/5">
-            <div className="flex items-center gap-4">
-              <img
-                src={profile.nftAvatarUrl}
-                alt="Current NFT Avatar"
-                className="w-20 h-20 rounded-lg border-2 border-primary"
-              />
-              <div>
-                <h3 className="text-lg font-bold text-white mb-1">Current NFT Avatar</h3>
-                <p className="text-sm text-white/60">
-                  Token ID: {profile.nftTokenId}
+        <div className="container mx-auto max-w-3xl space-y-5">
+          {/* Header */}
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 mb-2"
+          >
+            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+              <ImageIcon className="w-6 h-6 text-purple-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent font-headline">
+                NFT Avatar
+              </h1>
+              <p className="text-sm text-muted-foreground/70">Verify NFT assets from your wallet and set as avatar.</p>
+            </div>
+          </motion.div>
+
+          {/* Wallet Status */}
+          <GlassCard delay={0.1} accentColor="blue">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/20">
+                <Link2 className="w-4 h-4 text-blue-400" />
+              </div>
+              <h2 className="font-semibold text-sm text-foreground">Wallet Status</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-3 mb-4">
+              <div className="p-4 rounded-xl bg-background/40 border border-white/8">
+                <p className="text-xs text-muted-foreground/60 mb-2">Connected Wallet</p>
+                <p className="text-sm font-mono text-foreground/90 break-all">
+                  {connectedWallet || <span className="text-muted-foreground/50 italic">Not connected</span>}
                 </p>
               </div>
-              <CheckCircle className="h-6 w-6 text-green-400 ml-auto" />
-            </div>
-          </Card>
-        )}
-
-        {/* NFT Gallery */}
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <span className="ml-4 text-white/60">Loading your NFTs...</span>
-          </div>
-        ) : nfts.length === 0 ? (
-          <Card className="glass-morphism border-white/10 p-12 text-center">
-            <ImageIcon className="h-16 w-16 text-white/20 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-2">No NFTs Found</h3>
-            <p className="text-white/60 mb-6">
-              You don't have any NFTs in your wallet yet.
-            </p>
-            <a
-              href="https://opensea.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Browse NFTs on OpenSea →
-            </a>
-          </Card>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-              {nfts.map((nft) => (
-                <Card
-                  key={`${nft.contractAddress}-${nft.tokenId}`}
-                  onClick={() => setSelectedNFT(nft)}
-                  className={`glass-morphism border cursor-pointer transition-all duration-200 hover:scale-105 ${
-                    selectedNFT?.tokenId === nft.tokenId
-                      ? 'border-primary shadow-[0_0_20px_rgba(255,0,255,0.3)]'
-                      : 'border-white/10 hover:border-white/30'
-                  }`}
-                >
-                  <div className="relative">
-                    <img
-                      src={nft.imageUrl}
-                      alt={nft.name}
-                      className="w-full aspect-square object-cover rounded-t-lg"
-                    />
-                    {selectedNFT?.tokenId === nft.tokenId && (
-                      <div className="absolute top-2 right-2 bg-primary text-white rounded-full p-1">
-                        <CheckCircle className="h-5 w-5" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3">
-                    <h4 className="font-bold text-white text-sm truncate">{nft.name}</h4>
-                    <p className="text-xs text-white/60 truncate">{nft.collection}</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            {selectedNFT && (
-              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-                <Card className="glass-morphism border-primary/30 p-4 bg-black/80 backdrop-blur-xl">
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={selectedNFT.imageUrl}
-                      alt={selectedNFT.name}
-                      className="w-12 h-12 rounded-lg border border-primary"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-bold text-white">{selectedNFT.name}</p>
-                      <p className="text-xs text-white/60">Selected</p>
-                    </div>
-                    <Button
-                      onClick={handleSetAvatar}
-                      disabled={isSettingAvatar}
-                      className="bg-gradient-to-r from-primary to-secondary"
-                    >
-                      {isSettingAvatar ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          Setting...
-                        </>
-                      ) : (
-                        'Set as Avatar'
-                      )}
-                    </Button>
-                  </div>
-                </Card>
+              <div className="p-4 rounded-xl bg-background/40 border border-white/8">
+                <p className="text-xs text-muted-foreground/60 mb-2">Bound Wallet</p>
+                <p className="text-sm font-mono text-foreground/90 break-all">
+                  {boundWallet || <span className="text-muted-foreground/50 italic">Not bound</span>}
+                </p>
               </div>
-            )}
-          </>
-        )}
+            </div>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <Badge variant="outline" className="text-xs border-white/15 text-muted-foreground/70">
+                Web3 verified: {profile?.isWeb3Verified ? 'Yes' : 'No'}
+              </Badge>
+              {isMismatch && (
+                <Badge className="bg-orange-500/15 text-orange-300 border-orange-500/25 text-xs">
+                  Connected wallet differs from bound wallet
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {!connectedWallet && (
+                <Button
+                  onClick={connectWallet}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0 shadow-[0_0_15px_rgba(59,130,246,0.25)]"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Connect Wallet
+                </Button>
+              )}
+              <Button
+                onClick={handleVerifyNfts}
+                disabled={isSyncing || isUpdating || !walletForVerification}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0 shadow-[0_0_15px_rgba(168,85,247,0.25)]"
+              >
+                {isSyncing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ImageIcon className="h-4 w-4 mr-2" />}
+                Verify NFT Assets
+              </Button>
+              <Link href="/account/wallet">
+                <Button variant="outline" className="border-white/15 hover:bg-white/5">
+                  <Wallet className="h-4 w-4 mr-2" />
+                  Wallet Management
+                </Button>
+              </Link>
+            </div>
+          </GlassCard>
+
+          {/* Current NFT Avatar */}
+          {profile?.avatarType === 'nft' && profile?.nftAvatarUrl ? (
+            <GlassCard delay={0.2} accentColor="green">
+              <div className="flex flex-wrap items-center gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={profile.nftAvatarUrl}
+                  alt="Current NFT avatar"
+                  className="h-20 w-20 rounded-xl object-cover border border-green-500/30"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                    <p className="text-green-300 font-semibold text-sm">Current NFT Avatar</p>
+                  </div>
+                  <p className="text-xs text-muted-foreground/50 break-all">Token ID: {profile.nftTokenId || '-'}</p>
+                </div>
+              </div>
+            </GlassCard>
+          ) : (
+            <GlassCard delay={0.2} accentColor="purple">
+              <div className="text-center py-6">
+                <div className="p-4 bg-white/5 rounded-2xl inline-flex mb-3 border border-white/8">
+                  <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                </div>
+                <p className="text-muted-foreground/60 text-sm">No NFT avatar selected yet.</p>
+              </div>
+            </GlassCard>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

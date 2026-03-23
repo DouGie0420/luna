@@ -1,0 +1,190 @@
+
+> nextn@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 19156, using available port 3002 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3002
+   - Network:      http://192.168.1.38:3002
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3.5s
+ ○ Compiling /universe ...
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled /universe in 13.7s (2105 modules)
+ ✓ Compiled in 1699ms (863 modules)
+ GET /universe 200 in 113ms
+ GET /universe 200 in 86ms
+ ✓ Compiled in 957ms (849 modules)
+ ✓ Compiled in 1055ms (863 modules)
+ ✓ Compiled in 1957ms (863 modules)
+ ✓ Compiled in 946ms (849 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\3.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\3.pack.gz'
+ ✓ Compiled in 860ms (849 modules)
+ ✓ Compiled in 922ms (849 modules)
+ ○ Compiling /universe ...
+ ✓ Compiled /universe in 680ms (1242 modules)
+ GET /universe 200 in 1722ms
+ ✓ Compiled in 1834ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 407ms (849 modules)
+ ✓ Compiled in 1189ms (863 modules)
+ ✓ Compiled in 454ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (10:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (10:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ✓ Compiled in 737ms (849 modules)
+ ✓ Compiled in 958ms (863 modules)
+ ✓ Compiled in 545ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1042ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ✓ Compiled in 1730ms (863 modules)
+ ✓ Compiled in 497ms (849 modules)
+ ✓ Compiled in 2.1s (863 modules)
+ ✓ Compiled in 1718ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.7s (863 modules)
+ ✓ Compiled in 1388ms (863 modules)
+ ✓ Compiled in 1308ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 696ms (849 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 484ms (849 modules)
+ ✓ Compiled in 413ms (849 modules)
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'gradient' has already been declared (498:10)
+|     ctx.fillText(displayName, 1, 40);
+|     // 名字主体（带轻微渐变）
+>     const gradient = ctx.createLinearGradient(0, 35, 0, 45);
+|     gradient.addColorStop(0, '#ffffff');
+|     gradient.addColorStop(1, '#a0e7ff');
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 813ms (863 modules)
+ ✓ Compiled in 5.8s (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1660ms (849 modules)
+ ✓ Compiled in 680ms (849 modules)
+ ✓ Compiled in 948ms (849 modules)
+ ✓ Compiled in 567ms (849 modules)
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Error:   [31mx[0m Expected ')', got ';'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaCanvas.tsx[0m:114:1]
+ [2m111[0m | 
+ [2m112[0m |   // 绘制等距菱形网格
+ [2m113[0m |   for (let col = -visibleCols; col <= visibleCols; col++) {
+ [2m114[0m |     for (let row = -visibleRows; row <= visible rows; row++) {
+     : [35;1m                                                    ^[0m
+ [2m115[0m |       // 世界坐标
+ [2m116[0m |       const worldX = col * tileSize + gridOffsetX;
+ [2m117[0m |       worldY = row * tileSize + gridOffsetY;
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 299ms (849 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 395ms (849 modules)
+ ✓ Compiled in 3.1s (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1982ms (849 modules)
+ ✓ Compiled in 1124ms (849 modules)
+ ✓ Compiled in 316ms (849 modules)
+ ✓ Compiled in 373ms (849 modules)
+ ✓ Compiled in 335ms (849 modules)
+ ✓ Compiled in 459ms (849 modules)
+ ✓ Compiled in 863ms (849 modules)
+ ✓ Compiled in 252ms (850 modules)
+ ✓ Compiled in 268ms (850 modules)
+ ✓ Compiled in 237ms (850 modules)
+ ✓ Compiled in 386ms (850 modules)
+ ✓ Compiled in 291ms (850 modules)
+ ✓ Compiled in 234ms (850 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz'
+ ✓ Compiled in 342ms (850 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1217ms (864 modules)
+ ✓ Compiled in 3.5s (863 modules)
+ ✓ Compiled in 1254ms (863 modules)
+ ✓ Compiled in 1539ms (849 modules)
+ ✓ Compiled in 998ms (849 modules)
+ ✓ Compiled in 1354ms (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 3.9s (863 modules)
+ ✓ Compiled in 3.9s (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 889ms (849 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1347ms (849 modules)
+ ✓ Compiled in 2.7s (863 modules)
+ ✓ Compiled in 4.3s (863 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1309ms (849 modules)
+ ✓ Compiled in 1242ms (849 modules)
+ ✓ Compiled in 914ms (849 modules)
+ ✓ Compiled in 1015ms (849 modules)
+ ✓ Compiled in 954ms (849 modules)
+ ✓ Compiled in 515ms (849 modules)
+ ✓ Compiled in 527ms (849 modules)
+ ✓ Compiled in 582ms (849 modules)
+ ✓ Compiled in 591ms (849 modules)
+ ✓ Compiled in 583ms (849 modules)
+ ✓ Compiled in 563ms (849 modules)
+ ✓ Compiled in 535ms (849 modules)
+ ✓ Compiled in 4.3s (863 modules)
+ ✓ Compiled in 1051ms (863 modules)
+ ✓ Compiled in 1294ms (849 modules)
+ ✓ Compiled in 1398ms (863 modules)
+ ✓ Compiled in 942ms (849 modules)
+ ✓ Compiled in 948ms (849 modules)
+ ✓ Compiled in 574ms (849 modules)
+ ✓ Compiled in 495ms (849 modules)
+ ✓ Compiled in 711ms (849 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'

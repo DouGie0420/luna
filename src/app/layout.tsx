@@ -1,53 +1,16 @@
-'use client';
-
 import './globals.css';
-import { cn } from '@/lib/utils';
-import { Toaster } from "@/components/ui/toaster";
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { LanguageProvider } from '@/context/language-provider';
-import { SettingsProvider } from '@/context/settings-provider';
-import dynamic from 'next/dynamic';
+import type { Metadata } from 'next';
+import { Inter, Playfair_Display, Press_Start_2P } from 'next/font/google';
+import { ClientProviders } from '@/components/ClientProviders';
 
-// 🚀 引入 Web3 总闸（全局提供钱包连接环境）
-import { Web3Provider } from '@/contexts/Web3Context';
+const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600'], variable: '--font-inter', display: 'swap' });
+const playfair = Playfair_Display({ subsets: ['latin'], weight: ['600', '700'], variable: '--font-playfair', display: 'swap' });
+const pressStart = Press_Start_2P({ subsets: ['latin'], weight: ['400'], variable: '--font-press-start', display: 'swap' });
 
-// 懒加载非关键组件
-const FloatingSupportButton = dynamic(
-  () => import('@/components/floating-support-button').then((mod) => mod.FloatingSupportButton || mod.default as any), 
-  { ssr: false, loading: () => null }
-);
-
-const GlobalAudioPlayer = dynamic(
-  () => import('@/components/global-audio-player').then((mod) => mod.GlobalAudioPlayer || mod.default as any), 
-  { ssr: false, loading: () => null }
-);
-
-const PWAInitializer = dynamic(
-  () => import('@/components/pwa/PWAInitializer').then((mod) => mod.PWAInitializer || mod.default as any), 
-  { ssr: false, loading: () => null }
-);
-
-const GlobalChatNotifier = dynamic(
-  () => import('@/components/chat/GlobalChatNotifier').then((mod) => mod.GlobalChatNotifier || mod.default as any), 
-  { ssr: false, loading: () => null }
-);
-
-/**
- * 🚀 唯一的全局背景引擎
- * 确保 loading 状态的 z-index 与组件内部一致
- */
-const GlobalFluidBackground = dynamic(
-  () => import('@/components/global-fluid-background').then((mod) => mod.GlobalFluidBackground || mod.default as any), 
-  {
-    ssr: false,
-    loading: () => (
-      <div className="fixed inset-0 bg-[#020203] z-[-1]" />
-    ),
-  }
-);
+export const metadata: Metadata = {
+  title: 'LUNA',
+  description: 'LUNA Marketplace',
+};
 
 export default function RootLayout({
   children,
@@ -55,48 +18,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${playfair.variable} ${pressStart.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#020203" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className={cn("font-sans", "bg-[#020203] text-foreground antialiased")}>
-        
-        <FirebaseClientProvider>
-          <SettingsProvider>
-            <LanguageProvider>
-              <Web3Provider>
-                
-                {/* 1. 背景引擎：确保它在最底层渲染 */}
-                <GlobalFluidBackground />
-
-                {/* 2. 内容包装层：必须显式声明 bg-transparent 和 z-index */}
-                <div className="flex flex-col min-h-screen relative z-10 bg-transparent">
-                  <Header />
-                  <main className="flex-grow flex flex-col bg-transparent">
-                    {children}
-                  </main>
-                  <Footer />
-                </div>
-                
-                {/* 3. 功能性组件 */}
-                <Toaster />
-                <FirebaseErrorListener />
-                <FloatingSupportButton />
-                <GlobalAudioPlayer />
-                <PWAInitializer />
-                <GlobalChatNotifier />
-
-              </Web3Provider>
-            </LanguageProvider>
-          </SettingsProvider>
-        </FirebaseClientProvider>
+      <body className="font-sans bg-[#020203] text-foreground antialiased">
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

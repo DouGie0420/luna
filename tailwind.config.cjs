@@ -1,7 +1,7 @@
 
-import type {Config} from 'tailwindcss';
+const animatePlugin = require('tailwindcss-animate');
 
-export default {
+module.exports = {
   darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -18,9 +18,9 @@ export default {
     },
     extend: {
       fontFamily: {
-        headline: ['"Press Start 2P"', 'sans-serif'], // For Logo & Nicknames
-        sans: ['"Inter"', 'sans-serif'], // For Body Text
-        serif: ['"Playfair Display"', 'serif'], // For Headings
+        headline: ['"Press Start 2P"', 'var(--font-press-start)', 'monospace'], // For Logo & Nicknames — pixel font, NEVER change
+        sans: ['var(--font-inter)', '"Inter"', 'sans-serif'], // For Body Text
+        serif: ['var(--font-playfair)', '"Playfair Display"', 'serif'], // For Headings
         code: ['monospace'],
       },
       colors: {
@@ -63,6 +63,13 @@ export default {
           '3': 'hsl(var(--chart-3))',
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))',
+        },
+        neon: {
+          purple: '#ff00ff',
+          cyan: '#00ffff',
+          pink: '#ff00a0',
+          green: '#00ff00',
+          blue: '#00bfff',
         },
         sidebar: {
           DEFAULT: 'hsl(var(--sidebar-background))',
@@ -204,5 +211,5 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-} satisfies Config;
+  plugins: [animatePlugin],
+};

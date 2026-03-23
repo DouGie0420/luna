@@ -23,7 +23,7 @@ export default function DataDeletionPage() {
               To request the deletion of your account and associated data, please send an email to our support team with the following information:
             </p>
             <ul>
-              <li><strong>To:</strong> <a href="mailto:support@luna.io" className="text-primary hover:underline">support@luna.io</a></li>
+              <li><strong>To:</strong> <a href="mailto:support@luna.gift" className="text-primary hover:underline">support@luna.gift</a></li>
               <li><strong>Subject:</strong> Data Deletion Request</li>
               <li>
                 <strong>Body:</strong> Please include the following details in your email:
@@ -39,7 +39,7 @@ export default function DataDeletionPage() {
               Once we receive your request, our team will verify your identity to protect your account. We may contact you to confirm the request. The deletion process will begin within 30 days of verification. Please note that some data may be retained for legal or security purposes, as permitted by law.
             </p>
              <Button asChild className="mt-4">
-                <a href="mailto:support@luna.io?subject=Data Deletion Request">
+                <a href="mailto:support@luna.gift?subject=Data Deletion Request">
                     Email Support Now
                 </a>
             </Button>

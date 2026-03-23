@@ -377,7 +377,7 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                                                     <div className="p-3 bg-primary/10 rounded-xl border border-primary/20 shadow-[0_0_15px_rgba(211,58,137,0.1)]">
                                                         <Wallet className="w-5 h-5 text-primary" />
                                                     </div> 
-                                                    {order.paymentMethod?.toUpperCase() || 'BASE_ETH_L2'}
+                                                    {order.paymentMethod?.toUpperCase().replace('BASE ETH', 'ETH').replace('BASE_ETH_L2', 'ETH') || 'ETH'}
                                                 </div>
                                             </div>
                                         </div>

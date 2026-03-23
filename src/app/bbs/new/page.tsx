@@ -28,6 +28,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { Checkbox } from '@/components/ui/checkbox';
 import { analyzeProductImage } from '@/ai';
 import { compressImage } from '@/lib/image-compressor';
+import { uploadToR2 } from '@/lib/upload';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
@@ -93,74 +94,55 @@ export default function NewBbsPostPage() {
         },
         (error) => {
           console.error("Geolocation error:", error);
-          setLocationError("Could not get location. Please enable location permissions in your browser.");
+          setLocationError(t('bbsNewPost.geolocationErrorDescription'));
           toast({
             variant: "destructive",
-            title: "Location Error",
-            description: "Could not get location. Please enable location permissions to post.",
+            title: t('bbsNewPost.geolocationError'),
+            description: t('bbsNewPost.geolocationErrorDescription'),
             duration: 10000,
           });
         }
       );
     } else {
-      setLocationError("Geolocation is not supported by this browser.");
+      setLocationError(t('bbsNewPost.geolocationUnsupported'));
       toast({
         variant: "destructive",
-        title: "Location Error",
-        description: "Geolocation is not supported by this browser.",
+        title: t('bbsNewPost.geolocationError'),
+        description: t('bbsNewPost.geolocationUnsupported'),
       });
     }
   }, [toast]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      if ((imagePreviews.length + files.length) > 9) {
-          toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
-          e.target.value = '';
-          return;
-      }
-      
-      const fileArray = Array.from(files);
-      setIsAiLoading(true);
-
-      try {
-        const compressionPromises = fileArray.map(file => compressImage(file));
-        const newPreviews = await Promise.all(compressionPromises);
-        
-        setImagePreviews(prev => [...prev, ...newPreviews]);
-        
-        if (isAiAnalysisEnabled && newPreviews.length > 0) {
-          const imageDataUri = newPreviews[0];
-          try {
-            const result = await analyzeProductImage({ imageDataUri });
-            setTitle(result.title);
-            setContent(result.description);
-            toast({
-                title: "AI Analysis Complete",
-                description: "Title and content have been generated.",
-            });
-          } catch (error) {
-            console.error("AI analysis failed:", error);
-            toast({
-              variant: "destructive",
-              title: "AI Analysis Failed",
-              description: "Could not analyze the image. Please fill in the details manually.",
-            });
-          }
-        }
-      } catch (error: any) {
-        console.error("Error processing files: ", error);
-        toast({
-          variant: "destructive",
-          title: "Image Processing Failed",
-          description: error.message || "There was an error compressing or reading the files.",
-        });
-      } finally {
-        setIsAiLoading(false);
-      }
+    if (!files || files.length === 0) { e.target.value = ''; return; }
+    if ((imagePreviews.length + files.length) > 9) {
+      toast({ variant: 'destructive', title: t('bbsNewPost.maxImagesReached'), description: t('bbsNewPost.maxImagesDescription') });
+      e.target.value = '';
+      return;
     }
-    e.target.value = ''; 
+    const fileArray = Array.from(files);
+    setIsAiLoading(true);
+    try {
+      const uploadedUrls = await Promise.all(fileArray.map(f => uploadToR2(f, 'bbs')));
+      setImagePreviews(prev => [...prev, ...uploadedUrls]);
+      if (isAiAnalysisEnabled && fileArray.length > 0) {
+        try {
+          const imageDataUri = await compressImage(fileArray[0]);
+          const result = await analyzeProductImage({ imageDataUri });
+          setTitle(result.title);
+          setContent(result.description);
+          toast({ title: t('bbsNewPost.aiAnalysisComplete') });
+        } catch {
+          toast({ variant: "destructive", title: t('bbsNewPost.aiAnalysisFailed') });
+        }
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: t('bbsNewPost.uploadFailed'), description: error.message });
+    } finally {
+      setIsAiLoading(false);
+      e.target.value = '';
+    }
   };
 
   const removeImage = (indexToRemove: number) => {
@@ -180,7 +162,7 @@ export default function NewBbsPostPage() {
             setVideoUrl('');
             setIsVideoDialogOpen(false);
         } else {
-            toast({ variant: 'destructive', title: 'Invalid URL', description: 'Please enter a valid YouTube or TikTok share link.' });
+            toast({ variant: 'destructive', title: t('bbsNewPost.invalidUrl'), description: t('bbsNewPost.invalidUrlDescription') });
         }
     }
   };
@@ -192,11 +174,11 @@ export default function NewBbsPostPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile || !firestore) {
-      toast({ variant: 'destructive', title: 'Please login to create a post.'});
+      toast({ variant: 'destructive', title: t('bbsNewPost.loginRequired')});
       return;
     }
      if (!location) {
-      toast({ variant: 'destructive', title: 'Location Required', description: 'Waiting for location data. Please ensure location permissions are enabled.'});
+      toast({ variant: 'destructive', title: t('bbsNewPost.locationRequired'), description: t('bbsNewPost.locationRequiredDescription')});
       return;
     }
     setIsSubmitting(true);
@@ -256,8 +238,8 @@ export default function NewBbsPostPage() {
 
         setIsSubmitting(false);
         toast({
-            title: "Transmission Complete",
-            description: "Your data has been permanently logged in the Somnia Node.",
+            title: t('bbsNewPost.transmissionComplete'),
+            description: t('bbsNewPost.transmissionDescription'),
         });
         router.push(`/bbs/${docRef.id}`);
 
@@ -313,10 +295,10 @@ export default function NewBbsPostPage() {
                           <ShieldAlert className="w-20 h-20 text-red-500 mx-auto mb-8 animate-bounce" />
                           <h1 className="text-3xl font-black italic uppercase tracking-widest text-white mb-4">SYSTEM_LOCK // KYC REQUIRED</h1>
                           <p className="text-red-200/70 font-mono text-sm leading-relaxed mb-10">
-                              Access denied. Your identity hash is not verified in the consensus network. To maintain node integrity, please complete KYC verification to establish transmission protocols.
+                              {t('bbsNewPost.kycRequiredDescription')}
                           </p>
                           <Button asChild className="rounded-full bg-red-500 text-white hover:bg-red-600 font-black tracking-widest h-14 px-10">
-                              <Link href="/account/kyc">INITIATE VERIFICATION</Link>
+                              <Link href="/account/kyc">{t('bbsNewPost.initiateVerification')}</Link>
                           </Button>
                       </div>
                   </div>
@@ -348,7 +330,7 @@ export default function NewBbsPostPage() {
                 <div className="flex-1 text-center">
                     <h2 className="text-[10px] md:text-xs font-mono uppercase tracking-[0.5em] text-fuchsia-400 animate-pulse">
                         <Sparkles className="inline-block w-3 h-3 mr-2 mb-0.5" />
-                        Establishing Node Transmission
+                        {t('bbsNewPost.establishingNode')}
                     </h2>
                 </div>
 
@@ -514,9 +496,9 @@ export default function NewBbsPostPage() {
                                 {locationError ? (
                                     <p className="text-xs font-mono text-red-400 flex items-center gap-2"><X className="h-4 w-4" /> {locationError}</p>
                                 ) : !location ? (
-                                    <p className="text-xs font-mono text-white/30 flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin text-cyan-500" /> Locating Signal...</p>
+                                    <p className="text-xs font-mono text-white/30 flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin text-cyan-500" /> {t('bbsNewPost.locatingSignal')}</p>
                                 ) : (
-                                    <p className="text-xs font-mono text-cyan-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> Signal Locked</p>
+                                    <p className="text-xs font-mono text-cyan-400 flex items-center gap-2"><MapPin className="h-4 w-4" /> {t('bbsNewPost.signalLocked')}</p>
                                 )}
                             </div>
                             
@@ -531,7 +513,7 @@ export default function NewBbsPostPage() {
                                 )}
                             >
                                 <span className="relative z-10 flex items-center">
-                                    {isSubmitting ? <><Loader2 className="mr-3 h-5 w-5 animate-spin" /> Processing</> : <><Send className="mr-3 h-5 w-5" /> Push to Network</>}
+                                    {isSubmitting ? <><Loader2 className="mr-3 h-5 w-5 animate-spin" /> {t('bbsNewPost.processingSubmit')}</> : <><Send className="mr-3 h-5 w-5" /> {t('bbsNewPost.pushToNetwork')}</>}
                                 </span>
                             </Button>
                         </div>

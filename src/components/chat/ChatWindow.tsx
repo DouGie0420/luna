@@ -16,15 +16,17 @@ interface ChatWindowProps {
   sellerId: string;
   buyerId: string;
   productName?: string;
+  initialMessage?: string;
 }
 
-export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWindowProps) {
+export function ChatWindow({ orderId, sellerId, buyerId, productName, initialMessage }: ChatWindowProps) {
   const { user, profile } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const hasPrefilled = useRef(false);
   const [isLoading, setIsLoading] = useState(true);
   const [notificationEnabled, setNotificationEnabled] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -250,6 +252,12 @@ export function ChatWindow({ orderId, sellerId, buyerId, productName }: ChatWind
             className="flex-1 bg-black/40 border-white/20 text-white resize-none rounded-xl focus:border-primary/50 focus:ring-1 focus:ring-primary"
             rows={2}
             disabled={isSending}
+            onFocus={() => {
+              if (initialMessage && !hasPrefilled.current && newMessage === '') {
+                setNewMessage(initialMessage);
+                hasPrefilled.current = true;
+              }
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

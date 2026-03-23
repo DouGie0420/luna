@@ -106,6 +106,10 @@
     @apply font-serif;
     letter-spacing: 0.5px;
   }
+  /* ⚠️ LOCKED: LUNA logo pixel font — DO NOT CHANGE */
+  .font-headline {
+    font-family: "Press Start 2P", var(--font-press-start), monospace !important;
+  }
 }
 
 @layer utilities {

@@ -1,12 +1,12 @@
 // LUNA Marketplace Service Worker
 // PWA + FCM Push Notifications
 
-const CACHE_NAME = 'luna-cache-v1';
+const CACHE_NAME = 'luna-cache-v2'; // 升级到 v2，强制浏览器更新缓存
 const OFFLINE_URL = '/offline.html';
 
 // Install event - cache essential resources
 self.addEventListener('install', (event) => {
-  console.log('[Service Worker] Installing...');
+  console.log('[Service Worker] Installing v2...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching app shell');
@@ -17,13 +17,11 @@ self.addEventListener('install', (event) => {
         '/base-testnet-icon-192x192.svg',
         '/base-testnet-icon-512x512.svg',
         '/base-testnet-icon-96x96.svg',
-        // Base测试网核心资产缓存
-        'https://base-sepolia.public.blastapi.io',
-        // Add other critical assets here
+        // ⚠️ 已经移除了动态的 RPC 节点 URL，只保留纯静态资源
       ]);
     }).then(() => {
       console.log('[Service Worker] Install completed');
-      return self.skipWaiting();
+      return self.skipWaiting(); // 强制立刻接管页面
     })
   );
 });
@@ -37,7 +35,7 @@ self.addEventListener('activate', (event) => {
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
             console.log('[Service Worker] Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+            return caches.delete(cacheName); // 清理掉之前的 v1 损坏缓存
           }
         })
       );
@@ -55,10 +53,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Skip Firebase and external API requests
+  // ⚠️ 核心修复：直接跳过所有 Firebase、Google API 和 Web3 RPC 节点的请求，绝不缓存
   if (event.request.url.includes('firebase') ||
       event.request.url.includes('googleapis') ||
-      (event.request.url.includes('web3') && !event.request.url.includes('base-sepolia.public.blastapi.io'))) {
+      event.request.url.includes('blastapi.io') ||
+      event.request.url.includes('web3')) {
     return;
   }
 

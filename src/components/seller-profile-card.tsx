@@ -77,7 +77,7 @@ export function SellerProfileCard({ seller: initialSeller, className }: { seller
                             <span className="font-mono font-bold text-lg">{rating}</span>
                         </div>
                         <span className="text-white/40 font-mono text-xs md:text-sm uppercase tracking-widest">
-                            ({onSaleCount} ON SALE)
+                            ({t('sellerProfile.onSaleCount').replace('{count}', String(onSaleCount))})
                         </span>
                     </div>
 

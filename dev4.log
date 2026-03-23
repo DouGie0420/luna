@@ -1,0 +1,1682 @@
+
+> nextn@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 19156, using available port 3001 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.38:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 4.1s
+ ○ Compiling /universe ...
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled /universe in 10.9s (2105 modules)
+ GET /universe 200 in 12776ms
+ ✓ Compiled in 2.5s (863 modules)
+ ○ Compiling / ...
+ ✓ Compiled / in 6.6s (4150 modules)
+ GET / 200 in 8375ms
+ POST / 200 in 907ms
+ GET / 200 in 350ms
+ POST / 200 in 781ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 5.6s (4155 modules)
+ GET /firebase-messaging-sw.js 404 in 11926ms
+ ○ Compiling /universe ...
+ ✓ Compiled /universe in 2.9s (2338 modules)
+ GET /universe 200 in 5207ms
+ GET /firebase-messaging-sw.js 404 in 119ms
+ GET / 200 in 468ms
+ GET /firebase-messaging-sw.js 404 in 67ms
+ ✓ Compiled in 2.3s (4196 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1104ms (4196 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ GET /universe 200 in 953ms
+ GET /universe 200 in 125ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1466ms (2353 modules)
+ GET /favicon.ico 200 in 2288ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1397ms (4231 modules)
+ GET /firebase-messaging-sw.js 404 in 2017ms
+ GET /universe 200 in 681ms
+ GET /firebase-messaging-sw.js 404 in 68ms
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 3.3s (1873 modules)
+ GET /universe 200 in 67ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1341ms (4201 modules)
+ GET /universe/ai-plaza/page.tsx 404 in 2410ms
+ GET / 200 in 338ms
+ GET /firebase-messaging-sw.js 404 in 46ms
+ GET /universe/page.tsx 404 in 53ms
+ GET / 200 in 106ms
+ GET /firebase-messaging-sw.js 404 in 45ms
+ GET /firebase-messaging-sw.js 404 in 50ms
+ GET /universe 200 in 149ms
+ GET / 200 in 112ms
+ GET /firebase-messaging-sw.js 404 in 60ms
+ GET /universe 200 in 131ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 1239ms (2354 modules)
+ GET /favicon.ico 200 in 2079ms
+ GET /firebase-messaging-sw.js 404 in 67ms
+ GET /firebase-messaging-sw.js 404 in 61ms
+ ✓ Compiled in 5.1s (4210 modules)
+ GET /universe 200 in 374ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /universe 200 in 744ms
+ ✓ Compiled /favicon.ico in 480ms (2353 modules)
+ GET /favicon.ico 200 in 721ms
+ GET / 200 in 694ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 584ms (4217 modules)
+ GET /firebase-messaging-sw.js 404 in 1024ms
+ ✓ Compiled in 1560ms (4217 modules)
+ GET /firebase-messaging-sw.js 404 in 426ms
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 4.3s (1877 modules)
+ ✓ Compiled in 610ms (1877 modules)
+ GET /universe 200 in 125ms
+ GET /universe 200 in 47ms
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2.7s (1877 modules)
+ GET /universe 200 in 48ms
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 3.2s (1873 modules)
+ GET /universe 200 in 83ms
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2.3s (1873 modules)
+ GET /universe 200 in 53ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1039ms (4201 modules)
+ GET /firebase-messaging-sw.js 404 in 1899ms
+ GET /firebase-messaging-sw.js 404 in 51ms
+ GET /firebase-messaging-sw.js 404 in 48ms
+ GET /firebase-messaging-sw.js 404 in 50ms
+ GET /firebase-messaging-sw.js 404 in 49ms
+ GET /firebase-messaging-sw.js 404 in 50ms
+ GET /firebase-messaging-sw.js 404 in 48ms
+ GET /firebase-messaging-sw.js 404 in 55ms
+ GET /firebase-messaging-sw.js 404 in 48ms
+ ○ Compiling /_error ...
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ✓ Compiled /_error in 7.5s (4561 modules)
+ GET /universe 200 in 3735ms
+ GET /universe 200 in 65ms
+ GET /universe 404 in 8166ms
+ GET /universe 200 in 157ms
+ GET /firebase-messaging-sw.js 404 in 1059ms
+ GET /universe 200 in 389ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 690ms (2543 modules)
+ GET /favicon.ico 200 in 1151ms
+ GET /firebase-messaging-sw.js 404 in 1690ms
+ GET /universe 200 in 163ms
+ GET /favicon.ico 200 in 185ms
+ GET / 200 in 544ms
+ GET /firebase-messaging-sw.js 404 in 63ms
+ GET /firebase-messaging-sw.js 404 in 49ms
+ ✓ Compiled in 5.6s (4556 modules)
+ GET /universe 200 in 376ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /universe 200 in 775ms
+ ✓ Compiled /favicon.ico in 419ms (2542 modules)
+ GET /favicon.ico 200 in 636ms
+ GET / 200 in 684ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 640ms (4563 modules)
+ GET /firebase-messaging-sw.js 404 in 1045ms
+ GET /firebase-messaging-sw.js 404 in 45ms
+ ✓ Compiled in 4.8s (4542 modules)
+ ✓ Compiled in 1736ms (4542 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\3.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\3.pack.gz'
+ ✓ Compiled in 3.1s (4542 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ GET /universe 200 in 1259ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 2.2s (2542 modules)
+ GET /favicon.ico 200 in 2553ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1171ms (4563 modules)
+ GET /firebase-messaging-sw.js 404 in 1903ms
+ ✓ Compiled in 3.1s (4542 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.9s (4556 modules)
+ GET /universe 200 in 319ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.3s (4556 modules)
+ GET /universe 200 in 166ms
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /universe 200 in 729ms
+ ✓ Compiled /favicon.ico in 497ms (2542 modules)
+ GET /favicon.ico 200 in 678ms
+ ○ Compiling /_not-found ...
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ✓ Compiled /_not-found in 2.2s (4577 modules)
+ GET /firebase-messaging-sw.js 404 in 2900ms
+ GET /universe 200 in 1372ms
+ GET /favicon.ico 200 in 40ms
+ GET /firebase-messaging-sw.js 404 in 40ms
+ GET /firebase-messaging-sw.js 404 in 51ms
+ GET /universe 200 in 94ms
+ GET /favicon.ico 200 in 53ms
+ GET /firebase-messaging-sw.js 404 in 49ms
+ GET /firebase-messaging-sw.js 404 in 55ms
+ GET /universe 200 in 81ms
+ GET /favicon.ico 200 in 45ms
+ GET /firebase-messaging-sw.js 404 in 45ms
+ GET /universe 200 in 90ms
+ GET /favicon.ico 200 in 28ms
+ GET /firebase-messaging-sw.js 404 in 42ms
+ GET /firebase-messaging-sw.js 404 in 43ms
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (10:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ GET /universe 500 in 2479ms
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (9:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ GET /favicon.ico 500 in 436ms
+ ○ Compiling /favicon.ico ...
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled /favicon.ico in 4.2s (4542 modules)
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /universe 200 in 1958ms
+ ✓ Compiled /favicon.ico in 493ms (2542 modules)
+ GET /favicon.ico 200 in 753ms
+ GET / 200 in 911ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 3.9s (4563 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 4308ms
+ GET /firebase-messaging-sw.js 500 in 188ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 236ms
+ GET /universe 500 in 113ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 45ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 1071ms
+ GET /firebase-messaging-sw.js 500 in 260ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 122ms
+ GET /firebase-messaging-sw.js 500 in 67ms
+ ✓ Compiled in 1896ms (2030 modules)
+ ✓ Compiled in 820ms (2030 modules)
+ ✓ Compiled in 1819ms (2030 modules)
+ GET /universe 200 in 628ms
+ GET /favicon.ico 200 in 174ms
+ GET / 200 in 237ms
+ ○ Compiling /support ...
+ GET / 200 in 779ms
+ ✓ Compiled /messages in 17.9s (4665 modules)
+ GET /terms 404 in 18472ms
+ GET /support 200 in 18747ms
+ GET /products/new 200 in 18053ms
+ GET /messages 200 in 18048ms
+ GET /privacy 200 in 18751ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 9.1s (4713 modules)
+ GET /auth/signin 200 in 9552ms
+ GET /admin 200 in 9577ms
+ GET /firebase-messaging-sw.js 404 in 1086ms
+ GET /firebase-messaging-sw.js 404 in 51ms
+ ✓ Compiled in 5.5s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ○ Compiling /messages ...
+ ✓ Compiled /messages in 4.6s (2535 modules)
+ GET /messages 200 in 6080ms
+ ✓ Compiled in 7.5s (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 3.8s (4612 modules)
+ GET /firebase-messaging-sw.js 404 in 6069ms
+ GET /firebase-messaging-sw.js 404 in 192ms
+ ✓ Compiled in 10.7s (4621 modules)
+ ✓ Compiled in 2s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.8s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.5s (4607 modules)
+ ✓ Compiled in 1616ms (4607 modules)
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'gradient' has already been declared (498:10)
+|     ctx.fillText(displayName, 1, 40);
+|     // 名字主体（带轻微渐变）
+>     const gradient = ctx.createLinearGradient(0, 35, 0, 45);
+|     gradient.addColorStop(0, '#ffffff');
+|     gradient.addColorStop(1, '#a0e7ff');
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 1891ms (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ GET /universe 200 in 510ms
+ ○ Compiling /privacy ...
+ GET / 200 in 555ms
+ GET / 200 in 556ms
+ ✓ Compiled /messages in 24.1s (4699 modules)
+ GET /terms 404 in 89872ms
+ GET /favicon.ico 200 in 90662ms
+ GET /privacy 200 in 103752ms
+ GET /support 200 in 103737ms
+ GET /products/new 200 in 101944ms
+ GET /messages 200 in 101856ms
+ GET /firebase-messaging-sw.js 404 in 38253ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 29.5s (2606 modules)
+ ✓ Compiled (2628 modules)
+ GET /auth/signin 200 in 47240ms
+ GET /admin 200 in 47333ms
+ ✓ Compiled in 15.6s (4607 modules)
+ ✓ Compiled in 11.3s (4607 modules)
+ ✓ Compiled in 2.8s (4607 modules)
+ ✓ Compiled in 2.1s (4607 modules)
+ ✓ Compiled in 2.4s (4607 modules)
+ GET /universe 200 in 10185ms
+ GET /universe 200 in 1243ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /_not-found in 3s (4628 modules)
+ GET /favicon.ico 200 in 4830ms
+ GET /firebase-messaging-sw.js 404 in 3576ms
+ GET /universe 200 in 244ms
+ GET /favicon.ico 200 in 27ms
+ GET /firebase-messaging-sw.js 404 in 41ms
+ GET /universe 200 in 121ms
+ GET /firebase-messaging-sw.js 404 in 96ms
+ GET /favicon.ico 200 in 318ms
+ GET /universe 200 in 218ms
+ GET /favicon.ico 200 in 26ms
+ GET /firebase-messaging-sw.js 404 in 46ms
+ GET /universe 200 in 90ms
+ GET /favicon.ico 200 in 30ms
+ GET /universe 200 in 104ms
+ GET /firebase-messaging-sw.js 404 in 70ms
+ GET /universe 200 in 713ms
+ GET /firebase-messaging-sw.js 404 in 57ms
+ GET /favicon.ico 200 in 26ms
+ GET /firebase-messaging-sw.js 404 in 43ms
+ GET /universe 200 in 94ms
+ GET /favicon.ico 200 in 29ms
+ GET /firebase-messaging-sw.js 404 in 43ms
+ GET /universe 200 in 92ms
+ GET /firebase-messaging-sw.js 404 in 57ms
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Error:   [31mx[0m Expected ')', got ';'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaCanvas.tsx[0m:114:1]
+ [2m111[0m | 
+ [2m112[0m |   // 绘制等距菱形网格
+ [2m113[0m |   for (let col = -visibleCols; col <= visibleCols; col++) {
+ [2m114[0m |     for (let row = -visibleRows; row <= visible rows; row++) {
+     : [35;1m                                                    ^[0m
+ [2m115[0m |       // 世界坐标
+ [2m116[0m |       const worldX = col * tileSize + gridOffsetX;
+ [2m117[0m |       worldY = row * tileSize + gridOffsetY;
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 1195ms (4607 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 281ms
+ GET /universe 500 in 137ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 846ms (2542 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 1190ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1625ms (4628 modules)
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:2:8007)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:2:8074) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 1935ms
+ GET /firebase-messaging-sw.js 500 in 128ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json',
+  page: '/universe'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json',
+  page: '/universe'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 3090ms
+ GET /universe 500 in 1118ms
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\favicon.ico\route.js:1:26790)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\favicon.ico\route.js:1:26842) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array],
+  page: '/favicon.ico'
+}
+ GET /favicon.ico 500 in 143ms
+ ⨯ Error: Cannot find module './4586.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:2:8007)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:2:8074) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\_not-found\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 254ms
+ GET /firebase-messaging-sw.js 500 in 209ms
+ ✓ Compiled in 1359ms (4628 modules)
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 283ms
+ GET /universe 500 in 93ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 165ms
+ GET /firebase-messaging-sw.js 500 in 121ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 218ms
+ GET /universe 500 in 83ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 184ms
+ GET /firebase-messaging-sw.js 500 in 136ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 251ms
+ GET /universe 500 in 102ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 312ms
+ GET /universe 500 in 152ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 378ms
+ GET /firebase-messaging-sw.js 500 in 145ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 122ms
+ GET /firebase-messaging-sw.js 500 in 64ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json',
+  page: '/universe'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /universe 500 in 221ms
+ GET /universe 500 in 86ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\next-font-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\next-font-manifest.json'
+}
+[Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\routes-manifest.json'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\routes-manifest.json'
+}
+ GET /firebase-messaging-sw.js 500 in 131ms
+ GET /firebase-messaging-sw.js 500 in 86ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ GET /universe 200 in 346ms
+ GET /terms 404 in 118ms
+ GET / 200 in 359ms
+ ○ Compiling /support ...
+ ✓ Compiled /auth/signin in 8s (2535 modules)
+ ✓ Compiled (2590 modules)
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')] {
+  digest: '430408801'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+[TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')] {
+  page: '/'
+}
+ GET /privacy 200 in 24699ms
+ GET /support 200 in 24691ms
+ GET /products/new 200 in 21423ms
+ GET /messages 200 in 21418ms
+ GET /auth/signin 200 in 21419ms
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\privacy\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading 'call')] {
+  page: '/'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\privacy\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 21951ms
+ GET / 500 in 58ms
+ ○ Compiling /admin ...
+ ✓ Compiled /admin in 4s (2612 modules)
+ GET /admin 200 in 4413ms
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')] {
+  digest: '430408801'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+[TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\admin\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 2733ms
+ GET /firebase-messaging-sw.js 500 in 80ms
+ GET / 200 in 115ms
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')] {
+  digest: '430408801'
+}
+ ⨯ Error: Could not find the module "C:\Users\Administrator\Website\node_modules\next\dist\next-devtools\userspace\app\segment-explorer-node.js#SegmentViewNode" in the React Client Manifest. This is probably a bug in the React Server Components bundler.
+    at stringify (<anonymous>) {
+  digest: '3375308896'
+}
+[TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading 'call')] {
+  page: '/'
+}
+ GET / 500 in 4775ms
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\admin\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading 'call')] {
+  page: '/'
+}
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\admin\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\admin\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ Error: Cannot find module './5611.js'
+Require stack:
+- C:\Users\Administrator\Website\.next\server\webpack-runtime.js
+- C:\Users\Administrator\Website\.next\server\app\admin\page.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js
+    at <unknown> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:378)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\pages\_document.js:1:425) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 174ms
+ GET /firebase-messaging-sw.js 500 in 124ms
+ ✓ Compiled in 6.8s (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ✓ Compiled in 4.8s (4607 modules)
+ ✓ Compiled in 2.3s (4607 modules)
+ ✓ Compiled in 1394ms (4607 modules)
+ ✓ Compiled in 3.6s (4607 modules)
+ ✓ Compiled in 3.3s (4607 modules)
+ ✓ Compiled in 811ms (4609 modules)
+ ✓ Compiled in 811ms (4609 modules)
+ ✓ Compiled in 681ms (4609 modules)
+ ✓ Compiled in 988ms (4609 modules)
+ ✓ Compiled in 881ms (4609 modules)
+ ✓ Compiled in 675ms (4609 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz'
+ ✓ Compiled in 1688ms (4609 modules)
+ ✓ Compiled in 3.1s (4623 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 207ms
+ GET / 500 in 47ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 201ms
+ GET / 500 in 45ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /_not-found in 5.6s (4644 modules)
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:920:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:923:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /favicon.ico 200 in 6118ms
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 4835ms
+ GET /firebase-messaging-sw.js 500 in 117ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 215ms
+ GET / 500 in 65ms
+ GET /favicon.ico 200 in 28ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:920:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:923:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 130ms
+ GET /firebase-messaging-sw.js 500 in 72ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 198ms
+ GET / 500 in 48ms
+ GET /favicon.ico 200 in 28ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:920:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:923:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 118ms
+ GET /firebase-messaging-sw.js 500 in 59ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\page.js:1215:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\page.js:1218:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js',
+  page: '/'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 202ms
+ GET / 500 in 66ms
+ GET /favicon.ico 200 in 25ms
+ ⨯ Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\vendor-chunks\@firebase.js'
+    at <unknown> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:920:47)
+    at Object.<anonymous> (C:\Users\Administrator\Website\.next\server\app\_not-found\page.js:923:3) {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\vendor-chunks\\@firebase.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [Error: ENOENT: no such file or directory, open 'C:\Users\Administrator\Website\.next\server\pages\_document.js'] {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\Administrator\\Website\\.next\\server\\pages\\_document.js'
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET /firebase-messaging-sw.js 500 in 115ms
+ GET /firebase-messaging-sw.js 500 in 52ms
+ GET / 200 in 1323ms
+ GET /favicon.ico 404 in 43ms
+ ✓ Compiled in 18.4s (4621 modules)
+ ✓ Compiled in 6s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\server-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\server-development\0.pack.gz'
+ ✓ Compiled in 3.9s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\2.pack.gz'
+ ✓ Compiled in 4.2s (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 12.3s (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\server-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\server-development\0.pack.gz'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.6s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 3.7s (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 11.2s (4621 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 3.4s (4607 modules)
+ ✓ Compiled in 2.5s (4607 modules)
+ ✓ Compiled in 3.6s (4607 modules)
+ ✓ Compiled in 2s (4607 modules)
+ ✓ Compiled in 3.8s (4607 modules)
+ ✓ Compiled in 1952ms (4607 modules)
+ ✓ Compiled in 1922ms (4607 modules)
+ ✓ Compiled in 2.1s (4607 modules)
+ ✓ Compiled in 1979ms (4607 modules)
+ ✓ Compiled in 2s (4607 modules)
+ ✓ Compiled in 2.1s (4607 modules)
+ ✓ Compiled in 3.8s (4607 modules)
+ ✓ Compiled in 23.8s (4621 modules)
+ ✓ Compiled in 6.4s (4607 modules)
+ ✓ Compiled in 4.3s (4621 modules)
+ ✓ Compiled in 6s (4607 modules)
+ ✓ Compiled in 2.5s (4607 modules)
+ ✓ Compiled in 2.2s (4607 modules)
+ ✓ Compiled in 1448ms (4607 modules)
+ ✓ Compiled in 1698ms (4607 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'

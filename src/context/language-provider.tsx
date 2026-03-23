@@ -20,16 +20,15 @@ interface LanguageContextType {
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('zh'); // Default to Chinese
+  const [language, setLanguageState] = useState<Language>('en'); // Default to English
 
   useEffect(() => {
     const storedLang = localStorage.getItem('language') as Language | null;
     if (storedLang && ['en', 'zh', 'th'].includes(storedLang)) {
       setLanguageState(storedLang);
     } else {
-      // If no language is set, default to Chinese.
-      setLanguageState('zh');
-      localStorage.setItem('language', 'zh');
+      setLanguageState('en');
+      localStorage.setItem('language', 'en');
     }
   }, []);
 

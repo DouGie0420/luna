@@ -8,7 +8,7 @@ import { getAuth } from 'firebase/auth';
 import { InstallationGuide } from './InstallationGuide';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, BellOff, Download, WifiOff, CheckCircle } from 'lucide-react';
+import { Bell, BellOff, Download, WifiOff, CheckCircle, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PWAStatus {
@@ -851,7 +851,16 @@ export function PWAInitializer() {
               <Download className="h-6 w-6 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="font-bold text-white mb-1">INSTALL MESSAGES SYSTEM</h3>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-bold text-white">INSTALL MESSAGES SYSTEM</h3>
+                <button
+                  onClick={() => setStatus(prev => ({ ...prev, showInstallPrompt: false }))}
+                  className="ml-2 p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+                  aria-label="关闭"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
               <p className="text-sm text-white/60 mb-3">
                 Get faster access, push notifications, and work offline.
               </p>
@@ -1251,8 +1260,8 @@ console.log('10. Manual event triggered');`;
     // Determine if we should show detailed debug panel
     const isDevMode = process.env.NODE_ENV === 'development' || window.location.search.includes('debug=1');
     
-    // Only show minimal debug panel in production unless debug flag is set
-    if (!isDevMode && !window.location.search.includes('pwa-debug=1')) {
+    // Only show full debug panel when explicitly requested via URL flag
+    if (!window.location.search.includes('pwa-debug=1')) {
       return (
         <div className="fixed bottom-4 left-4 z-50 opacity-50 hover:opacity-100 transition-opacity">
           <div 

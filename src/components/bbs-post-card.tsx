@@ -69,14 +69,14 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             await updateDoc(postRef, { status: 'under_review' });
             setIsDeleteDialogOpen(false);
             toast({
-                title: "帖子已提交审核",
-                description: "该帖子现在将在后台等待最终审核。",
+                title: t('bbsPostCard.postSubmittedForReview'),
+                description: t('bbsPostCard.postSubmittedForReviewDescription'),
             });
         } catch (error) {
             console.error("Error marking post for review:", error);
             toast({
-                title: "操作失败",
-                description: "无法提交审核，请稍后再试。",
+                title: t('bbsPostCard.actionFailed'),
+                description: t('bbsPostCard.actionFailedDescription'),
                 variant: "destructive",
             });
         }
@@ -101,7 +101,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
           try {
             await updateDoc(postRef, { isFeatured: newFeaturedState });
             toast({
-              title: newFeaturedState ? "帖子已加精" : "帖子已取消精华",
+              title: newFeaturedState ? t('bbsPostCard.postFeatured') : t('bbsPostCard.postUnfeatured'),
             });
             if (newFeaturedState) {
                 createNotification(firestore, post.authorId, {
@@ -113,8 +113,8 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
           } catch (error) {
             console.error("Error updating feature status:", error);
             toast({
-              title: "操作失败",
-              description: "更新精华状态时出错。",
+              title: t('bbsPostCard.actionFailed'),
+              description: t('bbsPostCard.featureError'),
               variant: "destructive",
             });
           }
@@ -171,8 +171,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             .catch(error => {
                 console.error(`Failed to update ${type}:`, error);
                 toast({
-                    title: "操作失败",
-                    description: `无法更新${type === 'like' ? '点赞' : '收藏'}状态。`,
+                    title: t('bbsPostCard.actionFailed'),
                     variant: "destructive",
                 });
             });
@@ -203,14 +202,14 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>确认提交审核</AlertDialogTitle>
+                        <AlertDialogTitle>{t('bbsPostCard.submitForReview')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                            此操作会将帖子从前台隐藏并提交给管理员审核。您确定吗？
+                            {t('bbsPostCard.submitForReviewDescription')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>取消</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleMarkForReview} className="bg-destructive hover:bg-destructive/90">确认提交</AlertDialogAction>
+                        <AlertDialogCancel>{t('bbsPostCard.cancel')}</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleMarkForReview} className="bg-destructive hover:bg-destructive/90">{t('bbsPostCard.confirmSubmit')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -240,20 +239,20 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                                     <DropdownMenuContent align="end" onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
                                         <DropdownMenuItem onSelect={() => handleAdminAction('feature')}>
                                             <Star className="mr-2 h-4 w-4" />
-                                            <span>{post.isFeatured ? "取消精华" : "加精华"}</span>
+                                            <span>{post.isFeatured ? t('bbsPostCard.unfeaturePost') : t('bbsPostCard.featurePost')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleAdminAction('boost')}>
                                             <TrendingUp className="mr-2 h-4 w-4" />
-                                            <span>加曝光</span>
+                                            <span>{t('bbsPostCard.boostPost')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onSelect={() => handleAdminAction('edit')}>
                                             <Edit className="mr-2 h-4 w-4" />
-                                            <span>编辑</span>
+                                            <span>{t('bbsPostCard.editPost')}</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => handleAdminAction('delete')} className="text-destructive focus:text-destructive">
                                             <Trash2 className="mr-2 h-4 w-4" />
-                                            <span>删除</span>
+                                            <span>{t('bbsPostCard.deletePost')}</span>
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -261,7 +260,7 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                         )}
                     </CardHeader>
                     <div className="p-4 -mt-16 z-10 text-white">
-                         <CardTitle className="font-headline text-lg mb-2 leading-tight drop-shadow-md">
+                         <CardTitle className="font-bold text-lg mb-2 leading-tight drop-shadow-md not-italic">
                             {post.title || t(post.titleKey || '')}
                         </CardTitle>
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -294,27 +293,39 @@ export function BbsPostCard({ post }: { post: BbsPost }) {
                                 <UserAvatar profile={post.author} className="h-8 w-8" />
                             </div>
                             <div>
-                                <p className="text-sm font-headline text-foreground">{post.author.name}</p>
+                                <p className="text-sm font-semibold not-italic text-foreground">{post.author.name}</p>
                                 <p className="text-xs text-muted-foreground">
                                     {timeAgo}{post.location?.city && `, ${post.location.city}, ${post.location.countryCode}`}
                                 </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            {post.views != null && (
+                                <span className="flex items-center gap-1 px-1.5 py-1">
+                                    <Eye className="h-3.5 w-3.5" />
+                                    <span>{post.views}</span>
+                                </span>
+                            )}
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleGoToComments}>
-                                 <span className="flex items-center gap-1 cursor-pointer">
-                                    <MessageSquare className="h-4 w-4" />
-                                    <span>{post.replies}</span>
+                                <span className="flex items-center gap-1 cursor-pointer">
+                                    <MessageSquare className="h-3.5 w-3.5" />
+                                    <span>{post.comments ?? 0}</span>
                                 </span>
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'like')}>
-                                <Heart className={cn("h-4 w-4", isLiked && "text-yellow-400 fill-yellow-400")} />
+                            <Button variant="ghost" size="icon" className="h-7 px-2 w-auto" onClick={(e) => handlePostInteraction(e, 'like')}>
+                                <span className="flex items-center gap-1">
+                                    <Heart className={cn("h-3.5 w-3.5", isLiked && "text-yellow-400 fill-yellow-400")} />
+                                    <span>{post.likes ?? 0}</span>
+                                </span>
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => handlePostInteraction(e, 'favorite')}>
-                                <Star className={cn("h-4 w-4", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                            <Button variant="ghost" size="icon" className="h-7 px-2 w-auto" onClick={(e) => handlePostInteraction(e, 'favorite')}>
+                                <span className="flex items-center gap-1">
+                                    <Star className={cn("h-3.5 w-3.5", isFavorited && "text-yellow-400 fill-yellow-400")} />
+                                    <span>{post.favorites ?? 0}</span>
+                                </span>
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleShare}>
-                                <Share2 className="h-4 w-4" />
+                                <Share2 className="h-3.5 w-3.5" />
                             </Button>
                         </div>
                     </CardFooter>

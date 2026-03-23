@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from "@/firebase";
 import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import {
-    ShieldCheck, AlertOctagon, ChevronLeft, Loader2, Wallet, 
-    CreditCard, Globe, Cpu, Lock, ArrowRight
+    ShieldCheck, AlertOctagon, ChevronLeft, Loader2, Wallet,
+    CreditCard, Globe, Cpu, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
@@ -141,7 +141,7 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 status: 'paid',
                 paidAt: serverTimestamp(),
                 txHash: result.hash, 
-                paymentMethod: 'Base ETH'
+                paymentMethod: 'ETH'
             });
 
             toast({ title: "支付成功！", description: "资产已锁定至智能合约。正在返回订单页..." });
@@ -204,16 +204,7 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-[#080808]/90 backdrop-blur-3xl border-white/5 rounded-[48px] p-12 shadow-3xl min-h-[500px] overflow-hidden relative">
-                            <div className="relative z-10 h-full flex flex-col">
-                                <div className="flex items-center gap-5 mb-10 pl-8 border-l-4 border-primary">
-                                    <Lock className="w-7 h-7 text-primary" />
-                                    <h3 className="text-xl font-black italic text-white uppercase tracking-[0.3em]">Pre-Transaction Chat</h3>
-                                </div>
-                                {/* ✅ 聊天组件安全渲染 */}
-                                <ChatWindow orderId={order.id} sellerId={order.sellerId} buyerId={order.buyerId} productName={product?.name || order.productName} />
-                            </div>
-                        </Card>
+                        <ChatWindow orderId={order.id} sellerId={order.sellerId} buyerId={order.buyerId} productName={product?.name || order.productName} />
                     </div>
 
                     <div className="space-y-8 sticky top-32">

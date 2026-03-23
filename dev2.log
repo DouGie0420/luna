@@ -1,0 +1,515 @@
+
+> nextn@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.38:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3.1s
+ ○ Compiling /api/ai/status ...
+ ✓ Compiled /api/ai/status in 2.7s (700 modules)
+Initializing Firebase app...
+Firebase initialized successfully
+(node:19156) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/ai/status 200 in 3441ms
+ ○ Compiling /universe ...
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ⨯ ./src/app/universe/page.tsx
+Error:   [31mx[0m `ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component.
+    ,-[[36;1;4mC:\Users\Administrator\Website\src\app\universe\page.tsx[0m:9:1]
+ [2m 6[0m |     import dynamic from 'next/dynamic';
+ [2m 7[0m |     
+ [2m 8[0m |     // 动态导入，禁用SSR（Canvas + Firebase Realtime 仅客户端）
+ [2m 9[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m const PlazaPage = dynamic(
+ [2m10[0m | [35;1m|[0m     () => import('../../../Universe/components/PlazaPage'),
+ [2m11[0m | [35;1m|[0m     {
+ [2m12[0m | [35;1m|[0m       ssr: false,
+ [2m13[0m | [35;1m|[0m       loading: () => (
+ [2m14[0m | [35;1m|[0m         <div className="min-h-screen bg-[#020203] flex items-center justify-center">
+ [2m15[0m | [35;1m|[0m           <div className="text-center">
+ [2m16[0m | [35;1m|[0m             <div
+ [2m17[0m | [35;1m|[0m               className="text-lg mb-4"
+ [2m18[0m | [35;1m|[0m               style={{
+ [2m19[0m | [35;1m|[0m                 fontFamily: '"Press Start 2P", monospace',
+ [2m20[0m | [35;1m|[0m                 color: '#00ffcc',
+ [2m21[0m | [35;1m|[0m                 textShadow: '0 0 10px rgba(0, 255, 204, 0.3)',
+ [2m22[0m | [35;1m|[0m                 fontSize: '14px',
+ [2m23[0m | [35;1m|[0m               }}
+ [2m24[0m | [35;1m|[0m             >
+ [2m25[0m | [35;1m|[0m               🌙 LUNAR MICROVERSE
+ [2m26[0m | [35;1m|[0m             </div>
+ [2m27[0m | [35;1m|[0m             <div className="text-gray-500 text-xs animate-pulse">
+ [2m28[0m | [35;1m|[0m               正在连接AI广场...
+ [2m29[0m | [35;1m|[0m             </div>
+ [2m30[0m | [35;1m|[0m             <div className="mt-4 w-48 h-1 bg-gray-800 rounded-full mx-auto overflow-hidden">
+ [2m31[0m | [35;1m|[0m               <div className="h-full bg-cyan-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" />
+ [2m32[0m | [35;1m|[0m             </div>
+ [2m33[0m | [35;1m|[0m           </div>
+ [2m34[0m | [35;1m|[0m         </div>
+ [2m35[0m | [35;1m|[0m       ),
+ [2m36[0m | [35;1m|[0m     }
+ [2m37[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m );
+ [2m38[0m |     
+ [2m39[0m |     export default function UniversePage() {
+ [2m40[0m |       return <PlazaPage />;
+    `----
+
+Import trace for requested module:
+./src/app/universe/page.tsx
+ ⨯ ./src/app/universe/page.tsx
+Error:   [31mx[0m `ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component.
+    ,-[[36;1;4mC:\Users\Administrator\Website\src\app\universe\page.tsx[0m:9:1]
+ [2m 6[0m |     import dynamic from 'next/dynamic';
+ [2m 7[0m |     
+ [2m 8[0m |     // 动态导入，禁用SSR（Canvas + Firebase Realtime 仅客户端）
+ [2m 9[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m const PlazaPage = dynamic(
+ [2m10[0m | [35;1m|[0m     () => import('../../../Universe/components/PlazaPage'),
+ [2m11[0m | [35;1m|[0m     {
+ [2m12[0m | [35;1m|[0m       ssr: false,
+ [2m13[0m | [35;1m|[0m       loading: () => (
+ [2m14[0m | [35;1m|[0m         <div className="min-h-screen bg-[#020203] flex items-center justify-center">
+ [2m15[0m | [35;1m|[0m           <div className="text-center">
+ [2m16[0m | [35;1m|[0m             <div
+ [2m17[0m | [35;1m|[0m               className="text-lg mb-4"
+ [2m18[0m | [35;1m|[0m               style={{
+ [2m19[0m | [35;1m|[0m                 fontFamily: '"Press Start 2P", monospace',
+ [2m20[0m | [35;1m|[0m                 color: '#00ffcc',
+ [2m21[0m | [35;1m|[0m                 textShadow: '0 0 10px rgba(0, 255, 204, 0.3)',
+ [2m22[0m | [35;1m|[0m                 fontSize: '14px',
+ [2m23[0m | [35;1m|[0m               }}
+ [2m24[0m | [35;1m|[0m             >
+ [2m25[0m | [35;1m|[0m               🌙 LUNAR MICROVERSE
+ [2m26[0m | [35;1m|[0m             </div>
+ [2m27[0m | [35;1m|[0m             <div className="text-gray-500 text-xs animate-pulse">
+ [2m28[0m | [35;1m|[0m               正在连接AI广场...
+ [2m29[0m | [35;1m|[0m             </div>
+ [2m30[0m | [35;1m|[0m             <div className="mt-4 w-48 h-1 bg-gray-800 rounded-full mx-auto overflow-hidden">
+ [2m31[0m | [35;1m|[0m               <div className="h-full bg-cyan-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" />
+ [2m32[0m | [35;1m|[0m             </div>
+ [2m33[0m | [35;1m|[0m           </div>
+ [2m34[0m | [35;1m|[0m         </div>
+ [2m35[0m | [35;1m|[0m       ),
+ [2m36[0m | [35;1m|[0m     }
+ [2m37[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m );
+ [2m38[0m |     
+ [2m39[0m |     export default function UniversePage() {
+ [2m40[0m |       return <PlazaPage />;
+    `----
+
+Import trace for requested module:
+./src/app/universe/page.tsx
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ⨯ ./src/app/universe/page.tsx
+Error:   [31mx[0m `ssr: false` is not allowed with `next/dynamic` in Server Components. Please move it into a Client Component.
+    ,-[[36;1;4mC:\Users\Administrator\Website\src\app\universe\page.tsx[0m:9:1]
+ [2m 6[0m |     import dynamic from 'next/dynamic';
+ [2m 7[0m |     
+ [2m 8[0m |     // 动态导入，禁用SSR（Canvas + Firebase Realtime 仅客户端）
+ [2m 9[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m const PlazaPage = dynamic(
+ [2m10[0m | [35;1m|[0m     () => import('../../../Universe/components/PlazaPage'),
+ [2m11[0m | [35;1m|[0m     {
+ [2m12[0m | [35;1m|[0m       ssr: false,
+ [2m13[0m | [35;1m|[0m       loading: () => (
+ [2m14[0m | [35;1m|[0m         <div className="min-h-screen bg-[#020203] flex items-center justify-center">
+ [2m15[0m | [35;1m|[0m           <div className="text-center">
+ [2m16[0m | [35;1m|[0m             <div
+ [2m17[0m | [35;1m|[0m               className="text-lg mb-4"
+ [2m18[0m | [35;1m|[0m               style={{
+ [2m19[0m | [35;1m|[0m                 fontFamily: '"Press Start 2P", monospace',
+ [2m20[0m | [35;1m|[0m                 color: '#00ffcc',
+ [2m21[0m | [35;1m|[0m                 textShadow: '0 0 10px rgba(0, 255, 204, 0.3)',
+ [2m22[0m | [35;1m|[0m                 fontSize: '14px',
+ [2m23[0m | [35;1m|[0m               }}
+ [2m24[0m | [35;1m|[0m             >
+ [2m25[0m | [35;1m|[0m               🌙 LUNAR MICROVERSE
+ [2m26[0m | [35;1m|[0m             </div>
+ [2m27[0m | [35;1m|[0m             <div className="text-gray-500 text-xs animate-pulse">
+ [2m28[0m | [35;1m|[0m               正在连接AI广场...
+ [2m29[0m | [35;1m|[0m             </div>
+ [2m30[0m | [35;1m|[0m             <div className="mt-4 w-48 h-1 bg-gray-800 rounded-full mx-auto overflow-hidden">
+ [2m31[0m | [35;1m|[0m               <div className="h-full bg-cyan-500 rounded-full animate-[loading_1.5s_ease-in-out_infinite]" />
+ [2m32[0m | [35;1m|[0m             </div>
+ [2m33[0m | [35;1m|[0m           </div>
+ [2m34[0m | [35;1m|[0m         </div>
+ [2m35[0m | [35;1m|[0m       ),
+ [2m36[0m | [35;1m|[0m     }
+ [2m37[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m );
+ [2m38[0m |     
+ [2m39[0m |     export default function UniversePage() {
+ [2m40[0m |       return <PlazaPage />;
+    `----
+
+Import trace for requested module:
+./src/app/universe/page.tsx
+ GET /universe 500 in 15816ms
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ⨯ ./Universe/components/PlazaPage.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m             )'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaPage.tsx[0m:106:1]
+ [2m103[0m |                 >
+ [2m104[0m |                   CHAT
+ [2m105[0m |                 </button>
+ [2m106[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m             </button>
+ [2m107[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m             <button
+ [2m108[0m |                   onClick={() => setShowDrugShop(true)}
+ [2m109[0m |                   className="px-3 py-1 rounded text-[10px] border border-green-700 text-green-400 bg-green-950/20 hover:border-green-500 transition-colors"
+ [2m110[0m |                   style={{ fontFamily: '"Press Start 2P", monospace' }}
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled /_error in 2.1s (1112 modules)
+ ✓ Compiled in 1134ms (1006 modules)
+ ✓ Compiled in 290ms (1006 modules)
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2.9s (1020 modules)
+ ✓ Compiled in 1299ms (1020 modules)
+ ✓ Compiled in 506ms (1020 modules)
+ ✓ Compiled in 938ms (1020 modules)
+ ✓ Compiled in 803ms (1006 modules)
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 3.7s (1020 modules)
+ ✓ Compiled in 441ms (1020 modules)
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2.4s (1020 modules)
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2.9s (1020 modules)
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ✓ Compiled in 2s (1020 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.7s (1020 modules)
+ ✓ Compiled in 1157ms (1020 modules)
+ ✓ Compiled in 1368ms (1006 modules)
+ ✓ Compiled in 662ms (1006 modules)
+ ✓ Compiled in 700ms (1006 modules)
+ ✓ Compiled in 929ms (1006 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 718ms (1020 modules)
+ ✓ Compiled in 1006ms (1020 modules)
+ ✓ Compiled in 367ms (1006 modules)
+ ✓ Compiled in 1205ms (1020 modules)
+ ✓ Compiled in 434ms (1020 modules)
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (10:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'useEffect' has already been declared (10:9)
+|  * 像素角色、聊天气泡、DJ舞台灯光、毒品特效、粒子系统
+|  */ import React, { useState, useEffect, useRef } from 'react';
+> import { useEffect, useRef, useCallback } from 'react';
+| import { PLAZA_WIDTH, PLAZA_HEIGHT, PLAZA_ZONES, AVATAR_COLORS } from '../lib/constants';
+| // ==================== 等距坐标系统 ====================
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 710ms (1006 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1139ms (1020 modules)
+ ✓ Compiled in 698ms (1020 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1133ms (1020 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ✓ Compiled in 1902ms (1020 modules)
+ ✓ Compiled in 475ms (1006 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\1.pack.gz'
+ ✓ Compiled in 2.1s (1020 modules)
+ ✓ Compiled in 1877ms (1020 modules)
+ ✓ Compiled in 4.2s (1020 modules)
+ ✓ Compiled in 784ms (1020 modules)
+ ✓ Compiled in 1461ms (1020 modules)
+ ✓ Compiled in 604ms (1006 modules)
+ ✓ Compiled in 453ms (1006 modules)
+ ✓ Compiled in 466ms (1006 modules)
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Module parse failed: Identifier 'gradient' has already been declared (498:10)
+|     ctx.fillText(displayName, 1, 40);
+|     // 名字主体（带轻微渐变）
+>     const gradient = ctx.createLinearGradient(0, 35, 0, 45);
+|     gradient.addColorStop(0, '#ffffff');
+|     gradient.addColorStop(1, '#a0e7ff');
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 858ms (1020 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 7.5s (1020 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1799ms (1006 modules)
+ ✓ Compiled in 941ms (1006 modules)
+ ✓ Compiled in 811ms (1006 modules)
+ ✓ Compiled in 830ms (1006 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ⨯ ./Universe/components/PlazaCanvas.tsx
+Error:   [31mx[0m Expected ')', got ';'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaCanvas.tsx[0m:114:1]
+ [2m111[0m | 
+ [2m112[0m |   // 绘制等距菱形网格
+ [2m113[0m |   for (let col = -visibleCols; col <= visibleCols; col++) {
+ [2m114[0m |     for (let row = -visibleRows; row <= visible rows; row++) {
+     : [35;1m                                                    ^[0m
+ [2m115[0m |       // 世界坐标
+ [2m116[0m |       const worldX = col * tileSize + gridOffsetX;
+ [2m117[0m |       worldY = row * tileSize + gridOffsetY;
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaCanvas.tsx
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ✓ Compiled in 339ms (1006 modules)
+ ✓ Compiled in 423ms (1006 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ○ Compiling / ...
+ ✓ Compiled / in 13.4s (4418 modules)
+ GET / 200 in 15656ms
+ GET / 200 in 258ms
+ ○ Compiling /favicon.ico ...
+ ✓ Compiled /favicon.ico in 514ms (2404 modules)
+ GET /favicon.ico 200 in 831ms
+ ✓ Compiled in 3.1s (2016 modules)
+ ✓ Compiled in 1856ms (2016 modules)
+ ✓ Compiled in 1372ms (2016 modules)
+ ✓ Compiled in 792ms (2016 modules)
+ ✓ Compiled in 714ms (2016 modules)
+ ✓ Compiled in 645ms (2016 modules)
+ GET / 200 in 1339ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 1367ms (4425 modules)
+ GET /favicon.ico 404 in 1484ms
+ GET / 200 in 962ms
+ GET / 200 in 105ms
+ GET / 200 in 95ms
+ GET / 200 in 94ms
+ GET / 200 in 70ms
+ GET / 200 in 102ms
+ GET / 200 in 92ms
+ GET / 200 in 89ms
+ GET / 200 in 101ms
+ ✓ Compiled in 1630ms (2016 modules)
+ GET / 200 in 82ms
+ GET / 200 in 78ms
+ GET / 200 in 90ms
+ GET / 200 in 71ms
+ GET / 200 in 75ms
+ ✓ Compiled in 397ms (2017 modules)
+ GET / 200 in 90ms
+ ✓ Compiled in 412ms (2017 modules)
+ ✓ Compiled in 304ms (2017 modules)
+ ✓ Compiled in 693ms (2017 modules)
+ ✓ Compiled in 453ms (2017 modules)
+ ✓ Compiled in 335ms (2017 modules)
+ GET / 200 in 83ms
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: EPERM: operation not permitted, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 468ms (2017 modules)
+ ✓ Compiled in 1618ms (2031 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ GET / 200 in 116ms
+ GET / 200 in 93ms
+ GET / 200 in 91ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 993ms (4426 modules)
+ GET /favicon.ico 404 in 1034ms
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 1883ms (4517 modules)
+ ⨯ [Error: Cannot find module 'C:\Users\Administrator\Website\.next\server\pages\_document.js'
+Require stack:
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [Error: Cannot find module 'C:\Users\Administrator\Website\.next\server\pages\_document.js'
+Require stack:
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [Error: Cannot find module 'C:\Users\Administrator\Website\.next\server\pages\_document.js'
+Require stack:
+- C:\Users\Administrator\Website\node_modules\next\dist\server\require.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\load-components.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\utils.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\options.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\swc\index.js
+- C:\Users\Administrator\Website\node_modules\next\dist\build\next-config-ts\transpile-config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\config.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\next.js
+- C:\Users\Administrator\Website\node_modules\next\dist\server\lib\start-server.js] {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [Array]
+}
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ ⨯ [TypeError: Cannot read properties of undefined (reading '/_app')]
+[TypeError: Cannot read properties of undefined (reading '/_app')]
+ GET / 500 in 2365ms
+ GET / 500 in 47ms
+ ✓ Compiled in 6.6s (2030 modules)
+ ✓ Compiled in 1111ms (2030 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.2s (2016 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 2.2s (2016 modules)
+ ✓ Compiled in 1677ms (2030 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 6.6s (2030 modules)
+ ✓ Compiled in 5.9s (2030 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1268ms (2016 modules)
+ ✓ Compiled in 2.2s (2016 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 4.6s (2030 modules)
+ ✓ Compiled in 4.7s (2030 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'
+ ✓ Compiled in 1407ms (2016 modules)
+ ✓ Compiled in 1519ms (2016 modules)
+ ✓ Compiled in 1487ms (2016 modules)
+ ✓ Compiled in 1154ms (2016 modules)
+ ✓ Compiled in 1122ms (2016 modules)
+ ✓ Compiled in 1066ms (2016 modules)
+ ✓ Compiled in 1095ms (2016 modules)
+ ✓ Compiled in 792ms (2016 modules)
+ ✓ Compiled in 1467ms (2016 modules)
+ ✓ Compiled in 1322ms (2016 modules)
+ ✓ Compiled in 775ms (2016 modules)
+ ✓ Compiled in 2.3s (2016 modules)
+ ✓ Compiled in 9.9s (2030 modules)
+ ✓ Compiled in 1228ms (2030 modules)
+ ✓ Compiled in 2.8s (2016 modules)
+ ✓ Compiled in 2s (2030 modules)
+ ✓ Compiled in 1082ms (2016 modules)
+ ✓ Compiled in 1148ms (2016 modules)
+ ✓ Compiled in 615ms (2016 modules)
+ ✓ Compiled in 523ms (2016 modules)
+ ✓ Compiled in 892ms (2016 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz_' -> 'C:\Users\Administrator\Website\.next\cache\webpack\client-development\0.pack.gz'

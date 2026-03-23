@@ -76,11 +76,11 @@ export default function HomePage() {
       {/* 🚀 Sanctum 房源池板块 */}
       <section className="py-2 flex flex-col items-center">
         <Link href="/products/rental/all" className="group relative mb-[-6.5rem] z-30 origin-bottom">
-           <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-20 group-hover:opacity-60 transition duration-1000"></div>
-           <div className="relative flex items-center gap-4 px-8 py-3 bg-[#0B0B0B] border border-purple-500/30 rounded-full leading-none transition-all duration-300 group-hover:bg-purple-500/10 group-hover:border-purple-500/80 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
-             <span className="text-purple-500 animate-bounce font-black text-sm">↓</span>
-             <span className="text-[12px] font-black uppercase tracking-[0.4em] text-purple-400 group-hover:text-purple-300 transition-colors">Into The</span>
-             <span className="text-purple-500 animate-bounce font-black text-sm">↓</span>
+           <div className="absolute -inset-2 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-full blur-lg opacity-40 group-hover:opacity-80 transition duration-700 animate-pulse"></div>
+           <div className="relative flex items-center gap-5 px-10 py-4 bg-[#0B0B0B] border-2 border-purple-500/50 rounded-full leading-none transition-all duration-300 group-hover:bg-purple-500/15 group-hover:border-purple-400 shadow-[0_0_30px_rgba(168,85,247,0.3),0_10px_40px_rgba(0,0,0,0.7)] group-hover:shadow-[0_0_50px_rgba(168,85,247,0.6),0_10px_40px_rgba(0,0,0,0.8)]">
+             <span className="text-purple-400 animate-bounce font-black text-lg">↓</span>
+             <span className="text-[15px] font-black uppercase tracking-[0.45em] text-purple-300 group-hover:text-white transition-colors drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">Into The</span>
+             <span className="text-purple-400 animate-bounce font-black text-lg">↓</span>
            </div>
         </Link>
         

@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface SearchBarProps {
   placeholderKeywords?: string[];
@@ -25,6 +26,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
   const router = useRouter();
   const { user } = useUser();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -148,7 +150,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
               </div>
               <Button onClick={() => handleSearch(searchTerm)} className="h-full w-40 shrink-0 rounded-none bg-primary px-10 text-xl text-primary-foreground font-bold transition-all duration-300 hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/50 hover:scale-105">
                   <Search className="mr-2 h-5 w-5" />
-                  搜索
+                  {t('searchBar.button')}
               </Button>
           </div>
         </PopoverTrigger>
@@ -159,7 +161,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
           {isLoading ? (
             <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              正在生成建议...
+              {t('searchBar.generating')}
             </div>
           ) : suggestions.length > 0 ? (
             <ul className="py-2">
@@ -179,7 +181,7 @@ export function SearchBar({ placeholderKeywords = [] }: SearchBarProps) {
             </ul>
           ) : (
              <div className="p-4 text-center text-sm text-muted-foreground">
-                没有找到相关建议
+                {t('searchBar.noSuggestions')}
              </div>
           )}
         </PopoverContent>

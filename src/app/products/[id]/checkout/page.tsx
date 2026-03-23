@@ -1,4 +1,5 @@
 // 服务端组件 - 纯 Server Component
+import { Suspense } from 'react';
 import ClientCheckout from './ClientCheckout';
 
 export function generateStaticParams() {
@@ -10,5 +11,9 @@ export function generateStaticParams() {
 }
 
 export default function Page() {
-  return <ClientCheckout />;
+  return (
+    <Suspense fallback={<div />}>
+      <ClientCheckout />
+    </Suspense>
+  );
 }

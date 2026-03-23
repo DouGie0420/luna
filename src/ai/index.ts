@@ -12,9 +12,13 @@ export async function getTrendingKeywords(count: number = 5): Promise<{ keywords
  * 🚀 真·視覺大模型圖像分析 (調用 Gemini 2.5 Pro)
  */
 export async function analyzeProductImage(input: { imageDataUri: string }): Promise<{ title: string; description: string }> {
-  // ⚠️ 強烈建議：今晚測試完成後，把這個 Key 移到 .env 文件中： GEMINI_API_KEY="AIza..."
-  // 這裡優先讀取環境變量，如果沒有才用你剛才提供的這個進行緊急測試
-  const apiKey = process.env.GEMINI_API_KEY || "AIzaSyAFTW4rMfnYFUIAKB4vCeDXZmVf-e86emU";
+  // 1. 安全第一：嚴格從環境變量讀取 API Key，絕不在代碼中硬編碼
+  const apiKey = process.env.GEMINI_API_KEY;
+
+  if (!apiKey) {
+    console.error("致命錯誤: 未找到 GEMINI_API_KEY 環境變量");
+    throw new Error("系統配置錯誤，AI 服務暫不可用，請檢查環境變量");
+  }
 
   try {
     // 解析前端傳來的 base64 圖片格式 (例如: "data:image/jpeg;base64,/9j/4AAQ...")
@@ -38,8 +42,9 @@ export async function analyzeProductImage(input: { imageDataUri: string }): Prom
             parts: [
               { text: "你是一個專業的二手商品鑑定與電商文案專家。請根據用戶上傳的商品圖片，識別出這是什麼商品，並生成吸引人的商品標題和詳細的商品描述。要求格式必須為嚴格的 JSON：{\"title\": \"商品簡短標題\", \"description\": \"商品詳細描述，包含可能的成色、規格等預測\"}" },
               {
-                inline_data: {
-                  mime_type: mimeType,
+                // 注意：Google REST API 這裡必須使用駝峰命名法 (inlineData, mimeType)
+                inlineData: {
+                  mimeType: mimeType,
                   data: base64Data
                 }
               }
@@ -53,13 +58,18 @@ export async function analyzeProductImage(input: { imageDataUri: string }): Prom
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error?.message || "Gemini 接口請求失敗");
+      // 嘗試獲取詳細的錯誤信息
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `Gemini 接口請求失敗 (HTTP ${response.status})`);
     }
 
     const data = await response.json();
-    const resultContent = data.candidates[0].content.parts[0].text;
+    const resultContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
+    if (!resultContent) {
+      throw new Error("Gemini 返回的數據結構異常，無法讀取內容");
+    }
+
     // 解析返回的 JSON 數據
     const parsedResult = JSON.parse(resultContent);
 

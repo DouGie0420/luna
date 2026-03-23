@@ -1,341 +1,460 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUser, useFirestore } from '@/firebase';
 import { useWeb3 } from '@/contexts/Web3Context';
-import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Wallet, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
+import {
+  Wallet,
+  CheckCircle,
+  Clock,
+  XCircle,
   AlertCircle,
+
   Copy,
   ExternalLink,
-  Loader2
+  Loader2,
+  RefreshCw,
+  ArrowRight,
+  History,
+  Link2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatWalletAddress } from '@/lib/avatarUtils';
-import type { WalletChangeRequest } from '@/lib/types';
+import {
+  getWalletChangeEligibility,
+  submitWalletChangeRequest,
+  type WalletChangeRequestRecord,
+} from '@/lib/wallet-change-requests';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+
+function toDateText(value: any): string {
+  const date = value?.toDate ? value.toDate() : value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return '-';
+  return date.toLocaleString();
+}
+
+function GlassCard({ children, className, delay = 0, accentColor = 'purple' }: {
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  accentColor?: 'purple' | 'blue' | 'green' | 'yellow';
+}) {
+  const accents: Record<string, string> = {
+    purple: 'via-purple-500/30',
+    blue: 'via-blue-500/30',
+    green: 'via-green-500/30',
+    yellow: 'via-yellow-500/30',
+  };
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={cn('relative', className)}
+    >
+      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-white/5 via-transparent to-white/[0.02] pointer-events-none" />
+      <div className="relative bg-card/40 backdrop-blur-sm rounded-2xl border border-white/8 overflow-hidden">
+        <div className={cn('h-px w-full bg-gradient-to-r from-transparent to-transparent', accents[accentColor])} />
+        <div className="p-6">
+          {children}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function WalletManagementPage() {
   const { user, profile } = useUser();
-  const { account, connectWallet } = useWeb3();
+  const { account, connectWallet, boundWalletAddress, walletBindingMessage } = useWeb3();
   const firestore = useFirestore();
   const { toast } = useToast();
 
-  const [changeRequests, setChangeRequests] = useState<WalletChangeRequest[]>([]);
+  const [requests, setRequests] = useState<WalletChangeRequestRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showChangeForm, setShowChangeForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newWalletAddress, setNewWalletAddress] = useState('');
   const [reason, setReason] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [approvedThisMonth, setApprovedThisMonth] = useState(0);
+  const [hasPending, setHasPending] = useState(false);
 
-  // 加载钱包更换申请
-  useEffect(() => {
+  const connectedWallet = account?.toLowerCase() || null;
+  const boundWallet = boundWalletAddress || profile?.walletAddress?.toLowerCase() || null;
+  const isMismatch = !!connectedWallet && !!boundWallet && connectedWallet !== boundWallet;
+
+  const loadRequests = async () => {
     if (!firestore || !user) return;
 
-    const loadChangeRequests = async () => {
-      try {
-        const requestsRef = collection(firestore, 'wallet_change_requests');
-        const q = query(requestsRef, where('userId', '==', user.uid));
-        const snapshot = await getDocs(q);
+    setIsLoading(true);
+    try {
+      const q = query(collection(firestore, 'walletChangeRequests'), where('userId', '==', user.uid));
+      const snapshot = await getDocs(q);
+      const rows = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      } as WalletChangeRequestRecord));
 
-        const requests: WalletChangeRequest[] = [];
-        snapshot.forEach((doc) => {
-          requests.push({
-            id: doc.id,
-            ...doc.data()
-          } as WalletChangeRequest);
-        });
+      rows.sort((a: any, b: any) => {
+        const aTime = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : 0;
+        const bTime = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : 0;
+        return bTime - aTime;
+      });
+      setRequests(rows);
 
-        setChangeRequests(requests.sort((a, b) => 
-          b.requestTime?.toDate?.().getTime() - a.requestTime?.toDate?.().getTime()
-        ));
-      } catch (error) {
-        console.error('Error loading change requests:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      const eligibility = await getWalletChangeEligibility(firestore, user.uid);
+      setApprovedThisMonth(eligibility.approvedThisMonth);
+      setHasPending(eligibility.hasPending);
+    } catch (error) {
+      console.error('Failed to load wallet change requests:', error);
+      toast({ variant: 'destructive', title: 'Load failed', description: 'Could not load wallet change requests.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    loadChangeRequests();
-  }, [firestore, user]);
+  useEffect(() => {
+    loadRequests().catch(console.error);
+  }, [firestore, user?.uid]);
+
+  const canSubmitRequest = useMemo(() => {
+    return !!user && !!firestore && !!boundWallet && approvedThisMonth < 2 && !hasPending;
+  }, [user, firestore, boundWallet, approvedThisMonth, hasPending]);
 
   const handleCopyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
-    toast({
-      title: 'Copied!',
-      description: 'Wallet address copied to clipboard.',
-    });
+    toast({ title: 'Copied!', description: 'Wallet address copied.' });
   };
 
   const handleSubmitChangeRequest = async () => {
-    if (!newWalletAddress.trim() || !reason.trim() || !user || !firestore || !profile?.walletAddress) {
-      toast({
-        title: 'Missing information',
-        description: 'Please fill in all fields.',
-        variant: 'destructive'
-      });
-      return;
-    }
-
-    // 验证地址格式
-    if (!newWalletAddress.startsWith('0x') || newWalletAddress.length !== 42) {
-      toast({
-        title: 'Invalid address',
-        description: 'Please enter a valid wallet address.',
-        variant: 'destructive'
-      });
-      return;
-    }
+    if (!firestore || !user || !boundWallet) return;
 
     setIsSubmitting(true);
-
     try {
-      await addDoc(collection(firestore, 'wallet_change_requests'), {
+      const result = await submitWalletChangeRequest({
+        firestore,
         userId: user.uid,
-        oldWalletAddress: profile.walletAddress,
-        newWalletAddress: newWalletAddress.trim(),
+        userName: profile?.displayName || user.displayName || 'User',
+        oldWalletAddress: boundWallet,
+        newWalletAddress: newWalletAddress,
+        source: 'manual',
         reason: reason.trim(),
-        status: 'pending',
-        requestTime: serverTimestamp()
       });
 
-      toast({
-        title: 'Request submitted!',
-        description: 'Your wallet change request has been submitted for review.',
-      });
+      if (!result.ok) {
+        toast({ variant: 'destructive', title: 'Request blocked', description: result.message });
+        return;
+      }
 
-      setShowChangeForm(false);
+      toast({ title: 'Request submitted', description: 'Your wallet change request is waiting for admin approval.' });
       setNewWalletAddress('');
       setReason('');
-
-      // 重新加载申请列表
-      window.location.reload();
+      await loadRequests();
     } catch (error) {
-      console.error('Error submitting change request:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to submit request. Please try again.',
-        variant: 'destructive'
-      });
+      console.error('Submit request failed:', error);
+      toast({ variant: 'destructive', title: 'Submit failed', description: 'Failed to create wallet change request.' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
-      case 'approved':
-        return <Badge className="bg-green-500/20 text-green-400 border-green-500/30"><CheckCircle className="h-3 w-3 mr-1" />Approved</Badge>;
-      case 'rejected':
-        return <Badge className="bg-red-500/20 text-red-400 border-red-500/30"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>;
-      default:
-        return null;
-    }
+    if (status === 'approved') return (
+      <Badge className="bg-green-500/15 text-green-400 border-green-500/25 text-xs">
+        <CheckCircle className="h-3 w-3 mr-1" />Approved
+      </Badge>
+    );
+    if (status === 'rejected') return (
+      <Badge className="bg-red-500/15 text-red-400 border-red-500/25 text-xs">
+        <XCircle className="h-3 w-3 mr-1" />Rejected
+      </Badge>
+    );
+    return (
+      <Badge className="bg-yellow-500/15 text-yellow-400 border-yellow-500/25 text-xs">
+        <Clock className="h-3 w-3 mr-1" />Pending
+      </Badge>
+    );
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black flex items-center justify-center">
-        <Card className="glass-morphism border-white/10 p-8 text-center">
-          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Please Sign In</h2>
-          <p className="text-white/60 mb-6">You need to sign in to manage your wallet.</p>
-          <Link href="/auth/signin">
-            <Button className="bg-gradient-to-r from-primary to-secondary">
-              Sign In
-            </Button>
-          </Link>
-        </Card>
+      <div className="flex items-center justify-center min-h-[60vh] px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative max-w-sm w-full text-center"
+        >
+          <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 pointer-events-none" />
+          <div className="relative bg-card/50 backdrop-blur-sm rounded-2xl border border-white/8 p-8">
+            <div className="p-4 rounded-2xl bg-yellow-500/15 border border-yellow-500/20 inline-flex mb-4">
+              <AlertCircle className="h-8 w-8 text-yellow-400" />
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">请先登录</h2>
+            <p className="text-muted-foreground/70 text-sm mb-6">您需要登录才能管理钱包。</p>
+            <Link href="/auth/signin">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 border-0">登录</Button>
+            </Link>
+          </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-purple-900/20 to-black">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="relative min-h-screen py-10 px-4 sm:px-6 lg:px-8">
+      {/* Background */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-blue-600/6 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 right-1/4 w-[350px] h-[350px] bg-purple-600/8 rounded-full blur-[100px]" />
+      </div>
+
+      <div className="container mx-auto max-w-4xl space-y-5">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gradient mb-2">Wallet Management</h1>
-          <p className="text-white/60">
-            Manage your connected wallet and request changes
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 mb-2"
+        >
+          <div className="p-3 rounded-2xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+            <Wallet className="w-6 h-6 text-blue-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent font-headline">
+              Wallet Management
+            </h1>
+            <p className="text-sm text-muted-foreground/70">Wallet changes require admin approval to protect payment security.</p>
+          </div>
+        </motion.div>
 
-        {/* Current Wallet */}
-        <Card className="glass-morphism border-white/10 p-6 mb-8">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            Current Wallet
-          </h2>
+        {/* Wallet Status Card */}
+        <GlassCard delay={0.1} accentColor="blue">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/20">
+              <Link2 className="w-4 h-4 text-blue-400" />
+            </div>
+            <h2 className="font-semibold text-sm text-foreground">Wallet Status</h2>
+          </div>
 
-          {profile?.walletAddress ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex-1">
-                  <p className="text-sm text-white/60 mb-1">Wallet Address</p>
-                  <p className="text-white font-mono">{profile.walletAddress}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleCopyAddress(profile.walletAddress!)}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                  <a
-                    href={`https://basescan.org/address/${profile.walletAddress}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button variant="ghost" size="sm">
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                  </a>
+          <div className="grid md:grid-cols-2 gap-3 mb-4">
+            <div className="p-4 rounded-xl bg-background/40 border border-white/8">
+              <p className="text-xs text-muted-foreground/60 mb-2">Connected Wallet</p>
+              <p className="text-sm font-mono text-foreground/90 break-all">
+                {connectedWallet || <span className="text-muted-foreground/50 italic">Not connected</span>}
+              </p>
+            </div>
+            <div className="p-4 rounded-xl bg-background/40 border border-white/8">
+              <p className="text-xs text-muted-foreground/60 mb-2">Bound Wallet</p>
+              <p className="text-sm font-mono text-foreground/90 break-all">
+                {boundWallet || <span className="text-muted-foreground/50 italic">Not bound</span>}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {/* 本月审批额度 */}
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-white/[0.04] border border-white/10">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="text-sm font-semibold text-white/70">本月已审批</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black text-white">{approvedThisMonth}</span>
+                <span className="text-sm text-white/35 font-mono">/ 2</span>
+                <div className="flex gap-1 ml-1">
+                  {[0,1].map(i => (
+                    <div key={i} className={`w-2.5 h-2.5 rounded-full ${i < approvedThisMonth ? 'bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.8)]' : 'bg-white/15'}`} />
+                  ))}
                 </div>
               </div>
-
-              {profile.walletBindTime && (
-                <p className="text-sm text-white/60">
-                  Bound since: {new Date(profile.walletBindTime.toDate()).toLocaleDateString()}
-                </p>
-              )}
-
-              {!showChangeForm && (
-                <Button
-                  onClick={() => setShowChangeForm(true)}
-                  variant="outline"
-                  className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
-                >
-                  Request Wallet Change
-                </Button>
-              )}
             </div>
-          ) : (
-            <div className="text-center py-8">
-              <Wallet className="h-12 w-12 text-white/20 mx-auto mb-4" />
-              <p className="text-white/60 mb-4">No wallet connected</p>
-              <Button
-                onClick={connectWallet}
-                className="bg-gradient-to-r from-primary to-secondary"
-              >
-                Connect Wallet
-              </Button>
+
+            {/* Pending */}
+            {hasPending && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+                <Clock className="w-5 h-5 text-yellow-400 shrink-0 animate-pulse" />
+                <div>
+                  <p className="text-sm font-black text-yellow-300">有待审批的绑定请求</p>
+                  <p className="text-xs text-yellow-400/60 mt-0.5">Pending wallet binding request</p>
+                </div>
+                <div className="ml-auto w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.8)]" />
+              </div>
+            )}
+
+            {/* Mismatch */}
+            {isMismatch && (
+              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-orange-500/10 border border-orange-500/30">
+                <AlertCircle className="w-5 h-5 text-orange-400 shrink-0" />
+                <div>
+                  <p className="text-sm font-black text-orange-300">当前连接钱包与绑定钱包不一致</p>
+                  <p className="text-xs text-orange-400/60 mt-0.5">Connected wallet differs from bound wallet</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {walletBindingMessage && (
+            <div className="mt-4 rounded-xl border border-blue-500/20 bg-blue-500/8 p-3 text-sm text-blue-200">
+              {walletBindingMessage}
             </div>
           )}
-        </Card>
+
+          {!account && (
+            <Button
+              onClick={async () => {
+                try {
+                  await connectWallet();
+                } catch (err: any) {
+                  const msg = err?.message || '';
+                  if (err?.code === 4001 || msg.includes('rejected') || msg.includes('denied')) {
+                    toast({ variant: 'destructive', title: '已取消', description: '你在 MetaMask 中拒绝了连接请求。' });
+                  } else if (msg.includes('not installed') || msg.includes('not detected')) {
+                    toast({ variant: 'destructive', title: '未检测到钱包', description: '请安装 MetaMask 或其他 Web3 钱包扩展后重试。' });
+                  } else {
+                    toast({ variant: 'destructive', title: '连接失败', description: msg || '无法连接钱包，请重试。' });
+                  }
+                }
+              }}
+              className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0 shadow-[0_0_15px_rgba(59,130,246,0.25)]"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Connect Wallet
+            </Button>
+          )}
+        </GlassCard>
 
         {/* Change Request Form */}
-        {showChangeForm && (
-          <Card className="glass-morphism border-yellow-500/30 p-6 mb-8 bg-yellow-500/5">
-            <h3 className="text-lg font-bold text-white mb-4">Request Wallet Change</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-white/70 mb-2 block">New Wallet Address</label>
-                <Input
-                  value={newWalletAddress}
-                  onChange={(e) => setNewWalletAddress(e.target.value)}
-                  placeholder="0x..."
-                  className="bg-black/40 border-white/20 text-white"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-white/70 mb-2 block">Reason for Change</label>
-                <Textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Please explain why you need to change your wallet..."
-                  className="bg-black/40 border-white/20 text-white"
-                  rows={4}
-                />
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleSubmitChangeRequest}
-                  disabled={isSubmitting}
-                  className="flex-1 bg-gradient-to-r from-primary to-secondary"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Request'
-                  )}
-                </Button>
-                <Button
-                  onClick={() => setShowChangeForm(false)}
-                  variant="outline"
-                  className="border-white/20"
-                >
-                  Cancel
-                </Button>
-              </div>
+        <GlassCard delay={0.2} accentColor="purple">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/20">
+              <ArrowRight className="w-4 h-4 text-purple-400" />
             </div>
-          </Card>
-        )}
+            <div>
+              <h2 className="font-semibold text-sm text-foreground">Manual Wallet Change Request</h2>
+              <p className="text-xs text-muted-foreground/60">If auto-request was not triggered, you can submit a request here.</p>
+            </div>
+          </div>
 
-        {/* Change Requests History */}
-        <Card className="glass-morphism border-white/10 p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Change Request History</h2>
+          <div className="h-px bg-white/5 mb-5" />
+
+          <div className="space-y-3">
+            <Input
+              value={newWalletAddress}
+              onChange={(e) => setNewWalletAddress(e.target.value)}
+              placeholder="New wallet address (0x...)"
+              className="bg-background/50 border-white/10 hover:border-purple-500/30 focus:border-purple-500/60 focus-visible:ring-purple-500/20 font-mono text-sm transition-colors"
+              disabled={!canSubmitRequest || isSubmitting}
+            />
+            <Textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Reason for wallet change"
+              className="bg-background/50 border-white/10 hover:border-purple-500/30 focus:border-purple-500/60 focus-visible:ring-purple-500/20 text-sm resize-none transition-colors"
+              rows={3}
+              disabled={!canSubmitRequest || isSubmitting}
+            />
+            <div className="flex items-center justify-between gap-3">
+              <Button
+                onClick={handleSubmitChangeRequest}
+                disabled={!canSubmitRequest || isSubmitting || !newWalletAddress.trim()}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0 shadow-[0_0_15px_rgba(168,85,247,0.25)] transition-all"
+              >
+                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Submit Change Request
+              </Button>
+              {!canSubmitRequest && (
+                <p className="text-xs text-yellow-400/80 flex-1">
+                  Cannot submit: pending request exists, monthly limit reached, or no bound wallet.
+                </p>
+              )}
+            </div>
+          </div>
+        </GlassCard>
+
+        {/* Request History */}
+        <GlassCard delay={0.3} accentColor="green">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="p-2 rounded-xl bg-green-500/15 border border-green-500/20">
+              <History className="w-4 h-4 text-green-400" />
+            </div>
+            <h2 className="font-semibold text-sm text-foreground">Request History</h2>
+          </div>
+
+          <div className="h-px bg-white/5 mb-4" />
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-10">
+              <div className="relative">
+                <div className="absolute -inset-3 bg-purple-500/15 rounded-full blur-lg animate-pulse" />
+                <Loader2 className="relative h-7 w-7 animate-spin text-purple-400" />
+              </div>
             </div>
-          ) : changeRequests.length === 0 ? (
-            <div className="text-center py-8">
-              <Clock className="h-12 w-12 text-white/20 mx-auto mb-4" />
-              <p className="text-white/60">No change requests yet</p>
+          ) : requests.length === 0 ? (
+            <div className="text-center py-10 text-muted-foreground/50 text-sm">
+              No wallet change requests yet.
             </div>
           ) : (
-            <div className="space-y-4">
-              {changeRequests.map((request) => (
-                <div
+            <div className="space-y-3">
+              {requests.map((request: any, idx) => (
+                <motion.div
                   key={request.id}
-                  className="p-4 bg-white/5 rounded-lg border border-white/10"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="p-4 rounded-xl bg-background/30 border border-white/8 hover:border-white/12 transition-colors space-y-3"
                 >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        {getStatusBadge(request.status)}
-                        <span className="text-xs text-white/40">
-                          {request.requestTime?.toDate?.().toLocaleDateString()}
-                        </span>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    {getStatusBadge(request.status)}
+                    <span className="text-xs text-muted-foreground/40">
+                      Created: {toDateText(request.createdAt || request.requestTime)}
+                    </span>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg bg-background/40 border border-white/5">
+                      <p className="text-xs text-muted-foreground/50 mb-1">From</p>
+                      <p className="text-sm font-mono text-foreground/80">{formatWalletAddress(request.oldWalletAddress || '')}</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-background/40 border border-white/5">
+                      <p className="text-xs text-muted-foreground/50 mb-1">To</p>
+                      <p className="text-sm font-mono text-foreground/80">{formatWalletAddress(request.newWalletAddress || '')}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="text-xs text-muted-foreground/50 space-x-3">
+                      <span>Reviewed: {toDateText(request.reviewedAt || request.reviewTime)}</span>
+                      {request.rejectionReason && (
+                        <span className="text-red-400/70">Reason: {request.rejectionReason}</span>
+                      )}
+                    </div>
+                    {request.newWalletAddress && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCopyAddress(request.newWalletAddress)}
+                          className="h-7 w-7 p-0 hover:bg-white/5"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                        <a href={`https://basescan.org/address/${request.newWalletAddress}`} target="_blank" rel="noopener noreferrer">
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-white/5">
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Button>
+                        </a>
                       </div>
-                      <p className="text-sm text-white/60 mb-1">From:</p>
-                      <p className="text-white font-mono text-sm mb-2">{formatWalletAddress(request.oldWalletAddress)}</p>
-                      <p className="text-sm text-white/60 mb-1">To:</p>
-                      <p className="text-white font-mono text-sm mb-2">{formatWalletAddress(request.newWalletAddress)}</p>
-                    </div>
+                    )}
                   </div>
-                  <div className="p-3 bg-black/40 rounded-lg">
-                    <p className="text-sm text-white/60 mb-1">Reason:</p>
-                    <p className="text-sm text-white">{request.reason}</p>
-                  </div>
-                  {request.status === 'rejected' && request.reviewNote && (
-                    <div className="mt-3 p-3 bg-red-500/10 rounded-lg border border-red-500/30">
-                      <p className="text-sm text-red-400 mb-1">Admin Note:</p>
-                      <p className="text-sm text-white">{request.reviewNote}</p>
-                    </div>
-                  )}
-                </div>
+                </motion.div>
               ))}
             </div>
           )}
-        </Card>
+        </GlassCard>
       </div>
     </div>
   );

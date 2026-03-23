@@ -26,9 +26,9 @@ import { useUser, useFirestore, useDoc } from '@/firebase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { 
-  Edit, Trash2, Loader2, MapPin, Sparkles, ShieldAlert, 
-  Zap, UserPlus, MessageSquare, TerminalSquare,
-  Wallet, QrCode, Smartphone, CreditCard, ShieldCheck 
+  Edit, Trash2, Loader2, MapPin, Sparkles, ShieldAlert,
+  Zap, UserPlus, MessageSquare,
+  Wallet, QrCode, Smartphone, CreditCard, ShieldCheck
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
@@ -40,6 +40,39 @@ import { OrderConfirmDialog } from '@/components/checkout/OrderConfirmDialog';
 import type { PaymentMethod } from '@/components/checkout/PaymentMethodSelector';
 
 const safeClass = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ');
+
+const memphisStyles = `
+  @keyframes blob1 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(30px,-20px) scale(1.1)} 66%{transform:translate(-20px,15px) scale(0.95)} }
+  @keyframes blob2 { 0%,100%{transform:translate(0,0) scale(1)} 33%{transform:translate(-25px,20px) scale(1.05)} 66%{transform:translate(20px,-15px) scale(1.1)} }
+  @keyframes blob3 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(15px,25px) scale(0.9)} }
+  .memphis-blob1 { animation: blob1 8s ease-in-out infinite; }
+  .memphis-blob2 { animation: blob2 10s ease-in-out infinite; }
+  .memphis-blob3 { animation: blob3 12s ease-in-out infinite; }
+  .memphis-dots {
+    background-image: radial-gradient(circle, rgba(255,230,109,0.18) 1.5px, transparent 1.5px),
+                      radial-gradient(circle, rgba(255,107,107,0.12) 1px, transparent 1px);
+    background-size: 22px 22px, 11px 11px;
+    background-position: 0 0, 11px 11px;
+  }
+  .memphis-stripes {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(78,205,196,0.08) 0px, rgba(78,205,196,0.08) 2px,
+      transparent 2px, transparent 14px
+    );
+  }
+  .memphis-zigzag {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(255,142,83,0.07) 0px, rgba(255,142,83,0.07) 3px,
+      transparent 3px, transparent 12px
+    ), repeating-linear-gradient(
+      -45deg,
+      rgba(168,85,247,0.07) 0px, rgba(168,85,247,0.07) 3px,
+      transparent 3px, transparent 12px
+    );
+  }
+`;
 
 function ProductPageSkeleton() {
     return (
@@ -84,6 +117,14 @@ export default function ClientProductDetail() {
     const [loadingRecs, setLoadingRecs] = useState(true);
     const [isFollowing, setIsFollowing] = useState(false);
     const [localFollowerCount, setLocalFollowerCount] = useState(0);
+    const [ethUsdPrice, setEthUsdPrice] = useState<number | null>(null);
+
+    useEffect(() => {
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+            .then(r => r.json())
+            .then(data => setEthUsdPrice(data?.ethereum?.usd || null))
+            .catch(() => {});
+    }, []);
 
     useEffect(() => { window.scrollTo(0, 0); }, []);
     
@@ -140,12 +181,12 @@ export default function ClientProductDetail() {
 
     const handleOpenPurchaseDialog = () => {
         if (!user) {
-            toast({ title: 'Please sign in', description: 'You need to sign in to make a purchase.', variant: 'destructive' });
+            toast({ title: t('product.pleaseSignIn'), description: t('product.pleaseSignInDesc'), variant: 'destructive' });
             router.push('/auth/signin');
             return;
         }
         if (!selectedPaymentMethod) {
-            toast({ title: '未选择支付方式', description: '请先在上方选择一种支付方式', variant: 'destructive' });
+            toast({ title: t('product.noPaymentSelected'), description: t('product.noPaymentSelectedDesc'), variant: 'destructive' });
             return;
         }
         setIsOrderDialogOpen(true);
@@ -168,7 +209,7 @@ export default function ClientProductDetail() {
             };
             const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
             
-            toast({ title: 'Order created!', description: 'Redirecting to payment...' });
+            toast({ title: t('product.orderCreated'), description: t('product.orderCreatedDesc') });
             
             if (finalMethod === 'eth' || finalMethod === 'usdt') { 
                 router.push(`/checkout/${orderRef.id}`);
@@ -177,17 +218,26 @@ export default function ClientProductDetail() {
             }
         } catch (error) {
             console.error('Error creating order:', error);
-            toast({ title: 'Error', description: 'Failed to create order. Please try again.', variant: 'destructive' });
+            toast({ title: t('product.orderError'), description: t('product.orderErrorDesc'), variant: 'destructive' });
             throw error;
         }
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden bg-[#050508] pb-20">
-            {/* 全局背景氛围流动光 */}
-            <div className="fixed inset-0 pointer-events-none z-0 opacity-40 mix-blend-screen">
-                <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 blur-[120px] rounded-full animate-blob" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-900/10 blur-[150px] rounded-full animate-blob animation-delay-2000" />
+        <div className="min-h-screen relative overflow-hidden pb-20" style={{ background: 'radial-gradient(ellipse at 20% 0%, #1a0a2e 0%, #0d0d1a 40%, #050508 100%)' }}>
+            <style dangerouslySetInnerHTML={{ __html: memphisStyles }} />
+            {/* 背景装饰层 */}
+            <div className="fixed inset-0 pointer-events-none z-0">
+                {/* 细网格纹理 */}
+                <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+                {/* 主光晕 - 左上紫 */}
+                <div className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] rounded-full blur-[130px]" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)' }} />
+                {/* 右侧青蓝光晕 */}
+                <div className="absolute top-[20%] right-[-15%] w-[45vw] h-[45vw] rounded-full blur-[120px]" style={{ background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)' }} />
+                {/* 底部粉紫光晕 */}
+                <div className="absolute bottom-[-10%] left-[30%] w-[50vw] h-[40vw] rounded-full blur-[140px]" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.10) 0%, transparent 70%)' }} />
+                {/* 中央微亮点 */}
+                <div className="absolute top-[45%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[30vw] h-[30vw] rounded-full blur-[100px]" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)' }} />
             </div>
 
             <div className="relative z-50">
@@ -225,30 +275,30 @@ export default function ClientProductDetail() {
                             </div>
                         </div>
                         
-                        {/* 描述卡片：赛博风细节 */}
-                        <Card className="relative overflow-hidden bg-[#0A0A0E]/80 backdrop-blur-2xl border border-white/10 rounded-[32px] shadow-2xl group transition-all duration-500 hover:border-white/20">
-                            {/* 卡片内部呼吸灯 */}
-                            <div className="absolute -top-32 -right-32 w-64 h-64 bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-cyan-500/20 transition-all duration-700" />
-                            
-                            <CardHeader className="border-b border-white/5 p-8 flex flex-row items-center justify-between relative z-10">
-                                <CardTitle className="text-xl font-black italic uppercase tracking-tighter flex items-center gap-3 text-white">
-                                    <Sparkles className="h-5 w-5 text-cyan-400 animate-pulse" /> {t('product.description')}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-8 space-y-8 relative z-10">
-                                <p className="text-white/70 leading-relaxed italic whitespace-pre-wrap text-lg font-light">{product.description}</p>
-                            </CardContent>
-                        </Card>
+                        {/* 描述卡片：同 Communication Terminal 风格 */}
+                        <div className="relative overflow-hidden bg-[#0A0A0C]/70 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-8 group transition-all duration-500 hover:border-purple-500/30">
+                            <div className="memphis-blob1 absolute -top-16 -right-16 w-52 h-52 rounded-full blur-[70px] opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFE66D 0%, #FF8E53 60%, transparent 100%)' }} />
+                            <div className="memphis-blob3 absolute -bottom-16 -left-10 w-44 h-44 rounded-full blur-[60px] opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #A855F7 0%, #FF6B6B 60%, transparent 100%)' }} />
+                            <div className="absolute inset-0 memphis-zigzag pointer-events-none rounded-[32px]" />
+                            <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent opacity-50" />
 
-                        {/* ✅ 调整位置：Communication Terminal (留言板) 移至描述下方 */}
-                        <div className="relative overflow-hidden bg-gradient-to-b from-[#0A0A0E]/90 to-[#050508]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-8 group transition-all duration-500 hover:border-white/20">
-                            {/* 顶部赛博扫描线 */}
+                            <div className="relative z-10">
+                                <h3 className="text-sm font-black italic text-yellow-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
+                                    <Sparkles className="w-4 h-4" /> {t('product.description')}
+                                </h3>
+                                <p className="text-white/90 leading-relaxed whitespace-pre-wrap text-base">{product.description}</p>
+                            </div>
+                        </div>
+
+                        {/* Communication Terminal — Memphis zigzag */}
+                        <div className="relative overflow-hidden bg-[#0A0A0C]/70 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] p-8 group transition-all duration-500 hover:border-purple-500/30">
+                            <div className="memphis-blob2 absolute -top-16 -left-16 w-52 h-52 rounded-full blur-[70px] opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #FF6B6B 0%, #A855F7 60%, transparent 100%)' }} />
+                            <div className="memphis-blob1 absolute -bottom-16 -right-16 w-44 h-44 rounded-full blur-[60px] opacity-25 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFE66D 0%, transparent 70%)' }} />
+                            <div className="absolute inset-0 memphis-zigzag pointer-events-none rounded-[32px]" />
                             <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-purple-500/50 to-transparent opacity-50" />
-                            <div className="absolute -bottom-24 -left-10 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px] pointer-events-none" />
-                            
                             <div className="relative z-10">
                                 <h3 className="text-sm font-black italic text-purple-400 uppercase tracking-[0.2em] flex items-center gap-2 mb-6">
-                                    <TerminalSquare className="w-4 h-4" /> Communication Terminal
+                                    <MessageSquare className="w-4 h-4" /> {t('product.communicationTerminal')}
                                 </h3>
                                 <ProductCommentSection productId={product.id} sellerId={product.sellerId} />
                             </div>
@@ -261,77 +311,85 @@ export default function ClientProductDetail() {
                         {/* 粘性滚动容器，确保右侧在滚动时始终优雅固定 */}
                         <div className="sticky top-28 space-y-10 pb-12">
                             
-                            {/* 核心支付交易卡片 */}
-                            <div className="relative overflow-hidden bg-[#0A0A0C]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.8)] flex flex-col gap-8 group transition-all hover:border-white/20">
-                                {/* 高级流体发光体 */}
-                                <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/10 rounded-full filter blur-[80px] animate-blob opacity-50 pointer-events-none transition-all duration-700 group-hover:bg-primary/20 group-hover:scale-110" />
-                                <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/10 rounded-full filter blur-[80px] animate-blob animation-delay-2000 opacity-30 pointer-events-none" />
-                                
+                            {/* 核心支付交易卡片 — Memphis fluid */}
+                            <div className="relative overflow-hidden bg-[#0A0A0C]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] p-8 shadow-[0_30px_60px_rgba(0,0,0,0.8)] flex flex-col gap-8 group transition-all hover:border-purple-500/30">
+                                {/* Memphis fluid blobs */}
+                                <div className="memphis-blob1 absolute -top-16 -right-16 w-64 h-64 rounded-full blur-[70px] opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFE66D 0%, #FF6B6B 60%, transparent 100%)' }} />
+                                <div className="memphis-blob2 absolute -bottom-16 -left-16 w-56 h-56 rounded-full blur-[70px] opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #4ECDC4 0%, #A855F7 60%, transparent 100%)' }} />
+                                <div className="memphis-blob3 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[90px] opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, #FF8E53 0%, transparent 70%)' }} />
+                                {/* Memphis dot pattern overlay */}
+                                <div className="absolute inset-0 memphis-dots pointer-events-none rounded-[32px]" />
+
                                 <div className="relative z-10 space-y-4">
                                     <ProductTitleWithBadge product={product} />
-                                    <div className="flex items-baseline gap-2">
+                                    <div className="flex flex-col gap-1">
                                         <span className="text-5xl font-black titanium-title text-primary italic drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]">
                                             {Number(product.price || 0).toLocaleString('en-US', { maximumFractionDigits: 6 })} ETH
                                         </span>
+                                        {ethUsdPrice && (
+                                            <span className="text-2xl font-black text-white/70 font-mono tracking-tight">
+                                                ≈ <span className="text-yellow-400 drop-shadow-[0_0_12px_rgba(250,204,21,0.5)]">${(Number(product.price || 0) * ethUsdPrice).toLocaleString('en-US', { maximumFractionDigits: 0 })}</span> <span className="text-base font-bold text-white/40">USD</span>
+                                            </span>
+                                        )}
                                     </div>
                                     <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.4em] pl-1 flex items-center gap-2">
                                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                                        Node Execution Protocol
+                                        {t('product.nodeExecutionProtocol')}
                                     </p>
                                 </div>
 
                                 {/* 支付通道网格 */}
                                 <div className="relative z-10 grid grid-cols-2 gap-4 pt-2">
-                                    <Button 
-                                        variant="outline" 
-                                        disabled={!pms.eth} 
+                                    <Button
+                                        variant="outline"
+                                        disabled={!pms.eth}
                                         onClick={() => setSelectedPaymentMethod('eth')}
                                         className={safeClass(
-                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem] relative overflow-hidden", 
-                                            !pms.eth ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'eth' ? "border-primary bg-primary/10 shadow-[0_0_20px_rgba(168,85,247,0.25)] scale-[1.02]" : "bg-black/40"
+                                            "h-16 flex items-center justify-center gap-3 transition-all rounded-[1.2rem] relative overflow-hidden",
+                                            !pms.eth ? "opacity-40 grayscale cursor-not-allowed bg-white/5 border-white/10" : "hover:bg-white/15 border-white/20",
+                                            selectedPaymentMethod === 'eth' ? "border-primary bg-primary/15 shadow-[0_0_20px_rgba(168,85,247,0.3)] scale-[1.02]" : ""
                                         )}>
-                                      <Wallet className={safeClass("w-5 h-5", selectedPaymentMethod === 'eth' ? "text-primary" : "text-white/50")} /> 
-                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'eth' ? "text-white" : "text-white/50")}>BASE ETH</span>
+                                      <Wallet className={safeClass("w-5 h-5", selectedPaymentMethod === 'eth' ? "text-primary" : "text-white/80")} />
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'eth' ? "text-white" : "text-white/80")}>ETH</span>
                                     </Button>
 
-                                    <Button 
-                                        variant="outline" 
-                                        disabled={!pms.alipay} 
+                                    <Button
+                                        variant="outline"
+                                        disabled={!pms.alipay}
                                         onClick={() => setSelectedPaymentMethod('alipay')}
                                         className={safeClass(
-                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
-                                            !pms.alipay ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'alipay' ? "border-blue-400 bg-blue-400/10 shadow-[0_0_20px_rgba(96,165,250,0.25)] scale-[1.02]" : "bg-black/40"
+                                            "h-16 flex items-center justify-center gap-3 transition-all rounded-[1.2rem]",
+                                            !pms.alipay ? "opacity-40 grayscale cursor-not-allowed bg-white/5 border-white/10" : "hover:bg-white/15 border-white/20",
+                                            selectedPaymentMethod === 'alipay' ? "border-blue-400 bg-blue-400/15 shadow-[0_0_20px_rgba(96,165,250,0.3)] scale-[1.02]" : ""
                                         )}>
-                                      <Smartphone className={safeClass("w-5 h-5", selectedPaymentMethod === 'alipay' ? "text-blue-400" : "text-white/50")} /> 
-                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'alipay' ? "text-white" : "text-white/50")}>Alipay</span>
+                                      <Smartphone className={safeClass("w-5 h-5", selectedPaymentMethod === 'alipay' ? "text-blue-400" : "text-white/80")} />
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'alipay' ? "text-white" : "text-white/80")}>Alipay</span>
                                     </Button>
 
-                                    <Button 
-                                        variant="outline" 
-                                        disabled={!pms.wechat} 
+                                    <Button
+                                        variant="outline"
+                                        disabled={!pms.wechat}
                                         onClick={() => setSelectedPaymentMethod('wechat')}
                                         className={safeClass(
-                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
-                                            !pms.wechat ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'wechat' ? "border-green-500 bg-green-500/10 shadow-[0_0_20px_rgba(34,197,94,0.25)] scale-[1.02]" : "bg-black/40"
+                                            "h-16 flex items-center justify-center gap-3 transition-all rounded-[1.2rem]",
+                                            !pms.wechat ? "opacity-40 grayscale cursor-not-allowed bg-white/5 border-white/10" : "hover:bg-white/15 border-white/20",
+                                            selectedPaymentMethod === 'wechat' ? "border-green-500 bg-green-500/15 shadow-[0_0_20px_rgba(34,197,94,0.3)] scale-[1.02]" : ""
                                         )}>
-                                      <QrCode className={safeClass("w-5 h-5", selectedPaymentMethod === 'wechat' ? "text-green-500" : "text-white/50")} /> 
-                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'wechat' ? "text-white" : "text-white/50")}>WeChat</span>
+                                      <QrCode className={safeClass("w-5 h-5", selectedPaymentMethod === 'wechat' ? "text-green-500" : "text-white/80")} />
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'wechat' ? "text-white" : "text-white/80")}>WeChat</span>
                                     </Button>
 
-                                    <Button 
-                                        variant="outline" 
-                                        disabled={!pms.promptpay} 
+                                    <Button
+                                        variant="outline"
+                                        disabled={!pms.promptpay}
                                         onClick={() => setSelectedPaymentMethod('promptpay')}
                                         className={safeClass(
-                                            "h-16 flex items-center justify-center gap-3 border-white/5 transition-all rounded-[1.2rem]", 
-                                            !pms.promptpay ? "opacity-20 grayscale cursor-not-allowed bg-black/40" : "hover:bg-white/10",
-                                            selectedPaymentMethod === 'promptpay' ? "border-sky-400 bg-sky-400/10 shadow-[0_0_20px_rgba(56,189,248,0.25)] scale-[1.02]" : "bg-black/40"
+                                            "h-16 flex items-center justify-center gap-3 transition-all rounded-[1.2rem]",
+                                            !pms.promptpay ? "opacity-40 grayscale cursor-not-allowed bg-white/5 border-white/10" : "hover:bg-white/15 border-white/20",
+                                            selectedPaymentMethod === 'promptpay' ? "border-sky-400 bg-sky-400/15 shadow-[0_0_20px_rgba(56,189,248,0.3)] scale-[1.02]" : ""
                                         )}>
-                                      <CreditCard className={safeClass("w-5 h-5", selectedPaymentMethod === 'promptpay' ? "text-sky-400" : "text-white/50")} /> 
-                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'promptpay' ? "text-white" : "text-white/50")}>PromptPay</span>
+                                      <CreditCard className={safeClass("w-5 h-5", selectedPaymentMethod === 'promptpay' ? "text-sky-400" : "text-white/80")} />
+                                      <span className={safeClass("font-black italic uppercase tracking-widest text-[11px]", selectedPaymentMethod === 'promptpay' ? "text-white" : "text-white/80")}>PromptPay</span>
                                     </Button>
                                 </div>
                                 
@@ -346,19 +404,19 @@ export default function ClientProductDetail() {
                                                 : "bg-gradient-to-r from-primary to-purple-600 text-black shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-[0.98]"
                                         )}
                                     >
-                                        {isOwner ? 'Your Own Product' : (selectedPaymentMethod ? 'EXECUTE / 立即购买' : 'Select Gateway')}
+                                        {isOwner ? t('product.yourOwnProduct') : (selectedPaymentMethod ? t('product.executeNow') : t('product.selectGateway'))}
                                     </Button>
                                     <div className="mt-5 p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center gap-2">
                                         <ShieldCheck className="w-4 h-4 text-primary/70" />
                                         <p className="text-[10px] text-white/50 font-mono uppercase tracking-widest">
-                                            Smart Escrow Protection Active
+                                            {t('product.smartEscrowProtection')}
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="relative z-10 pt-8 border-t border-white/5 space-y-6">
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 pl-1 flex items-center gap-2">
-                                        <UserPlus className="w-3 h-3" /> Authorized Provider
+                                        <UserPlus className="w-3 h-3" /> {t('product.authorizedProvider')}
                                     </h3>
                                     <div className="bg-white/[0.02] rounded-2xl p-2 border border-white/5 hover:border-white/10 transition-colors">
                                         <SellerProfileCard seller={{...product.seller, followerCount: localFollowerCount}} className="bg-transparent border-none p-0 shadow-none" />
@@ -368,22 +426,24 @@ export default function ClientProductDetail() {
 
                             {/* ✅ 调整位置：地图模块紧跟在卖家名片下方，并提升美学质感 */}
                             {product.location && (
-                                <Card className="relative overflow-hidden bg-[#0A0A0C]/90 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] group hover:border-cyan-500/30 transition-all duration-500">
-                                    <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay pointer-events-none" />
-                                    <div className="absolute -top-24 -right-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-[80px] pointer-events-none" />
-                                    
-                                    <CardHeader className="border-b border-white/5 p-6 relative z-10">
-                                        <CardTitle className="text-sm font-black italic uppercase tracking-widest flex items-center gap-2 text-cyan-400">
-                                            <MapPin className="h-4 w-4" /> Location Node
-                                        </CardTitle>
-                                    </CardHeader>
-                                    <CardContent className="p-0 h-[250px] relative z-10">
-                                         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+                                <div className="relative overflow-hidden bg-[#0A0A0C]/70 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] group hover:border-yellow-500/30 transition-all duration-500">
+                                    <div className="memphis-blob2 absolute -top-16 -right-12 w-48 h-48 rounded-full blur-[65px] opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFE66D 0%, #FF8E53 60%, transparent 100%)' }} />
+                                    <div className="memphis-blob3 absolute -bottom-10 -left-10 w-36 h-36 rounded-full blur-[55px] opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle, #FFD700 0%, transparent 70%)' }} />
+                                    <div className="absolute inset-0 memphis-zigzag pointer-events-none rounded-[32px]" />
+                                    <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent opacity-50" />
+
+                                    <div className="relative z-10 px-6 pt-6 pb-3">
+                                        <h3 className="text-sm font-black italic text-cyan-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <MapPin className="w-4 h-4" /> {t('product.locationNode')}
+                                        </h3>
+                                    </div>
+                                    <div className="relative z-10 h-[250px] mx-4 mb-4 rounded-2xl overflow-hidden">
+                                        <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
                                             <MapComponent center={product.location} zoom={13} markerPosition={product.location} readOnly />
                                         </APIProvider>
-                                        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_40px_rgba(10,10,12,1)]" />
-                                    </CardContent>
-                                </Card>
+                                        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_30px_rgba(10,10,12,0.6)]" />
+                                    </div>
+                                </div>
                             )}
 
                         </div>

@@ -3,7 +3,7 @@
 
 import { useUser, useFirestore, useDoc } from '@/firebase';
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { analyzeProductImage } from '@/ai';
 import type { PaymentMethod, GlobalSettings } from '@/lib/types';
 import { compressImage } from '@/lib/image-compressor';
+import { uploadToR2 } from '@/lib/upload';
 import { addDoc, collection, serverTimestamp, updateDoc, doc, increment } from 'firebase/firestore';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -95,6 +96,7 @@ export default function NewProductPage() {
   const router = useRouter();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { t } = useTranslation();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -121,6 +123,7 @@ export default function NewProductPage() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // ✅ 核心修改：将默认收款通道改为 ETH
   const [acceptedMethods, setAcceptedMethods] = useState<PaymentMethod[]>(['ETH']);
@@ -143,7 +146,7 @@ export default function NewProductPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (p) => setCurrentUserLocation({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        () => setLocationError("无法获取定位权限。")
+        () => setLocationError(t('newProductPageNew.locationRequired'))
       );
     }
   }, []);
@@ -151,7 +154,7 @@ export default function NewProductPage() {
   const handleLocationConfirm = (locData: any) => {
     setProductLocation(locData);
     setIsLocationPickerOpen(false);
-    toast({ title: "发货定位已锁定", description: `${locData.address} 已记录。` });
+    toast({ title: t('newProductPageNew.locationLocked') });
   };
 
   const handleAddVideoUrl = () => {
@@ -159,7 +162,7 @@ export default function NewProductPage() {
       setVideoUrls(prev => [...prev, videoUrl]);
       setVideoUrl('');
       setIsVideoDialogOpen(false);
-      toast({ title: "视频链接已添加" });
+      toast({ title: t('newProductPageNew.videoAdded') });
     }
   };
 
@@ -186,7 +189,7 @@ export default function NewProductPage() {
 
   const confirmConsignment = () => {
       if (!consignmentContact.trim()) {
-          toast({ variant: 'destructive', title: "未填写通讯方式", description: "必须填写准确的账号/号码，以便官方审核通过后指引发货。" });
+          toast({ variant: 'destructive', title: t('newProductPageNew.contactMethodLabel'), description: t('newProductPageNew.consignmentNote') });
           return;
       }
       setIsConsignment(true);
@@ -197,28 +200,35 @@ export default function NewProductPage() {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const fileArray = Array.from(files);
-    
+
     if ((imagePreviews.length + fileArray.length) > 9) {
-      toast({ variant: 'destructive', title: '最多允许上传 9 张图片' });
-      e.target.value = ''; 
+      toast({ variant: 'destructive', title: t('newProductPageNew.maxImages') });
+      e.target.value = '';
       return;
     }
-    
+
     setIsAiLoading(true);
     try {
-      const compressedPreviews = await Promise.all(fileArray.map(f => compressImage(f)));
-      setImagePreviews(prev => [...prev, ...compressedPreviews]);
-      if (isAiAnalysisEnabled && compressedPreviews.length > 0) {
-        const result = await analyzeProductImage({ imageDataUri: compressedPreviews[0] });
-        setName(result.title);
-        setDescription(result.description);
-        toast({ title: "AI 分析完毕" });
+      const uploadedUrls = await Promise.all(fileArray.map(f => uploadToR2(f, 'products')));
+      setImagePreviews(prev => [...prev, ...uploadedUrls]);
+      if (isAiAnalysisEnabled && fileArray.length > 0) {
+        try {
+          const dataUri = await compressImage(fileArray[0]);
+          const result = await analyzeProductImage({ imageDataUri: dataUri });
+          setName(result.title);
+          setDescription(result.description);
+          toast({ title: t('newProductPageNew.aiAnalysisDone') });
+        } catch (aiErr) {
+          console.error('AI analysis failed:', aiErr);
+          toast({ variant: 'destructive', title: t('newProductPageNew.aiAnalysisFailed'), description: t('newProductPageNew.aiAnalysisFailedDesc') });
+        }
       }
-    } catch (err) { 
-      console.error(err); 
-    } finally { 
-      setIsAiLoading(false); 
-      e.target.value = ''; 
+    } catch (err) {
+      console.error(err);
+      toast({ variant: 'destructive', title: t('newProductPageNew.imageUploadFailed'), description: t('newProductPageNew.imageUploadFailedDesc') });
+    } finally {
+      setIsAiLoading(false);
+      e.target.value = '';
     }
   };
 
@@ -268,7 +278,7 @@ export default function NewProductPage() {
       setNewProductId(docRef.id);
       setShowSuccessModal(true);
       
-    } catch (err) { toast({ variant: 'destructive', title: '发布失败，请重试' }); } finally { setIsSubmitting(false); }
+    } catch (err) { toast({ variant: 'destructive', title: t('newProductPageNew.listingFailed'), description: t('newProductPageNew.listingFailedDesc') }); } finally { setIsSubmitting(false); }
   };
 
   const formatWalletAddress = (address: string) => {
@@ -315,7 +325,7 @@ export default function NewProductPage() {
         <div className="max-w-4xl mx-auto space-y-10">
           
           <div className="text-center mb-8">
-              <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-3">发布新商品</h1>
+              <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white mb-3">{t('newProductPageNew.title')}</h1>
           </div>
 
           {profile?.isPro && isRentalEnabled && (
@@ -323,10 +333,10 @@ export default function NewProductPage() {
                 <div className="bg-[#050508] rounded-[1.5rem] p-6 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
                         <div className="h-12 w-12 rounded-xl bg-cyan-500/10 flex items-center justify-center text-cyan-400 border border-cyan-500/20"><Home size={24} /></div>
-                        <div className="text-left"><h3 className="text-lg font-bold text-white tracking-wide">PRO 商户房屋租赁</h3><p className="text-white/50 text-xs mt-1 font-medium">专属通道：发布并管理您的优质房源信息</p></div>
+                        <div className="text-left"><h3 className="text-lg font-bold text-white tracking-wide">{t('newProductPageNew.propertyRental')}</h3><p className="text-white/50 text-xs mt-1 font-medium">{t('newProductPageNew.propertyRentalDesc')}</p></div>
                     </div>
                     <Button asChild className="rounded-xl bg-cyan-500 text-black font-bold px-8 hover:bg-cyan-400 w-full sm:w-auto h-12 shadow-[0_0_20px_rgba(0,255,255,0.2)]">
-                        <Link href="/products/new/rental">进入房源发布</Link>
+                        <Link href="/products/new/rental">{t('newProductPageNew.enterRentalListing')}</Link>
                     </Button>
                 </div>
             </div>
@@ -340,7 +350,7 @@ export default function NewProductPage() {
                     <div className="p-8 sm:p-12 space-y-10 border-b border-white/5">
                         
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/5 pb-8">
-                            <span className="neo-label mb-0 text-cyan-400"><Box size={22} className="text-cyan-400/50" /> 基础信息登记</span>
+                            <span className="neo-label mb-0 text-cyan-400"><Box size={22} className="text-cyan-400/50" /> {t('newProductPageNew.basicInfo')}</span>
                             
                             {isAiFeatureEnabled && (
                                 <button 
@@ -352,54 +362,54 @@ export default function NewProductPage() {
                                     )}
                                 >
                                     <Sparkles size={20} className={cn(isAiAnalysisEnabled && "animate-pulse")} />
-                                    {isAiAnalysisEnabled ? "AI 智能提取 [ 已激活 ]" : "开启 AI 智能提取"}
+                                    {isAiAnalysisEnabled ? t('newProductPageNew.aiExtractActive') : t('newProductPageNew.enableAiExtract')}
                                 </button>
                             )}
                         </div>
                         
                         <div className="space-y-3">
                             <div className="flex justify-between items-end">
-                                <Label className="text-sm font-bold text-white/80 ml-2">商品标题</Label>
+                                <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.productTitle')}</Label>
                                 <span className="text-xs font-mono text-white/40">{name.length}/100</span>
                             </div>
-                            <Input className="prime-input h-16 text-2xl font-bold px-6 rounded-[1.2rem]" placeholder="输入清晰的商品名称..." value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required disabled={isAiLoading} />
+                            <Input className="prime-input h-16 text-2xl font-bold px-6 rounded-[1.2rem]" placeholder={t('newProductPageNew.productTitlePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required disabled={isAiLoading} />
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/80 ml-2">商品分类</Label>
+                                <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.productCategory')}</Label>
                                 <Select value={category} onValueChange={setCategory}>
                                     <SelectTrigger className="prime-input h-16 w-full text-base font-bold px-6 rounded-[1.2rem]" translate="no">
-                                        <SelectValue placeholder="请选择商品所属分类" />
+                                        <SelectValue placeholder={t('newProductPageNew.productCategoryPlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent className="bg-[#121214] border-white/10 text-white rounded-xl shadow-2xl" translate="no">
-                                        <SelectItem value="Streetwear" className="py-4 font-bold text-sm cursor-pointer">潮流服饰 — Streetwear</SelectItem>
-                                        <SelectItem value="Sneakers" className="py-4 font-bold text-sm cursor-pointer">球鞋 — Sneakers</SelectItem>
-                                        <SelectItem value="Luxury" className="py-4 font-bold text-sm cursor-pointer">奢侈品 — Luxury</SelectItem>
-                                        <SelectItem value="Electronics" className="py-4 font-bold text-sm cursor-pointer">电子产品 — Electronics</SelectItem>
-                                        <SelectItem value="Gaming" className="py-4 font-bold text-sm cursor-pointer">游戏娱乐 — Gaming</SelectItem>
-                                        <SelectItem value="Collectibles" className="py-4 font-bold text-sm cursor-pointer">收藏品 — Collectibles</SelectItem>
-                                        <SelectItem value="Digital Assets" className="py-4 font-bold text-sm cursor-pointer">数字资产 — Digital Assets</SelectItem>
-                                        <SelectItem value="Art & Design" className="py-4 font-bold text-sm cursor-pointer">艺术设计 — Art & Design</SelectItem>
-                                        <SelectItem value="Lifestyle" className="py-4 font-bold text-sm cursor-pointer">生活方式 — Lifestyle</SelectItem>
-                                        <SelectItem value="Beauty" className="py-4 font-bold text-sm cursor-pointer">美妆个护 — Beauty</SelectItem>
-                                        <SelectItem value="Sports & Outdoor" className="py-4 font-bold text-sm cursor-pointer">运动户外 — Sports & Outdoor</SelectItem>
-                                        <SelectItem value="Auto" className="py-4 font-bold text-sm cursor-pointer">汽车相关 — Auto</SelectItem>
-                                        <SelectItem value="Pet Supplies" className="py-4 font-bold text-sm cursor-pointer">宠物周边 — Pet Supplies</SelectItem>
-                                        <SelectItem value="Free & Trade" className="py-4 font-bold text-sm cursor-pointer">免费交换 — Free & Trade</SelectItem>
-                                        <SelectItem value="Other" className="py-4 font-bold text-sm cursor-pointer text-cyan-400 focus:text-cyan-300">其它 — Other</SelectItem>
+                                        <SelectItem value="Streetwear" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_streetwear')}</SelectItem>
+                                        <SelectItem value="Sneakers" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_sneakers')}</SelectItem>
+                                        <SelectItem value="Luxury" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_luxury')}</SelectItem>
+                                        <SelectItem value="Electronics" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_electronics')}</SelectItem>
+                                        <SelectItem value="Gaming" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_gaming')}</SelectItem>
+                                        <SelectItem value="Collectibles" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_collectibles')}</SelectItem>
+                                        <SelectItem value="Digital Assets" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_digitalAssets')}</SelectItem>
+                                        <SelectItem value="Art & Design" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_artDesign')}</SelectItem>
+                                        <SelectItem value="Lifestyle" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_lifestyle')}</SelectItem>
+                                        <SelectItem value="Beauty" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_beauty')}</SelectItem>
+                                        <SelectItem value="Sports & Outdoor" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_sportsOutdoor')}</SelectItem>
+                                        <SelectItem value="Auto" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_auto')}</SelectItem>
+                                        <SelectItem value="Pet Supplies" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_petSupplies')}</SelectItem>
+                                        <SelectItem value="Free & Trade" className="py-4 font-bold text-sm cursor-pointer">{t('newProductPageNew.cat_freeAndTrade')}</SelectItem>
+                                        <SelectItem value="Other" className="py-4 font-bold text-sm cursor-pointer text-cyan-400 focus:text-cyan-300">{t('newProductPageNew.cat_other')}</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/80 ml-2">发货定位</Label>
+                                <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.shippingLocation')}</Label>
                                 <Dialog open={isLocationPickerOpen} onOpenChange={setIsLocationPickerOpen}>
                                     <DialogTrigger asChild>
                                         <button type="button" className={cn("prime-input w-full h-16 flex items-center px-6 gap-4 rounded-[1.2rem]", !!productLocation ? "border-cyan-400/50 bg-cyan-400/10 text-white" : "text-white/40")}>
                                             <MapPin size={20} className={!!productLocation ? "text-cyan-400" : "text-white/40"} />
                                             <span className="flex-1 text-left text-base font-bold truncate">
-                                                {!!productLocation ? `${productLocation.city}, ${productLocation.country}` : "设定商品所在城市"}
+                                                {!!productLocation ? `${productLocation.city}, ${productLocation.country}` : t('newProductPageNew.setShippingLocation')}
                                             </span>
                                         </button>
                                     </DialogTrigger>
@@ -412,7 +422,7 @@ export default function NewProductPage() {
                                             }
                                         }}
                                     >
-                                        <DialogHeader className="sr-only"><DialogTitle>选择发货位置</DialogTitle></DialogHeader>
+                                        <DialogHeader className="sr-only"><DialogTitle>{t('newProductPageNew.selectLocationTitle')}</DialogTitle></DialogHeader>
                                         <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''} libraries={MAP_LIBS}>
                                             <div className="h-[650px] w-full"><LocationPicker initialCenter={currentUserLocation || { lat: 13.7563, lng: 100.5018 }} onConfirm={handleLocationConfirm} /></div>
                                         </APIProvider>
@@ -424,11 +434,11 @@ export default function NewProductPage() {
 
                     {/* --- 模块 2：媒体资源 --- */}
                     <div className="p-8 sm:p-12 space-y-8 border-b border-white/5 bg-white/[0.01]">
-                        <span className="neo-label text-white"><ImageIcon size={22} className="text-white/40" /> 媒体资料库</span>
+                        <span className="neo-label text-white"><ImageIcon size={22} className="text-white/40" /> {t('newProductPageNew.mediaAssets')}</span>
                         <Tabs defaultValue="images" className="w-full">
                             <TabsList className="bg-black/50 border border-white/10 p-1.5 rounded-xl h-14 inline-flex mb-8 shadow-inner">
-                                <TabsTrigger value="images" className="rounded-lg px-8 text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-black transition-all">本地图片</TabsTrigger>
-                                <TabsTrigger value="videos" className="rounded-lg px-8 text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-black transition-all">外部视频</TabsTrigger>
+                                <TabsTrigger value="images" className="rounded-lg px-8 text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-black transition-all">{t('newProductPageNew.localImages')}</TabsTrigger>
+                                <TabsTrigger value="videos" className="rounded-lg px-8 text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-black transition-all">{t('newProductPageNew.externalVideo')}</TabsTrigger>
                             </TabsList>
                             
                             <TabsContent value="images" className="mt-0">
@@ -442,11 +452,11 @@ export default function NewProductPage() {
                                         </div>
                                     ))}
                                     {imagePreviews.length < 9 && (
-                                        <label className="cursor-pointer aspect-square rounded-[1.2rem] border-2 border-dashed border-white/20 hover:border-[#ff00ff]/50 hover:bg-[#ff00ff]/5 flex flex-col items-center justify-center transition-all group">
-                                            <Upload className="h-8 w-8 text-white/40 group-hover:text-[#ff00ff] transition-all" />
-                                            <span className="text-[10px] mt-2 font-bold text-white/40 group-hover:text-[#ff00ff]">{imagePreviews.length}/9 MAX</span>
-                                            <Input type="file" className="hidden" onChange={handleImageUpload} accept="image/*" multiple />
-                                        </label>
+                                        <div className="relative cursor-pointer aspect-square rounded-[1.2rem] border-2 border-dashed border-white/20 hover:border-[#ff00ff]/50 hover:bg-[#ff00ff]/5 flex flex-col items-center justify-center transition-all group overflow-hidden">
+                                            <Upload className="h-8 w-8 text-white/40 group-hover:text-[#ff00ff] transition-all pointer-events-none" />
+                                            <span className="text-[10px] mt-2 font-bold text-white/40 group-hover:text-[#ff00ff] pointer-events-none">{imagePreviews.length}/9 MAX</span>
+                                            <input type="file" onChange={handleImageUpload} accept="image/*" multiple className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                        </div>
                                     )}
                                 </div>
                             </TabsContent>
@@ -463,13 +473,13 @@ export default function NewProductPage() {
                                         <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
                                             <DialogTrigger asChild>
                                                 <button type="button" className="w-full h-14 rounded-xl border-2 border-dashed border-white/20 hover:bg-white/5 hover:border-white/40 flex items-center justify-center gap-2 text-sm font-bold text-white/60 transition-all">
-                                                    <Video size={18} /> 添加 YouTube / TikTok 链接
+                                                    <Video size={18} /> {t('newProductPageNew.addVideoLink')}
                                                 </button>
                                             </DialogTrigger>
                                             <DialogContent className="bg-[#121214] border-white/10 text-white rounded-2xl p-8 shadow-2xl">
-                                                <DialogHeader><DialogTitle className="text-xl font-bold mb-4">添加视频链接</DialogTitle></DialogHeader>
-                                                <Input className="prime-input h-14 mb-4 text-sm px-4 rounded-xl" placeholder="输入视频播放 URL" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
-                                                <Button type="button" className="w-full h-14 bg-white text-black font-bold rounded-xl text-base hover:bg-gray-200 transition-colors" onClick={handleAddVideoUrl}>确认添加</Button>
+                                                <DialogHeader><DialogTitle className="text-xl font-bold mb-4">{t('newProductPageNew.addVideoTitle')}</DialogTitle></DialogHeader>
+                                                <Input className="prime-input h-14 mb-4 text-sm px-4 rounded-xl" placeholder={t('newProductPageNew.videoUrlPlaceholder')} value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
+                                                <Button type="button" className="w-full h-14 bg-white text-black font-bold rounded-xl text-base hover:bg-gray-200 transition-colors" onClick={handleAddVideoUrl}>{t('newProductPageNew.confirmAdd')}</Button>
                                             </DialogContent>
                                         </Dialog>
                                     )}
@@ -481,20 +491,20 @@ export default function NewProductPage() {
                     {/* --- 模块 3：图文详情描述 --- */}
                     <div className="p-8 sm:p-12 space-y-6 border-b border-white/5">
                         <div className="flex justify-between items-end mb-2">
-                            <Label className="text-sm font-bold text-white/80 ml-2">详细描述 (Description)</Label>
+                            <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.description')}</Label>
                             <span className="text-[10px] font-mono text-white/40 bg-white/5 px-2 py-1 rounded-md">{description.length} / 5000</span>
                         </div>
-                        <Textarea className="prime-input p-8 text-lg font-medium min-h-[400px] resize-y rounded-[1.5rem] leading-relaxed" placeholder="详细描述商品的规格、成色、使用痕迹、交易偏好等核心信息，越详细越容易获得买家信任..." value={description} onChange={(e) => setDescription(e.target.value)} maxLength={5000} />
+                        <Textarea className="prime-input p-8 text-lg font-medium min-h-[400px] resize-y rounded-[1.5rem] leading-relaxed" placeholder={t('newProductPageNew.descriptionPlaceholder')} value={description} onChange={(e) => setDescription(e.target.value)} maxLength={5000} />
                     </div>
 
                     {/* --- 模块 4：结算与物流配置 --- */}
                     <div className="p-8 sm:p-12 bg-black/40 space-y-12">
-                        <span className="neo-label text-[#ff00ff]"><Coins size={22} className="text-[#ff00ff]/50" /> 结算与协议配置</span>
+                        <span className="neo-label text-[#ff00ff]"><Coins size={22} className="text-[#ff00ff]/50" /> {t('newProductPageNew.settlementLabel')}</span>
                         
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                             <div className="space-y-8">
                                 <div className="space-y-4">
-                                    <Label className="text-sm font-bold text-white/80 ml-2">定价与货币</Label>
+                                    <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.pricingLabel')}</Label>
                                     <div className="flex gap-4 items-center">
                                         {/* 🚀 核心修改：允许无缝输入 0.0001 这样的高精度数字 */}
                                         <Input 
@@ -519,7 +529,7 @@ export default function NewProductPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Label className="text-sm font-bold text-white/80 ml-2">收款通道 (Payment Gateways)</Label>
+                                    <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.paymentGatewaysLabel')}</Label>
                                     <div className="grid grid-cols-2 gap-3">
                                         {/* ✅ 收款通道改为 ETH */}
                                         <div 
@@ -534,7 +544,7 @@ export default function NewProductPage() {
                                                     </div>
                                                 ) : <Lock size={16} className="text-white/20"/>}
                                             </div>
-                                            <div><p className="text-base font-bold text-white tracking-wide">Base ETH</p><p className="text-[10px] text-white/40 mt-0.5 uppercase font-mono">Web3 Wallet</p></div>
+                                            <div><p className="text-base font-bold text-white tracking-wide">ETH</p><p className="text-[10px] text-white/40 mt-0.5 uppercase font-mono">Web3 Wallet</p></div>
                                         </div>
 
                                         <div className="p-4 rounded-2xl border border-white/5 bg-black/40 opacity-40 flex flex-col gap-3 cursor-not-allowed">
@@ -565,12 +575,12 @@ export default function NewProductPage() {
                                     {acceptedMethods.includes('ETH') && profile?.walletAddress && (
                                         <div className="mt-4 p-5 rounded-[1.2rem] bg-[#ff00ff]/5 border border-[#ff00ff]/20 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2">
                                             <Label className="text-xs font-bold text-[#ff00ff] uppercase tracking-widest flex items-center gap-2">
-                                                <Lock size={14} /> ETH 结算地址已锚定
+                                                <Lock size={14} /> {t('newProductPageNew.ethAddressAnchoredLabel')}
                                             </Label>
                                             <div className="prime-input min-h-[56px] h-auto text-sm font-mono px-4 py-3.5 rounded-xl text-white/80 bg-black/60 cursor-not-allowed break-all leading-relaxed">
                                                 {formatWalletAddress(profile.walletAddress)}
                                             </div>
-                                            <p className="text-[10px] text-white/40 leading-relaxed font-medium">此地址为系统绑定的专属收款地址，发布后将写入底层智能合约不可更改。如需变动，请前往「个人中心」提交人工申请。</p>
+                                            <p className="text-[10px] text-white/40 leading-relaxed font-medium">{t('newProductPageNew.ethAddressNote')}</p>
                                         </div>
                                     )}
                                 </div>
@@ -578,10 +588,10 @@ export default function NewProductPage() {
 
                             <div className="space-y-8">
                                 <div className="space-y-4">
-                                    <Label className="text-sm font-bold text-white/80 ml-2">物流承担</Label>
+                                    <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.shippingMethod')}</Label>
                                     <div className="flex flex-col gap-3">
                                         <div onClick={() => { setShippingMethod('Buyer Pays'); setShippingCost(''); }} className={cn("p-5 rounded-[1.2rem] border flex items-center justify-between cursor-pointer transition-all", shippingMethod === 'Buyer Pays' ? "bg-white/10 border-white/40" : "bg-black/40 border-white/10 hover:border-white/20")}>
-                                            <div className="flex flex-col"><span className="font-bold text-base">买家承担运费</span></div>
+                                            <div className="flex flex-col"><span className="font-bold text-base">{t('newProductPageNew.buyerPays')}</span></div>
                                             <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all", shippingMethod === 'Buyer Pays' ? "border-white" : "border-white/40")}>
                                                 {shippingMethod === 'Buyer Pays' && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
                                             </div>
@@ -589,14 +599,14 @@ export default function NewProductPage() {
                                         
                                         {shippingMethod === 'Buyer Pays' && (
                                             <div className="p-5 rounded-[1.2rem] bg-cyan-500/5 border border-cyan-500/20 flex flex-col gap-3 animate-in fade-in slide-in-from-top-2 ml-4">
-                                                <Label className="text-xs font-bold text-cyan-400 uppercase tracking-widest">设定运费价格 ({currency})</Label>
+                                                <Label className="text-xs font-bold text-cyan-400 uppercase tracking-widest">{t('newProductPageNew.shippingCostPriceLabel').replace('{currency}', currency)}</Label>
                                                 {/* 🚀 运费输入框也解锁高精度 */}
                                                 <Input type="number" step="0.00000001" min="0" className="prime-input h-14 text-xl font-bold px-4 rounded-xl" placeholder="0.00" value={shippingCost} onChange={e => setShippingCost(e.target.value)} required={shippingMethod === 'Buyer Pays'} />
                                             </div>
                                         )}
 
                                         <div onClick={() => setShippingMethod('Seller Pays')} className={cn("p-5 rounded-[1.2rem] border flex items-center justify-between cursor-pointer transition-all", shippingMethod === 'Seller Pays' ? "bg-white/10 border-white/40" : "bg-black/40 border-white/10 hover:border-white/20")}>
-                                            <div className="flex flex-col"><span className="font-bold text-base">卖家包邮</span><span className="text-xs text-white/50 mt-1 font-medium">商品价格已包含运费</span></div>
+                                            <div className="flex flex-col"><span className="font-bold text-base">{t('newProductPageNew.sellerPays')}</span></div>
                                             <div className={cn("h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all", shippingMethod === 'Seller Pays' ? "border-white" : "border-white/40")}>
                                                 {shippingMethod === 'Seller Pays' && <div className="h-2.5 w-2.5 rounded-full bg-white" />}
                                             </div>
@@ -605,7 +615,7 @@ export default function NewProductPage() {
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Label className="text-sm font-bold text-white/80 ml-2">寄卖模式</Label>
+                                    <Label className="text-sm font-bold text-white/80 ml-2">{t('newProductPageNew.consignment')}</Label>
                                     
                                     <div 
                                       onClick={handleConsignmentClick} 
@@ -613,7 +623,7 @@ export default function NewProductPage() {
                                     >
                                         <div className="flex items-center gap-4">
                                             <ShieldCheck size={24} className={isConsignment ? "text-[#ff00ff]" : "text-white/40"} />
-                                            <div className="flex flex-col"><span className="font-bold text-base">申请官方寄卖</span><span className="text-xs text-white/50 mt-1">商品先寄往仓库进行审查</span></div>
+                                            <div className="flex flex-col"><span className="font-bold text-base">{t('newProductPageNew.enableConsignment')}</span></div>
                                         </div>
                                         <div className={cn("h-5 w-5 rounded-md border flex items-center justify-center transition-all", isConsignment ? "bg-[#ff00ff] border-[#ff00ff]" : "border-white/30")}>
                                             {isConsignment && <CheckCircle2 size={14} className="text-white" />}
@@ -631,10 +641,10 @@ export default function NewProductPage() {
                                             <div className="relative z-10">
                                                 <DialogHeader className="mb-6">
                                                     <DialogTitle className="text-2xl font-black text-white flex items-center gap-3 mb-3">
-                                                        <ShieldCheck className="text-[#ff00ff] h-8 w-8" /> 官方寄卖审查协议
+                                                        <ShieldCheck className="text-[#ff00ff] h-8 w-8" /> {t('newProductPageNew.consignmentDialogTitle')}
                                                     </DialogTitle>
                                                     <DialogDescription className="text-white/60 text-sm leading-relaxed font-medium">
-                                                        选择官方寄卖后，请留下您实时的联络方式。官方在后台审核通过后，将通过此渠道与您取得联系，指引您将实物发往指定的安全查验仓。
+                                                        {t('newProductPageNew.consignmentDialogDesc')}
                                                     </DialogDescription>
                                                 </DialogHeader>
                                                 
@@ -704,8 +714,8 @@ export default function NewProductPage() {
                                                 </div>
 
                                                 <div className="mt-10 flex justify-end gap-4">
-                                                    <Button type="button" variant="ghost" onClick={() => setIsConsignmentDialogOpen(false)} className="h-14 rounded-xl text-white/50 hover:text-white hover:bg-white/5 px-8 font-bold uppercase tracking-widest text-xs">取消</Button>
-                                                    <Button type="button" onClick={confirmConsignment} className="h-14 rounded-xl bg-white text-black hover:bg-gray-200 font-black px-8 shadow-[0_0_30px_rgba(255,255,255,0.2)] uppercase tracking-widest text-xs transition-all hover:scale-105 active:scale-95">确认并锁定授权</Button>
+                                                    <Button type="button" variant="ghost" onClick={() => setIsConsignmentDialogOpen(false)} className="h-14 rounded-xl text-white/50 hover:text-white hover:bg-white/5 px-8 font-bold uppercase tracking-widest text-xs">{t('newProductPageNew.cancelConsignment')}</Button>
+                                                    <Button type="button" onClick={confirmConsignment} className="h-14 rounded-xl bg-white text-black hover:bg-gray-200 font-black px-8 shadow-[0_0_30px_rgba(255,255,255,0.2)] uppercase tracking-widest text-xs transition-all hover:scale-105 active:scale-95">{t('newProductPageNew.submitListing')}</Button>
                                                 </div>
                                             </div>
                                         </DialogContent>
@@ -725,7 +735,7 @@ export default function NewProductPage() {
                 </div>
                 <Button type="submit" className="deploy-action w-full sm:w-auto px-20 h-20 rounded-[1.5rem] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:scale-105 active:scale-95 transition-all disabled:opacity-50 border border-white/20" disabled={isSubmitting || !name || !productLocation}>
                     <span className="relative z-10 font-black uppercase tracking-[0.1em] text-lg flex items-center gap-3">
-                        {isSubmitting ? <><Loader2 className="animate-spin h-6 w-6" /> Deploying...</> : <><Box size={24} /> 确认发布商品</>}
+                        {isSubmitting ? <><Loader2 className="animate-spin h-6 w-6" /> {t('newProductPageNew.submitting')}</> : <><Box size={24} /> {t('newProductPageNew.submitListing')}</>}
                     </span>
                 </Button>
             </div>
@@ -743,7 +753,7 @@ export default function NewProductPage() {
                   Deploy Success
               </DialogTitle>
               <DialogDescription className="text-white/50 text-sm font-medium mb-10 leading-relaxed">
-                  您的商品已成功发布并同步至全球检索网络。
+                  {t('newProductPageNew.deploySuccessDesc')}
               </DialogDescription>
               <div className="flex flex-col w-full gap-4">
                   <Button onClick={() => router.push(`/products/${newProductId}`)} className="w-full h-16 rounded-[1.2rem] bg-cyan-400 hover:bg-cyan-300 text-black font-black uppercase tracking-widest text-sm shadow-[0_0_30px_rgba(0,255,255,0.4)] transition-all hover:scale-105">

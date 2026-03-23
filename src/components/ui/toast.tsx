@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -17,7 +16,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-1/2 left-1/2 z-[100] flex max-h-screen w-full -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4 p-4 md:max-w-lg",
+      "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[200] flex max-h-screen w-full max-w-[420px] flex-col gap-3 p-0 items-center",
       className
     )}
     {...props}
@@ -26,18 +25,29 @@ const ToastViewport = React.forwardRef<
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
 const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+  [
+    "group pointer-events-auto relative flex w-full items-start gap-4 overflow-hidden rounded-3xl border-2 p-5 pr-12",
+    "backdrop-blur-2xl shadow-[0_30px_80px_rgba(0,0,0,0.8)]",
+    "transition-all duration-500",
+    "data-[swipe=cancel]:translate-x-0",
+    "data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)]",
+    "data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)]",
+    "data-[swipe=move]:transition-none",
+    "data-[state=open]:animate-in data-[state=open]:zoom-in-90 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-4",
+    "data-[state=closed]:animate-out data-[state=closed]:zoom-out-90 data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-4",
+    "data-[swipe=end]:animate-out",
+  ].join(" "),
   {
     variants: {
       variant: {
         default:
-          "justify-between border bg-background text-foreground",
+          "bg-gradient-to-br from-[#1a0533]/95 via-[#0d1a3a]/95 to-[#0a1a2e]/95 border-purple-400/40 shadow-[0_30px_80px_rgba(0,0,0,0.8),0_0_40px_rgba(168,85,247,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]",
         destructive:
-          "destructive justify-between group border-destructive bg-destructive text-destructive-foreground",
+          "destructive bg-gradient-to-br from-[#2d0a14]/95 via-[#1a0a2a]/95 to-[#0d0d2a]/95 border-red-400/40 shadow-[0_30px_80px_rgba(0,0,0,0.8),0_0_40px_rgba(239,68,68,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]",
         success:
-          "success justify-between border-green-500/50 bg-green-500 text-white",
+          "success bg-gradient-to-br from-[#0a2918]/95 via-[#0a1a2a]/95 to-[#0d0d2a]/95 border-emerald-400/40 shadow-[0_30px_80px_rgba(0,0,0,0.8),0_0_40px_rgba(16,185,129,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]",
         warning:
-          "warning justify-center text-center border-yellow-500/50 bg-yellow-500 text-yellow-950",
+          "warning bg-gradient-to-br from-[#2a1a00]/95 via-[#1a1000]/95 to-[#0d0d2a]/95 border-yellow-400/40 shadow-[0_30px_80px_rgba(0,0,0,0.8),0_0_40px_rgba(234,179,8,0.25),inset_0_1px_0_rgba(255,255,255,0.08)]",
       },
     },
     defaultVariants: {
@@ -68,7 +78,7 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-destructive group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white/70 ring-offset-background transition-all hover:bg-white/10 hover:text-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
       className
     )}
     {...props}
@@ -83,16 +93,13 @@ const ToastClose = React.forwardRef<
   <ToastPrimitives.Close
     ref={ref}
     className={cn(
-      "absolute right-2 top-2 rounded-md p-1 text-foreground/50 opacity-0 transition-opacity hover:text-foreground focus:opacity-100 focus:ring-2 group-hover:opacity-100",
-      "group-[.destructive]:text-red-300 group-[.destructive]:hover:text-red-50 group-[.destructive]:focus:ring-red-400 group-[.destructive]:focus:ring-offset-red-600",
-       "group-[.success]:text-green-300 group-[.success]:hover:text-green-50 group-[.success]:focus:ring-green-400 group-[.success]:focus:ring-offset-green-600",
-       "group-[.warning]:text-yellow-950 group-[.warning]:hover:text-black group-[.warning]:focus:ring-yellow-400 group-[.warning]:focus:ring-offset-yellow-600",
+      "absolute right-3 top-3 rounded-lg p-1 text-white/25 opacity-0 transition-all hover:text-white/70 hover:bg-white/8 focus:opacity-100 group-hover:opacity-100",
       className
     )}
     toast-close=""
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className="h-3.5 w-3.5" />
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
@@ -103,7 +110,7 @@ const ToastTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Title
     ref={ref}
-    className={cn("text-sm font-semibold", className)}
+    className={cn("text-sm font-bold text-white leading-snug", className)}
     {...props}
   />
 ))
@@ -115,7 +122,7 @@ const ToastDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <ToastPrimitives.Description
     ref={ref}
-    className={cn("text-sm opacity-90", className)}
+    className={cn("text-xs text-white/50 leading-relaxed mt-0.5", className)}
     {...props}
   />
 ))
@@ -136,5 +143,3 @@ export {
   ToastClose,
   ToastAction,
 }
-
-    

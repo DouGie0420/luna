@@ -1,70 +1,72 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddressForm } from '@/components/address-form';
+import { MapPin, PlusCircle, Edit } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-function AddressFormPageSkeleton() {
-    return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-64 mt-2" />
-            </CardHeader>
-            <CardContent className="grid gap-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                    <div className="grid gap-2">
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                </div>
-                {[...Array(5)].map((_, i) => (
-                    <div key={i} className="grid gap-2">
-                        <Skeleton className="h-5 w-24" />
-                        <Skeleton className="h-10 w-full" />
-                    </div>
-                ))}
-                <div className="flex justify-between items-center mt-4">
-                    <Skeleton className="h-10 w-24" />
-                    <Skeleton className="h-10 w-32" />
-                </div>
-            </CardContent>
-        </Card>
-    );
-}
-
-export default function AddressFormPage() {
+function AddressFormContent() {
     const searchParams = useSearchParams();
     const { user, loading: userLoading } = useUser();
 
     const addressId = searchParams.get('id');
     const isEditMode = Boolean(addressId);
-    
-    const isLoading = userLoading;
 
     return (
-        <div className="container mx-auto px-4 py-12 max-w-2xl">
-            {isLoading || !user ? <AddressFormPageSkeleton /> : (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-3xl font-headline">
-                        {isEditMode ? "Edit Address" : "Add New Address"}
-                    </CardTitle>
-                    <CardDescription>
-                        {isEditMode ? "Update your address details." : "Enter the details for your new shipping address."}
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
+        <div className="p-4 md:p-5 max-w-3xl">
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 mb-5"
+            >
+                <div className="w-9 h-9 rounded-xl bg-purple-500/12 border border-purple-500/25 flex items-center justify-center">
+                    {isEditMode
+                        ? <Edit className="h-4 w-4 text-purple-400" />
+                        : <PlusCircle className="h-4 w-4 text-purple-400" />
+                    }
+                </div>
+                <div>
+                    <h1 className="text-lg font-black text-white leading-none">
+                        {isEditMode ? '编辑地址' : '新增地址'}
+                    </h1>
+                    <p className="text-[9px] text-white/30 font-mono uppercase tracking-widest mt-0.5">
+                        {isEditMode ? 'Edit Address' : 'Add New Address'}
+                    </p>
+                </div>
+            </motion.div>
+
+            {userLoading || !user ? (
+                <div className="space-y-4">
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-12 rounded-xl bg-white/[0.03]" />
+                    ))}
+                </div>
+            ) : (
+                <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.05 }}
+                >
                     <AddressForm userId={user.uid} addressId={addressId} />
-                </CardContent>
-            </Card>
+                </motion.div>
             )}
         </div>
-    )
+    );
+}
+
+export default function AddressFormPage() {
+    return (
+        <Suspense fallback={
+            <div className="p-4 md:p-5 max-w-3xl space-y-4">
+                {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="h-12 rounded-xl bg-white/[0.03]" />
+                ))}
+            </div>
+        }>
+            <AddressFormContent />
+        </Suspense>
+    );
 }

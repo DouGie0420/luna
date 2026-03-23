@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dialog"
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { compressImage } from '@/lib/image-compressor';
+import { uploadToR2 } from '@/lib/upload';
 
 
 export default function ClientEditPostDetail() {
@@ -87,26 +87,16 @@ export default function ClientEditPostDetail() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (files) {
-      if ((imagePreviews.length + files.length) > 9) {
-          toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
-          return;
-      }
-
-      const fileArray = Array.from(files);
-      
-      try {
-        const compressionPromises = fileArray.map(file => compressImage(file));
-        const newPreviews = await Promise.all(compressionPromises);
-        setImagePreviews(prev => [...prev, ...newPreviews]);
-      } catch (error: any) {
-        console.error("Error compressing files: ", error);
-        toast({
-          variant: "destructive",
-          title: "Image Processing Failed",
-          description: error.message || "There was an error compressing the files.",
-        });
-      }
+    if (!files || files.length === 0) return;
+    if ((imagePreviews.length + files.length) > 9) {
+      toast({ variant: 'destructive', title: 'Maximum images reached', description: 'You can upload a maximum of 9 images.' });
+      return;
+    }
+    try {
+      const uploadedUrls = await Promise.all(Array.from(files).map(f => uploadToR2(f, 'bbs')));
+      setImagePreviews(prev => [...prev, ...uploadedUrls]);
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Upload Failed", description: error.message });
     }
   };
 

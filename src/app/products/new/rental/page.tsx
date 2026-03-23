@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import imageCompression from 'browser-image-compression';
+import { uploadToR2 } from '@/lib/upload';
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -245,18 +245,19 @@ export default function RentalPublishPage() {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'ownership' | 'idFront' | 'selfie') => {
+    const handleDocUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'ownership' | 'idFront' | 'selfie') => {
         const file = e.target.files?.[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onloadend = () => {
+        e.target.value = '';
+        try {
+            const url = await uploadToR2(file, 'rental-docs');
             setFormData(prev => ({
                 ...prev,
-                verificationDocs: { ...prev.verificationDocs, [type]: reader.result as string }
+                verificationDocs: { ...prev.verificationDocs, [type]: url }
             }));
-        };
-        reader.readAsDataURL(file);
-        e.target.value = '';
+        } catch (err) {
+            console.error('Doc upload error:', err);
+        }
     };
 
     // --- Google Maps 逻辑 ---
@@ -359,32 +360,14 @@ export default function RentalPublishPage() {
             toast({ variant: "destructive", title: "上传受限", description: "最多只能上传 9 张照片哦。" });
             return;
         }
-
         const filesToProcess = Array.from(files).slice(0, remainingSlots);
-        const options = {
-            maxSizeMB: 0.1,
-            maxWidthOrHeight: 1280,
-            useWebWorker: true
-        };
-
-        toast({ title: "正在优化影像", description: "执行高质量图片压缩协议中..." });
-
-        for (const file of filesToProcess) {
-            try {
-                const compressedFile = await imageCompression(file, options);
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    setImages(prev => [...prev, { 
-                        id: `img_${Date.now()}_${Math.random()}`, 
-                        url: reader.result as string 
-                    }]);
-                };
-                reader.readAsDataURL(compressedFile);
-            } catch (err) {
-                console.error("Compression Error:", err);
-            }
-        }
         e.target.value = '';
+        try {
+            const urls = await Promise.all(filesToProcess.map(f => uploadToR2(f, 'rental')));
+            setImages(prev => [...prev, ...urls.map(url => ({ id: `img_${Date.now()}_${Math.random()}`, url }))]);
+        } catch (err) {
+            console.error('Image upload error:', err);
+        }
     };
 
     // 🚀 --- 提交发布：核心修复区域 ---
@@ -755,11 +738,11 @@ export default function RentalPublishPage() {
                                         <SortableImage key={img.id} id={img.id} url={img.url} index={idx} onRemove={(id) => setImages(prev => prev.filter(i => i.id !== id))} />
                                     ))}
                                     {images.length < 9 && (
-                                        <label className={`relative rounded-3xl border-2 border-dashed border-white/40 bg-transparent hover:bg-white/5 hover:border-purple-400 transition-all flex flex-col items-center justify-center cursor-pointer group ${images.length === 0 ? 'col-span-2 row-span-2' : ''}`}>
-                                            <Camera className="w-12 h-12 text-white/60 group-hover:text-purple-300 mb-4 transition-colors" />
-                                            <span className="text-base text-white font-bold breathe-text">点击或拖拽上传</span>
-                                            <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="hidden" />
-                                        </label>
+                                        <div className={`relative rounded-3xl border-2 border-dashed border-white/40 bg-transparent hover:bg-white/5 hover:border-purple-400 transition-all flex flex-col items-center justify-center cursor-pointer group overflow-hidden ${images.length === 0 ? 'col-span-2 row-span-2' : ''}`}>
+                                            <Camera className="w-12 h-12 text-white/60 group-hover:text-purple-300 mb-4 transition-colors pointer-events-none" />
+                                            <span className="text-base text-white font-bold breathe-text pointer-events-none">点击或拖拽上传</span>
+                                            <input type="file" multiple accept="image/*" onChange={handleImageUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                                        </div>
                                     )}
                                 </div>
                             </SortableContext>
@@ -997,7 +980,7 @@ export default function RentalPublishPage() {
                                     {formData.verificationDocs[doc.id as keyof typeof formData.verificationDocs] ? (
                                         <div className="w-full py-4 bg-green-500/20 text-green-400 rounded-xl font-bold flex items-center justify-center gap-2 border border-green-500/30 text-lg"><CheckCircle className="w-5 h-5" /> 已上传</div>
                                     ) : (
-                                        <label className="w-full py-4 bg-white/10 hover:bg-purple-600/50 text-white rounded-xl font-bold cursor-pointer transition-colors border border-white/20 text-lg">点击上传<input type="file" accept="image/*" className="hidden" onChange={(e) => handleDocUpload(e, doc.id as any)} /></label>
+                                        <label className="w-full py-4 bg-white/10 hover:bg-purple-600/50 text-white rounded-xl font-bold cursor-pointer transition-colors border border-white/20 text-lg">点击上传<input type="file" accept="image/*" className="sr-only" onChange={(e) => handleDocUpload(e, doc.id as any)} /></label>
                                     )}
                                 </div>
                             ))}

@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button'; 
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Loader2, Crown, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -171,7 +171,7 @@ export function VerifiedMerchants() {
 
                             {/* 文本靠左：商户名字和勋章保持在左侧 */}
                             <div className="pt-12 px-6 relative z-20 flex flex-col items-start text-left w-full">
-                                <h3 className="font-headline text-xl md:text-2xl font-black italic tracking-tighter bg-gradient-to-r from-white via-white to-white/40 bg-clip-text text-transparent drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] group-hover:text-primary transition-colors duration-500 truncate w-full">
+                                <h3 className="font-serif text-base md:text-lg font-bold tracking-wide text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] group-hover:text-white transition-colors duration-500 truncate w-full">
                                     {merchant.displayName || merchant.name}
                                 </h3>
 
@@ -183,11 +183,21 @@ export function VerifiedMerchants() {
                                     ))}
                                 </div>
 
-                                {/* 按钮水平居中 */}
+                                {/* 认证徽章 */}
                                 <div className="mt-2 flex w-full justify-center">
-                                    <Badge className="bg-primary/10 border border-primary/40 text-primary text-[8px] font-black uppercase px-4 py-1.5 tracking-[0.2em] shadow-[0_0_10px_rgba(236,72,153,0.15)]">
-                                        {merchant.isPro ? 'ELITE_ENTITY' : 'VERIFIED_NODE'}
-                                    </Badge>
+                                    {merchant.isPro ? (
+                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-yellow-400/40 shadow-[0_0_12px_rgba(234,179,8,0.25)]">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-900/60 via-amber-800/40 to-yellow-900/60" />
+                                            <Crown className="relative z-10 w-3 h-3 text-yellow-400 shrink-0" />
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-yellow-300">Elite Merchant</span>
+                                        </div>
+                                    ) : (
+                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-cyan-400/30 shadow-[0_0_10px_rgba(34,211,238,0.15)]">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/50 via-sky-900/30 to-cyan-900/50" />
+                                            <ShieldCheck className="relative z-10 w-3 h-3 text-cyan-400 shrink-0" />
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-cyan-300">Verified Node</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -230,7 +240,6 @@ export function VerifiedMerchants() {
                 .animate-liquid-flow { animation: liquid-flow 10s infinite ease-in-out; }
                 @keyframes pulse-subtle { 0%, 100% { opacity: 0.8; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } }
                 .animate-pulse-subtle { animation: pulse-subtle 3s infinite ease-in-out; }
-                .font-headline { font-family: 'Playfair Display', serif; }
             `}</style>
         </section>
     );

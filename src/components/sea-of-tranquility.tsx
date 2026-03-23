@@ -102,10 +102,10 @@ const SmallPostCard = React.memo(({ post }: { post: BbsPost }) => {
                         </div>
 
                         <div className="flex-1 min-w-0 space-y-2">
-                            <h3 className="font-headline text-sm font-black italic leading-tight line-clamp-1 group-hover/card:text-[#ff00ff] transition-colors uppercase tracking-tight">{post.title || t(post.titleKey || '')}</h3>
+                            <h3 className="font-sans text-sm font-bold leading-tight line-clamp-1 group-hover/card:text-[#ff00ff] transition-colors uppercase tracking-tight">{post.title || t(post.titleKey || '')}</h3>
                             <div className="flex items-start gap-1.5 opacity-40 group-hover/card:opacity-80 transition-opacity">
                                 <AlignLeft size={12} className="mt-0.5 shrink-0 text-cyan-400" />
-                                <p className="text-[11px] line-clamp-2 leading-relaxed italic">{post.content || 'Decrypting transmission...'}</p>
+                                <p className="text-[11px] line-clamp-2 leading-relaxed">{post.content || 'Decrypting transmission...'}</p>
                             </div>
                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 border-t border-white/5 mt-1 text-[10px] font-mono text-white/30">
                                 <div className="flex items-center gap-1.5">

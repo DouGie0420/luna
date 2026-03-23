@@ -1,28 +1,31 @@
-'use client';
+﻿'use client';
 
-import { useEffect, useState } from 'react';
-import { useUser, useFirestore } from "@/firebase";
-import { Logo } from "./logo";
-import { UserNav } from "./user-nav";
-import { AnnouncementBar } from "./announcement-bar";
-import { GlowingPixelGrid } from "../glowing-pixel-grid";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Shield, Globe, Zap, Wallet, UserPlus } from "lucide-react";
-import Link from "next/link";
-import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
-import { cn } from "@/lib/utils";
-import { useWeb3 } from "@/contexts/Web3Context";
-import { WalletDropdown } from "../wallet/WalletDropdown";
+import { useEffect, useMemo, useState } from 'react';
+import { useUser, useFirestore } from '@/firebase';
+import { useTranslation } from '@/hooks/use-translation';
+import { Logo } from './logo';
+import { UserNav } from './user-nav';
+import { AnnouncementBar } from './announcement-bar';
+import { GlowingPixelGrid } from '../glowing-pixel-grid';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageSquare, Shield, Globe, Zap, Wallet, UserPlus, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { collection, doc, getDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { useWeb3 } from '@/contexts/Web3Context';
+import { WalletDropdown } from '../wallet/WalletDropdown';
+
+const baseActionButton =
+  'inline-flex h-10 items-center gap-2 rounded-full border border-white/20 bg-black/35 px-3 sm:px-4 text-sm font-semibold text-white/90 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur-md transition-all duration-200 hover:border-white/40 hover:bg-black/55';
 
 export function Header() {
   const { user, loading } = useUser();
   const firestore = useFirestore();
-  const { account, connectWallet } = useWeb3();
+  const { account, connectWallet, isConnecting } = useWeb3();
+  const { t, language, setLanguage } = useTranslation();
+
   const [unreadCount, setUnreadCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [language, setLanguage] = useState<'en' | 'zh' | 'th'>('en');
 
-  // 检查是否是管理员
   useEffect(() => {
     if (!firestore || !user) {
       setIsAdmin(false);
@@ -32,182 +35,161 @@ export function Header() {
     const checkAdmin = async () => {
       try {
         const userDoc = await getDoc(doc(firestore, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const role = userData.role;
-          setIsAdmin(['admin', 'ghost', 'staff', 'support'].includes(role));
+        if (!userDoc.exists()) {
+          setIsAdmin(false);
+          return;
         }
+
+        const role = userDoc.data().role;
+        setIsAdmin(['admin', 'ghost', 'staff', 'support'].includes(role));
       } catch (error) {
         console.error('Error checking admin status:', error);
+        setIsAdmin(false);
       }
     };
 
-    checkAdmin();
+    checkAdmin().catch(console.error);
   }, [firestore, user]);
 
-  // 监听未读消息数
   useEffect(() => {
     if (!firestore || !user) {
       setUnreadCount(0);
       return;
     }
 
-    const unsubscribers: (() => void)[] = [];
+    let directUnread = 0;
+    let orderUnread = 0;
+    let notifUnread = 0;
 
-    const directChatsRef = collection(firestore, 'direct_chats');
+    const pushUnreadCount = () => {
+      setUnreadCount(directUnread + orderUnread + notifUnread);
+    };
+
     const directQuery = query(
-      directChatsRef,
-      where('participants', 'array-contains', user.uid)
+      collection(firestore, 'direct_chats'),
+      where('participants', 'array-contains', user.uid),
+    );
+
+    const orderQuery = query(
+      collection(firestore, 'chats'),
+      where('participants', 'array-contains', user.uid),
+    );
+
+    const notifQuery = query(
+      collection(firestore, 'notifications', user.uid, 'items'),
+      where('isRead', '==', false),
     );
 
     const unsubDirect = onSnapshot(directQuery, (snapshot) => {
-      let directUnread = 0;
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        directUnread += data.unreadCount?.[user.uid] || 0;
-      });
-
-      const orderChatsRef = collection(firestore, 'chats');
-      const orderQuery = query(
-        orderChatsRef,
-        where('participants', 'array-contains', user.uid)
-      );
-
-      const unsubOrder = onSnapshot(orderQuery, (orderSnapshot) => {
-        let orderUnread = 0;
-        orderSnapshot.forEach((doc) => {
-          const data = doc.data();
-          orderUnread += data.unreadCount?.[user.uid] || 0;
-        });
-        setUnreadCount(directUnread + orderUnread);
-      });
-
-      unsubscribers.push(unsubOrder);
+      directUnread = snapshot.docs.reduce((sum, docSnap) => {
+        const data = docSnap.data();
+        return sum + (data.unreadCount?.[user.uid] || 0);
+      }, 0);
+      pushUnreadCount();
     });
 
-    unsubscribers.push(unsubDirect);
+    const unsubOrder = onSnapshot(orderQuery, (snapshot) => {
+      orderUnread = snapshot.docs.reduce((sum, docSnap) => {
+        const data = docSnap.data();
+        return sum + (data.unreadCount?.[user.uid] || 0);
+      }, 0);
+      pushUnreadCount();
+    });
+
+    const unsubNotif = onSnapshot(notifQuery, (snapshot) => {
+      notifUnread = snapshot.size;
+      pushUnreadCount();
+    });
 
     return () => {
-      unsubscribers.forEach(unsub => unsub());
+      unsubDirect();
+      unsubOrder();
+      unsubNotif();
     };
   }, [firestore, user]);
 
   const toggleLanguage = () => {
-    const languages: ('en' | 'zh' | 'th')[] = ['en', 'zh', 'th'];
-    const currentIndex = languages.indexOf(language);
-    const nextIndex = (currentIndex + 1) % languages.length;
-    setLanguage(languages[nextIndex]);
+    const sequence: Array<'en' | 'zh' | 'th'> = ['en', 'zh', 'th'];
+    const currentIndex = sequence.indexOf(language);
+    setLanguage(sequence[(currentIndex + 1) % sequence.length]);
   };
 
-  const getLanguageLabel = () => {
-    switch (language) {
-      case 'en': return 'EN';
-      case 'zh': return '中文';
-      case 'th': return 'ไทย';
-    }
-  };
+  const languageLabel = useMemo(() => {
+    if (language === 'zh') return '中文';
+    if (language === 'th') return 'ไทย';
+    return 'EN';
+  }, [language]);
 
   return (
     <header className="sticky top-0 z-[110] w-full bg-background/80 backdrop-blur-xl relative border-b border-[#c41834]/30 shadow-[0_1px_15px_rgba(196,24,52,0.1)]">
       <GlowingPixelGrid seed="shared-luna-seed" className="-z-10" />
-      
-      <div className="flex h-20 w-full items-center justify-between px-6 md:px-12 lg:px-16 relative">
-        {/* 左侧：Logo */}
-        <div className="flex items-center gap-4 flex-shrink-0">
-          <div className="hover:scale-105 transition-transform duration-300">
-            <Logo />
-          </div>
+
+      <div className="flex h-20 w-full items-center justify-between gap-3 px-4 md:px-8 lg:px-12 relative">
+        <div className="flex items-center gap-3 shrink-0">
+          <Logo />
         </div>
 
-        {/* 中间：公告栏 */}
-        <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:block">
+        <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
           <AnnouncementBar />
         </div>
 
-        {/* 右侧：功能按钮 */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {loading ? (
-            <Skeleton className="h-10 w-10 rounded-full bg-white/10 animate-pulse" />
+            <Skeleton className="h-10 w-10 rounded-full bg-white/10" />
           ) : (
             <>
-              {/* 管理员按钮 - 胶囊型 */}
-              {user && isAdmin && (
-                <Link href="/admin" className="relative group">
-                  <div className="absolute -inset-2 bg-yellow-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 hover:border-yellow-500/50 hover:shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                    <Shield className="h-4 w-4 text-yellow-400" />
-                    <span className="text-yellow-400 font-medium text-sm">Admin</span>
-                  </div>
+              {user && isAdmin ? (
+                <Link href="/admin" className={`${baseActionButton} border-yellow-500/40 text-yellow-300 hover:border-yellow-400`}>
+                  <Shield className="h-4 w-4 text-yellow-300" />
+                  <span className="hidden sm:inline">{t('header.admin')}</span>
                 </Link>
-              )}
+              ) : null}
 
-              {/* 语言切换按钮 */}
-              <button
-                onClick={toggleLanguage}
-                className="relative group"
-              >
-                <div className="absolute -inset-2 bg-white/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-white/5 border border-white/10 hover:border-white/30 hover:bg-white/10">
-                  <Globe className="h-4 w-4 text-white/70" />
-                  <span className="text-white/70 font-medium text-sm">{getLanguageLabel()}</span>
-                </div>
+              <button onClick={toggleLanguage} className={baseActionButton}>
+                <Globe className="h-4 w-4 text-white/70" />
+                <span>{languageLabel}</span>
               </button>
 
               {user ? (
                 <>
-                  {/* ROLL OUT 快捷发布按钮 */}
-                  <Link href="/products/new" className="relative group">
-                    <div className="absolute -inset-2 bg-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-secondary/20 to-cyan-500/20 border border-secondary/30 hover:border-secondary/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
-                      <Zap className="h-4 w-4 text-secondary" />
-                      <span className="text-secondary font-medium text-sm">ROLL OUT</span>
-                    </div>
+                  <Link href="/products/new" className={baseActionButton}>
+                    <Zap className="h-4 w-4 text-white/70" />
+                    <span className="hidden md:inline">{t('header.rollOut')}</span>
                   </Link>
 
-                  {/* Messages按钮 */}
-                  <Link href="/messages" className="relative group">
-                    <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-primary/20 to-pink-500/20 border border-primary/30 hover:border-primary/50 hover:shadow-[0_0_20px_rgba(255,0,255,0.3)]">
-                      <MessageSquare className="h-4 w-4 text-primary" />
-                      <span className="text-primary font-medium text-sm">Messages</span>
-                      {unreadCount > 0 && (
-                        <span className="bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full">
-                          {unreadCount > 99 ? '99+' : unreadCount}
-                        </span>
-                      )}
-                    </div>
+                  <Link href="/messages" className={baseActionButton}>
+                    <MessageSquare className="h-4 w-4 text-white/70" />
+                    <span className="hidden md:inline">{t('header.messages')}</span>
+                    {unreadCount > 0 ? (
+                      <span className="rounded-full bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 shadow-[0_0_8px_rgba(239,68,68,0.7)] animate-pulse">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    ) : null}
                   </Link>
 
-                  {/* 钱包按钮 */}
                   {account ? (
                     <WalletDropdown />
                   ) : (
                     <button
-                      onClick={connectWallet}
-                      className="relative group"
+                      onClick={() => connectWallet().catch(err => console.error('[ConnectWallet]', err))}
+                      disabled={isConnecting}
+                      className={`${baseActionButton} disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
-                      <div className="absolute -inset-2 bg-blue-500/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="relative px-4 py-2 rounded-full transition-all duration-200 flex items-center gap-2 glass-morphism bg-gradient-to-r from-blue-500/20 to-indigo-500/20 border border-blue-500/30 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                        <Wallet className="h-4 w-4 text-blue-400" />
-                        <span className="text-blue-400 font-medium text-sm">Connect Wallet</span>
-                      </div>
+                      {isConnecting
+                        ? <Loader2 className="h-4 w-4 animate-spin text-white/70" />
+                        : <Wallet className="h-4 w-4 text-white/70" />
+                      }
+                      <span className="hidden md:inline">{isConnecting ? t('header.connecting') : t('header.connectWallet')}</span>
                     </button>
                   )}
                 </>
               ) : (
-                /* 🚀 这里的 href 已经修复为指向你真实的 /register 页面 */
-                <Link href="/register" className="relative group ml-2">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur opacity-70 group-hover:opacity-100 transition duration-500 group-hover:duration-200 animate-pulse" />
-                  <div className="relative px-5 py-2 rounded-full bg-black border border-white/10 flex items-center gap-2 hover:bg-black/50 transition-colors">
-                    <UserPlus className="h-4 w-4 text-purple-400" />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-black text-sm uppercase tracking-widest">
-                      Sign Up
-                    </span>
-                  </div>
+                <Link href="/register" className={baseActionButton}>
+                  <UserPlus className="h-4 w-4 text-white/70" />
+                  <span className="hidden sm:inline">{t('header.signUp')}</span>
                 </Link>
               )}
 
-              {/* 用户菜单 (包含 Login) */}
               <UserNav />
             </>
           )}

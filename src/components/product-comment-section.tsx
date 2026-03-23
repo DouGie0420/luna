@@ -57,13 +57,13 @@ const CommentForm = ({
       <Textarea
         value={value}
         onChange={onChange}
-        placeholder="Type your message to the protocol..."
+        placeholder={t('productCommentSection.placeholder')}
         maxLength={500}
         rows={3}
         className="bg-black/60 border-purple-500/30 text-white rounded-xl focus:border-primary focus:ring-1 focus:ring-primary/50 transition-all resize-none shadow-inner textarea-scrollbar"
       />
       <div className="flex items-center justify-between">
-        <p className="text-xs font-mono text-primary/50">{value.length} / 500 CHARS</p>
+        <p className="text-xs font-mono text-primary/50">{t('productCommentSection.charLimit').replace('{count}', String(value.length))}</p>
         <div className="flex items-center gap-3">
             <Button variant="ghost" onClick={onCancelClick} className="text-white/50 hover:text-white hover:bg-white/5 rounded-xl text-xs uppercase tracking-widest font-bold">
               {t('productComments.cancelReply')}
@@ -222,8 +222,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         } catch(e) {
             console.error(e);
             toast({
-                title: 'Error',
-                description: 'Failed to post comment.',
+                title: t('productCommentSection.postError'),
                 variant: 'destructive'
             });
         } finally {
@@ -240,7 +239,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             toast({ title: t('productComments.commentDeleted') });
         } catch (e) {
             console.error(e);
-            toast({ title: 'Failed to delete comment', variant: 'destructive'});
+            toast({ title: t('productCommentSection.deleteError'), variant: 'destructive'});
         }
     };
 
@@ -279,8 +278,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
         } catch (e) {
              console.error(e);
              toast({
-                title: 'Error',
-                description: 'Failed to update like/dislike status.',
+                title: t('productCommentSection.likeError'),
                 variant: 'destructive'
             });
         }
@@ -345,7 +343,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
 
 
     return (
-        <div className="relative group rounded-[2rem] overflow-hidden bg-[#050508]">
+        <div className="relative group rounded-[2rem] overflow-hidden bg-transparent">
             {/* 🚀 极其关键：注入隐藏和美化滚动条的内部 CSS */}
             <style dangerouslySetInnerHTML={{__html: `
                 .laser-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -386,7 +384,7 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                                             className="w-full h-16 bg-gradient-to-r from-primary to-purple-600 text-black font-black uppercase italic tracking-[0.3em] shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] transition-transform rounded-2xl mb-8"
                                             onClick={() => setReplyingTo({id: 'root', authorName: 'Post'})}
                                         >
-                                            <Sparkles className="w-5 h-5 mr-3" /> Share your thoughts
+                                            <Sparkles className="w-5 h-5 mr-3" /> {t('productCommentSection.shareYourThoughts')}
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-black/90 border-primary/30 text-primary font-mono text-xs">
@@ -428,15 +426,15 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                     ) : (
                          <div className="text-center py-16 text-white/30 flex flex-col items-center">
                             <MessageSquare className="h-10 w-10 mb-4 opacity-50" />
-                            <p className="font-bold text-sm tracking-widest uppercase">No Logs Found</p>
-                            <p className="text-xs font-mono mt-2">Initiate the first transmission</p>
+                            <p className="font-bold text-sm tracking-widest uppercase">{t('productCommentSection.noLogsFound')}</p>
+                            <p className="text-xs font-mono mt-2">{t('productCommentSection.initiateFirstTransmission')}</p>
                         </div>
                     )}
                     
                     {comments && comments.length > visibleCommentsCount && (
                         <div className="text-center mt-10">
                             <Button variant="outline" onClick={handleLoadMore} className="rounded-full bg-white/5 border-white/10 text-white/60 hover:text-white hover:bg-white/10 uppercase text-xs tracking-widest font-bold">
-                                Load Archives <ChevronDown className="ml-2 h-4 w-4" />
+                                {t('productCommentSection.loadArchives')} <ChevronDown className="ml-2 h-4 w-4" />
                             </Button>
                         </div>
                     )}

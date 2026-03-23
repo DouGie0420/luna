@@ -8,10 +8,11 @@ import { useTranslation } from '@/hooks/use-translation';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, useDoc, useCollection } from '@/firebase';
 import type { User as FirebaseUser } from 'firebase/auth';
-import { 
-    Loader2, Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit, 
-    Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star, Heart, 
-    Zap, Users, Sparkles, ArrowLeft, Home 
+import {
+    Loader2, Plus, MessageSquare, Calendar, X, MoreHorizontal, Edit,
+    Trash2, Check, Reply, ThumbsUp, ThumbsDown, MapPin, Star, Heart,
+    Zap, Users, Sparkles, ArrowLeft, Home, Bookmark, Share2, Eye,
+    ShieldCheck, TrendingUp, FileText, Globe
 } from 'lucide-react';
 import { 
     doc, collection, query, orderBy, addDoc, updateDoc, deleteDoc, 
@@ -104,9 +105,9 @@ const CommentForm = ({ isSubmitting, value, onChange, onSubmit, onCancelClick }:
             <div className="flex items-center justify-between">
                 <p className="text-[10px] font-mono tracking-[0.2em] text-white/20 uppercase">{value.length} / 2000</p>
                 <div className="flex gap-3">
-                    <Button variant="ghost" onClick={onCancelClick} className="text-white/40 hover:text-white rounded-full text-xs font-black uppercase">Cancel</Button>
+                    <Button variant="ghost" onClick={onCancelClick} className="text-white/40 hover:text-white rounded-full text-xs font-black uppercase">{t('bbsPostDetail.cancel')}</Button>
                     <Button onClick={onSubmit} disabled={isSubmitting || !value.trim()} className="rounded-full bg-primary text-black font-black px-8 shadow-[0_0_20px_#ec4899]">
-                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "TRANSMIT"}
+                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : t('bbsPostDetail.transmit')}
                     </Button>
                 </div>
             </div>
@@ -138,12 +139,10 @@ const CommentItem = ({ comment, user, canInteract, handleLikeDislike, setReplyin
                     </div>
                 </div>
                 <p className="text-sm text-white/70 leading-relaxed mb-4">{comment.text}</p>
-                <div className="flex items-center gap-6">
-                    <div className="flex gap-2 p-1 bg-black/40 rounded-full border border-white/5">
-                        <button onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')} className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black transition-all", isLiked ? "bg-primary/20 text-primary" : "text-white/20 hover:text-white")}><Heart className={cn("h-3 w-3", isLiked && "fill-primary")} /> {comment.likes || 0}</button>
-                        <button onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')} className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black transition-all", isDisliked ? "bg-red-500/20 text-red-500" : "text-white/20 hover:text-white")}><ThumbsDown className="h-3 w-3" /> {comment.dislikes || 0}</button>
-                    </div>
-                    <button onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.displayName || 'User' }) : handleInteractionNotAllowed()} className="text-[10px] font-black text-white/30 hover:text-primary uppercase tracking-widest transition-colors">Reply</button>
+                <div className="flex items-center gap-3">
+                    <button onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'like')} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black transition-all border", isLiked ? "bg-fuchsia-500/15 border-fuchsia-500/30 text-fuchsia-400" : "bg-white/3 border-white/8 text-white/35 hover:text-fuchsia-400 hover:border-fuchsia-500/30")}><Heart className={cn("h-3 w-3", isLiked && "fill-fuchsia-400")} /> {comment.likes || 0}</button>
+                    <button onClick={() => handleLikeDislike(comment.id, !!isLiked, !!isDisliked, 'dislike')} className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black transition-all border", isDisliked ? "bg-red-500/15 border-red-500/30 text-red-400" : "bg-white/3 border-white/8 text-white/35 hover:text-red-400 hover:border-red-500/30")}><ThumbsDown className="h-3 w-3" /> {comment.dislikes || 0}</button>
+                    <button onClick={() => canInteract ? setReplyingTo({ id: comment.id, authorName: author?.displayName || 'User' }) : handleInteractionNotAllowed()} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-black border bg-white/3 border-white/8 text-white/35 hover:text-cyan-400 hover:border-cyan-500/30 transition-all"><Reply className="h-3 w-3" /> {t('productComments.reply')}</button>
                 </div>
             </div>
         </motion.div>
@@ -171,11 +170,36 @@ export default function BbsPostPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [replyingTo, setReplyingTo] = useState<{ id: string; authorName: string } | null>(null);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [isSaved, setIsSaved] = useState(false);
+    const [localLikes, setLocalLikes] = useState(0);
 
     const canInteract = user && profile?.kycStatus === 'Verified';
     const isOwner = user?.uid === post?.authorId;
 
     useEffect(() => { if (profile && post) setIsFollowing(profile.following?.includes(post.authorId) || false); }, [profile, post]);
+    useEffect(() => {
+        if (user && post) {
+            setIsLiked((post as any).likedBy?.includes(user.uid) || false);
+            setLocalLikes((post as any).likes || 0);
+        }
+        if (user && profile && post) setIsSaved((profile as any).savedPosts?.includes(post.id) || false);
+    }, [user, post, profile]);
+
+    const handlePostLike = async () => {
+        if (!user || !firestore || !post || !postRef) return toast({ variant: 'destructive', title: t('common.loginToInteract') });
+        const liked = isLiked;
+        setIsLiked(!liked);
+        setLocalLikes(n => n + (liked ? -1 : 1));
+        updateDoc(postRef, { likedBy: liked ? arrayRemove(user.uid) : arrayUnion(user.uid), likes: increment(liked ? -1 : 1) }).catch(() => {});
+    };
+
+    const handlePostSave = async () => {
+        if (!user || !firestore) return toast({ variant: 'destructive', title: t('common.loginToInteract') });
+        const saved = isSaved;
+        setIsSaved(!saved);
+        updateDoc(doc(firestore, 'users', user.uid), { savedPosts: saved ? arrayRemove(post!.id) : arrayUnion(post!.id) }).catch(() => {});
+    };
 
     useEffect(() => {
         if (firestore && id) updateDoc(doc(firestore, 'bbs', id), { views: increment(1) }).catch(() => {});
@@ -206,7 +230,7 @@ export default function BbsPostPage() {
         addDoc(collection(firestore, 'bbs', post.id, 'comments'), data).then(() => {
             updateDoc(postRef, { replies: increment(1) }).catch(() => {});
             setNewComment(''); setReplyingTo(null); setIsSubmitting(false);
-            toast({ title: 'LOG_APPENDED' });
+            toast({ title: t('bbsPostDetail.logAppended') });
         }).catch(() => setIsSubmitting(false));
     };
 
@@ -259,7 +283,7 @@ export default function BbsPostPage() {
             <div className="grain-noise" />
 
             {/* 🚀 物理对齐：w-full px-4 md:px-8 完美匹配全局导航栏边缘 */}
-            <header className="sticky top-[64px] z-[100] w-full border-b border-t border-white/5 bg-black/80 backdrop-blur-2xl h-24 flex items-center shadow-[0_30px_60px_rgba(0,0,0,0.9)]">
+            <header className="sticky top-[80px] z-[100] w-full border-b border-t border-white/5 bg-black/80 backdrop-blur-2xl h-24 flex items-center shadow-[0_30px_60px_rgba(0,0,0,0.9)]">
                 <div className="w-full px-4 md:px-8 flex items-center justify-between gap-4">
                     
                     {/* 左侧：BACK */}
@@ -303,27 +327,46 @@ export default function BbsPostPage() {
                     </div>
 
                     <div className="p-8 md:p-12 space-y-16">
-                        {/* 👤 优化作者栏 */}
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-white/[0.02] p-8 rounded-[40px] border border-white/5 ring-1 ring-white/5">
+                        {/* 👤 作者信息栏 */}
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8 bg-white/[0.03] p-8 rounded-[40px] border border-white/8 ring-1 ring-white/5">
                             <div className="flex items-center gap-6">
-                                <div className="relative h-20 w-20 flex items-center justify-center shrink-0">
-                                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 to-fuchsia-500 blur-md opacity-40 animate-pulse" />
-                                    <div className="relative h-[72px] w-[72px] rounded-full bg-black ring-[4px] ring-[#05050A] overflow-hidden z-10">
-                                        <Avatar className="h-full w-full"><AvatarImage src={authorProfile?.photoURL} className="object-cover" /><AvatarFallback className="bg-black text-cyan-400 font-black uppercase text-xl">{authorProfile?.displayName?.charAt(0)}</AvatarFallback></Avatar>
+                                <Link href={`/u/${authorProfile?.loginId || post.authorId}`} className="shrink-0">
+                                    <div className="relative h-20 w-20 flex items-center justify-center">
+                                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 to-fuchsia-500 blur-md opacity-40 animate-pulse" />
+                                        <div className="relative h-[72px] w-[72px] rounded-full bg-black ring-[4px] ring-[#05050A] overflow-hidden z-10">
+                                            <Avatar className="h-full w-full"><AvatarImage src={authorProfile?.photoURL} className="object-cover" /><AvatarFallback className="bg-black text-cyan-400 font-black uppercase text-xl">{authorProfile?.displayName?.charAt(0)}</AvatarFallback></Avatar>
+                                        </div>
+                                        {(authorProfile as any)?.isPro && <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2.5 py-0.5 rounded-md font-black text-[10px] shadow-[0_0_15px_rgba(250,204,21,0.5)] z-20 uppercase tracking-widest">PRO</div>}
                                     </div>
-                                    {authorProfile?.isPro && <div className="absolute -bottom-1 -right-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black px-2.5 py-0.5 rounded-md font-black text-[10px] shadow-[0_0_15px_rgba(250,204,21,0.5)] z-20 uppercase tracking-widest">PRO</div>}
-                                </div>
-                                <div className="space-y-1.5">
-                                    <h3 className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase text-white/90">{authorProfile?.displayName}</h3>
-                                    <div className="flex items-center gap-4 text-[10px] font-mono text-white/40 uppercase tracking-widest">
-                                        <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> {authorProfile?.followersCount || 0} Nodes</span>
-                                        <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5" /> {authorProfile?.postsCount || 0} Logs</span>
+                                </Link>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h3 className="text-xl md:text-2xl font-black italic tracking-tight uppercase text-white/90">{authorProfile?.displayName}</h3>
+                                        {authorProfile?.kycStatus === 'Verified' && (
+                                            <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[9px] font-black uppercase tracking-widest">
+                                                <ShieldCheck className="h-3 w-3" /> KYC
+                                            </span>
+                                        )}
+                                    </div>
+                                    {/* 统计数据 */}
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] font-mono text-white/40 uppercase tracking-wider">
+                                        <span className="flex items-center gap-1.5"><Users className="h-3 w-3 text-cyan-400/60" /> <span className="text-white/70 font-bold">{(authorProfile as any)?.followersCount || 0}</span> {t('bbsPostDetail.followers')}</span>
+                                        <span className="text-white/10">·</span>
+                                        <span className="flex items-center gap-1.5"><FileText className="h-3 w-3 text-fuchsia-400/60" /> <span className="text-white/70 font-bold">{(authorProfile as any)?.postsCount || (authorProfile as any)?.bbsPostsCount || 0}</span> {t('bbsPostDetail.posts')}</span>
+                                        <span className="text-white/10">·</span>
+                                        <span className="flex items-center gap-1.5"><TrendingUp className="h-3 w-3 text-yellow-400/60" /> <span className="text-white/70 font-bold">{(authorProfile as any)?.trustScore ?? (authorProfile as any)?.reputationScore ?? '—'}</span> {t('bbsPostDetail.reputation')}</span>
+                                        {((authorProfile as any)?.city || (authorProfile as any)?.location?.city) && (
+                                            <>
+                                                <span className="text-white/10">·</span>
+                                                <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-green-400/60" /> <span className="text-white/70">{(authorProfile as any)?.city || (authorProfile as any)?.location?.city}</span></span>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                             {user && !isOwner && (
-                                <Button onClick={handleFollowToggle} className={cn("rounded-full px-12 h-14 font-black tracking-widest text-xs transition-all uppercase relative z-10", isFollowing ? "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10" : "bg-cyan-500 text-black hover:bg-cyan-400 hover:scale-105 shadow-[0_0_30px_rgba(6,182,212,0.4)]")}>
-                                    {isFollowing ? 'Synced' : 'Sync Node'}
+                                <Button onClick={handleFollowToggle} className={cn("rounded-full px-10 h-12 font-black tracking-widest text-xs transition-all uppercase shrink-0", isFollowing ? "bg-white/5 text-white/50 border border-white/10 hover:bg-white/10" : "bg-cyan-500 text-black hover:bg-cyan-400 hover:scale-105 shadow-[0_0_30px_rgba(6,182,212,0.4)]")}>
+                                    {isFollowing ? t('bbsPostDetail.synced') : t('bbsPostDetail.follow')}
                                 </Button>
                             )}
                         </div>
@@ -340,21 +383,77 @@ export default function BbsPostPage() {
                             </div>
                         </div>
 
+                        {/* ⚡ 帖子互动栏 */}
+                        <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-y border-white/8">
+                            <div className="flex items-center gap-3">
+                                {/* 点赞 */}
+                                <button onClick={handlePostLike} className={cn(
+                                    "flex items-center gap-2 px-5 py-3 rounded-full font-black text-sm transition-all border",
+                                    isLiked
+                                        ? "bg-fuchsia-500/20 border-fuchsia-500/50 text-fuchsia-400 shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+                                        : "bg-white/5 border-white/10 text-white/50 hover:bg-fuchsia-500/10 hover:border-fuchsia-500/30 hover:text-fuchsia-400"
+                                )}>
+                                    <Heart className={cn("h-4 w-4", isLiked && "fill-fuchsia-400")} />
+                                    <span>{localLikes}</span>
+                                </button>
+                                {/* 收藏 */}
+                                <button onClick={handlePostSave} className={cn(
+                                    "flex items-center gap-2 px-5 py-3 rounded-full font-black text-sm transition-all border",
+                                    isSaved
+                                        ? "bg-yellow-500/20 border-yellow-500/50 text-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.25)]"
+                                        : "bg-white/5 border-white/10 text-white/50 hover:bg-yellow-500/10 hover:border-yellow-500/30 hover:text-yellow-400"
+                                )}>
+                                    <Bookmark className={cn("h-4 w-4", isSaved && "fill-yellow-400")} />
+                                    <span className="text-xs uppercase tracking-wider">{isSaved ? t('bbsPostDetail.saved') : t('bbsPostDetail.save')}</span>
+                                </button>
+                                {/* 分享 */}
+                                <button onClick={() => { navigator.clipboard?.writeText(window.location.href); toast({ title: t('bbsPostDetail.linkCopied') }); }} className="flex items-center gap-2 px-5 py-3 rounded-full font-black text-sm transition-all border bg-white/5 border-white/10 text-white/50 hover:bg-cyan-500/10 hover:border-cyan-500/30 hover:text-cyan-400">
+                                    <Share2 className="h-4 w-4" />
+                                    <span className="text-xs uppercase tracking-wider">{t('bbsPostDetail.share')}</span>
+                                </button>
+                            </div>
+                            {/* 统计 */}
+                            <div className="flex items-center gap-5 text-[11px] font-mono text-white/30 uppercase tracking-widest">
+                                <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> {(post as any).views || 0}</span>
+                                <span className="flex items-center gap-1.5"><MessageSquare className="h-3.5 w-3.5" /> {post.replies || 0}</span>
+                            </div>
+                        </div>
+
                         {/* 💬 评论系统 */}
-                        <div className="pt-16 border-t border-white/10 space-y-12">
+                        <div className="pt-8 space-y-8">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-2xl md:text-3xl font-black italic uppercase tracking-tighter flex items-center gap-4">
-                                    <Zap className="h-8 w-8 text-fuchsia-500 animate-pulse" /> Feedback_Stream <span className="text-white/20 text-2xl">[{post.replies || 0}]</span>
+                                <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter flex items-center gap-3">
+                                    <MessageSquare className="h-6 w-6 text-fuchsia-400" />
+                                    {t('bbsPostDetail.commentSectionTitle')}
+                                    <span className="text-white/30 text-lg">[{post.replies || 0}]</span>
                                 </h3>
                             </div>
-                            
+
+                            {/* 发表留言按钮 — 显眼版 */}
                             {canInteract && !replyingTo && (
-                                <Button variant="outline" className="w-full py-12 rounded-[32px] border-2 border-dashed border-white/10 bg-black/20 font-mono text-white/30 hover:text-fuchsia-400 hover:border-fuchsia-500/50 hover:bg-fuchsia-500/5 transition-all uppercase tracking-[0.5em] text-xs" onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}>_INITIATE_TRANSMISSION...</Button>
+                                <button
+                                    onClick={() => setReplyingTo({ id: 'root', authorName: 'Post' })}
+                                    className="group w-full flex items-center gap-4 p-5 rounded-[28px] border-2 border-fuchsia-500/30 bg-fuchsia-500/5 hover:bg-fuchsia-500/10 hover:border-fuchsia-400/60 transition-all shadow-[0_0_20px_rgba(236,72,153,0.08)] hover:shadow-[0_0_30px_rgba(236,72,153,0.2)]"
+                                >
+                                    <Avatar className="h-10 w-10 border border-white/10 shrink-0">
+                                        <AvatarImage src={profile?.photoURL} />
+                                        <AvatarFallback className="bg-fuchsia-900/50 text-fuchsia-300 font-black">{profile?.displayName?.charAt(0) || '?'}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="flex-1 text-left text-sm text-white/40 group-hover:text-white/60 transition-colors font-mono">{t('bbsPostDetail.leaveComment')}</span>
+                                    <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-fuchsia-500 text-black font-black text-xs uppercase tracking-wider shadow-[0_0_15px_rgba(236,72,153,0.4)] group-hover:scale-105 transition-transform">
+                                        <Plus className="h-3.5 w-3.5" /> {t('bbsPostDetail.leaveComment')}
+                                    </div>
+                                </button>
                             )}
-                            
+                            {!user && (
+                                <Link href="/auth/signin" className="group w-full flex items-center justify-center gap-3 p-5 rounded-[28px] border-2 border-white/10 bg-white/3 hover:border-fuchsia-500/40 hover:bg-fuchsia-500/5 transition-all">
+                                    <span className="text-white/40 group-hover:text-fuchsia-400 font-mono text-sm transition-colors">{t('bbsPostDetail.loginToDiscuss')}</span>
+                                </Link>
+                            )}
+
                             {replyingTo?.id === 'root' && <CommentForm isSubmitting={isSubmitting} value={newComment} onChange={(e: any) => setNewComment(e.target.value)} onSubmit={handlePostComment} onCancelClick={() => setReplyingTo(null)} />}
-                            
-                            <div className="space-y-6">{renderComments(nestedComments)}</div>
+
+                            <div className="space-y-4">{renderComments(nestedComments)}</div>
                         </div>
                     </div>
                 </Card>

@@ -24,7 +24,14 @@
       "WebFetch(domain:www.getluna.org)",
       "Bash(tail:*)",
       "Bash(cat:*)",
-      "Bash(npx firebase-tools:*)"
+      "Bash(npx firebase-tools:*)",
+      "Bash(curl:*)",
+      "Bash(node:*)",
+      "Bash(tasklist:*)",
+      "WebFetch(domain:p16-lemon8-sign-sg.tiktokcdn.com)",
+      "Bash(taskkill:*)",
+      "Bash(cmd:*)",
+      "Bash(dir:*)"
     ]
   }
 }

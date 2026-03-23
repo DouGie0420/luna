@@ -1,0 +1,103 @@
+
+> nextn@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 19156, using available port 3001 instead.
+   ▲ Next.js 15.5.9
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.1.38:3001
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Ready in 3.6s
+ ○ Compiling /api/ai/status ...
+ ✓ Compiled /api/ai/status in 4.1s (700 modules)
+Initializing Firebase app...
+Firebase initialized successfully
+(node:33752) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ GET /api/ai/status 200 in 5004ms
+Firebase already initialized, reusing existing instances
+ GET /api/ai/status 200 in 79ms
+ ○ Compiling /universe ...
+
+[1m[33mwarn[39m[22m - The class `duration-[1500ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;1500ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2000ms]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2000ms&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[2s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;2s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `duration-[3s]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `duration-&lsqb;3s&rsqb;` to silence this warning.
+
+[1m[33mwarn[39m[22m - The class `ease-[cubic-bezier(0.23,1,0.32,1)]` is ambiguous and matches multiple utilities.
+[1m[33mwarn[39m[22m - If this is content and not a class, replace it with `ease-&lsqb;cubic-bezier(0.23,1,0.32,1)&rsqb;` to silence this warning.
+ ⨯ ./Universe/components/PlazaPage.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m             )'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaPage.tsx[0m:106:1]
+ [2m103[0m |                 >
+ [2m104[0m |                   CHAT
+ [2m105[0m |                 </button>
+ [2m106[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m             </button>
+ [2m107[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m             <button
+ [2m108[0m |                   onClick={() => setShowDrugShop(true)}
+ [2m109[0m |                   className="px-3 py-1 rounded text-[10px] border border-green-700 text-green-400 bg-green-950/20 hover:border-green-500 transition-colors"
+ [2m110[0m |                   style={{ fontFamily: '"Press Start 2P", monospace' }}
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ ⨯ ./Universe/components/PlazaPage.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m             )'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaPage.tsx[0m:106:1]
+ [2m103[0m |                 >
+ [2m104[0m |                   CHAT
+ [2m105[0m |                 </button>
+ [2m106[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m             </button>
+ [2m107[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m             <button
+ [2m108[0m |                   onClick={() => setShowDrugShop(true)}
+ [2m109[0m |                   className="px-3 py-1 rounded text-[10px] border border-green-700 text-green-400 bg-green-950/20 hover:border-green-500 transition-colors"
+ [2m110[0m |                   style={{ fontFamily: '"Press Start 2P", monospace' }}
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ⨯ ./Universe/components/PlazaPage.tsx
+Error:   [31mx[0m Expected '</', got 'jsx text (
+  [31m|[0m             )'
+     ,-[[36;1;4mC:\Users\Administrator\Website\Universe\components\PlazaPage.tsx[0m:106:1]
+ [2m103[0m |                 >
+ [2m104[0m |                   CHAT
+ [2m105[0m |                 </button>
+ [2m106[0m | [35;1m,[0m[35;1m-[0m[35;1m>[0m             </button>
+ [2m107[0m | [35;1m`[0m[35;1m-[0m[35;1m>[0m             <button
+ [2m108[0m |                   onClick={() => setShowDrugShop(true)}
+ [2m109[0m |                   className="px-3 py-1 rounded text-[10px] border border-green-700 text-green-400 bg-green-950/20 hover:border-green-500 transition-colors"
+ [2m110[0m |                   style={{ fontFamily: '"Press Start 2P", monospace' }}
+     `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested module:
+./Universe/components/PlazaPage.tsx
+./src/app/universe/page.tsx
+ GET /universe 500 in 11917ms
+Watchpack Error (initial scan): Error: EINVAL: invalid argument, lstat 'C:\swapfile.sys'
+ ✓ Compiled /_error in 3.4s (2443 modules)
+[?25h
