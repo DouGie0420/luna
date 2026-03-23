@@ -6,10 +6,17 @@
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "ES2020"
+    "target": "ES2020",
+    
+    // 👇 关键修复 1：允许导入 USDTEscrow.json 这种 JSON 文件
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    
+    // 👇 关键修复 2：跳过 node_modules 里的第三方库检查，秒杀那 13 个报错
+    "skipLibCheck": true
   },
   "compileOnSave": true,
   "include": [
-    "index.ts"
+    "src" 
   ]
 }
