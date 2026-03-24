@@ -36,6 +36,7 @@ import { type BadgeType, type Product, type GlobalSettings } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AdminBadgeIcon } from "@/components/ui/admin-badge-icon";
 import { compressImage } from "@/lib/image-compressor";
+import { uploadToR2 } from "@/lib/upload";
 import Image from "next/image";
 import {
   Dialog,
@@ -271,12 +272,13 @@ export default function AccountProfilePage() {
     if (!file) return;
     setIsUploadingBanner(true);
     try {
-      const compressedDataUrl = await compressImage(file);
-      setBannerPreview(compressedDataUrl);
+      const url = await uploadToR2(file, `banners/${user?.uid}`);
+      setBannerPreview(url);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Image Error', description: error.message || 'Failed to process image.' });
     } finally {
       setIsUploadingBanner(false);
+      e.target.value = '';
     }
   };
 
@@ -298,12 +300,13 @@ export default function AccountProfilePage() {
     if (!file) return;
     setIsUploadingAvatar(true);
     try {
-      const compressedDataUrl = await compressImage(file);
-      setAvatarPreview(compressedDataUrl);
+      const url = await uploadToR2(file, `avatars/${user?.uid}`);
+      setAvatarPreview(url);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Image Error', description: error.message || 'Failed to process image.' });
     } finally {
       setIsUploadingAvatar(false);
+      e.target.value = '';
     }
   };
 
