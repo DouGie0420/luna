@@ -176,16 +176,16 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
         toast({ title: "结算协议执行中", description: "正在发起链上确认收货交易..." });
 
         try {
-            const confirmTxHash = await confirmDelivery(order.escrowOrderId);
+            const result = await confirmDelivery(order.escrowOrderId);
 
-            if (!confirmTxHash) {
-                throw new Error(escrowInteractionError || "链上确认收货失败，请检查 Gas 或余额。");
+            if (!result.success) {
+                throw new Error(result.error || escrowInteractionError || "链上确认收货失败，请检查 Gas 或余额。");
             }
 
             await updateDoc(doc(firestore, 'orders', orderId), {
                 status: 'completed',
                 completedAt: serverTimestamp(),
-                confirmDeliveryTxHash: confirmTxHash,
+                confirmDeliveryTxHash: result.hash || '',
             });
 
             toast({ title: "成功", description: "交易已结算。正在进入评价协议..." });
