@@ -32,6 +32,11 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+    value: AIzaSyAFTW4rMfnYFUIAKB4vCeDXZmVf-e86emU
+    availability:
+      - BUILD
+      - RUNTIME
   # RESEND_API_KEY 通过 Firebase Console Secret Manager 设置（见下方说明）
   # - variable: RESEND_API_KEY
   #   secret: RESEND_API_KEY
