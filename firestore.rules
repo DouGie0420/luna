@@ -152,9 +152,20 @@ service cloud.firestore {
     // --- 4. 浜ゆ槗鑸囪▊鍠?(orders) ---
     match /orders/{orderId} {
       allow list: if isAdminGroup() || (isSignedIn() && ("limit" in request.query && request.query.limit <= 50));
-      allow get: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
+      allow get: if isSignedIn() && (
+        resource == null || // ✨ 修復：允許前端監聽還未創建完成的訂單文檔
+        request.auth.uid == resource.data.buyerId ||
+        request.auth.uid == resource.data.sellerId ||
+        request.auth.uid in resource.data.get('participants', []) || // ✨ 修復：使用 get()
+        isAdminGroup()
+      );
       allow create: if isSignedIn();
-      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || isAdminGroup());
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.buyerId ||
+        request.auth.uid == resource.data.sellerId ||
+        request.auth.uid in resource.data.get('participants', []) ||
+        isAdminGroup()
+      );
       // 鉁?淇京锛歴taff 鍜?support 鎿佹湁瑷傚柈绠＄悊鐨勫叏閮ㄦ瑠闄愶紝鍏佽ū鍒櫎
       allow delete: if isAdminGroup(); 
     }
@@ -197,31 +208,49 @@ service cloud.firestore {
     
     // 鉁?鏂板锛氬皥闁€鐐?ChatWindow 绲勪欢閰嶇疆鐨勮▊鍠亰澶╅泦鍚?
     match /chats/{chatId} {
-      allow read, write: if isSignedIn() && (
-        request.auth.uid in resource.data.participants ||
-        isAdminGroup()
+      allow read: if isSignedIn() && (
+        isAdminGroup() ||
+        resource == null || // ✨ 修復：判斷文檔不存在
+        request.auth.uid in resource.data.get('participants', []) // ✨ 修復
       );
-      
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
+      allow update: if isSignedIn() && (
+        isAdminGroup() ||
+        request.auth.uid in resource.data.participants
+      );
+      allow delete: if isAdminGroup();
+
       match /messages/{messageId} {
-        // 鍙湁瑭茶亰澶╃殑璨疯常闆欐柟鎴栫鐞嗙祫鍙互璁€鍙栧拰鐧奸€佹秷鎭?
-        allow read, create: if isSignedIn() && (
-          request.auth.uid == get(/databases/$(database)/documents/chats/$(chatId)).data.buyerId ||
-          request.auth.uid == get(/databases/$(database)/documents/chats/$(chatId)).data.sellerId ||
-          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants ||
-          isAdminGroup()
+        allow read: if isSignedIn() && (
+          isAdminGroup() ||
+          !exists(/databases/$(database)/documents/chats/$(chatId)) ||
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.get('participants', []) // ✨ 修復
         );
-        allow update, delete: if isAdminGroup(); // 鍙湁绠＄悊鍝″彲浠ユ挙鍥?鍒櫎娑堟伅
+        allow create: if isSignedIn() && (
+          isAdminGroup() ||
+          (request.auth.uid == request.resource.data.senderId && (
+            !exists(/databases/$(database)/documents/chats/$(chatId)) ||
+            request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.get('participants', []) // ✨ 修復
+          ))
+        );
+        allow update, delete: if isAdminGroup();
       }
     }
 
     match /direct_chats/{chatId} {
-      allow read: if isSignedIn() && request.auth.uid in resource.data.participants;
+      allow read: if isSignedIn() && (
+        resource == null || // ✨ 修復
+        request.auth.uid in resource.data.get('participants', [])
+      );
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       allow update: if isSignedIn() && request.auth.uid in request.resource.data.participants;
       
       match /messages/{messageId} {
         // 浣跨敤 get 纰轰繚鍗充究鍙畝鍙栦竴姊濊▕鎭紝涔熻兘鏍￠鐖剁礆灏嶈┍鐨?participants
-        allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/direct_chats/$(chatId)).data.participants;
+        allow read: if isSignedIn() && (
+          !exists(/databases/$(database)/documents/direct_chats/$(chatId)) || // ✨ 修復
+          request.auth.uid in get(/databases/$(database)/documents/direct_chats/$(chatId)).data.get('participants', [])
+        );
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
       }
     }
@@ -229,10 +258,18 @@ service cloud.firestore {
     match /support_tickets/{ticketId} {
       allow list: if isAdminGroup();
       allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
-      allow read, update: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdminGroup());
+      allow read, update: if isSignedIn() && (
+        resource == null || // ✨ 修復
+        resource.data.userId == request.auth.uid || 
+        isAdminGroup()
+      );
 
       match /messages/{messageId} {
-        allow read: if isSignedIn() && (get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid || isAdminGroup());
+        allow read: if isSignedIn() && (
+          !exists(/databases/$(database)/documents/support_tickets/$(ticketId)) || // ✨ 修復
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid || 
+          isAdminGroup()
+        );
         allow create: if isSignedIn() && request.auth.uid == request.resource.data.senderId;
       }
     }
@@ -360,4 +397,3 @@ service cloud.firestore {
     }
   }
 }
-
