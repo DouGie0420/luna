@@ -22,10 +22,7 @@ env:
     availability:
       - RUNTIME
   # R2_ACCESS_KEY_ID 和 R2_SECRET_ACCESS_KEY 通过 Firebase Console 环境变量配置
-  - variable: GOOGLE_GENAI_API_KEY
-    value: AIzaSyA8btJLKbyZxxyqxH-66WRD2I54aGDmUYY
-    availability:
-      - RUNTIME
+  # GOOGLE_GENAI_API_KEY 通过 Firebase Console 环境变量配置（不可明文写入）
   - variable: RESEND_FROM_EMAIL
     value: bookings@luna.gift
     availability:
