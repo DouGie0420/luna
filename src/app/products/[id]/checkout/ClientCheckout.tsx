@@ -279,7 +279,7 @@ export default function ClientCheckout() {
       setProgress(30);
       toast({ title: "🔒 链上资金锁定中", description: "步骤 1/1：请在您的钱包中确认交易，将 ETH 安全锁定至托管合约..." });
 
-      const lockResult = await lockFunds(product.escrowOrderId);
+      const lockResult = await lockFunds(product.escrowOrderId, totalAmount, sellerWalletAddress);
 
       if (!lockResult.success) {
           throw new Error(lockResult.error || escrowInteractionError || "链上锁仓失败，请检查 Gas 或余额。");
