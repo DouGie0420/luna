@@ -58,16 +58,14 @@ export function OrderConfirmDialog({
     [addresses, selectedAddressId]
   );
 
-  const needsAddress = selectedMethod !== 'eth' && selectedMethod !== 'usdt';
-
   const handleConfirm = async () => {
-    if (needsAddress && !selectedAddressId) {
+    if (!selectedAddressId) {
       alert("Please select a shipping address.");
       return;
     }
     setIsProcessing(true);
     try {
-      await onConfirm(selectedMethod, selectedAddressId ?? undefined);
+      await onConfirm(selectedMethod, selectedAddressId);
       onOpenChange(false);
     } catch (error) {
       console.error('Error confirming order:', error);
@@ -93,8 +91,8 @@ export function OrderConfirmDialog({
           </DialogHeader>
 
           <div className="space-y-6 mt-6">
-            {/* 地址管理器：仅非加密货币支付显示 */}
-            {needsAddress && <div className="glass-morphism bg-black/40 rounded-xl border border-white/10 p-4 relative overflow-hidden transition-all">
+            {/* 🚀 升級後的地址管理器 */}
+            <div className="glass-morphism bg-black/40 rounded-xl border border-white/10 p-4 relative overflow-hidden transition-all">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold text-white/60 flex items-center gap-2">
                   <MapPin className="h-4 w-4" /> Shipping Destination
@@ -166,7 +164,7 @@ export function OrderConfirmDialog({
                   <p className="text-xs text-white/40 uppercase font-black">Click to add address</p>
                 </div>
               )}
-            </div>}
+            </div>
 
             {/* 商品概覽 */}
             <div className="glass-morphism bg-black/40 rounded-xl border border-white/10 p-4 flex gap-4 items-center">
@@ -192,7 +190,7 @@ export function OrderConfirmDialog({
                 <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1 h-14 border-white/20 bg-white/5 text-white font-bold">Abort</Button>
                 <Button 
                   onClick={handleConfirm} 
-                  disabled={isProcessing || (needsAddress && !selectedAddressId)}
+                  disabled={isProcessing || !selectedAddressId}
                   className="flex-[2] h-14 bg-gradient-to-r from-primary to-secondary text-black font-black shadow-[0_0_20px_rgba(168,85,247,0.3)]"
                 >
                   {isProcessing ? <Loader2 className="animate-spin" /> : 'Confirm Purchase'}
