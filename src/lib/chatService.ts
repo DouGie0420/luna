@@ -171,23 +171,37 @@ export class ChatService {
 
     const unsubscribeOrder = onSnapshot(
       orderQuery,
-      (snapshot) => {
-        orderChats = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data() as OrderChat;
+      async (snapshot) => {
+        const entries: Array<{ id: string; data: OrderChat; otherUserId: string }> = [];
+        snapshot.forEach((chatDoc) => {
+          const data = chatDoc.data() as OrderChat;
           const otherUserId = data.participants.find(id => id !== userId) || '';
-          
-          orderChats.push({
-            id: doc.id,
-            type: 'order',
+          entries.push({ id: chatDoc.id, data, otherUserId });
+        });
+
+        // Fetch real user profiles in parallel
+        const profileDocs = await Promise.all(
+          entries.map(({ otherUserId }) =>
+            otherUserId
+              ? getDoc(doc(this.firestore, 'users', otherUserId)).catch(() => null)
+              : Promise.resolve(null)
+          )
+        );
+
+        orderChats = entries.map(({ id, data, otherUserId }, i) => {
+          const profileData = profileDocs[i]?.data() as any;
+          return {
+            id,
+            type: 'order' as const,
             orderId: data.orderId,
             otherUserId,
-            otherUserName: data.sellerId === userId ? 'Buyer' : 'Seller',
+            otherUserName: profileData?.displayName || (data.sellerId === userId ? 'Buyer' : 'Seller'),
+            otherUserAvatar: profileData?.photoURL,
             lastMessage: data.lastMessage || 'No messages yet',
             lastMessageTime: data.lastMessageTimestamp?.toDate() || data.lastMessageTime || new Date(),
             unreadCount: data.unreadCount?.[userId] || 0,
             productName: data.productName
-          });
+          };
         });
         updateChats();
       },
