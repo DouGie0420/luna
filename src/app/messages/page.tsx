@@ -29,6 +29,7 @@ const emojiCategories = {
 
 interface ChatPreview {
   id: string;
+  type?: 'order' | 'direct';
   otherUserId: string;
   otherUserName: string;
   otherUserAvatar?: string;
@@ -90,16 +91,18 @@ export default function MessagesPage() {
 
     const chatService = getChatService(firestore);
 
+    const chatType = chats.find(c => c.id === selectedChatId)?.type || 'direct';
+
     const unsubscribe = chatService.subscribeToMessages(
       selectedChatId,
-      'direct',
+      chatType,
       (newMessages) => {
         setMessages(newMessages);
         scrollToBottom();
-        
+
         // 标记为已读
         if (user) {
-          chatService.markAsRead(selectedChatId, 'direct', user.uid);
+          chatService.markAsRead(selectedChatId, chatType, user.uid);
         }
       }
     );
@@ -124,7 +127,7 @@ export default function MessagesPage() {
 
       await chatService.sendMessage(
         selectedChatId,
-        'direct',
+        selectedChat.type || 'direct',
         {
           text: messageText,
           senderId: user.uid,
