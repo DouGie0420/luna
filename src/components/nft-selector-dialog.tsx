@@ -29,7 +29,7 @@ export function NftSelectorDialog({ open, onOpenChange, nfts, onSelect, isUpdati
     const { t } = useTranslation();
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => {
+        <Dialog open={open} onOpenChange={(isOpen: boolean) => {
             onOpenChange(isOpen);
             if (!isOpen) {
                 setSelectedNft(null); // Reset selection on close

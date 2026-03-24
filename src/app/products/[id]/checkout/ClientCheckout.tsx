@@ -272,11 +272,13 @@ export default function ClientCheckout() {
     setProgress(10);
     toast({ title: "🚀 启动 Web3 交易协议", description: "正在与智能合约建立安全连接，准备锁定 ETH..." });
 
+    let purchaseSucceeded = false;
+
     try {
       // STEP 1: 链上锁仓 (Lock Funds) - 使用 useEscrowContract Hook
       setProgress(30);
       toast({ title: "🔒 链上资金锁定中", description: "步骤 1/1：请在您的钱包中确认交易，将 ETH 安全锁定至托管合约..." });
-      
+
       const lockResult = await lockFunds(product.escrowOrderId);
 
       if (!lockResult.success) {
@@ -289,7 +291,7 @@ export default function ClientCheckout() {
       if (!address) {
           throw new Error("收货地址未找到。");
       }
-      const { id: addrId, isDefault, ...shippingAddress } = address; 
+      const { id: addrId, isDefault, ...shippingAddress } = address;
 
       const orderData = {
         productId: product.id,
@@ -301,9 +303,9 @@ export default function ClientCheckout() {
         shippingFee,
         totalAmount,
         currency: 'ETH',
-        status: 'paid', 
-        escrowOrderId: product.escrowOrderId, 
-        txHash: lockResult.hash || 'N/A', 
+        status: 'paid',
+        escrowOrderId: product.escrowOrderId,
+        txHash: lockResult.hash || 'N/A',
         createdAt: serverTimestamp(),
         shippingAddress,
         shippingMethod,
@@ -313,17 +315,41 @@ export default function ClientCheckout() {
       const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
       await updateDoc(doc(firestore, 'products', product.id), { status: 'sold' });
 
+      // STEP 3: 发送卖家售出邮件通知（不影响主流程）
+      if (sellerProfile?.email) {
+        fetch('/api/email/order-notification', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sellerEmail: sellerProfile.email,
+            sellerName: sellerProfile.displayName || '卖家',
+            buyerName: profile?.displayName || user.displayName || '买家',
+            productName: product.name,
+            orderId: orderRef.id,
+            totalAmount,
+            txHash: lockResult.hash || 'N/A',
+          }),
+        }).catch(() => {}); // 静默失败，不阻断主流程
+      }
+
       setProgress(100);
+      purchaseSucceeded = true;
       toast({ title: "✅ 协议执行成功", description: "资金已安全锁定至智能合约，订单已创建。您现在可以等待卖家发货。" });
+
+      // 跳转到订单页，防止用户重复点击导致二次付款
+      router.push(`/account/purchases`);
     } catch (error: any) {
         console.error('Checkout error:', error);
-        toast({ 
-            variant: 'destructive', 
-            title: '支付失败', 
-            description: error.message || '支付过程中发生错误，请稍后重试。' 
+        toast({
+            variant: 'destructive',
+            title: '支付失败',
+            description: error.message || '支付过程中发生错误，请稍后重试。'
         });
     } finally {
-        setIsProcessing(false);
+        // 只有失败时才重新启用按钮；成功后会跳转，无需重置
+        if (!purchaseSucceeded) {
+          setIsProcessing(false);
+        }
     }
   };
 
