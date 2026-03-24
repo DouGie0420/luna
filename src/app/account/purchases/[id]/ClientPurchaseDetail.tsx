@@ -167,7 +167,9 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
             return;
         }
 
-        if (!order.escrowOrderId) {
+        // fallback to product.id if escrowOrderId not stored (older orders)
+        const escrowId = order.escrowOrderId || product?.id;
+        if (!escrowId) {
             toast({ variant: "destructive", title: "订单协议ID缺失", description: "无法执行链上操作，订单缺乏合约ID。" });
             return;
         }
@@ -176,7 +178,7 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
         toast({ title: "结算协议执行中", description: "正在发起链上确认收货交易..." });
 
         try {
-            const result = await confirmDelivery(order.escrowOrderId);
+            const result = await confirmDelivery(escrowId);
 
             if (!result.success) {
                 throw new Error(result.error || escrowInteractionError || "链上确认收货失败，请检查 Gas 或余额。");
