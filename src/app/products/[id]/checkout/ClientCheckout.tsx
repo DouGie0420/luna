@@ -340,10 +340,28 @@ export default function ClientCheckout() {
       router.push(`/account/purchases`);
     } catch (error: any) {
         console.error('Checkout error:', error);
+
+        let friendlyMessage = '支付过程中发生错误，请稍后重试。';
+        const msg = (error.message || '').toLowerCase();
+
+        if (error.code === 4001 || error.code === 'ACTION_REJECTED' || msg.includes('user rejected') || msg.includes('user denied')) {
+          friendlyMessage = '您已取消交易。如需支付请重新点击确认按钮。';
+        } else if (msg.includes('insufficient funds') || msg.includes('insufficient balance')) {
+          friendlyMessage = '钱包 ETH 余额不足，请充值后重试。';
+        } else if (msg.includes('estimategas') || msg.includes('call_exception') || msg.includes('revert')) {
+          friendlyMessage = '智能合约执行失败，可能原因：余额不足、订单已存在或网络异常。请检查余额后重试，或联系客服。';
+        } else if (msg.includes('network') || msg.includes('timeout') || msg.includes('could not fetch')) {
+          friendlyMessage = '网络连接超时，请检查网络后重试。';
+        } else if (msg.includes('nonce') || msg.includes('replacement fee too low')) {
+          friendlyMessage = '交易冲突，请在钱包中取消待处理交易后重试。';
+        } else if (error.reason) {
+          friendlyMessage = error.reason;
+        }
+
         toast({
             variant: 'destructive',
             title: '支付失败',
-            description: error.message || '支付过程中发生错误，请稍后重试。'
+            description: friendlyMessage,
         });
     } finally {
         // 只有失败时才重新启用按钮；成功后会跳转，无需重置
