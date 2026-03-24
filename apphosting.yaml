@@ -9,6 +9,26 @@ runConfig:
 
 # Environment variables and secrets.
 env:
+  - variable: R2_ENDPOINT
+    value: https://003c6e6c0530ca5a1f036f2fca5028f2.r2.cloudflarestorage.com
+    availability:
+      - RUNTIME
+  - variable: R2_BUCKET
+    value: luna-website
+    availability:
+      - RUNTIME
+  - variable: R2_PUBLIC_URL
+    value: https://images.luna.gift
+    availability:
+      - RUNTIME
+  - variable: R2_ACCESS_KEY_ID
+    value: df66413324680d7b588942498ea5c647
+    availability:
+      - RUNTIME
+  - variable: R2_SECRET_ACCESS_KEY
+    value: 678295fc5db459033d007147c4f43ac4d66fef693a461ef77a0b59e25973ddb1
+    availability:
+      - RUNTIME
   - variable: RESEND_FROM_EMAIL
     value: bookings@luna.gift
     availability:
