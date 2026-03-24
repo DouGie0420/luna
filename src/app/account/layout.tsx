@@ -59,7 +59,7 @@ export default function AccountLayout({
   const isPro = !!(profile?.isPro)
 
   const navItems = [
-    { href: '/account', icon: User, label: t('accountLayout.profile') },
+    { href: '/account/profile', icon: User, label: t('accountLayout.profile') },
     { href: '/account/listings', icon: ShoppingBag, label: t('accountLayout.myListings') },
     { href: '/account/purchases', icon: ClipboardList, label: t('accountLayout.myPurchases') },
     { href: '/account/bookings', icon: Home, label: '我的预定' },
