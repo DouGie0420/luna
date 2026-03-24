@@ -1,4 +1,4 @@
-﻿rules_version = '2';
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
@@ -161,8 +161,36 @@ service cloud.firestore {
 
     match /reviews/{reviewId} {
       allow get: if true;
-      allow write: if isSignedIn() && (request.resource.data.reviewerId == request.auth.uid || isAdminGroup());
       allow list: if ("limit" in request.query && request.query.limit <= 50);
+      allow create: if isSignedIn() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.reviewerId == request.auth.uid ||
+        isAdminGroup()
+      );
+      allow update, delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.reviewerId == request.auth.uid ||
+        isAdminGroup()
+      );
+    }
+
+    // --- bookings 集合 ---
+    match /bookings/{bookingId} {
+      allow list: if isAdminGroup() || (isSignedIn() && ("limit" in request.query && request.query.limit <= 200));
+      allow get: if isSignedIn() && (
+        request.auth.uid == resource.data.tenantId ||
+        request.auth.uid == resource.data.hostId ||
+        request.auth.uid == resource.data.ownerId ||
+        isAdminGroup()
+      );
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (
+        request.auth.uid == resource.data.tenantId ||
+        request.auth.uid == resource.data.hostId ||
+        request.auth.uid == resource.data.ownerId ||
+        isAdminGroup()
+      );
+      allow delete: if isAdminGroup();
     }
 
     // --- 5. 鑱婂ぉ鑸囨敮鎸?---
@@ -263,12 +291,16 @@ service cloud.firestore {
 
     // --- 8. 馃彔 鎴垮眿绉熻硟妯＄祫 (rentalProperties) ---
     match /rentalProperties/{propertyId} {
-      allow read: if resource.data.status == 'active' || (isSignedIn() && (request.auth.uid == resource.data.ownerId || isAdminGroup()));
-      allow create: if isSignedIn() && 
-                      request.resource.data.ownerId == request.auth.uid &&
+      allow read: if resource.data.status == 'active' || (isSignedIn() && (
+        request.auth.uid == resource.data.ownerId ||
+        request.auth.uid == resource.data.hostId ||
+        isAdminGroup()
+      ));
+      allow create: if isSignedIn() &&
+                      (request.resource.data.ownerId == request.auth.uid || request.resource.data.hostId == request.auth.uid) &&
                       (isAdminGroup() || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isPro', false) == true);
-      allow update, delete: if isSignedIn() && 
-                              (request.auth.uid == resource.data.ownerId || isAdminGroup());
+      allow update, delete: if isSignedIn() &&
+                              (request.auth.uid == resource.data.ownerId || request.auth.uid == resource.data.hostId || isAdminGroup());
     }
 
     // --- 9. 🌙 月壤AI微宇宙 (Universe) ---

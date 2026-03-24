@@ -284,7 +284,14 @@
       "disputed": "มีข้อพิพาท",
       "released": "ปล่อยเงินแล้ว",
       "refunded": "คืนเงินแล้ว",
-      "cancelled": "ยกเลิกแล้ว"
+      "cancelled": "ยกเลิกแล้ว",
+      "paid": "ชำระแล้ว",
+      "confirmed": "ยืนยันแล้ว",
+      "delivered": "จัดส่งแล้ว",
+      "post": "รอการชำระเงิน",
+      "pending_payment": "รอชำระเงิน",
+      "inProgress": "กำลังดำเนินการ",
+      "awaitingPayment": "รอการชำระเงิน"
     },
     "orderCard": {
       "contactSeller": "ติดต่อผู้ขาย",

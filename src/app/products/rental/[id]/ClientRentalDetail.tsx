@@ -438,9 +438,13 @@ export default function ClientRentalDetail() {
             }
 
             // 🚀 写入快照数据：锁定发生交易这一秒的所有金融状态，防止日后汇率波动产生纠纷
+            // escrowOrderId 是合约内使用的数字 ID（Firebase ID 的哈希值）
+            const escrowOrderId = ethers.toBigInt(ethers.id(newBookingId)).toString();
             await setDoc(bookingRef, {
                 propertyId: id, tenantId: currentUser.uid, hostId: property.ownerId,
-                checkIn, checkOut, status: 'paid', txHash: txResult.hash, createdAt: serverTimestamp(),
+                propertyName: property.title || '',
+                checkIn, checkOut, status: 'paid', txHash: txResult.hash,
+                escrowOrderId, createdAt: serverTimestamp(),
                 billingSnapshot: {
                     totalUSD: billing.totalUSD,
                     platformFeeUSD: billing.platformFeeUSD,
@@ -453,7 +457,7 @@ export default function ClientRentalDetail() {
             
             setIsConfirmOpen(false);
             toast({ title: "Booking Secured!", description: "资金已进入安全池。日期已为您锁定。" });
-            setTimeout(() => { router.push(`/account/purchases/${newBookingId}`); }, 1500);
+            setTimeout(() => { router.push(`/account/bookings/${newBookingId}`); }, 1500);
 
         } catch (err: any) {
             console.error("Booking Error:", err);

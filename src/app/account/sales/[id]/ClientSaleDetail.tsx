@@ -8,6 +8,7 @@ import {
     Package, Truck, CheckCircle2, ShieldCheck,
     MapPin, MessageSquare, AlertOctagon,
     ChevronLeft, Timer, Loader2, Wallet, Phone, User, Send, Copy, Check,
+    AlertTriangle, XCircle, CheckCircle,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,12 +83,42 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
     const [carrier, setCarrier] = useState('');
     const [isShipping, setIsShipping] = useState(false);
     const [copiedId, setCopiedId] = useState(false);
+    const [isCancelProcessing, setIsCancelProcessing] = useState(false);
 
     const handleCopyId = (text: string) => {
         navigator.clipboard.writeText(text).then(() => {
             setCopiedId(true);
             setTimeout(() => setCopiedId(false), 2000);
         });
+    };
+
+    const handleCancellationResponse = async (approve: boolean) => {
+        if (!firestore || !order?.id || isCancelProcessing) return;
+        setIsCancelProcessing(true);
+        try {
+            if (approve) {
+                // Approve: mark as cancellation approved, admin will handle on-chain refund
+                await updateDoc(doc(firestore, 'orders', order.id), {
+                    cancellationApproved: true,
+                    status: 'disputed', // Keeps it in disputed for admin to process refund
+                    updatedAt: serverTimestamp(),
+                });
+                toast({ title: 'Cancellation Approved', description: 'The admin will process the refund via the escrow contract.' });
+            } else {
+                // Decline: remove cancellation request, revert to disputed→paid
+                await updateDoc(doc(firestore, 'orders', order.id), {
+                    cancellationRequested: false,
+                    cancellationApproved: false,
+                    status: 'paid',
+                    updatedAt: serverTimestamp(),
+                });
+                toast({ title: 'Cancellation Declined', description: 'The order will continue as normal.' });
+            }
+        } catch (e: any) {
+            toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not process response.' });
+        } finally {
+            setIsCancelProcessing(false);
+        }
     };
 
     const handleShip = async () => {
@@ -199,6 +230,53 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
                         {isPaid ? '已付款' : '待付款'}
                     </div>
                 </motion.div>
+
+                {/* Cancellation Request Banner */}
+                {order.cancellationRequested && order.status !== 'cancelled' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="rounded-2xl border border-orange-500/30 bg-orange-500/10 p-5"
+                    >
+                        <div className="flex items-start gap-3 mb-4">
+                            <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="font-black text-orange-300 text-sm">Cancellation Request Received</h3>
+                                <p className="text-xs text-white/50 mt-0.5">The buyer has requested to cancel this order and receive a refund.</p>
+                            </div>
+                        </div>
+                        {order.cancellationReason && (
+                            <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
+                                <p className="text-xs text-white/40 uppercase tracking-wider font-bold mb-1">Reason</p>
+                                <p className="text-sm text-white/80">{order.cancellationReason}</p>
+                            </div>
+                        )}
+                        {order.cancellationApproved ? (
+                            <div className="flex items-center gap-2 text-sm text-blue-400 font-bold">
+                                <CheckCircle className="w-4 h-4" />
+                                You approved this cancellation. Waiting for admin to process refund.
+                            </div>
+                        ) : (
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => handleCancellationResponse(true)}
+                                    disabled={isCancelProcessing}
+                                    className="flex items-center gap-2 h-9 px-4 rounded-xl bg-red-600/80 border border-red-500/30 text-white text-xs font-bold hover:bg-red-600 transition-all disabled:opacity-50"
+                                >
+                                    {isCancelProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                                    Approve Cancellation & Refund
+                                </button>
+                                <button
+                                    onClick={() => handleCancellationResponse(false)}
+                                    disabled={isCancelProcessing}
+                                    className="flex items-center gap-2 h-9 px-4 rounded-xl border border-white/15 bg-white/5 text-white/70 text-xs font-semibold hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
+                                >
+                                    Decline
+                                </button>
+                            </div>
+                        )}
+                    </motion.div>
+                )}
 
                 {/* Progress steps — 真实链路 */}
                 {(() => {

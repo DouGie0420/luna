@@ -284,7 +284,14 @@
       "disputed": "Disputed",
       "released": "Released",
       "refunded": "Refunded",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "paid": "Paid",
+      "confirmed": "Confirmed",
+      "delivered": "Delivered",
+      "post": "Awaiting Payment",
+      "pending_payment": "Pending Payment",
+      "inProgress": "In Progress",
+      "awaitingPayment": "Awaiting Payment"
     },
     "orderCard": {
       "contactSeller": "Contact Seller",

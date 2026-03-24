@@ -14,7 +14,7 @@ const translations: { [key in Language]: Translations } = { en, zh, th };
 interface LanguageContextType {
   language: Language;
   setLanguage: (language: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, fallback?: string) => string;
 }
 
 export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -37,26 +37,26 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('language', lang);
   };
   
-  const t = useCallback((key: string): string => {
+  const t = useCallback((key: string, fallback?: string): string => {
     const keys = key.split('.');
     let result: string | Translations | undefined = translations[language];
     for (const k of keys) {
         if (result && typeof result === 'object' && k in result) {
             result = result[k];
         } else {
-            // Fallback to English if key not found
+            // Fallback to English if key not found in current language
             result = translations['en'];
             for (const fk of keys) {
                  if (result && typeof result === 'object' && fk in result) {
                     result = result[fk];
                  } else {
-                    return key; // Return the key itself if not found even in fallback
+                    return fallback ?? key;
                  }
             }
             break;
         }
     }
-    return typeof result === 'string' ? result : key;
+    return typeof result === 'string' ? result : (fallback ?? key);
   }, [language]);
 
 

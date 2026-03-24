@@ -15,6 +15,10 @@ import {
   Star,
   ChevronLeft,
   FileText,
+  Home,
+  BedDouble,
+  TrendingUp,
+  Building2,
 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import { UserAvatar } from '@/components/ui/user-avatar'
@@ -52,10 +56,18 @@ export default function AccountLayout({
     }
   }
 
+  const isPro = !!(profile?.isPro)
+
   const navItems = [
     { href: '/account', icon: User, label: t('accountLayout.profile') },
     { href: '/account/listings', icon: ShoppingBag, label: t('accountLayout.myListings') },
     { href: '/account/purchases', icon: ClipboardList, label: t('accountLayout.myPurchases') },
+    { href: '/account/bookings', icon: Home, label: '我的预定' },
+    ...(isPro ? [
+      { href: '/account/my-rentals', icon: Building2, label: '我的房源' },
+      { href: '/account/host-bookings', icon: BedDouble, label: '房源订单' },
+      { href: '/account/host-income', icon: TrendingUp, label: '收入统计' },
+    ] : []),
     { href: '/account/sales', icon: DollarSign, label: t('accountLayout.mySales') },
     { href: '/account/favorites', icon: Star, label: t('accountLayout.myFavorites') },
     { href: '/account/posts', icon: FileText, label: '我的帖子' },

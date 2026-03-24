@@ -35,6 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (path.startsWith('/admin/consignment')) return 'consignment';
     if (path.startsWith('/admin/rental-reviews')) return 'rental-reviews';
     if (path.startsWith('/admin/rentals')) return 'rentals';
+    if (path.startsWith('/admin/bookings')) return 'bookings';
     if (path.startsWith('/admin/payment-requests')) return 'payments';
     if (path.startsWith('/admin/wallet-requests')) return 'wallet-requests';
     if (path.startsWith('/admin/promotions')) return 'promotions';
@@ -53,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { id: 'products', label: 'Products', icon: <ShoppingBag size={20} />, path: '/admin/products' },
     { id: 'consignment', label: 'Consignment', icon: <ShieldCheck size={20} />, path: '/admin/consignment' },
     { id: 'rental-reviews', label: 'Rental Reviews', icon: <Home size={20} />, path: '/admin/rental-reviews' },
+    { id: 'bookings', label: 'Rental Bookings', icon: <Home size={20} />, path: '/admin/bookings' },
     { id: 'orders', label: 'Orders', icon: <ClipboardList size={20} />, path: '/admin/orders' },
     { id: 'payments', label: 'Payment Requests', icon: <Banknote size={20} />, path: '/admin/payment-requests' },
     { id: 'wallet-requests', label: 'Wallet Requests', icon: <Wallet size={20} />, path: '/admin/wallet-requests' },

@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, ShoppingBag, MapPin, Settings, LogOut } from 'lucide-react';
+import { User, ShoppingBag, MapPin, Settings, LogOut, Home, BedDouble } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -70,6 +70,18 @@ export function UserNav() {
             <Link href="/account/purchases" className="cursor-pointer">
               <ShoppingBag className="mr-2 h-4 w-4" />
               <span>My Orders</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/account/bookings" className="cursor-pointer">
+              <Home className="mr-2 h-4 w-4" />
+              <span>My Bookings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/account/host-bookings" className="cursor-pointer">
+              <BedDouble className="mr-2 h-4 w-4" />
+              <span>Host Bookings</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>

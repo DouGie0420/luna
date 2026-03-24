@@ -21,24 +21,21 @@ function GlassCard({ children, className, delay = 0, accentColor = 'purple' }: {
   accentColor?: 'purple' | 'blue' | 'green' | 'yellow';
 }) {
   const accents: Record<string, string> = {
-    purple: 'via-purple-500/30',
-    blue: 'via-blue-500/30',
-    green: 'via-green-500/30',
-    yellow: 'via-yellow-500/30',
+    purple: 'via-purple-500/40',
+    blue: 'via-blue-500/40',
+    green: 'via-green-500/40',
+    yellow: 'via-yellow-500/40',
   };
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className={cn('relative', className)}
+      className={cn('relative rounded-2xl border border-white/12 bg-[#0d0715]/80 overflow-hidden', className)}
     >
-      <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-white/5 via-transparent to-white/[0.02] pointer-events-none" />
-      <div className="relative bg-card/40 backdrop-blur-sm rounded-2xl border border-white/8 overflow-hidden">
-        <div className={cn('h-px w-full bg-gradient-to-r from-transparent to-transparent', accents[accentColor])} />
-        <div className="p-6">
-          {children}
-        </div>
+      <div className={cn('h-px w-full bg-gradient-to-r from-transparent to-transparent', accents[accentColor])} />
+      <div className="p-6">
+        {children}
       </div>
     </motion.div>
   );
@@ -60,25 +57,25 @@ export default function NftAvatarPage() {
   const walletForVerification = boundWallet || connectedWallet;
   const isMismatch = !!connectedWallet && !!boundWallet && connectedWallet !== boundWallet;
 
-  // 🚀 优化：融合无错版本的智能同步与静默绑定逻辑
   const handleVerifyNfts = async () => {
     if (!walletForVerification) {
       toast({ variant: 'destructive', title: 'Wallet not available', description: 'Connect and bind a wallet before verifying NFT assets.' });
       return;
     }
-    
+
+    if (!profile?.isWeb3Verified && !boundWallet) {
+      toast({ variant: 'destructive', title: 'Wallet not verified', description: 'Please complete wallet binding first.' });
+      return;
+    }
+
     setIsSyncing(true);
     try {
       const ownerNfts = await getNftsForOwner(walletForVerification);
       setNfts(ownerNfts);
       setIsDialogOpen(true);
 
-      // 💡 智能细节：如果尚未绑定钱包，第一次获取 NFT 成功时自动存入 Firebase 并点亮 Web3 徽章
       if (!profile?.walletAddress && user && firestore && connectedWallet) {
-          await updateUserProfile(firestore, user.uid, {
-              walletAddress: connectedWallet,
-              isWeb3Verified: true
-          });
+        await updateUserProfile(firestore, user.uid, { walletAddress: connectedWallet, isWeb3Verified: true });
       }
     } catch (error) {
       console.error('Failed to verify NFT assets:', error);
@@ -116,19 +113,16 @@ export default function NftAvatarPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="relative max-w-sm w-full text-center"
+          className="relative max-w-sm w-full text-center rounded-2xl border border-white/12 bg-[#0d0715]/80 overflow-hidden p-8"
         >
-          <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 pointer-events-none" />
-          <div className="relative bg-card/50 backdrop-blur-sm rounded-2xl border border-white/8 p-8">
-            <div className="p-4 rounded-2xl bg-yellow-500/15 border border-yellow-500/20 inline-flex mb-4">
-              <AlertCircle className="h-8 w-8 text-yellow-400" />
-            </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">请先登录</h2>
-            <p className="text-muted-foreground/70 text-sm mb-6">您需要登录才能配置 NFT 头像。</p>
-            <Link href="/auth/signin">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 border-0">登录</Button>
-            </Link>
+          <div className="p-4 rounded-2xl bg-yellow-500/15 border border-yellow-500/20 inline-flex mb-4">
+            <AlertCircle className="h-8 w-8 text-yellow-400" />
           </div>
+          <h2 className="text-xl font-bold text-white mb-2">请先登录</h2>
+          <p className="text-white/50 text-sm mb-6">您需要登录才能配置 NFT 头像。</p>
+          <Link href="/auth/signin">
+            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 border-0">登录</Button>
+          </Link>
         </motion.div>
       </div>
     );
@@ -145,56 +139,52 @@ export default function NftAvatarPage() {
       />
 
       <div className="relative py-10 px-4 sm:px-6">
-        {/* Background */}
         <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[120px]" />
           <div className="absolute bottom-1/3 right-1/4 w-[350px] h-[350px] bg-blue-600/6 rounded-full blur-[100px]" />
         </div>
 
         <div className="container mx-auto max-w-3xl space-y-5">
-          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-4 mb-2"
           >
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/20 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
+            <div className="p-3 rounded-2xl bg-purple-500/12 border border-purple-500/25 shadow-[0_0_20px_rgba(168,85,247,0.15)]">
               <ImageIcon className="w-6 h-6 text-purple-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-200 to-pink-200 bg-clip-text text-transparent font-headline">
-                NFT Avatar
-              </h1>
-              <p className="text-sm text-muted-foreground/70">Verify NFT assets from your wallet and set as avatar.</p>
+              <h1 className="text-2xl font-bold text-white font-headline">NFT Avatar</h1>
+              <p className="text-sm text-white/40">Verify NFT assets from your wallet and set as avatar.</p>
             </div>
           </motion.div>
 
           {/* Wallet Status */}
           <GlassCard delay={0.1} accentColor="blue">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/20">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/12 border border-blue-500/25 flex items-center justify-center shrink-0">
                 <Link2 className="w-4 h-4 text-blue-400" />
               </div>
-              <h2 className="font-semibold text-sm text-foreground">Wallet Status</h2>
+              <h2 className="text-sm font-black text-white">Wallet Status</h2>
             </div>
 
             <div className="grid md:grid-cols-2 gap-3 mb-4">
-              <div className="p-4 rounded-xl bg-background/40 border border-white/8">
-                <p className="text-xs text-muted-foreground/60 mb-2">Connected Wallet</p>
-                <p className="text-sm font-mono text-foreground/90 break-all">
-                  {connectedWallet || <span className="text-muted-foreground/50 italic">Not connected</span>}
+              <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10">
+                <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider mb-2">Connected Wallet</p>
+                <p className="text-sm font-mono text-white/80 break-all">
+                  {connectedWallet || <span className="text-white/30 italic">Not connected</span>}
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-background/40 border border-white/8">
-                <p className="text-xs text-muted-foreground/60 mb-2">Bound Wallet</p>
-                <p className="text-sm font-mono text-foreground/90 break-all">
-                  {boundWallet || <span className="text-muted-foreground/50 italic">Not bound</span>}
+              <div className="p-4 rounded-xl bg-white/[0.04] border border-white/10">
+                <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider mb-2">Bound Wallet</p>
+                <p className="text-sm font-mono text-white/80 break-all">
+                  {boundWallet || <span className="text-white/30 italic">Not bound</span>}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap gap-2 mb-4">
-              <Badge variant="outline" className="text-xs border-white/15 text-muted-foreground/70">
+              <Badge variant="outline" className="border-white/15 text-white/60 text-xs">
                 Web3 verified: {profile?.isWeb3Verified ? 'Yes' : 'No'}
               </Badge>
               {isMismatch && (
@@ -208,7 +198,7 @@ export default function NftAvatarPage() {
               {!connectedWallet && (
                 <Button
                   onClick={connectWallet}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0 shadow-[0_0_15px_rgba(59,130,246,0.25)]"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Connect Wallet
@@ -217,13 +207,13 @@ export default function NftAvatarPage() {
               <Button
                 onClick={handleVerifyNfts}
                 disabled={isSyncing || isUpdating || !walletForVerification}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0 shadow-[0_0_15px_rgba(168,85,247,0.25)]"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 border-0"
               >
                 {isSyncing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ImageIcon className="h-4 w-4 mr-2" />}
                 Verify NFT Assets
               </Button>
               <Link href="/account/wallet">
-                <Button variant="outline" className="border-white/15 hover:bg-white/5">
+                <Button variant="outline" className="border-white/15 hover:bg-white/5 text-white/80">
                   <Wallet className="h-4 w-4 mr-2" />
                   Wallet Management
                 </Button>
@@ -246,7 +236,7 @@ export default function NftAvatarPage() {
                     <CheckCircle2 className="h-4 w-4 text-green-400" />
                     <p className="text-green-300 font-semibold text-sm">Current NFT Avatar</p>
                   </div>
-                  <p className="text-xs text-muted-foreground/50 break-all">Token ID: {profile.nftTokenId || '-'}</p>
+                  <p className="text-xs text-white/30 break-all">Token ID: {profile.nftTokenId || '-'}</p>
                 </div>
               </div>
             </GlassCard>
@@ -254,9 +244,9 @@ export default function NftAvatarPage() {
             <GlassCard delay={0.2} accentColor="purple">
               <div className="text-center py-6">
                 <div className="p-4 bg-white/5 rounded-2xl inline-flex mb-3 border border-white/8">
-                  <ImageIcon className="h-8 w-8 text-muted-foreground/30" />
+                  <ImageIcon className="h-8 w-8 text-white/20" />
                 </div>
-                <p className="text-muted-foreground/60 text-sm">No NFT avatar selected yet.</p>
+                <p className="text-white/40 text-sm">No NFT avatar selected yet.</p>
               </div>
             </GlassCard>
           )}

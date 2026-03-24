@@ -36,11 +36,12 @@ interface UseEscrowContractResult {
   isInteracting: boolean;
   interactionError: string | null;
   transactionState: TransactionState;
-  
+
   createOrder: (orderId: string, sellerAddress: string, amount: string | number) => Promise<EscrowTransactionResult>;
   confirmReceipt: (orderId: string, amount?: string) => Promise<EscrowTransactionResult>;
   raiseDispute: (orderId: string) => Promise<EscrowTransactionResult>;
-  
+  resolveDispute: (orderId: string, refundToBuyer: boolean) => Promise<EscrowTransactionResult>;
+
   // ✅ 修复：调整参数顺序以匹配前端 ClientCheckout.tsx 的调用习惯 (orderId, amount, sellerAddress)
   lockFunds: (orderId: string, amount: string | number, sellerAddress?: string) => Promise<EscrowTransactionResult>;
   confirmDelivery: (orderId: string, amount?: string) => Promise<EscrowTransactionResult>;
@@ -217,6 +218,24 @@ export function useEscrowContract(): UseEscrowContractResult {
     return raiseDispute(orderId);
   }, [raiseDispute]);
 
+  // 🚀 管理员仲裁：解决争议（退款给买家 或 释放给卖家）
+  const resolveDispute = useCallback(async (orderId: string, refundToBuyer: boolean): Promise<EscrowTransactionResult> => {
+    const escrowContract = await getEscrowContract();
+    if (!escrowContract) return { success: false, error: 'Failed to get contract', status: TransactionStatus.FAILED };
+
+    const numericOrderId = toNumericId(orderId);
+    const result = await executeTransaction(escrowContract.resolveDispute(numericOrderId, refundToBuyer));
+
+    if (result.success && result.hash && refundToBuyer) {
+      try {
+        await recordRefundTransaction(orderId, '0', result.hash, 'confirmed', ESCROW_CONTRACT_ADDRESS);
+      } catch (recordError) {
+        console.error('[Escrow Contract] Failed to record refund transaction:', recordError);
+      }
+    }
+    return result;
+  }, [getEscrowContract, executeTransaction]);
+
   return {
     isInteracting,
     interactionError,
@@ -224,6 +243,7 @@ export function useEscrowContract(): UseEscrowContractResult {
     createOrder,
     confirmReceipt,
     raiseDispute,
+    resolveDispute,
     lockFunds,
     confirmDelivery,
     openDispute,

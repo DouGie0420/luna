@@ -25,13 +25,15 @@ interface Rental {
   id: string;
   title: string;
   description: string;
-  ownerId: string;
+  hostId: string;
+  hostName?: string;
+  // legacy fields kept for backward compat
+  ownerId?: string;
   ownerName?: string;
-  ownerWalletAddress?: string;
   pricePerNight: number;
-  location: string;
+  location: string | { address?: string; city?: string; country?: string };
   images?: string[];
-  status: 'pending' | 'approved' | 'rejected' | 'inactive';
+  status: 'pending_review' | 'active' | 'rejected' | 'inactive';
   createdAt: any;
 }
 
@@ -50,7 +52,7 @@ export default function AdminRentalsPage() {
 
     const loadRentals = async () => {
       try {
-        const rentalsSnapshot = await getDocs(collection(firestore, 'rentals'));
+        const rentalsSnapshot = await getDocs(collection(firestore, 'rentalProperties'));
         const rentalsList: Rental[] = [];
 
         rentalsSnapshot.forEach((doc) => {
@@ -93,10 +95,11 @@ export default function AdminRentalsPage() {
 
     // 搜索
     if (searchQuery) {
+      const q = searchQuery.toLowerCase();
       filtered = filtered.filter(r =>
-        r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        r.ownerName?.toLowerCase().includes(searchQuery.toLowerCase())
+        r.title.toLowerCase().includes(q) ||
+        getLocationString(r.location).toLowerCase().includes(q) ||
+        (r.hostName || r.ownerName || '').toLowerCase().includes(q)
       );
     }
 
@@ -108,13 +111,13 @@ export default function AdminRentalsPage() {
     if (!firestore) return;
 
     try {
-      await updateDoc(doc(firestore, 'rentals', rentalId), {
-        status: 'approved',
+      await updateDoc(doc(firestore, 'rentalProperties', rentalId), {
+        status: 'active',
         updatedAt: serverTimestamp()
       });
 
       setRentals(prev => prev.map(r =>
-        r.id === rentalId ? { ...r, status: 'approved' as const } : r
+        r.id === rentalId ? { ...r, status: 'active' as const } : r
       ));
 
       toast({
@@ -136,7 +139,7 @@ export default function AdminRentalsPage() {
     if (!firestore) return;
 
     try {
-      await updateDoc(doc(firestore, 'rentals', rentalId), {
+      await updateDoc(doc(firestore, 'rentalProperties', rentalId), {
         status: 'rejected',
         updatedAt: serverTimestamp()
       });
@@ -161,9 +164,9 @@ export default function AdminRentalsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case 'pending_review':
         return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pending</Badge>;
-      case 'approved':
+      case 'active':
         return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Approved</Badge>;
       case 'rejected':
         return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Rejected</Badge>;
@@ -173,6 +176,13 @@ export default function AdminRentalsPage() {
         return null;
     }
   };
+
+  const getLocationString = (location: Rental['location']) => {
+    if (typeof location === 'string') return location;
+    return [location?.city, location?.country].filter(Boolean).join(', ') || location?.address || '';
+  };
+
+  const getOwnerName = (rental: Rental) => rental.hostName || rental.ownerName || 'Unknown';
 
   if (isLoading) {
     return (
@@ -200,13 +210,13 @@ export default function AdminRentalsPage() {
           <Card className="glass-morphism border-yellow-500/30 p-4 bg-yellow-500/5">
             <p className="text-sm text-white/60 mb-1">Pending</p>
             <p className="text-2xl font-bold text-yellow-400">
-              {rentals.filter(r => r.status === 'pending').length}
+              {rentals.filter(r => r.status === 'pending_review').length}
             </p>
           </Card>
           <Card className="glass-morphism border-green-500/30 p-4 bg-green-500/5">
             <p className="text-sm text-white/60 mb-1">Approved</p>
             <p className="text-2xl font-bold text-green-400">
-              {rentals.filter(r => r.status === 'approved').length}
+              {rentals.filter(r => r.status === 'active').length}
             </p>
           </Card>
           <Card className="glass-morphism border-red-500/30 p-4 bg-red-500/5">
@@ -241,16 +251,16 @@ export default function AdminRentalsPage() {
                 All
               </Button>
               <Button
-                variant={statusFilter === 'pending' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('pending')}
+                variant={statusFilter === 'pending_review' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('pending_review')}
                 size="sm"
                 className="border-yellow-500/50 text-yellow-400"
               >
                 Pending
               </Button>
               <Button
-                variant={statusFilter === 'approved' ? 'default' : 'outline'}
-                onClick={() => setStatusFilter('approved')}
+                variant={statusFilter === 'active' ? 'default' : 'outline'}
+                onClick={() => setStatusFilter('active')}
                 size="sm"
                 className="border-green-500/50 text-green-400"
               >
@@ -305,7 +315,7 @@ export default function AdminRentalsPage() {
                         <div className="flex items-center gap-4 text-sm text-white/60">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" />
-                            {rental.location}
+                            {getLocationString(rental.location)}
                           </span>
                           <span className="flex items-center gap-1">
                             <DollarSign className="h-3 w-3" />
@@ -322,18 +332,18 @@ export default function AdminRentalsPage() {
 
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-white/60">
-                        Owner: {rental.ownerName || 'Unknown'}
+                        Owner: {getOwnerName(rental)}
                       </div>
 
                       <div className="flex gap-2">
-                        <Link href={`/rentals/${rental.id}`}>
+                        <Link href={`/products/rental/${rental.id}`}>
                           <Button variant="outline" size="sm" className="border-white/20">
                             <Eye className="h-4 w-4 mr-2" />
                             View
                           </Button>
                         </Link>
 
-                        {rental.status === 'pending' && (
+                        {rental.status === 'pending_review' && (
                           <>
                             <Button
                               onClick={() => handleApprove(rental.id)}

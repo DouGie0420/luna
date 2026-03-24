@@ -102,15 +102,15 @@ function SectionHeader({ icon: Icon, title, subtitle, accent = 'purple' }: { ico
                 <Icon className={`h-4 w-4 ${iconColors[accent] || iconColors.purple}`} />
             </div>
             <div>
-                <h2 className="text-sm font-black text-white leading-none">{title}</h2>
-                {subtitle && <p className="text-[10px] text-white/30 mt-0.5">{subtitle}</p>}
+                <h2 className="text-base font-black text-white leading-none">{title}</h2>
+                {subtitle && <p className="text-xs text-white/30 mt-0.5">{subtitle}</p>}
             </div>
         </div>
     );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-    return <label className="text-[11px] font-bold text-white/60 uppercase tracking-wider">{children}</label>;
+    return <label className="text-xs font-bold text-white/60 uppercase tracking-wider">{children}</label>;
 }
 
 function StatBox({ icon: Icon, label, value, href, iconColor = 'text-purple-400' }: { icon: React.FC<any>; label: string; value: any; href?: string; iconColor?: string }) {
@@ -118,8 +118,8 @@ function StatBox({ icon: Icon, label, value, href, iconColor = 'text-purple-400'
         <div className={`flex items-center gap-3 p-3 rounded-xl border border-white/12 bg-[#0d0715]/80 ${href ? 'hover:border-purple-500/30 hover:bg-purple-500/10 transition-all' : ''}`}>
             <Icon className={`h-5 w-5 shrink-0 ${iconColor}`} />
             <div className="min-w-0">
-                <p className="text-[10px] text-white/35 font-mono uppercase tracking-wider">{label}</p>
-                <p className="text-base font-black text-white leading-none mt-0.5">{value}</p>
+                <p className="text-xs text-white/35 font-mono uppercase tracking-wider">{label}</p>
+                <p className="text-lg font-black text-white leading-none mt-0.5">{value}</p>
             </div>
         </div>
     );
@@ -450,13 +450,13 @@ export default function AccountProfilePage() {
                                 {/* Banner controls — top right */}
                                 {canCustomize && profile?.isPro && (
                                     <div className="absolute top-2.5 right-2.5 flex gap-1.5 z-10">
-                                        <label className="relative flex items-center gap-1 h-7 px-3 rounded-lg bg-black/70 backdrop-blur-sm border border-white/25 text-white text-[11px] font-bold cursor-pointer hover:bg-black/90 transition-colors overflow-hidden">
+                                        <label className="relative flex items-center gap-1 h-7 px-3 rounded-lg bg-black/70 backdrop-blur-sm border border-white/25 text-white text-xs font-bold cursor-pointer hover:bg-black/90 transition-colors overflow-hidden">
                                             <ImageIcon className="w-3 h-3 pointer-events-none" /><span className="pointer-events-none">{t('accountPageNew.uploadBanner')}</span>
                                             <input type="file" accept="image/*" onChange={handleBannerUpload} disabled={isUploadingBanner} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                         </label>
                                         {bannerPreview && bannerPreview !== profile?.bannerUrl && (
                                             <>
-                                                <button onClick={handleSaveBanner} disabled={isUploadingBanner} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-purple-600 border border-purple-400/50 text-white text-[11px] font-bold hover:bg-purple-500 transition-colors disabled:opacity-50">
+                                                <button onClick={handleSaveBanner} disabled={isUploadingBanner} className="flex items-center gap-1 h-7 px-3 rounded-lg bg-purple-600 border border-purple-400/50 text-white text-xs font-bold hover:bg-purple-500 transition-colors disabled:opacity-50">
                                                     {isUploadingBanner ? <Loader2 className="w-3 h-3 animate-spin" /> : t('accountPageNew.save')}
                                                 </button>
                                                 <button onClick={() => setBannerPreview(null)} className="w-7 h-7 rounded-lg bg-black/70 backdrop-blur-sm border border-white/25 flex items-center justify-center text-white hover:bg-black/90 transition-colors">
@@ -489,9 +489,9 @@ export default function AccountProfilePage() {
 
                                     {/* Name */}
                                     <div className="text-center">
-                                        <p className="font-black text-white text-base leading-none drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]">{displayName || t('accountPageNew.nickname')}</p>
+                                        <p className="font-black text-white text-lg leading-none drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]">{displayName || t('accountPageNew.nickname')}</p>
                                         {profile?.loginId && profile.loginId !== user?.uid && (
-                                            <p className="text-[11px] font-mono text-purple-200/80 mt-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">luna.gift/@{profile.loginId}</p>
+                                            <p className="text-sm font-mono text-purple-200/80 mt-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">luna.gift/@{profile.loginId}</p>
                                         )}
                                     </div>
 
@@ -530,23 +530,23 @@ export default function AccountProfilePage() {
                                     {/* Verification badges */}
                                     <div className="flex flex-wrap justify-center gap-1.5 pt-2 border-t border-white/15 w-full">
                                         {profile?.isPro && (
-                                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/25 text-yellow-200 border border-yellow-400/40 backdrop-blur-sm">
-                                                <ShieldCheck className="w-2.5 h-2.5" />PRO
+                                            <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/25 text-yellow-200 border border-yellow-400/40 backdrop-blur-sm">
+                                                <ShieldCheck className="w-3 h-3" />PRO
                                             </span>
                                         )}
                                         {profile?.isWeb3Verified && (
-                                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/25 text-blue-200 border border-blue-400/40 backdrop-blur-sm">
-                                                <Globe className="w-2.5 h-2.5" />Web3
+                                            <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/25 text-blue-200 border border-blue-400/40 backdrop-blur-sm">
+                                                <Globe className="w-3 h-3" />Web3
                                             </span>
                                         )}
                                         {profile?.kycStatus === 'Verified' && (
-                                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-500/25 text-yellow-200 border border-yellow-400/40 backdrop-blur-sm">
-                                                <Fingerprint className="w-2.5 h-2.5" />KYC
+                                            <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-500/25 text-yellow-200 border border-yellow-400/40 backdrop-blur-sm">
+                                                <Fingerprint className="w-3 h-3" />KYC
                                             </span>
                                         )}
                                         {profile?.emailVerified && (
-                                            <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/25 text-green-200 border border-green-400/40 backdrop-blur-sm">
-                                                <CheckCircle className="w-2.5 h-2.5" />{t('accountPageNew.emailBadgeLabel')}
+                                            <span className="flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-green-500/25 text-green-200 border border-green-400/40 backdrop-blur-sm">
+                                                <CheckCircle className="w-3 h-3" />{t('accountPageNew.emailBadgeLabel')}
                                             </span>
                                         )}
                                     </div>
@@ -561,7 +561,7 @@ export default function AccountProfilePage() {
                                         <Database className="w-5 h-5 text-purple-400 animate-pulse" />
                                     </div>
                                     <div>
-                                        <p className="text-[9px] font-black uppercase tracking-[0.25em] text-purple-400/60">{t('accountPageNew.lunarVault')}</p>
+                                        <p className="text-xs font-black uppercase tracking-[0.2em] text-purple-400/60">{t('accountPageNew.lunarVault')}</p>
                                         <div className="flex items-baseline gap-1.5">
                                             <span className="text-3xl font-black text-white drop-shadow-[0_0_12px_rgba(168,85,247,0.5)]">
                                                 {profile?.lunarSoil || 0}
@@ -616,8 +616,8 @@ export default function AccountProfilePage() {
                                             <FieldLabel>{t('accountPageNew.exclusiveId')}</FieldLabel>
                                             <div className="flex items-center gap-2">
                                                 <div className="flex-1 h-11 px-3 rounded-xl bg-white/[0.05] border border-white/12 flex items-center">
-                                                    <span className="text-xs font-mono text-white/40">luna.gift/@</span>
-                                                    <span className="text-sm text-white font-bold">{profile?.loginId}</span>
+                                                    <span className="text-sm font-mono text-white/40">luna.gift/@</span>
+                                                    <span className="text-base text-white font-bold">{profile?.loginId}</span>
                                                 </div>
                                                 <button onClick={() => { navigator.clipboard.writeText(`https://luna.gift/@${profile?.loginId}`); toast({ title: t('accountPageNew.copyLinkSuccess') }); }} className="flex items-center gap-1.5 h-11 px-3 rounded-xl bg-white/5 border border-white/12 text-white/50 hover:text-purple-300 hover:border-purple-500/30 transition-all text-xs font-semibold whitespace-nowrap">
                                                     <Copy className="w-3.5 h-3.5" />{t('accountPageNew.copyLink')}
@@ -663,21 +663,21 @@ export default function AccountProfilePage() {
                                     <div className="flex flex-col gap-1.5">
                                         <FieldLabel>{t('accountPageNew.bio')}</FieldLabel>
                                         <textarea className="w-full px-3 py-2.5 rounded-xl bg-white/[0.07] border border-white/15 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-purple-500/60 transition-all resize-none" rows={3} maxLength={200} value={bio} onChange={(e) => setBio(e.target.value)} placeholder={t('accountPageNew.bioPlaceholder')} />
-                                        <p className="text-[10px] text-white/25 text-right font-mono">{bio.length} / 200</p>
+                                        <p className="text-xs text-white/25 text-right font-mono">{bio.length} / 200</p>
                                     </div>
 
                                     <div className="grid grid-cols-3 gap-2">
                                         <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.05] border border-white/10">
-                                            <span className="text-[10px] text-white/35 uppercase tracking-wider">{t('accountPageNew.kyc')}</span>
-                                            <span className={cn("text-xs font-bold", profile?.kycStatus === 'Verified' ? 'text-green-400' : profile?.kycStatus === 'Pending' ? 'text-yellow-400' : 'text-white/40')}>{profile?.kycStatus || 'N/A'}</span>
+                                            <span className="text-xs text-white/35 uppercase tracking-wider">{t('accountPageNew.kyc')}</span>
+                                            <span className={cn("text-sm font-bold", profile?.kycStatus === 'Verified' ? 'text-green-400' : profile?.kycStatus === 'Pending' ? 'text-yellow-400' : 'text-white/40')}>{profile?.kycStatus || 'N/A'}</span>
                                         </div>
                                         <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.05] border border-white/10">
-                                            <span className="text-[10px] text-white/35 uppercase tracking-wider">{t('accountPageNew.email')}</span>
-                                            <span className={cn("text-xs font-bold", profile?.emailVerified ? 'text-green-400' : 'text-red-400/70')}>{profile?.emailVerified ? t('accountPageNew.verified') : t('common.notVerified') || 'Unverified'}</span>
+                                            <span className="text-xs text-white/35 uppercase tracking-wider">{t('accountPageNew.email')}</span>
+                                            <span className={cn("text-sm font-bold", profile?.emailVerified ? 'text-green-400' : 'text-red-400/70')}>{profile?.emailVerified ? t('accountPageNew.verified') : t('common.notVerified') || 'Unverified'}</span>
                                         </div>
                                         <div className="flex flex-col gap-1 p-3 rounded-xl bg-white/[0.05] border border-white/10">
-                                            <span className="text-[10px] text-white/35 uppercase tracking-wider">{t('accountPageNew.registration')}</span>
-                                            <span className="text-xs font-bold text-white/60">{profile?.createdAt?.toDate ? format(profile.createdAt.toDate(), 'yyyy/MM') : 'N/A'}</span>
+                                            <span className="text-xs text-white/35 uppercase tracking-wider">{t('accountPageNew.registration')}</span>
+                                            <span className="text-sm font-bold text-white/60">{profile?.createdAt?.toDate ? format(profile.createdAt.toDate(), 'yyyy/MM') : 'N/A'}</span>
                                         </div>
                                     </div>
 
@@ -704,7 +704,7 @@ export default function AccountProfilePage() {
                                                 {type === 'pro' ? <span className="text-base font-black text-yellow-300">PRO</span>
                                                     : type === 'admin' ? <AdminBadgeIcon className="h-6 w-6" />
                                                     : <Icon className={cn("h-6 w-6", badgeColors[type as keyof typeof badgeColors])} />}
-                                                <span className="text-[10px] font-bold text-white/55">{label}</span>
+                                                <span className="text-xs font-bold text-white/55">{label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -741,7 +741,7 @@ export default function AccountProfilePage() {
                                             </button>
                                         </DialogTrigger>
                                         {!isProApplicationEnabled && !settingsLoading && (
-                                            <p className="text-[11px] text-white/25 text-center mt-2">{t('accountPageNew.proApplicationDisabled')}</p>
+                                            <p className="text-xs text-white/25 text-center mt-2">{t('accountPageNew.proApplicationDisabled')}</p>
                                         )}
                                     </>
                                 )}
@@ -759,7 +759,7 @@ export default function AccountProfilePage() {
                                                 {userProducts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                                             </select>
                                         )}
-                                        <p className="text-[11px] text-white/25 mt-1">{t('accountPageNew.featuredProductHint')}</p>
+                                        <p className="text-xs text-white/25 mt-1">{t('accountPageNew.featuredProductHint')}</p>
                                     </div>
                                 </SectionCard>
                             )}

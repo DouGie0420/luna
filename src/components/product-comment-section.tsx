@@ -365,15 +365,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
             <div className="absolute bottom-10 -right-10 w-56 h-56 bg-purple-600/20 rounded-full blur-[80px] opacity-40 group-hover:opacity-80 transition-opacity duration-1000 animate-blob animation-delay-2000 pointer-events-none" />
 
             {/* 高透玻璃舱主体 */}
-            <Card className="relative z-10 bg-black/40 backdrop-blur-3xl border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] border-none">
-                <CardHeader className="border-b border-white/5 pb-6">
-                    <CardTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-[0.2em] text-white">
-                        <TerminalSquare className="text-primary w-5 h-5 animate-pulse" /> 
-                        Communication <span className="text-primary">Terminal</span>
-                    </CardTitle>
-                </CardHeader>
-
-                <CardContent className="space-y-8 pt-8 p-8">
+            <div className="relative z-10">
+                <div className="space-y-8 pt-2">
                     {canInteract ? (
                         (!replyingTo || replyingTo.id !== 'root') && (
                             <TooltipProvider>
@@ -438,8 +431,8 @@ export function ProductCommentSection({ productId }: { productId: string }) {
                             </Button>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
             {/* 警告弹窗同样加上紫色系点缀 */}
             <AlertDialog open={!!commentToDelete} onOpenChange={(open) => !open && setCommentToDelete(null)}>

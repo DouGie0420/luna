@@ -8,8 +8,17 @@ import {
     Package, Truck, CheckCircle2, ShieldCheck,
     Copy, MapPin, MessageSquare, AlertOctagon,
     ChevronLeft, ExternalLink, Timer, Loader2, Info, Send, Sparkles, Handshake,
-    Wallet, CreditCard, Globe, Cpu, Hash, Activity, CreditCard as PayIcon
+    Wallet, CreditCard, Globe, Cpu, Hash, Activity, CreditCard as PayIcon,
+    XCircle, AlertTriangle
 } from 'lucide-react';
+import {
+    Dialog as CancelDialog,
+    DialogContent as CancelDialogContent,
+    DialogHeader as CancelDialogHeader,
+    DialogTitle as CancelDialogTitle,
+    DialogDescription as CancelDialogDescription,
+    DialogFooter as CancelDialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -69,6 +78,9 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
     
     const [mounted, setMounted] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState('');
+    const [isCancelling, setIsCancelling] = useState(false);
 
     // Web3 Hooks
     const { address, isConnected, chainId } = useUSDTBalanceAndAllowance();
@@ -185,6 +197,46 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
         } finally { setIsProcessing(false); }
     };
 
+    const handleRequestCancellation = async () => {
+        if (!firestore || !user || !order || isCancelling) return;
+        if (!cancelReason.trim()) {
+            toast({ variant: 'destructive', title: 'Please enter a reason', description: 'A cancellation reason is required.' });
+            return;
+        }
+        setIsCancelling(true);
+        try {
+            const isPaid = ['paid', 'shipped', 'completed', 'disputed', 'confirmed'].includes((order.status || '').toLowerCase());
+            const updateData: Record<string, any> = {
+                cancellationRequested: true,
+                cancellationReason: cancelReason.trim(),
+                cancellationRequestedAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            };
+            if (!isPaid) {
+                // Unpaid — cancel immediately
+                updateData.status = 'cancelled';
+                updateData.cancellationRequested = false;
+            } else {
+                // Paid — escalate to dispute for admin/seller review
+                updateData.status = 'disputed';
+            }
+            await updateDoc(doc(firestore, 'orders', orderId), updateData);
+            toast({
+                title: isPaid ? 'Cancellation Request Submitted' : 'Order Cancelled',
+                description: isPaid
+                    ? 'Your request has been sent to the seller. The admin will review and process your refund.'
+                    : 'Your order has been cancelled successfully.',
+            });
+            setIsCancelDialogOpen(false);
+            setCancelReason('');
+            if (!isPaid) router.push('/account/purchases');
+        } catch (e: any) {
+            toast({ variant: 'destructive', title: 'Failed', description: e.message || 'Could not submit cancellation.' });
+        } finally {
+            setIsCancelling(false);
+        }
+    };
+
     const isLoading = !mounted || orderLoading || productLoading || authLoading || isEscrowInteracting;
     
     if (isLoading) {
@@ -213,7 +265,59 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
     const isCompleted = status === 'completed';
     const isDisputed = status === 'disputed';
 
+    const canCancel = !['completed', 'cancelled', 'refunded'].includes(status) && !order.cancellationRequested;
+
     return (
+        <>
+        {/* Cancel Order Dialog */}
+        <CancelDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+            <CancelDialogContent>
+                <CancelDialogHeader>
+                    <CancelDialogTitle>Cancel Booking / Order</CancelDialogTitle>
+                    <CancelDialogDescription>
+                        {['paid', 'shipped', 'confirmed', 'disputed'].includes(status)
+                            ? 'Since payment has been made, your cancellation request will be reviewed. The refund will be processed via the escrow smart contract after admin approval.'
+                            : 'Your unpaid order will be cancelled immediately.'}
+                    </CancelDialogDescription>
+                </CancelDialogHeader>
+                <div className="space-y-3 py-2">
+                    <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                        <div className="text-sm text-white/70">
+                            <p className="font-bold text-orange-300 mb-1">Order: {orderId.slice(0, 12)}...</p>
+                            <p>{order.productName}</p>
+                            <p className="font-mono text-xs mt-1 text-white/40">{order.totalAmount ?? order.price} {order.currency || 'ETH'}</p>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-white/50 uppercase tracking-wider block mb-2">Cancellation Reason *</label>
+                        <textarea
+                            value={cancelReason}
+                            onChange={e => setCancelReason(e.target.value)}
+                            placeholder="Please describe why you need to cancel (e.g. travel plans changed, conflict with dates, etc.)"
+                            className="w-full px-3 py-2.5 rounded-xl bg-white/[0.07] border border-white/15 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-orange-500/60 transition-all resize-none"
+                            rows={3}
+                            maxLength={500}
+                        />
+                        <p className="text-xs text-white/25 text-right font-mono mt-1">{cancelReason.length}/500</p>
+                    </div>
+                </div>
+                <CancelDialogFooter>
+                    <button onClick={() => setIsCancelDialogOpen(false)} className="h-10 px-5 rounded-xl border border-white/10 bg-white/5 text-sm font-semibold text-white/70 hover:bg-white/10 hover:text-white transition-all">
+                        Keep Order
+                    </button>
+                    <button
+                        onClick={handleRequestCancellation}
+                        disabled={isCancelling || !cancelReason.trim()}
+                        className="flex items-center gap-2 h-10 px-5 rounded-xl bg-red-600/80 border border-red-500/30 text-white text-sm font-bold hover:bg-red-600 transition-all disabled:opacity-50"
+                    >
+                        {isCancelling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                        Confirm Cancellation
+                    </button>
+                </CancelDialogFooter>
+            </CancelDialogContent>
+        </CancelDialog>
+
         <div className="min-h-screen bg-[#020202] text-white relative overflow-x-hidden pb-32 font-sans selection:bg-primary/30">
             {/* 🌊 复杂的背景氛围层 */}
             <div className="fixed inset-0 z-0 opacity-30 pointer-events-none">
@@ -536,12 +640,27 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                             </p>
                         </div>
                         
-                        {/* 纠纷支持 */}
+                        {/* 纠纷支持 / 取消订单 */}
                         <div className="p-8 border border-white/5 rounded-[40px] bg-white/[0.01] flex flex-col gap-4">
                             <p className="text-[9px] font-mono text-white/20 uppercase tracking-widest text-center">Protocol_Support_Channel</p>
                             <Button variant="outline" className="border-white/10 text-white/40 hover:text-white hover:border-white/30 rounded-2xl font-black text-[10px] uppercase tracking-widest h-12">
                                 <Hash className="w-3 h-3 mr-2" /> Dispute_Resolution
                             </Button>
+                            {/* Cancel Order Button */}
+                            {canCancel && (
+                                <button
+                                    onClick={() => setIsCancelDialogOpen(true)}
+                                    className="flex items-center justify-center gap-2 h-12 rounded-2xl border border-red-500/25 bg-red-500/8 text-red-400 hover:bg-red-500/15 hover:border-red-500/40 transition-all font-black text-[10px] uppercase tracking-widest"
+                                >
+                                    <XCircle className="w-4 h-4" /> Cancel_Booking
+                                </button>
+                            )}
+                            {order.cancellationRequested && (
+                                <div className="flex items-center gap-2 p-3 rounded-2xl border border-orange-500/25 bg-orange-500/8 text-orange-400 text-[10px] font-bold uppercase tracking-widest">
+                                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                                    Cancellation_Pending_Review
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -558,5 +677,6 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                 ::-webkit-scrollbar-thumb:hover { background: rgba(211,58,137,0.4); }
             `}</style>
         </div>
+        </>
     );
 }

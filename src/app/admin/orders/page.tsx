@@ -34,18 +34,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { 
-  Loader2, 
-  ShoppingCart, 
-  AlertCircle, 
-  MoreHorizontal, 
-  Check, 
-  X, 
-  ShieldAlert, 
-  Handshake, 
-  Info, 
-  ExternalLink 
-} from "lucide-react"; 
+import {
+  Loader2,
+  ShoppingCart,
+  AlertCircle,
+  MoreHorizontal,
+  Check,
+  X,
+  ShieldAlert,
+  Handshake,
+  Info,
+  ExternalLink,
+  AlertTriangle,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from 'date-fns';
 import { useTranslation } from "@/hooks/use-translation";
@@ -141,6 +143,18 @@ export default function AdminOrdersPage() {
   }, [firestore, hasAccess, activeTab]);
 
   const { data: orders, loading: dataLoading, error } = useCollection<Order>(ordersQuery);
+
+  // Cancellation requests query
+  const cancellationQuery = useMemo(() => {
+    if (!firestore || !hasAccess) return null;
+    return query(
+      collection(firestore, 'orders'),
+      where('cancellationRequested', '==', true),
+      orderBy('cancellationRequestedAt', 'desc'),
+      limit(50)
+    );
+  }, [firestore, hasAccess]);
+  const { data: cancellationOrders, loading: cancelLoading } = useCollection<Order>(cancellationQuery);
 
   const handleStatusUpdate = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore || !hasAccess) return;
@@ -266,6 +280,15 @@ export default function AdminOrdersPage() {
                 {statusMap.map(status => (
                   <TabsTrigger key={status} value={status}>{t(getStatusTranslationKey(status), status)}</TabsTrigger>
                 ))}
+                <TabsTrigger value="cancellations" className="relative">
+                    <AlertTriangle className="w-3.5 h-3.5 mr-1.5 text-orange-400" />
+                    退订申请
+                    {cancellationOrders && cancellationOrders.length > 0 && (
+                        <span className="ml-1.5 bg-orange-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full leading-none">
+                            {cancellationOrders.length}
+                        </span>
+                    )}
+                </TabsTrigger>
             </TabsList>
             <Card className="mt-4 border-t-4 border-t-yellow-500">
                 <CardHeader>
@@ -344,6 +367,127 @@ export default function AdminOrdersPage() {
                   </div>
                 </CardContent>
             </Card>
+            {/* Cancellation Requests Tab */}
+            {activeTab === 'cancellations' && (
+                <Card className="mt-4 border-t-4 border-t-orange-500">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-orange-400">
+                            <AlertTriangle className="h-5 w-5" /> 退订 & 退款申请
+                        </CardTitle>
+                        <CardDescription>买家发起的取消预订申请，可在此审核并执行链上退款。</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {cancelLoading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <Loader2 className="h-6 w-6 animate-spin text-orange-400" />
+                            </div>
+                        ) : !cancellationOrders || cancellationOrders.length === 0 ? (
+                            <div className="text-center py-16 text-muted-foreground">暂无退订申请</div>
+                        ) : (
+                            <div className="space-y-4">
+                                {cancellationOrders.map((order) => (
+                                    <div key={order.id} className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-5 space-y-4">
+                                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <p className="font-bold text-white">{order.productName}</p>
+                                                    {order.cancellationApproved && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-500/30">
+                                                            卖家已批准
+                                                        </span>
+                                                    )}
+                                                    <Badge variant={getStatusBadgeVariant(order.status)}>{order.status}</Badge>
+                                                </div>
+                                                <p className="text-xs font-mono text-muted-foreground">订单 ID: {order.id.slice(0, 12)}...</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    申请时间: {order.cancellationRequestedAt?.toDate ? format(order.cancellationRequestedAt.toDate(), 'yyyy-MM-dd HH:mm') : '—'}
+                                                </p>
+                                                <p className="text-xs font-mono text-muted-foreground">
+                                                    Buy: {order.buyerId?.slice(0, 10)}... | Sell: {order.sellerId?.slice(0, 10)}...
+                                                </p>
+                                            </div>
+                                            <div className="shrink-0 text-right space-y-1">
+                                                <p className="font-black text-lg text-orange-300">
+                                                    {order.totalAmount != null ? Number(order.totalAmount).toLocaleString() : '0'} {order.currency || 'ETH'}
+                                                </p>
+                                                {order.escrowOrderId && (
+                                                    <p className="text-[10px] font-mono text-muted-foreground">Escrow: {order.escrowOrderId.slice(0, 10)}...</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {order.cancellationReason && (
+                                            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                                                <p className="text-xs font-bold text-white/50 uppercase tracking-wider mb-1">退订原因</p>
+                                                <p className="text-sm text-white/80">{order.cancellationReason}</p>
+                                            </div>
+                                        )}
+                                        <div className="flex flex-wrap gap-3 pt-2 border-t border-white/10">
+                                            {/* Execute on-chain refund (same as dispute resolution) */}
+                                            {order.escrowOrderId && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    disabled={isEscrowInteracting || processingId === order.id || !isConnected || chainId !== REQUIRED_CHAIN_ID}
+                                                    onClick={() => { setSelectedOrderForDispute(order); setIsResolveDialogOpen(true); }}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    {(processingId === order.id || isEscrowInteracting) ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                                                    执行链上退款
+                                                </Button>
+                                            )}
+                                            {/* Manual cancel (no escrow) */}
+                                            {!order.escrowOrderId && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    disabled={processingId === order.id}
+                                                    onClick={() => handleStatusUpdate(order.id, 'Cancelled')}
+                                                    className="flex items-center gap-2"
+                                                >
+                                                    {processingId === order.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                                                    直接取消订单
+                                                </Button>
+                                            )}
+                                            {/* Dismiss request */}
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={processingId === order.id}
+                                                onClick={async () => {
+                                                    setProcessingId(order.id);
+                                                    try {
+                                                        await updateDoc(doc(firestore, 'orders', order.id), {
+                                                            cancellationRequested: false,
+                                                            cancellationApproved: false,
+                                                            status: 'paid',
+                                                        });
+                                                        toast({ title: '已驳回退订申请', description: `订单 ${order.id.slice(0,8)} 继续正常流转。` });
+                                                    } catch (e: any) {
+                                                        toast({ variant: 'destructive', title: '操作失败', description: e.message });
+                                                    } finally {
+                                                        setProcessingId(null);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 border-white/20 text-white/60 hover:text-white"
+                                            >
+                                                <X className="h-3.5 w-3.5" /> 驳回申请
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => router.push(`/account/sales/${order.id}`)}
+                                                className="text-white/50 hover:text-white"
+                                            >
+                                                <Info className="h-3.5 w-3.5 mr-1.5" /> 查看详情
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
         </Tabs>
     </div>
   );

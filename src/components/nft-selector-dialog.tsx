@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import Image from 'next/image';
+// eslint-disable-next-line @next/next/no-img-element
 import { SimplifiedNft } from '@/lib/alchemy';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -57,7 +57,8 @@ export function NftSelectorDialog({ open, onOpenChange, nfts, onSelect, isUpdati
                                     )}
                                     onClick={() => setSelectedNft(nft)}
                                 >
-                                    <Image src={nft.imageUrl} alt={nft.name} fill className="object-cover" />
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={nft.imageUrl} alt={nft.name} className="object-cover w-full h-full" />
                                     <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1">
                                         <p className="text-white text-xs truncate">{nft.name}</p>
                                     </div>

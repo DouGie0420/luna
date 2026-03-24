@@ -288,6 +288,25 @@ export interface Order {
   shippingMethod?: string;
   transactionHash?: string;
   escrowAddress?: string;
+  escrowOrderId?: string;
+  totalAmount?: number;
+  currency?: string;
+  paidAt?: any;
+  shippedAt?: any;
+  completedAt?: any;
+  trackingNumber?: string;
+  carrier?: string;
+  shippingAddress?: any;
+  txHash?: string;
+  gasUsed?: string;
+  disputeResolvedTxHash?: string;
+  confirmDeliveryTxHash?: string;
+  resolvedAt?: any;
+  buyerReviewId?: string;
+  cancellationRequested?: boolean;
+  cancellationReason?: string;
+  cancellationRequestedAt?: any;
+  cancellationApproved?: boolean;
   createdAt: any;
   updatedAt?: any;
 }
@@ -411,17 +430,45 @@ export interface Booking {
   id: string;
   propertyId: string;
   propertyName?: string;
-  guestId: string;
+  guestId?: string;
   guestName?: string;
+  guestEmail?: string;
+  // Fields used by rental booking flow
+  tenantId?: string;
+  tenantEmail?: string;
+  tenantName?: string;
   hostId: string;
+  ownerId?: string;
   checkIn: any;
   checkOut: any;
-  guests: number;
-  totalPrice: number;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-  paymentStatus: 'pending' | 'paid' | 'refunded';
+  guests?: number;
+  nights?: number;
+  totalPrice?: number;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'paid' | 'cancellation_requested' | 'disputed' | 'refunded';
+  paymentStatus?: 'pending' | 'paid' | 'refunded';
   specialRequests?: string;
+  confirmedAt?: any;
+  declinedAt?: any;
+  completedAt?: any;
   createdAt: any;
+  updatedAt?: any;
+  // Smart contract fields
+  txHash?: string;
+  escrowOrderId?: string;
+  billingSnapshot?: {
+    totalUSD: number;
+    platformFeeUSD: number;
+    ethPriceAtBooking: number;
+    paidETH: number;
+  };
+  // Cancellation fields
+  cancellationRequested?: boolean;
+  cancellationReason?: string;
+  cancellationRequestedAt?: any;
+  cancellationApproved?: boolean;
+  refundTxHash?: string;
+  refundedAt?: any;
+  resolvedAt?: any;
 }
 
 export interface RentalProperty {
