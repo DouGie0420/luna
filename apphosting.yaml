@@ -21,14 +21,7 @@ env:
     value: https://images.luna.gift
     availability:
       - RUNTIME
-  - variable: R2_ACCESS_KEY_ID
-    value: df66413324680d7b588942498ea5c647
-    availability:
-      - RUNTIME
-  - variable: R2_SECRET_ACCESS_KEY
-    value: 678295fc5db459033d007147c4f43ac4d66fef693a461ef77a0b59e25973ddb1
-    availability:
-      - RUNTIME
+  # R2_ACCESS_KEY_ID 和 R2_SECRET_ACCESS_KEY 通过 Firebase Console 环境变量配置
   - variable: RESEND_FROM_EMAIL
     value: bookings@luna.gift
     availability:
