@@ -274,7 +274,12 @@ service cloud.firestore {
       }
     }
 
-    // --- 6. FCM 浠ょ墝绠＄悊 ---
+    // --- 6. 通知集合 (notifications/{userId}/items) ---
+    match /notifications/{userId}/items/{notificationId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // --- 7. FCM 浠ょ墝绠＄悊 ---
     match /fcm_tokens/{userId} {
       // 鐢ㄦ埗鍙兘璁€瀵嚜宸辩殑FCM浠ょ墝
       allow read, write: if isSignedIn() && request.auth.uid == userId;

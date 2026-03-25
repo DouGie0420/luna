@@ -29,7 +29,7 @@ export async function analyzeProductImage(input: { imageDataUri: string }): Prom
     const mimeType = mimeTypeMatch[1];
     const base64Data = input.imageDataUri.replace(/^data:.*?;base64,/, "");
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
