@@ -195,7 +195,21 @@ export default function ClientProductDetail() {
     const handlePurchaseConfirm = async (finalMethod: PaymentMethod) => {
         if (!user || !firestore || !product) return;
         try {
-            const orderData = {
+            // 尝试获取买家的默认收货地址，以便卖家发货时可见
+            let shippingAddress: any = null;
+            try {
+                const addrSnap = await getDocs(collection(firestore, 'users', user.uid, 'addresses'));
+                if (!addrSnap.empty) {
+                    const addrs = addrSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    const defaultAddr = addrs.find((a: any) => a.isDefault) || addrs[0];
+                    const { id: _id, isDefault: _isDefault, ...addrFields } = defaultAddr as any;
+                    shippingAddress = addrFields;
+                }
+            } catch (_) {
+                // 地址读取失败不影响下单流程
+            }
+
+            const orderData: any = {
                 productId: product.id,
                 productName: product.title || product.name || 'Unknown Product',
                 productImage: product.images?.[0] || '',
@@ -207,6 +221,7 @@ export default function ClientProductDetail() {
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
+            if (shippingAddress) orderData.shippingAddress = shippingAddress;
             const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
             
             toast({ title: t('product.orderCreated'), description: t('product.orderCreatedDesc') });
