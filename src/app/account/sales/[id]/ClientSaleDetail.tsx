@@ -199,6 +199,13 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
         if (mounted && !authLoading && !user) router.replace('/');
     }, [user, authLoading, router, mounted]);
 
+    // 买家确认收货后自动跳转评价页
+    useEffect(() => {
+        if (order && (order.status === 'completed' || order.status === 'delivered')) {
+            router.push(`/account/sales/${orderId}/review`);
+        }
+    }, [order?.status, orderId, router]);
+
     const isLoading = !mounted || orderLoading || productLoading || authLoading;
 
     if (isLoading) {
@@ -224,7 +231,7 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
 
     const status = (order.status || 'pending').toLowerCase();
     const isPaid = ['confirmed', 'shipped', 'delivered', 'completed', 'disputed', 'paid'].includes(status) || order.paymentStatus === 'paid';
-    const isShipped = ['shipped', 'delivered'].includes(status);
+    const isShipped = ['shipped', 'delivered', 'completed'].includes(status);
     const isCompleted = status === 'completed' || status === 'delivered';
 
     const ethAmount = Number(order.totalAmount || order.price || 0);
