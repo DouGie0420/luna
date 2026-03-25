@@ -123,6 +123,7 @@ export default function NewProductPage() {
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false); // 同步锁，防止双击重复提交
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // ✅ 核心修改：将默认收款通道改为 ETH
@@ -234,7 +235,9 @@ export default function NewProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmittingRef.current) return; // 同步锁，双击直接拦截
     if (!user || !profile || !firestore || !productLocation) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     
     let finalContact = consignmentContact.trim();
@@ -278,7 +281,7 @@ export default function NewProductPage() {
       setNewProductId(docRef.id);
       setShowSuccessModal(true);
       
-    } catch (err) { toast({ variant: 'destructive', title: t('newProductPageNew.listingFailed'), description: t('newProductPageNew.listingFailedDesc') }); } finally { setIsSubmitting(false); }
+    } catch (err) { toast({ variant: 'destructive', title: t('newProductPageNew.listingFailed'), description: t('newProductPageNew.listingFailedDesc') }); } finally { isSubmittingRef.current = false; setIsSubmitting(false); }
   };
 
   const formatWalletAddress = (address: string) => {
