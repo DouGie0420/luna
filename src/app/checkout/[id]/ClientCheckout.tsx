@@ -146,6 +146,11 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 sellerEthAddress: finalSellerAddress,
             });
 
+            // 将商品下架
+            if (order.productId) {
+                await updateDoc(doc(firestore, 'products', order.productId), { status: 'sold' });
+            }
+
             toast({ title: "支付成功！", description: "资产已锁定至智能合约。正在返回订单页..." });
             
             setTimeout(() => {

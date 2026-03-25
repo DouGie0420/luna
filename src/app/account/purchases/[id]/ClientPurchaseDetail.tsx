@@ -190,6 +190,11 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
                 confirmDeliveryTxHash: result.hash || '',
             });
 
+            // 确保商品已下架（补救所有未在付款时下架的情况）
+            if (order.productId) {
+                await updateDoc(doc(firestore, 'products', order.productId), { status: 'sold' });
+            }
+
             toast({ title: "成功", description: "交易已结算。正在进入评价协议..." });
             router.push(`/account/purchases/${orderId}/review`);
 
