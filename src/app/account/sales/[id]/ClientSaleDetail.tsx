@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { useUser, useFirestore, useDoc, useCollection } from "@/firebase";
+import { doc, updateDoc, serverTimestamp, collection } from "firebase/firestore";
 import {
     Package, Truck, CheckCircle2, ShieldCheck,
     MapPin, MessageSquare, AlertOctagon,
@@ -182,6 +182,14 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
     const buyerRef = useMemo(() => firestore && order?.buyerId ? doc(firestore, 'users', order.buyerId) : null, [firestore, order]);
     const { data: buyer } = useDoc<UserProfile>(buyerRef);
 
+    // 如果订单没有 shippingAddress（非标准结账），从买家个人资料地址库读取默认地址
+    const buyerAddressesRef = useMemo(() => firestore && order?.buyerId ? collection(firestore, 'users', order.buyerId, 'addresses') : null, [firestore, order]);
+    const { data: buyerAddresses } = useCollection<any>(buyerAddressesRef);
+    const buyerDefaultAddress = useMemo(() => {
+        if (!buyerAddresses?.length) return null;
+        return buyerAddresses.find((a: any) => a.isDefault) || buyerAddresses[0];
+    }, [buyerAddresses]);
+
     const formatPrice = (price: any) => Number(price || 0).toLocaleString('en-US', { maximumFractionDigits: 6 });
 
     useEffect(() => {
@@ -219,7 +227,7 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
     const ethAmount = Number(order.totalAmount || order.price || 0);
     const usdEquiv = ethPrice ? ethAmount * ethPrice : null;
 
-    const shippingAddr = order.shippingAddress as any;
+    const shippingAddr = (order.shippingAddress as any) || buyerDefaultAddress;
     const productUrl = typeof window !== 'undefined' && order.productId
         ? `${window.location.origin}/products/${order.productId}`
         : null;
@@ -492,20 +500,22 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
 
                         {/* Chat */}
                         <GlassCard accentColor="purple" delay={0.15}>
-                            <div className="p-5">
+                            <div className="p-5 flex flex-col">
                                 <div className="flex items-center gap-2 mb-4">
                                     <div className="p-1.5 rounded-lg bg-purple-500/15 border border-purple-500/20">
                                         <MessageSquare className="w-3.5 h-3.5 text-purple-400" />
                                     </div>
                                     <h2 className="text-sm font-semibold text-foreground">买家沟通</h2>
                                 </div>
-                                <ChatWindow
-                                    orderId={order.id}
-                                    sellerId={order.sellerId}
-                                    buyerId={order.buyerId}
-                                    productName={order.productName}
-                                    initialMessage={chatInitialMessage}
-                                />
+                                <div className="h-[480px]">
+                                    <ChatWindow
+                                        orderId={order.id}
+                                        sellerId={order.sellerId}
+                                        buyerId={order.buyerId}
+                                        productName={order.productName}
+                                        initialMessage={chatInitialMessage}
+                                    />
+                                </div>
                             </div>
                         </GlassCard>
                     </div>
