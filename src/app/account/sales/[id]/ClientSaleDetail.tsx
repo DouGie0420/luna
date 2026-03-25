@@ -146,6 +146,17 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
             return;
         }
 
+        // 检查钱包地址是否与合约中登记的卖家地址一致
+        const contractSellerAddr = (order as any).sellerEthAddress;
+        if (contractSellerAddr && address.toLowerCase() !== contractSellerAddr.toLowerCase()) {
+            toast({
+                variant: 'destructive',
+                title: '钱包地址不匹配',
+                description: `合约中的卖家地址为 ${contractSellerAddr.slice(0, 6)}...${contractSellerAddr.slice(-4)}，请在 MetaMask 中切换到该地址后再发货。`,
+            });
+            return;
+        }
+
         setIsShipping(true);
         try {
             // 第一步：调用链上合约 markAsShipped

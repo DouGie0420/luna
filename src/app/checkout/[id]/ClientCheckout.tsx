@@ -143,6 +143,7 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 txHash: result.hash,
                 paymentMethod: 'ETH',
                 escrowOrderId: order.id,
+                sellerEthAddress: finalSellerAddress,
             });
 
             toast({ title: "支付成功！", description: "资产已锁定至智能合约。正在返回订单页..." });

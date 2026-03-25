@@ -307,6 +307,7 @@ export default function ClientCheckout() {
         currency: 'ETH',
         status: 'paid',
         escrowOrderId: escrowOrderId,
+        sellerEthAddress: sellerWalletAddress,
         txHash: lockResult.hash || 'N/A',
         createdAt: serverTimestamp(),
         shippingAddress,
