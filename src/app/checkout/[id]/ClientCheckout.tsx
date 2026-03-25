@@ -135,7 +135,7 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 throw new Error("智能合约安全拦截：买家和卖家不能使用同一个钱包地址！请更换钱包账户或测试账号。");
             }
 
-            // 🔍 检查链上是否已有该订单（防止重复支付错误）
+            // 🔍 检查链上是否已有该订单（防止重复支付报错）
             let alreadyPaidOnChain = false;
             try {
                 const provider = await getEthersProvider();
@@ -143,10 +143,18 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                     const readContract = new Contract(ESCROW_CONTRACT_ADDRESS, EscrowContractABI, provider);
                     const numericId = toNumericId(order.id);
                     const contractOrder = await readContract.orders(numericId);
-                    if (contractOrder.buyer && contractOrder.buyer !== ethers.ZeroAddress &&
-                        contractOrder.buyer.toLowerCase() === address.toLowerCase()) {
-                        alreadyPaidOnChain = true;
-                        toast({ title: "链上已找到支付记录", description: "正在同步订单状态..." });
+                    if (contractOrder.buyer && contractOrder.buyer !== ethers.ZeroAddress) {
+                        // 订单已在链上 —— 无论是哪个钱包注册的，都不能重复 createOrder
+                        if (contractOrder.buyer.toLowerCase() === address.toLowerCase()) {
+                            // 当前钱包就是链上买家，直接同步 Firestore
+                            alreadyPaidOnChain = true;
+                            toast({ title: "链上已找到支付记录", description: "正在同步订单状态..." });
+                        } else {
+                            // 链上买家是另一个钱包 —— 说明之前曾用不同钱包支付过，同样视为已付
+                            // Firestore 状态需同步，但记录实际支付的钱包地址
+                            alreadyPaidOnChain = true;
+                            toast({ title: "检测到链上支付记录", description: "系统正在同步订单状态，请稍候..." });
+                        }
                     }
                 }
             } catch (_) { /* 读取失败则继续正常支付流程 */ }
@@ -156,6 +164,10 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 // 订单已在链上，直接视为成功，只需同步 Firestore
                 result = { success: true, hash: order.txHash || 'recovered' };
             } else {
+                const priceNum = Number(order.price || 0);
+                if (!priceNum || priceNum <= 0) {
+                    throw new Error("订单金额无效（为0或未设置），无法发起合约支付。请联系管理员。");
+                }
                 toast({ title: "唤起智能合约", description: "请在 MetaMask 中确认支付交易..." });
                 // 🚀 调用 Hook 里的 lockFunds，传入真实的卖家地址
                 result = await lockFunds(order.id, order.price, finalSellerAddress);
