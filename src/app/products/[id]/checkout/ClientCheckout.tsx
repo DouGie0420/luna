@@ -275,27 +275,16 @@ export default function ClientCheckout() {
     let purchaseSucceeded = false;
 
     try {
-      // STEP 1: 链上锁仓 (Lock Funds) - 使用 useEscrowContract Hook
-      setProgress(30);
-      toast({ title: "🔒 链上资金锁定中", description: "步骤 1/1：请在您的钱包中确认交易，将 ETH 安全锁定至托管合约..." });
-
-      // 确保 escrowOrderId 有值，fallback 到 product.id
-      const escrowOrderId = product.escrowOrderId || product.id;
-      const lockResult = await lockFunds(escrowOrderId, totalAmount, sellerWalletAddress);
-
-      if (!lockResult.success) {
-          throw new Error(lockResult.error || escrowInteractionError || "链上锁仓失败，请检查 Gas 或余额。");
-      }
-
-      // STEP 2: 只有链上成功后，才写 Firebase
-      setProgress(90);
+      // STEP 1: 先检查收货地址
       const address = addresses?.find(a => a.id === selectedAddressId);
       if (!address) {
           throw new Error("收货地址未找到。");
       }
       const { id: addrId, isDefault, ...shippingAddress } = address;
 
-      const orderData = {
+      // STEP 2: 先在 Firestore 创建订单，获得唯一订单 ID 作为 escrowOrderId
+      setProgress(30);
+      const pendingOrderData = {
         productId: product.id,
         productName: product.name,
         buyerId: user.uid,
@@ -305,17 +294,33 @@ export default function ClientCheckout() {
         shippingFee,
         totalAmount,
         currency: 'ETH',
-        status: 'paid',
-        escrowOrderId: escrowOrderId,
+        status: 'pending_payment',
         sellerEthAddress: sellerWalletAddress,
-        txHash: lockResult.hash || 'N/A',
         createdAt: serverTimestamp(),
         shippingAddress,
         shippingMethod,
         paymentMethod: 'ETH',
       };
+      const orderRef = await addDoc(collection(firestore, 'orders'), pendingOrderData);
+      const escrowOrderId = orderRef.id; // 每笔订单独一无二
 
-      const orderRef = await addDoc(collection(firestore, 'orders'), orderData);
+      // STEP 3: 链上锁仓，使用订单 ID 作为合约 ID
+      toast({ title: "🔒 链上资金锁定中", description: "请在您的钱包中确认交易，将 ETH 安全锁定至托管合约..." });
+      const lockResult = await lockFunds(escrowOrderId, totalAmount, sellerWalletAddress);
+
+      if (!lockResult.success) {
+          // 链上失败，删除刚创建的 pending 订单
+          await updateDoc(doc(firestore, 'orders', orderRef.id), { status: 'payment_failed' });
+          throw new Error(lockResult.error || escrowInteractionError || "链上锁仓失败，请检查 Gas 或余额。");
+      }
+
+      // STEP 4: 链上成功，更新订单状态
+      setProgress(90);
+      await updateDoc(doc(firestore, 'orders', orderRef.id), {
+        status: 'paid',
+        escrowOrderId,
+        txHash: lockResult.hash || 'N/A',
+      });
       await updateDoc(doc(firestore, 'products', product.id), { status: 'sold' });
 
       // STEP 3: 发送卖家售出邮件通知（不影响主流程）
