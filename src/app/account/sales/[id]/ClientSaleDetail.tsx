@@ -588,16 +588,25 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
                                         </div>
                                         <h2 className="text-sm font-semibold text-foreground">买家信息</h2>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 mb-3">
                                         <Avatar className="w-12 h-12 border-2 border-blue-500/25 shadow-[0_0_12px_rgba(59,130,246,0.15)]">
                                             <AvatarImage src={buyer.photoURL} />
                                             <AvatarFallback className="bg-blue-600/30 text-white font-bold">{(buyer.displayName || 'B').charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
                                             <p className="font-bold text-foreground">{buyer.displayName}</p>
-                                            <p className="text-xs text-muted-foreground/50 truncate">{buyer.email}</p>
+                                            <p className="text-xs text-muted-foreground/50">{buyer.email}</p>
                                         </div>
                                     </div>
+                                    {/* 没有收货地址时在买家卡片内提示 */}
+                                    {!shippingAddr && (
+                                        <div className="flex items-start gap-2 mt-1 p-2.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
+                                            <AlertTriangle className="w-3.5 h-3.5 text-orange-400 shrink-0 mt-0.5" />
+                                            <p className="text-xs text-orange-300 leading-relaxed">
+                                                买家未通过标准结账填写收货地址，请通过聊天向买家索取收货信息（姓名、电话、地址）。
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
                             </GlassCard>
                         )}
