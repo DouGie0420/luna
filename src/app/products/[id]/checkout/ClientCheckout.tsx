@@ -240,12 +240,6 @@ export default function ClientCheckout() {
         return;
     }
 
-    // --- 确保产品有 escrowOrderId ---
-    if (!product.escrowOrderId) {
-        toast({ variant: "destructive", title: "订单协议未初始化", description: "商品尚未在智能合约中创建订单。请联系卖家或稍后重试。" });
-        return;
-    }
-
     // --- USDT 相关检查 ---
     if (isUSDTDataLoading || usdtDataError || usdtBalance === null || usdtAllowance === null || usdtDecimals === null) {
         toast({ variant: "destructive", title: "数据加载中", description: "余额和授权信息正在加载。" });
