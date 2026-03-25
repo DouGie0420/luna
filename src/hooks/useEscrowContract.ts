@@ -126,13 +126,31 @@ export function useEscrowContract(): UseEscrowContractResult {
     } catch (err: any) {
       console.error('Escrow contract interaction failed:', err);
 
-      let errorMessage = 'Transaction failed';
-      if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
-        errorMessage = 'User rejected the transaction.';
+      let errorMessage = '交易失败，请稍后重试。';
+      const msg = (err.message || '').toLowerCase();
+      const reason = (err.reason || '').toLowerCase();
+
+      if (err.code === 4001 || err.code === 'ACTION_REJECTED' || msg.includes('user rejected') || msg.includes('user denied')) {
+        errorMessage = '您已取消交易。';
+      } else if (msg.includes('insufficient funds') || msg.includes('insufficient balance') || msg.includes('exceeds balance')) {
+        errorMessage = '钱包 ETH 余额不足，请充值后重试。';
+      } else if ((msg.includes('missing revert data') || msg.includes('call_exception')) && err.action === 'estimateGas') {
+        // estimateGas 失败最常见原因是余额不足或合约拒绝
+        errorMessage = '交易模拟失败，可能原因：ETH 余额不足、该订单已存在或网络异常。请检查余额后重试。';
+      } else if (reason === 'not shipped') {
+        errorMessage = '卖家尚未在链上确认发货，请等待卖家操作后再确认收货。';
+      } else if (reason === 'order already exists' || reason.includes('already exist')) {
+        errorMessage = '该订单已在链上注册，请勿重复支付。';
+      } else if (reason === 'only seller') {
+        errorMessage = '只有卖家可以执行此操作，请切换到正确的钱包账户。';
+      } else if (reason === 'only buyer') {
+        errorMessage = '只有买家可以执行此操作，请切换到正确的钱包账户。';
       } else if (err.reason) {
         errorMessage = err.reason;
-      } else if (err.message) {
-        errorMessage = err.message;
+      } else if (msg.includes('network') || msg.includes('timeout') || msg.includes('could not fetch')) {
+        errorMessage = '网络连接超时，请检查网络后重试。';
+      } else if (msg.includes('nonce') || msg.includes('replacement fee too low')) {
+        errorMessage = '交易冲突，请在钱包中取消待处理交易后重试。';
       }
 
       setInteractionError(errorMessage);

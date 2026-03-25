@@ -200,9 +200,20 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
 
         } catch (e: any) {
             console.error("支付失败:", e);
-            toast({ variant: 'destructive', title: '交易中断', description: e.message || "支付未能完成" });
-        } finally { 
-            setIsProcessing(false); 
+            const msg = (e.message || '').toLowerCase();
+            let friendlyMsg = e.message || '支付未能完成，请稍后重试。';
+            if (msg.includes('insufficient funds') || msg.includes('exceeds balance') || msg.includes('insufficient balance')) {
+                friendlyMsg = 'ETH 余额不足，请前往测试网水龙头领取更多 ETH 后重试。';
+            } else if ((msg.includes('missing revert data') || msg.includes('call_exception')) && e.action === 'estimateGas') {
+                friendlyMsg = 'ETH 余额不足或合约拒绝交易。请检查钱包余额后重试。';
+            } else if (msg.includes('user rejected') || msg.includes('user denied') || e.code === 4001) {
+                friendlyMsg = '您已取消交易。';
+            } else if (msg.includes('network') || msg.includes('timeout')) {
+                friendlyMsg = '网络超时，请检查网络连接后重试。';
+            }
+            toast({ variant: 'destructive', title: '支付失败', description: friendlyMsg });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
