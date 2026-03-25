@@ -242,11 +242,11 @@ export default function AccountProfilePage() {
     if (!firestore || !user || !newLoginId.trim()) return;
     const RESERVED_IDS = ['admin', 'staff', 'pay', 'root', 'luna'];
     if (RESERVED_IDS.includes(newLoginId.trim().toLowerCase())) {
-      toast({ variant: "destructive", title: 'ID不可用', description: '此专属ID为系统保留，请选择其他ID。' });
+      toast({ variant: "destructive", title: t('accountPage.loginId.reservedTitle'), description: t('accountPage.loginId.reservedDesc') });
       return;
     }
     if (!/^\d{3,}$/.test(newLoginId)) {
-      toast({ variant: "destructive", title: '无效的专属ID', description: 'ID必须是3位或更长的纯数字。' });
+      toast({ variant: "destructive", title: t('accountPage.loginId.invalidTitle'), description: t('accountPage.loginId.invalidDesc') });
       return;
     }
     setIsSavingId(true);
@@ -254,14 +254,14 @@ export default function AccountProfilePage() {
       const q = query(collection(firestore, 'users'), where('loginId', '==', newLoginId));
       const snap = await getDocs(q);
       if (!snap.empty) {
-        toast({ variant: "destructive", title: 'ID已被占用', description: '此专属ID已被其他用户使用，请更换。' });
+        toast({ variant: "destructive", title: t('accountPage.loginId.takenTitle'), description: t('accountPage.loginId.takenDesc') });
         return;
       }
       await updateUserProfile(firestore, user.uid, { loginId: newLoginId });
-      toast({ title: '专属ID设置成功！', description: `您的新专属ID是 @${newLoginId}` });
+      toast({ title: t('accountPage.loginId.successTitle'), description: t('accountPage.loginId.successDesc').replace('{id}', newLoginId) });
       setNewLoginId('');
     } catch (error) {
-      toast({ variant: 'destructive', title: '设置失败', description: '更新您的ID时出错，请稍后再试。' });
+      toast({ variant: 'destructive', title: t('accountPage.loginId.failedTitle'), description: t('accountPage.loginId.failedDesc') });
     } finally {
       setIsSavingId(false);
     }
@@ -287,7 +287,7 @@ export default function AccountProfilePage() {
     setIsUploadingBanner(true);
     try {
       await updateUserProfile(firestore, user.uid, { bannerUrl: bannerPreview });
-      toast({ title: "横幅已更新", description: "您的自定义商户横幅已保存。" });
+      toast({ title: t('accountPage.bannerUpdatedTitle'), description: t('accountPage.bannerUpdatedDesc') });
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to update banner.' });
     } finally {
@@ -315,7 +315,7 @@ export default function AccountProfilePage() {
     setIsUploadingAvatar(true);
     try {
       await updateUserProfile(firestore, user.uid, { photoURL: avatarPreview, isNftVerified: false });
-      toast({ title: "头像已更新", description: "您的新头像已保存。" });
+      toast({ title: t('accountPage.avatarUpdatedTitle'), description: t('accountPage.avatarUpdatedDesc') });
     } catch (e) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to update avatar.' });
     } finally {
@@ -386,12 +386,12 @@ export default function AccountProfilePage() {
         plan: selectedPlan,
         createdAt: serverTimestamp(),
       });
-      toast({ title: "申请已提交", description: "您的PRO商户申请已提交审核，请耐心等待。" });
+      toast({ title: t('accountPage.proAppliedTitle'), description: t('accountPage.proAppliedDesc') });
       setIsProDialogOpen(false);
       setSelectedPlan(null);
       setHasPendingApplication(true);
     } catch (e) {
-      toast({ variant: 'destructive', title: '申请失败', description: '发生未知错误，请稍后再试。' });
+      toast({ variant: 'destructive', title: t('accountPage.proFailedTitle'), description: t('accountPage.proFailedDesc') });
     } finally {
       setIsUpgrading(false);
     }
@@ -457,7 +457,7 @@ export default function AccountProfilePage() {
                   <Database className="w-8 h-8 text-primary animate-pulse" />
                 </div>
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.4em] text-primary/70">Lunar Vault / 月壤金库</p>
+                  <p className="text-xs font-black uppercase tracking-[0.4em] text-primary/70">Lunar Vault / {t('accountPage.lunarVaultLabel')}</p>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-5xl font-black text-white">{profile?.lunarSoil || 0}</span>
                     <span className="text-base font-mono font-bold text-primary uppercase tracking-widest">Grams</span>
@@ -484,30 +484,30 @@ export default function AccountProfilePage() {
               {/* Login ID */}
               {profile && user && profile.loginId === user.uid ? (
                 <div className="border border-dashed border-primary/40 p-4 rounded-xl bg-primary/5">
-                  <p className="text-xs text-primary/80 mb-3 italic">检测到您尚未激活专属赛博域名</p>
+                  <p className="text-xs text-primary/80 mb-3 italic">{t('accountPage.loginId.notActivated')}</p>
                   <div className="flex gap-2">
                     <input
                       className={inputCls}
-                      placeholder="输入3位以上数字..."
+                      placeholder={t('accountPage.loginId.placeholder')}
                       value={newLoginId}
                       onChange={(e) => setNewLoginId(e.target.value.replace(/[^0-9]/g, ''))}
                       disabled={isSavingId}
                     />
                     <Button onClick={handleSetLoginId} disabled={isSavingId || !newLoginId.trim()} className="shrink-0">
                       {isSavingId && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      立即激活
+                      {t('accountPage.loginId.activateButton')}
                     </Button>
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className={fieldLabelCls}>专属ID</label>
+                  <label className={fieldLabelCls}>{t('accountPage.loginId.label')}</label>
                   <div className="flex items-center gap-2">
                     <input className={inputCls} value={`@${profile?.loginId}`} readOnly style={{ cursor: 'default' }} />
                     <Button variant="outline" size="sm" className="shrink-0 border-white/15 text-white/70 hover:bg-white/5" onClick={() => {
                       navigator.clipboard.writeText(`https://luna.io/@${profile?.loginId}`);
-                      toast({ title: '已复制您的专属链接！' });
-                    }}>复制链接</Button>
+                      toast({ title: t('accountPage.linkCopied') });
+                    }}>{t('accountPage.copyLink')}</Button>
                   </div>
                 </div>
               )}
@@ -635,15 +635,15 @@ export default function AccountProfilePage() {
                 <ShieldCheck className="h-7 w-7 text-green-400 shrink-0" />
                 <div>
                   <h3 className="font-semibold text-green-300 text-sm">{t('accountPage.proCertification.alreadyPro')}</h3>
-                  <p className="text-xs text-green-400/70">您已解锁所有PRO商户特权。</p>
+                  <p className="text-xs text-green-400/70">{t('accountPage.proCertification.unlocked')}</p>
                 </div>
               </div>
             ) : hasPendingApplication ? (
               <div className="flex items-center gap-3 p-4 rounded-xl bg-yellow-500/10 border border-yellow-500/25">
                 <Loader2 className="h-7 w-7 text-yellow-400 animate-spin shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-yellow-300 text-sm">您的 PRO 申请正在审核中</h3>
-                  <p className="text-xs text-yellow-400/70">我们会在审核完成后通知您。</p>
+                  <h3 className="font-semibold text-yellow-300 text-sm">{t('accountPage.proCertification.pendingTitle')}</h3>
+                  <p className="text-xs text-yellow-400/70">{t('accountPage.proCertification.pendingDesc')}</p>
                 </div>
               </div>
             ) : (
@@ -655,7 +655,7 @@ export default function AccountProfilePage() {
                   </Button>
                 </DialogTrigger>
                 {!isProApplicationEnabled && !settingsLoading && (
-                  <p className="text-xs text-white/30 text-center mt-2">PRO认证申请功能当前已由管理员关闭。</p>
+                  <p className="text-xs text-white/30 text-center mt-2">{t('accountPage.proCertification.disabled')}</p>
                 )}
               </>
             )}
@@ -664,7 +664,7 @@ export default function AccountProfilePage() {
           {/* Custom Avatar */}
           {canCustomize && (
             <GlassCard accent="blue" delay={0.25}>
-              <GlassHeader icon={ImageIcon} title="自定义头像" subtitle="作为认证商户或管理员，您可以上传新头像和商户横幅。" accent="blue" />
+              <GlassHeader icon={ImageIcon} title={t('accountPage.customAvatarTitle')} subtitle={t('accountPage.customAvatarSubtitle')} accent="blue" />
               <div className="space-y-6">
                 {/* Avatar Upload */}
                 <div className="flex items-start gap-6">
@@ -685,11 +685,11 @@ export default function AccountProfilePage() {
                     </div>
                   </label>
                   <div className="flex-1 space-y-2">
-                    <p className="text-xs text-white/40">点击头像区域选择图片文件上传新头像。</p>
+                    <p className="text-xs text-white/40">{t('accountPage.avatarUploadHint')}</p>
                     <input id="avatar-upload" type="file" className="sr-only" onChange={handleAvatarUpload} accept="image/*" disabled={isUploadingAvatar} />
                     <Button onClick={handleSaveAvatar} disabled={isUploadingAvatar || !avatarPreview || avatarPreview === profile?.photoURL} size="sm">
                       {isUploadingAvatar && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-                      保存头像
+                      {t('accountPage.saveAvatar')}
                     </Button>
                   </div>
                 </div>
@@ -699,8 +699,8 @@ export default function AccountProfilePage() {
                   <>
                     <div className="h-px bg-white/8" />
                     <div>
-                      <p className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5">自定义商户横幅</p>
-                      <p className="text-[10px] text-white/30 mb-3">推荐尺寸: 1080x432. 将展示在您的公开资料页和认证商户列表中。</p>
+                      <p className="text-[11px] font-bold text-white/50 uppercase tracking-wider mb-1.5">{t('accountPage.customBannerTitle')}</p>
+                      <p className="text-[10px] text-white/30 mb-3">{t('accountPage.customBannerDimension')}</p>
                       {bannerPreview ? (
                         <div className="relative aspect-[1080/432] w-full mb-3">
                           <Image src={bannerPreview} alt="Banner Preview" fill className="object-cover rounded-xl border border-white/12" />
@@ -716,14 +716,14 @@ export default function AccountProfilePage() {
                       ) : (
                         <label htmlFor="banner-upload" className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-white/20 rounded-xl cursor-pointer hover:bg-white/[0.04] transition-colors mb-3">
                           <UploadCloud className="w-7 h-7 mb-1.5 text-white/25" />
-                          <p className="text-xs text-white/30"><span className="font-semibold">点击上传</span> 或拖拽</p>
+                          <p className="text-xs text-white/30"><span className="font-semibold">{t('accountPage.uploadClick')}</span> {t('accountPage.uploadOrDrag')}</p>
                           <input id="banner-upload" type="file" className="sr-only" onChange={handleBannerUpload} accept="image/*" disabled={isUploadingBanner} />
                         </label>
                       )}
-                      {isUploadingBanner && <p className="text-xs text-white/40 flex items-center gap-2 mb-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> 正在处理图片...</p>}
+                      {isUploadingBanner && <p className="text-xs text-white/40 flex items-center gap-2 mb-2"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {t('accountPage.processingImage')}</p>}
                       <Button onClick={handleSaveBanner} disabled={isUploadingBanner || !bannerPreview} size="sm">
                         {isUploadingBanner && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-                        保存横幅
+                        {t('accountPage.saveBanner')}
                       </Button>
                     </div>
                   </>
@@ -735,7 +735,7 @@ export default function AccountProfilePage() {
           {/* Featured Product (PRO only) */}
           {profile?.isPro && (
             <GlassCard accent="yellow" delay={0.3}>
-              <GlassHeader icon={ShoppingBag} title="精选商品展示" subtitle='选择一件您的商品，它将被展示在首页"认证商户"区域您的名片下方。' accent="yellow" />
+              <GlassHeader icon={ShoppingBag} title={t('accountPage.featuredProductTitle')} subtitle={t('accountPage.featuredProductSubtitle')} accent="yellow" />
               {productsLoading ? (
                 <Skeleton className="h-10 w-full bg-white/10 rounded-xl" />
               ) : (
@@ -744,14 +744,14 @@ export default function AccountProfilePage() {
                   onValueChange={async (value) => {
                     if (!firestore || !user) return;
                     await updateUserProfile(firestore, user.uid, { featuredProductId: value === 'none' ? null : value });
-                    toast({ title: "精选商品已更新" });
+                    toast({ title: t('accountPage.featuredProductUpdated') });
                   }}
                 >
                   <SelectTrigger className="h-10 rounded-xl bg-white/[0.07] border-white/15 text-sm text-white focus:border-purple-500/60 focus:ring-0">
-                    <SelectValue placeholder="选择一件商品来展示" />
+                    <SelectValue placeholder={t('accountPage.featuredProductPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">无 (不展示)</SelectItem>
+                    <SelectItem value="none">{t('accountPage.featuredProductNone')}</SelectItem>
                     {userProducts.map(product => (
                       <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
                     ))}
@@ -763,13 +763,13 @@ export default function AccountProfilePage() {
 
           {/* Crypto Wallet / NFT */}
           <GlassCard accent="blue" delay={0.35}>
-            <GlassHeader icon={Globe} title="Crypto Wallet" subtitle="将您的数字资产展示在月之女神的静谧中" accent="blue" />
+            <GlassHeader icon={Globe} title="Crypto Wallet" subtitle={t('accountPage.cryptoWalletSubtitle')} accent="blue" />
             <Button onClick={handleSyncNfts} disabled={isSyncingNfts || !profile?.walletAddress}>
               {isSyncingNfts && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              验证 NFT 资产
+              {t('accountPage.verifyNft')}
             </Button>
             {!profile?.walletAddress && (
-              <p className="text-xs text-white/30 mt-2">请先绑定钱包地址以启用此功能。</p>
+              <p className="text-xs text-white/30 mt-2">{t('accountPage.walletNotLinkedDesc')}</p>
             )}
           </GlassCard>
 

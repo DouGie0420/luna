@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from "@/firebase";
+import { useTranslation } from '@/hooks/use-translation';
 import { doc, updateDoc, increment, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { Star, CheckCircle2, Loader2, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ export default function ClientReview({ id }: ClientReviewProps) {
     const { user, loading: authLoading } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const orderId = id;
 
@@ -73,8 +75,7 @@ export default function ClientReview({ id }: ClientReviewProps) {
             });
 
             toast({
-                title: '评价已提交',
-                description: '感谢您的反馈！',
+                title: t('reviewPage.submitSuccess'),
             });
 
             router.push('/account/purchases');
@@ -82,8 +83,7 @@ export default function ClientReview({ id }: ClientReviewProps) {
             console.error('Failed to submit review:', error);
             toast({
                 variant: 'destructive',
-                title: '提交失败',
-                description: '请重试',
+                title: t('reviewPage.submitFailed'),
             });
         } finally {
             setIsSubmitting(false);
@@ -102,8 +102,8 @@ export default function ClientReview({ id }: ClientReviewProps) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4">
                 <AlertOctagon className="w-16 h-16 text-red-500" />
-                <p>订单不存在</p>
-                <Button onClick={() => router.push('/account/purchases')}>返回</Button>
+                <p>{t('reviewPage.orderNotFound')}</p>
+                <Button onClick={() => router.push('/account/purchases')}>{t('reviewPage.goBack')}</Button>
             </div>
         );
     }
@@ -112,11 +112,11 @@ export default function ClientReview({ id }: ClientReviewProps) {
         <>
             <PageHeaderWithBackAndClose />
             <div className="container mx-auto px-4 py-12 max-w-2xl">
-                <h1 className="text-3xl font-bold mb-8">评价订单</h1>
+                <h1 className="text-3xl font-bold mb-8">{t('reviewPage.title')}</h1>
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-2">评分</label>
+                        <label className="block text-sm font-medium mb-2">{t('reviewPage.rating')}</label>
                         <div className="flex gap-2">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button
@@ -137,11 +137,11 @@ export default function ClientReview({ id }: ClientReviewProps) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">评价内容</label>
+                        <label className="block text-sm font-medium mb-2">{t('reviewPage.comment')}</label>
                         <Textarea
                             value={reviewText}
                             onChange={(e) => setReviewText(e.target.value)}
-                            placeholder="分享您的购物体验..."
+                            placeholder={t('reviewPage.commentPlaceholder')}
                             rows={4}
                         />
                     </div>
@@ -154,12 +154,12 @@ export default function ClientReview({ id }: ClientReviewProps) {
                         {isSubmitting ? (
                             <>
                                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                提交中...
+                                {t('reviewPage.submitting')}
                             </>
                         ) : (
                             <>
                                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                                提交评价
+                                {t('reviewPage.submit')}
                             </>
                         )}
                     </Button>

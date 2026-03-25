@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from "@/firebase";
+import { useTranslation } from '@/hooks/use-translation';
 import { doc, updateDoc, increment, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { Star, CheckCircle2, Loader2, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ export default function ClientSellerReview({ id }: { id: string }) {
     const { user, loading: authLoading } = useUser();
     const firestore = useFirestore();
     const { toast } = useToast();
+    const { t } = useTranslation();
 
     const [rating, setRating] = useState(5);
     const [reviewText, setReviewText] = useState('');
@@ -63,10 +65,10 @@ export default function ClientSellerReview({ id }: { id: string }) {
                 createdAt: serverTimestamp(),
             });
 
-            toast({ title: '评价已提交', description: '感谢您的反馈！' });
+            toast({ title: t('reviewPage.submitSuccess') });
             router.push('/account/sales');
         } catch (error) {
-            toast({ variant: 'destructive', title: '提交失败', description: '请重试' });
+            toast({ variant: 'destructive', title: t('reviewPage.submitFailed') });
         } finally {
             setIsSubmitting(false);
         }
@@ -84,8 +86,8 @@ export default function ClientSellerReview({ id }: { id: string }) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4">
                 <AlertOctagon className="w-16 h-16 text-red-500" />
-                <p>订单不存在</p>
-                <Button onClick={() => router.push('/account/sales')}>返回</Button>
+                <p>{t('reviewPage.orderNotFound')}</p>
+                <Button onClick={() => router.push('/account/sales')}>{t('reviewPage.goBack')}</Button>
             </div>
         );
     }
@@ -100,12 +102,12 @@ export default function ClientSellerReview({ id }: { id: string }) {
         <>
             <PageHeaderWithBackAndClose />
             <div className="container mx-auto px-4 py-12 max-w-2xl">
-                <h1 className="text-3xl font-bold mb-2">评价买家</h1>
-                <p className="text-muted-foreground mb-8">订单 #{id.slice(-6).toUpperCase()} · {order.productName}</p>
+                <h1 className="text-3xl font-bold mb-2">{t('reviewPage.sellerTitle')}</h1>
+                <p className="text-muted-foreground mb-8">{t('reviewPage.orderRef', `Order #${id.slice(-6).toUpperCase()} · ${(order as any).productName || ''}`).replace('{ref}', id.slice(-6).toUpperCase()).replace('{product}', (order as any).productName || '')}</p>
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-medium mb-3">信用评分</label>
+                        <label className="block text-sm font-medium mb-3">{t('reviewPage.sellerRatingLabel')}</label>
                         <div className="flex gap-3">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button key={star} onClick={() => setRating(star)} className="focus:outline-none transition-transform hover:scale-110">
@@ -113,17 +115,17 @@ export default function ClientSellerReview({ id }: { id: string }) {
                                 </button>
                             ))}
                             <span className="ml-2 self-center text-sm text-muted-foreground">
-                                {rating === 5 ? '非常好' : rating === 4 ? '较好' : rating === 3 ? '一般' : rating === 2 ? '较差' : '很差'}
+                                {t(`reviewPage.ratingLabel${rating}`)}
                             </span>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">评价内容</label>
+                        <label className="block text-sm font-medium mb-2">{t('reviewPage.comment')}</label>
                         <Textarea
                             value={reviewText}
                             onChange={(e) => setReviewText(e.target.value)}
-                            placeholder="描述买家的交易体验，如付款速度、沟通是否顺畅等..."
+                            placeholder={t('reviewPage.sellerCommentPlaceholder')}
                             rows={4}
                         />
                     </div>
@@ -134,9 +136,9 @@ export default function ClientSellerReview({ id }: { id: string }) {
                         className="w-full h-12 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold"
                     >
                         {isSubmitting ? (
-                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />提交中...</>
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t('reviewPage.submitting')}</>
                         ) : (
-                            <><CheckCircle2 className="w-4 h-4 mr-2" />提交评价</>
+                            <><CheckCircle2 className="w-4 h-4 mr-2" />{t('reviewPage.submit')}</>
                         )}
                     </Button>
                 </div>

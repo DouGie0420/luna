@@ -1,5 +1,6 @@
 // 托管合约交互Hook - 与Base网 LunaEscrow 合约交互
 import { useState, useCallback } from 'react';
+import { useTranslation } from './use-translation';
 import { ethers, Contract } from 'ethers';
 import { EscrowContractABI } from '@/lib/abi/escrow'; // 使用统一的ABI来源
 import { getEthersSigner } from '@/lib/web3-provider'; // 引入我们自己的 getEthersSigner
@@ -61,6 +62,7 @@ const toNumericId = (id: string): string => {
  */
 export function useEscrowContract(): UseEscrowContractResult {
   const { address, isConnected, refetch: refetchUSDTData } = useUSDTBalanceAndAllowance();
+  const { t } = useTranslation();
 
   const [isInteracting, setIsInteracting] = useState<boolean>(false);
   const [interactionError, setInteractionError] = useState<string | null>(null);
@@ -126,31 +128,30 @@ export function useEscrowContract(): UseEscrowContractResult {
     } catch (err: any) {
       console.error('Escrow contract interaction failed:', err);
 
-      let errorMessage = '交易失败，请稍后重试。';
+      let errorMessage = t('escrowErrors.generalFailure');
       const msg = (err.message || '').toLowerCase();
       const reason = (err.reason || '').toLowerCase();
 
       if (err.code === 4001 || err.code === 'ACTION_REJECTED' || msg.includes('user rejected') || msg.includes('user denied')) {
-        errorMessage = '您已取消交易。';
+        errorMessage = t('escrowErrors.cancelled');
       } else if (msg.includes('insufficient funds') || msg.includes('insufficient balance') || msg.includes('exceeds balance')) {
-        errorMessage = 'ETH 余额不足，请检查余额。';
+        errorMessage = t('escrowErrors.insufficientFunds');
       } else if ((msg.includes('missing revert data') || msg.includes('call_exception')) && err.action === 'estimateGas') {
-        // estimateGas 失败最常见原因是余额不足或合约拒绝
-        errorMessage = '交易模拟失败，可能原因：ETH 余额不足、该订单已存在或网络异常。请检查余额后重试。';
+        errorMessage = t('escrowErrors.simulationFailed');
       } else if (reason === 'not shipped') {
-        errorMessage = '卖家尚未在链上确认发货，请等待卖家操作后再确认收货。';
+        errorMessage = t('escrowErrors.notShipped');
       } else if (reason === 'order already exists' || reason.includes('already exist')) {
-        errorMessage = '该订单已在链上注册，请勿重复支付。';
+        errorMessage = t('escrowErrors.orderAlreadyExists');
       } else if (reason === 'only seller') {
-        errorMessage = '只有卖家可以执行此操作，请切换到正确的钱包账户。';
+        errorMessage = t('escrowErrors.onlySeller');
       } else if (reason === 'only buyer') {
-        errorMessage = '只有买家可以执行此操作，请切换到正确的钱包账户。';
+        errorMessage = t('escrowErrors.onlyBuyer');
       } else if (err.reason) {
         errorMessage = err.reason;
       } else if (msg.includes('network') || msg.includes('timeout') || msg.includes('could not fetch')) {
-        errorMessage = '网络连接超时，请检查网络后重试。';
+        errorMessage = t('escrowErrors.networkError');
       } else if (msg.includes('nonce') || msg.includes('replacement fee too low')) {
-        errorMessage = '交易冲突，请在钱包中取消待处理交易后重试。';
+        errorMessage = t('escrowErrors.nonceConflict');
       }
 
       setInteractionError(errorMessage);
@@ -166,7 +167,7 @@ export function useEscrowContract(): UseEscrowContractResult {
         status: TransactionStatus.FAILED
       };
     }
-  }, [refetchUSDTData]);
+  }, [refetchUSDTData, t]);
 
   // 🚀 创建订单 (买家调用) - 附加 Native ETH
   const createOrder = useCallback(async (orderId: string, sellerAddress: string, amount: string | number): Promise<EscrowTransactionResult> => {
