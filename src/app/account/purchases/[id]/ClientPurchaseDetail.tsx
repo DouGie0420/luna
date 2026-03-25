@@ -167,8 +167,8 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
             return;
         }
 
-        // fallback to product.id if escrowOrderId not stored (older orders)
-        const escrowId = order.escrowOrderId || product?.id;
+        // fallback to order.id for orders paid via /checkout/[id] (which locks with order.id)
+        const escrowId = order.escrowOrderId || orderId;
         if (!escrowId) {
             toast({ variant: "destructive", title: "订单协议ID缺失", description: "无法执行链上操作，订单缺乏合约ID。" });
             return;

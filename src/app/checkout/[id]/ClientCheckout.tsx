@@ -140,8 +140,9 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
             await updateDoc(doc(firestore, 'orders', order.id), {
                 status: 'paid',
                 paidAt: serverTimestamp(),
-                txHash: result.hash, 
-                paymentMethod: 'ETH'
+                txHash: result.hash,
+                paymentMethod: 'ETH',
+                escrowOrderId: order.id,
             });
 
             toast({ title: "支付成功！", description: "资产已锁定至智能合约。正在返回订单页..." });
