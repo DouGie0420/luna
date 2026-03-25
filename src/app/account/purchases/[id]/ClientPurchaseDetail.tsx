@@ -90,7 +90,7 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
         setMounted(true); 
     }, []);
 
-    const orderRef = useMemo(() => (firestore && orderId) ? doc(firestore, 'orders', orderId) : null, [firestore, orderId]);
+    const orderRef = useMemo(() => (firestore && orderId && user) ? doc(firestore, 'orders', orderId) : null, [firestore, orderId, user]);
     const { data: order, loading: orderLoading, error: orderError } = useDoc<Order>(orderRef);
 
     const productRef = useMemo(() => firestore && order?.productId ? doc(firestore, 'products', order.productId) : null, [firestore, order]);

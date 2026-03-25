@@ -623,16 +623,23 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
                             </div>
                         </GlassCard>
 
-                        {/* Ship action — only when paid & not yet shipped */}
-                        {isPaid && !isShipped && (
+                        {/* Ship action — show when not yet shipped, OR shipped in DB but missing on-chain tx hash (contract not updated) */}
+                        {isPaid && (!isShipped || (isShipped && !(order as any).shippedTxHash)) && (
                             <GlassCard accentColor="emerald" delay={0.15}>
                                 <div className="p-5">
                                     <div className="flex items-center gap-2 mb-4">
                                         <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/20">
                                             <Truck className="w-3.5 h-3.5 text-emerald-400" />
                                         </div>
-                                        <h2 className="text-sm font-semibold text-foreground">确认发货</h2>
+                                        <h2 className="text-sm font-semibold text-foreground">
+                                            {isShipped ? '同步链上发货状态' : '确认发货'}
+                                        </h2>
                                     </div>
+                                    {isShipped && !(order as any).shippedTxHash && (
+                                        <p className="text-xs text-orange-400/80 mb-3 bg-orange-500/10 border border-orange-500/20 rounded-lg p-2">
+                                            检测到链上发货状态未同步。请点击下方按钮在链上确认发货，否则买家将无法确认收货。
+                                        </p>
+                                    )}
                                     <div className="space-y-3">
                                         <div className="space-y-1.5">
                                             <Label className="text-xs text-white/50">快递公司（选填）</Label>

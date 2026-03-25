@@ -124,7 +124,14 @@ service cloud.firestore {
       allow update: if isSignedIn() && (
         (resource.data.sellerId == request.auth.uid || isAdminGroup()) ||
         (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy', 'favorites', 'favoritedBy', 'views'])) ||
-        (request.resource.data.status == 'under_review' && resource.data.status == 'active')
+        (request.resource.data.status == 'under_review' && resource.data.status == 'active') ||
+        // ✅ 允许买家在结账时更新商品状态（atomic reservation）：active↔reserved↔sold
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) &&
+          request.auth.uid != resource.data.sellerId &&
+          resource.data.status in ['active', 'reserved'] &&
+          request.resource.data.status in ['reserved', 'active', 'sold']
+        )
       );
       match /comments/{commentId} {
           allow read: if true;
