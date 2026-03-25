@@ -133,7 +133,7 @@ export function useEscrowContract(): UseEscrowContractResult {
       if (err.code === 4001 || err.code === 'ACTION_REJECTED' || msg.includes('user rejected') || msg.includes('user denied')) {
         errorMessage = '您已取消交易。';
       } else if (msg.includes('insufficient funds') || msg.includes('insufficient balance') || msg.includes('exceeds balance')) {
-        errorMessage = '钱包 ETH 余额不足，请充值后重试。';
+        errorMessage = 'ETH 余额不足，请检查余额。';
       } else if ((msg.includes('missing revert data') || msg.includes('call_exception')) && err.action === 'estimateGas') {
         // estimateGas 失败最常见原因是余额不足或合约拒绝
         errorMessage = '交易模拟失败，可能原因：ETH 余额不足、该订单已存在或网络异常。请检查余额后重试。';

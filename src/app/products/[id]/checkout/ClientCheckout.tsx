@@ -364,9 +364,9 @@ export default function ClientCheckout() {
         if (error.code === 4001 || error.code === 'ACTION_REJECTED' || msg.includes('user rejected') || msg.includes('user denied')) {
           friendlyMessage = '您已取消交易。如需支付请重新点击确认按钮。';
         } else if (msg.includes('insufficient funds') || msg.includes('insufficient balance') || msg.includes('exceeds balance')) {
-          friendlyMessage = 'ETH 余额不足，请前往测试网水龙头领取更多 ETH 后重试。';
+          friendlyMessage = 'ETH 余额不足，请检查余额。';
         } else if ((msg.includes('missing revert data') || msg.includes('call_exception')) && error.action === 'estimateGas') {
-          friendlyMessage = 'ETH 余额不足或合约拒绝交易。请检查钱包余额后重试。';
+          friendlyMessage = 'ETH 余额不足，请检查余额。';
         } else if (msg.includes('already reserved') || msg.includes('已被他人购买')) {
           friendlyMessage = '该商品已被他人抢先购买，请返回商品列表重新选择。';
         } else if (msg.includes('network') || msg.includes('timeout') || msg.includes('could not fetch')) {
