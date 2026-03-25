@@ -199,12 +199,12 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
         if (mounted && !authLoading && !user) router.replace('/');
     }, [user, authLoading, router, mounted]);
 
-    // 买家确认收货后自动跳转评价页
+    // 买家确认收货后，未评价则跳转评价页
     useEffect(() => {
-        if (order && (order.status === 'completed' || order.status === 'delivered')) {
+        if (order && (order.status === 'completed' || order.status === 'delivered') && !(order as any).hasSellerReview) {
             router.push(`/account/sales/${id}/review`);
         }
-    }, [order?.status, id, router]);
+    }, [order?.status, (order as any)?.hasSellerReview, id, router]);
 
     const isLoading = !mounted || orderLoading || productLoading || authLoading;
 
@@ -532,6 +532,67 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
 
                     {/* Right column */}
                     <div className="space-y-5">
+
+                        {/* ✅ 结算完成摘要 — 仅在已完成时显示 */}
+                        {isCompleted && (
+                            <GlassCard accentColor="green" delay={0}>
+                                <div className="p-5">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="p-1.5 rounded-lg bg-green-500/15 border border-green-500/20">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-green-400" />
+                                        </div>
+                                        <h2 className="text-sm font-semibold text-foreground">结算凭证</h2>
+                                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/20">已完成</span>
+                                    </div>
+                                    <div className="space-y-2.5">
+                                        {[
+                                            { label: '付款哈希', value: order.txHash },
+                                            { label: '发货哈希', value: (order as any).shippedTxHash },
+                                            { label: '收货哈希', value: (order as any).confirmDeliveryTxHash },
+                                        ].map(({ label, value }) => value ? (
+                                            <div key={label}>
+                                                <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-0.5">{label}</p>
+                                                <a
+                                                    href={`https://sepolia.basescan.org/tx/${value}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs font-mono text-blue-400 hover:text-blue-300 truncate block"
+                                                >
+                                                    {value.slice(0, 10)}...{value.slice(-6)}
+                                                </a>
+                                            </div>
+                                        ) : null)}
+                                        {(order as any).completedAt && (
+                                            <div className="pt-2 border-t border-white/5">
+                                                <p className="text-[10px] text-muted-foreground/40 uppercase tracking-wider mb-0.5">结算时间</p>
+                                                <p className="text-xs font-semibold text-green-400">
+                                                    {(order as any).completedAt?.toDate ? format((order as any).completedAt.toDate(), 'yyyy/MM/dd HH:mm') : '—'}
+                                                </p>
+                                            </div>
+                                        )}
+                                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                            <p className="text-xs text-muted-foreground/50">买家评价</p>
+                                            {(order as any).review ? (
+                                                <div className="flex items-center gap-1">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <span key={i} className={`text-xs ${i < ((order as any).review?.rating || 0) ? 'text-yellow-400' : 'text-white/20'}`}>★</span>
+                                                    ))}
+                                                </div>
+                                            ) : <span className="text-xs text-white/30">未评价</span>}
+                                        </div>
+                                        {!(order as any).hasSellerReview && (
+                                            <button
+                                                onClick={() => router.push(`/account/sales/${id}/review`)}
+                                                className="w-full mt-1 h-8 rounded-xl bg-purple-600/20 border border-purple-500/30 text-xs font-bold text-purple-300 hover:bg-purple-600/30 transition-all"
+                                            >
+                                                去评价买家 →
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </GlassCard>
+                        )}
+
                         {/* Order meta */}
                         <GlassCard accentColor="emerald" delay={0.1}>
                             <div className="p-5 space-y-1">

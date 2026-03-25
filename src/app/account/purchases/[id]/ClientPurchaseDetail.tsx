@@ -597,7 +597,63 @@ export default function ClientPurchaseDetail({ id }: ClientPurchaseDetailProps) 
 
                     {/* 右侧导航与边栏区 */}
                     <div className="space-y-12">
-                        
+
+                        {/* ✅ 结算完成凭证 */}
+                        {isCompleted && (
+                            <Card className="bg-[#080808]/80 backdrop-blur-3xl border-green-500/20 rounded-[48px] overflow-hidden shadow-2xl">
+                                <div className="p-8 border-b border-green-500/10 flex items-center justify-between bg-green-500/[0.03]">
+                                    <h3 className="text-xs font-black italic text-green-400 uppercase tracking-[0.3em] flex items-center gap-3">
+                                        <CheckCircle2 className="w-5 h-5" /> Settlement Complete
+                                    </h3>
+                                    <div className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                                </div>
+                                <div className="p-8 space-y-5">
+                                    {[
+                                        { label: 'Payment TX', value: order.txHash },
+                                        { label: 'Confirm TX', value: (order as any).confirmDeliveryTxHash },
+                                    ].map(({ label, value }) => value ? (
+                                        <div key={label}>
+                                            <p className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-black mb-1">{label}</p>
+                                            <a
+                                                href={`https://sepolia.basescan.org/tx/${value}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-xs font-mono text-blue-400 hover:text-blue-300 flex items-center gap-1.5"
+                                            >
+                                                {value.slice(0, 10)}...{value.slice(-6)}
+                                                <ExternalLink className="w-3 h-3" />
+                                            </a>
+                                        </div>
+                                    ) : null)}
+                                    {(order as any).completedAt && (
+                                        <div className="pt-4 border-t border-white/5">
+                                            <p className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-black mb-1">Settled At</p>
+                                            <p className="text-sm font-black text-green-400">
+                                                {(order as any).completedAt?.toDate ? format((order as any).completedAt.toDate(), 'yyyy/MM/dd HH:mm') : '—'}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                                        <p className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-black">Your Review</p>
+                                        {(order as any).review ? (
+                                            <div className="flex items-center gap-0.5">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <span key={i} className={`text-sm ${i < ((order as any).review?.rating || 0) ? 'text-yellow-400' : 'text-white/15'}`}>★</span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => router.push(`/account/purchases/${orderId}/review`)}
+                                                className="text-xs font-bold text-purple-400 hover:text-purple-300 border border-purple-500/30 px-3 py-1 rounded-lg hover:border-purple-400/50 transition-all"
+                                            >
+                                                去评价 →
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+
                         {/* 地理位置节点 */}
                         {order.shippingAddress && (
                             <Card className="bg-[#080808]/80 backdrop-blur-3xl border-white/5 rounded-[48px] overflow-hidden shadow-2xl group transition-all hover:border-cyan-500/30 border-t-white/5">
