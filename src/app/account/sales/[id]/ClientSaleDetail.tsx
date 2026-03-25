@@ -202,9 +202,9 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
     // 买家确认收货后自动跳转评价页
     useEffect(() => {
         if (order && (order.status === 'completed' || order.status === 'delivered')) {
-            router.push(`/account/sales/${orderId}/review`);
+            router.push(`/account/sales/${id}/review`);
         }
-    }, [order?.status, orderId, router]);
+    }, [order?.status, id, router]);
 
     const isLoading = !mounted || orderLoading || productLoading || authLoading;
 
