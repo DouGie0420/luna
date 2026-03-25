@@ -25,6 +25,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { useEthPrice } from '@/hooks/useEthPrice';
+import { useEscrowContract } from '@/hooks/useEscrowContract';
+import { useUSDTBalanceAndAllowance } from '@/hooks/useUSDTBalanceAndAllowance';
+import { connectToChain } from '@/lib/web3-provider';
+
+const REQUIRED_CHAIN_ID = 84532;
 
 const ChatWindow = dynamic(
   () => import('@/components/chat/ChatWindow').then((mod) => mod.ChatWindow),
@@ -85,6 +90,9 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
     const [copiedId, setCopiedId] = useState(false);
     const [isCancelProcessing, setIsCancelProcessing] = useState(false);
 
+    const { address, isConnected, chainId } = useUSDTBalanceAndAllowance();
+    const { markAsShipped, isInteracting: isEscrowInteracting } = useEscrowContract();
+
     const handleCopyId = (text: string) => {
         navigator.clipboard.writeText(text).then(() => {
             setCopiedId(true);
@@ -123,18 +131,43 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
 
     const handleShip = async () => {
         if (!firestore || !order?.id) return;
+
+        // 检查钱包连接
+        if (!isConnected || !address) {
+            toast({ variant: 'destructive', title: '钱包未连接', description: '请先连接 MetaMask 钱包以发货。' });
+            return;
+        }
+
+        // 检查网络
+        const currentChainId = typeof chainId === 'string' && chainId.startsWith('0x') ? parseInt(chainId, 16) : Number(chainId);
+        if (currentChainId !== REQUIRED_CHAIN_ID) {
+            toast({ variant: 'destructive', title: '网络错误', description: '请切换到 Base 测试网。' });
+            await connectToChain(REQUIRED_CHAIN_ID, toast);
+            return;
+        }
+
         setIsShipping(true);
         try {
+            // 第一步：调用链上合约 markAsShipped
+            const escrowId = order.escrowOrderId || order.id;
+            toast({ title: '正在上链', description: '请在 MetaMask 中确认发货交易...' });
+            const result = await markAsShipped(escrowId);
+            if (!result.success) {
+                throw new Error(result.error || '链上发货交易失败');
+            }
+
+            // 第二步：更新 Firestore
             await updateDoc(doc(firestore, 'orders', order.id), {
                 status: 'shipped',
                 shippingStatus: 'shipped',
                 trackingNumber: trackingNo || null,
                 carrier: carrier || null,
                 shippedAt: serverTimestamp(),
+                shippedTxHash: result.hash || '',
             });
-            toast({ title: '发货成功', description: trackingNo ? `快递单号：${trackingNo}` : '订单已标记为已发货' });
-        } catch (e) {
-            toast({ variant: 'destructive', title: '发货失败', description: '请稍后再试' });
+            toast({ title: '发货成功', description: trackingNo ? `快递单号：${trackingNo}` : '链上发货已确认' });
+        } catch (e: any) {
+            toast({ variant: 'destructive', title: '发货失败', description: e.message || '请稍后再试' });
         } finally {
             setIsShipping(false);
         }
@@ -540,10 +573,10 @@ export default function ClientSaleDetail({ id }: ClientSaleDetailProps) {
                                         </div>
                                         <Button
                                             onClick={handleShip}
-                                            disabled={isShipping}
+                                            disabled={isShipping || isEscrowInteracting}
                                             className="w-full h-10 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 border-0 text-white font-bold rounded-xl shadow-[0_0_16px_rgba(16,185,129,0.3)]"
                                         >
-                                            {isShipping ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                                            {(isShipping || isEscrowInteracting) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
                                             确认发货
                                         </Button>
                                     </div>

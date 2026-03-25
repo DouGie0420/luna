@@ -41,6 +41,7 @@ interface UseEscrowContractResult {
   confirmReceipt: (orderId: string, amount?: string) => Promise<EscrowTransactionResult>;
   raiseDispute: (orderId: string) => Promise<EscrowTransactionResult>;
   resolveDispute: (orderId: string, refundToBuyer: boolean) => Promise<EscrowTransactionResult>;
+  markAsShipped: (orderId: string) => Promise<EscrowTransactionResult>;
 
   // ✅ 修复：调整参数顺序以匹配前端 ClientCheckout.tsx 的调用习惯 (orderId, amount, sellerAddress)
   lockFunds: (orderId: string, amount: string | number, sellerAddress?: string) => Promise<EscrowTransactionResult>;
@@ -195,6 +196,14 @@ export function useEscrowContract(): UseEscrowContractResult {
     return result;
   }, [getEscrowContract, executeTransaction]);
 
+  // 🚀 卖家标记发货 (链上)
+  const markAsShipped = useCallback(async (orderId: string): Promise<EscrowTransactionResult> => {
+    const escrowContract = await getEscrowContract();
+    if (!escrowContract) return { success: false, error: 'Failed to get contract', status: TransactionStatus.FAILED };
+    const numericOrderId = toNumericId(orderId);
+    return executeTransaction(escrowContract.markAsShipped(numericOrderId));
+  }, [getEscrowContract, executeTransaction]);
+
   // 🚀 发起争议
   const raiseDispute = useCallback(async (orderId: string): Promise<EscrowTransactionResult> => {
     const escrowContract = await getEscrowContract();
@@ -244,6 +253,7 @@ export function useEscrowContract(): UseEscrowContractResult {
     confirmReceipt,
     raiseDispute,
     resolveDispute,
+    markAsShipped,
     lockFunds,
     confirmDelivery,
     openDispute,
