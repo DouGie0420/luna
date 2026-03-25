@@ -183,24 +183,20 @@ export function VerifiedMerchants() {
                                     ))}
                                 </div>
 
-                                {/* 主营产品徽章 */}
-                                {merchant.mainProduct && (
-                                    <div className="mt-2 flex w-full justify-center">
+                                {/* 主营产品 + 城市位置徽章（同一行） */}
+                                <div className="mt-1.5 flex w-full justify-center gap-1.5 flex-wrap">
+                                    {merchant.mainProduct && (
                                         <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
                                             <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-violet-900/30 to-purple-900/50" />
                                             <Tag className="relative z-10 w-3 h-3 text-purple-400 shrink-0" />
-                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-purple-300 truncate max-w-[120px]">{merchant.mainProduct}</span>
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-purple-300 truncate max-w-[80px]">{merchant.mainProduct}</span>
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* 城市位置徽章 */}
-                                <div className="mt-2 flex w-full justify-center">
+                                    )}
                                     {merchant.location ? (
                                         <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/15 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
                                             <div className="absolute inset-0 bg-white/5" />
                                             <MapPin className="relative z-10 w-3 h-3 text-white/50 shrink-0" />
-                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/60 truncate max-w-[120px]">{merchant.location}</span>
+                                            <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/60 truncate max-w-[80px]">{merchant.location}</span>
                                         </div>
                                     ) : (
                                         <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/10">
