@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/hooks/use-translation';
-import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, limit, getDocs, getDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, arrayRemove, arrayUnion, increment, collection, query, where, limit, getDocs, getDoc, addDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { MapComponent } from '@/components/map';
 import { APIProvider } from '@vis.gl/react-google-maps';
 
@@ -195,6 +195,16 @@ export default function ClientProductDetail() {
     const handlePurchaseConfirm = async (finalMethod: PaymentMethod) => {
         if (!user || !firestore || !product) return;
         try {
+            // 🔐 原子性预留：防止多个买家同时抢购同一商品
+            const productDocRef = doc(firestore, 'products', product.id);
+            await runTransaction(firestore, async (transaction) => {
+                const productSnap = await transaction.get(productDocRef);
+                if (!productSnap.exists()) throw new Error("商品不存在。");
+                const currentStatus = productSnap.data().status;
+                if (currentStatus !== 'active') throw new Error("该商品已被他人购买或已下架，无法完成下单。");
+                transaction.update(productDocRef, { status: 'reserved' });
+            });
+
             // 尝试获取买家的默认收货地址，以便卖家发货时可见
             let shippingAddress: any = null;
             try {
@@ -231,9 +241,13 @@ export default function ClientProductDetail() {
             } else {
                 router.push(`/account/purchases/${orderRef.id}`);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating order:', error);
-            toast({ title: t('product.orderError'), description: t('product.orderErrorDesc'), variant: 'destructive' });
+            // 如果已预留商品但订单创建失败，恢复商品状态
+            if (firestore && product && error.message !== '该商品已被他人购买或已下架，无法完成下单。') {
+                try { await updateDoc(doc(firestore, 'products', product.id), { status: 'active' }); } catch (_) {}
+            }
+            toast({ title: t('product.orderError'), description: error.message || t('product.orderErrorDesc'), variant: 'destructive' });
             throw error;
         }
     };
@@ -409,17 +423,17 @@ export default function ClientProductDetail() {
                                 </div>
                                 
                                 <div className="relative z-10 pt-6">
-                                    <Button 
+                                    <Button
                                         onClick={handleOpenPurchaseDialog}
-                                        disabled={isOwner || !selectedPaymentMethod}
+                                        disabled={isOwner || !selectedPaymentMethod || product.status === 'sold' || product.status === 'reserved'}
                                         className={safeClass(
                                             "w-full h-20 font-black uppercase italic tracking-[0.3em] transition-all rounded-[1.5rem] text-xl",
-                                            (!selectedPaymentMethod || isOwner) 
-                                                ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/5" 
+                                            (isOwner || !selectedPaymentMethod || product.status === 'sold' || product.status === 'reserved')
+                                                ? "bg-white/5 text-white/30 cursor-not-allowed border border-white/5"
                                                 : "bg-gradient-to-r from-primary to-purple-600 text-black shadow-[0_0_40px_rgba(168,85,247,0.4)] hover:scale-[1.03] active:scale-[0.98]"
                                         )}
                                     >
-                                        {isOwner ? t('product.yourOwnProduct') : (selectedPaymentMethod ? t('product.executeNow') : t('product.selectGateway'))}
+                                        {isOwner ? t('product.yourOwnProduct') : (product.status === 'sold' || product.status === 'reserved') ? '已售出' : (selectedPaymentMethod ? t('product.executeNow') : t('product.selectGateway'))}
                                     </Button>
                                     <div className="mt-5 p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center gap-2">
                                         <ShieldCheck className="w-4 h-4 text-primary/70" />

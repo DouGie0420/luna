@@ -5,7 +5,7 @@ import { useParams, notFound, useRouter, useSearchParams } from 'next/navigation
 import { useUser, useFirestore, useCollection, useDoc } from '@/firebase';
 import type { Product, UserAddress, UserProfile, PaymentMethod } from '@/lib/types';
 import { useTranslation } from '@/hooks/use-translation';
-import { collection, doc, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, addDoc, serverTimestamp, updateDoc, runTransaction } from 'firebase/firestore';
 
 // ✅ Web3 核心引入 - 现在使用我们自己的 Hooks 和 Provider
 import { ethers, formatUnits, parseUnits, BigNumberish } from 'ethers';
@@ -273,6 +273,7 @@ export default function ClientCheckout() {
     toast({ title: "🚀 启动 Web3 交易协议", description: "正在与智能合约建立安全连接，准备锁定 ETH..." });
 
     let purchaseSucceeded = false;
+    let productReserved = false;
 
     try {
       // STEP 1: 先检查收货地址
@@ -282,8 +283,18 @@ export default function ClientCheckout() {
       }
       const { id: addrId, isDefault, ...shippingAddress } = address;
 
-      // STEP 2: 先在 Firestore 创建订单，获得唯一订单 ID 作为 escrowOrderId
+      // STEP 2: 原子性预留商品 + 创建订单
       setProgress(30);
+      const productDocRef = doc(firestore, 'products', product.id);
+      await runTransaction(firestore, async (transaction) => {
+          const productSnap = await transaction.get(productDocRef);
+          if (!productSnap.exists()) throw new Error("商品不存在。");
+          const currentStatus = productSnap.data().status;
+          if (currentStatus !== 'active') throw new Error("该商品已被他人购买或已下架，请返回商品列表重新选择。");
+          transaction.update(productDocRef, { status: 'reserved' });
+      });
+      productReserved = true;
+
       const pendingOrderData = {
         productId: product.id,
         productName: product.name,
@@ -348,6 +359,10 @@ export default function ClientCheckout() {
       router.push(`/account/purchases`);
     } catch (error: any) {
         console.error('Checkout error:', error);
+        // 如果已预留商品但支付失败，恢复商品状态（排除"已被购买"的情况）
+        if (productReserved && product?.id && firestore && !error.message?.includes('已被他人购买')) {
+            try { await updateDoc(doc(firestore, 'products', product.id), { status: 'active' }); } catch (_) {}
+        }
 
         let friendlyMessage = '支付过程中发生错误，请稍后重试。';
         const msg = (error.message || '').toLowerCase();
