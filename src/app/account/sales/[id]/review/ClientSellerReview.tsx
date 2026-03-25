@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, updateDoc, increment, serverTimestamp } from "firebase/firestore";
+import { doc, updateDoc, increment, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { Star, CheckCircle2, Loader2, AlertOctagon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -49,6 +49,19 @@ export default function ClientSellerReview({ id }: { id: string }) {
                     reviewsCount: increment(1),
                 });
             }
+
+            // 写入 reviews 集合供 Reputation 页面展示
+            await addDoc(collection(firestore, 'reviews'), {
+                targetUserId: order.buyerId,
+                reviewerId: user.uid,
+                type: 'seller',
+                rating,
+                comment: reviewText,
+                orderId: id,
+                itemName: (order as any).productName || '',
+                itemImage: (order as any).productImage || '',
+                createdAt: serverTimestamp(),
+            });
 
             toast({ title: '评价已提交', description: '感谢您的反馈！' });
             router.push('/account/sales');
