@@ -15,9 +15,17 @@ import type { Order, Product, UserProfile } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 // Web3 imports
+import { ethers, Contract } from 'ethers';
 import { useUSDTBalanceAndAllowance } from '@/hooks/useUSDTBalanceAndAllowance';
 import { useEscrowContract } from '@/hooks/useEscrowContract';
-import { connectToChain } from '@/lib/web3-provider';
+import { connectToChain, getEthersProvider } from '@/lib/web3-provider';
+import { EscrowContractABI } from '@/lib/abi/escrow';
+
+const ESCROW_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ESCROW_CONTRACT_ADDRESS || process.env.NEXT_PUBLIC_ESCROW_ADDRESS || "0x5CcD28825df05AEAf6F55b62c9a35695B070740F";
+const toNumericId = (id: string): string => {
+    if (/^\d+$/.test(id)) return id;
+    return ethers.toBigInt(ethers.id(id)).toString();
+};
 import { PageHeaderWithBackAndClose } from '@/components/page-header-with-back-and-close';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -127,10 +135,31 @@ export default function ClientCheckout({ id }: ClientCheckoutProps) {
                 throw new Error("智能合约安全拦截：买家和卖家不能使用同一个钱包地址！请更换钱包账户或测试账号。");
             }
 
-            toast({ title: "唤起智能合约", description: "请在 MetaMask 中确认支付交易..." });
+            // 🔍 检查链上是否已有该订单（防止重复支付错误）
+            let alreadyPaidOnChain = false;
+            try {
+                const provider = await getEthersProvider();
+                if (provider) {
+                    const readContract = new Contract(ESCROW_CONTRACT_ADDRESS, EscrowContractABI, provider);
+                    const numericId = toNumericId(order.id);
+                    const contractOrder = await readContract.orders(numericId);
+                    if (contractOrder.buyer && contractOrder.buyer !== ethers.ZeroAddress &&
+                        contractOrder.buyer.toLowerCase() === address.toLowerCase()) {
+                        alreadyPaidOnChain = true;
+                        toast({ title: "链上已找到支付记录", description: "正在同步订单状态..." });
+                    }
+                }
+            } catch (_) { /* 读取失败则继续正常支付流程 */ }
 
-            // 🚀 调用 Hook 里的 lockFunds，传入真实的卖家地址
-            const result = await lockFunds(order.id, order.price, finalSellerAddress);
+            let result: any;
+            if (alreadyPaidOnChain) {
+                // 订单已在链上，直接视为成功，只需同步 Firestore
+                result = { success: true, hash: order.txHash || 'recovered' };
+            } else {
+                toast({ title: "唤起智能合约", description: "请在 MetaMask 中确认支付交易..." });
+                // 🚀 调用 Hook 里的 lockFunds，传入真实的卖家地址
+                result = await lockFunds(order.id, order.price, finalSellerAddress);
+            }
             
             if (!result || !result.success || !result.hash) {
                 throw new Error(result?.error || interactionError || "交易被拒绝或失败。");
