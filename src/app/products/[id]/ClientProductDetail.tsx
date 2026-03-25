@@ -465,7 +465,7 @@ export default function ClientProductDetail() {
             />
 
             <style jsx global>{`
-                .titanium-title { font-family: 'Playfair Display', serif; letter-spacing: -0.02em; }
+                .titanium-title { font-family: inherit; letter-spacing: -0.01em; }
                 .cyber-scrollbar::-webkit-scrollbar { width: 4px; }
                 .cyber-scrollbar::-webkit-scrollbar-thumb { background: rgba(168, 85, 247, 0.3); border-radius: 4px; }
                 

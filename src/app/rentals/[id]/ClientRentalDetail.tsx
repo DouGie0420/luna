@@ -85,7 +85,7 @@ export default function ClientRentalDetail() {
                             onFavoriteToggle={() => {}}
                          />
                          <div className="mt-8">
-                            <h1 className="font-headline text-3xl font-bold">{property.title}</h1>
+                            <h1 className="font-sans text-3xl font-bold">{property.title}</h1>
                             <div className="flex items-center gap-4 text-muted-foreground mt-2">
                                 <span className="flex items-center gap-2"><MapPin className="h-4 w-4"/> {property.location.city || 'Unknown City'}</span>
                                 <span className="flex items-center gap-2"><HomeIcon className="h-4 w-4"/> {property.propertyType}</span>

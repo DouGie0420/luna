@@ -20,10 +20,17 @@ interface ProductCardProps {
   className?: string;
 }
 
-const USDTLogo = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 2000 2000" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#26A17B" d="M1000 0c552.285 0 1000 447.715 1000 1000s-447.715 1000-1000 1000S0 1552.285 0 1000 447.715 0 1000 0z"/>
-    <path fill="#FFF" d="M1087.5 618.75v191.667c191.666 12.5 347.917 47.916 347.917 89.583 0 41.667-156.25 77.083-347.917 89.583v454.167H912.5V989.583c-191.667-12.5-347.917-47.916-347.917-89.583 0-41.667 156.25-77.083 347.917-89.583V618.75h491.667V462.5H604.167v156.25h483.333z"/>
+const ETHLogo = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+    <g fill="none" fillRule="evenodd">
+      <path fill="#627EEA" d="M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16z"/>
+      <path fill="#FFF" fillOpacity=".602" d="M16.498 4v8.87l7.497 3.35z"/>
+      <path fill="#FFF" d="M16.498 4L9 16.22l7.498-3.35z"/>
+      <path fill="#FFF" fillOpacity=".602" d="M16.498 21.968v6.027L24 17.616z"/>
+      <path fill="#FFF" d="M16.498 27.995v-6.028L9 17.616z"/>
+      <path fill="#FFF" fillOpacity=".2" d="M16.498 20.573l7.497-4.353-7.497-3.348z"/>
+      <path fill="#FFF" fillOpacity=".602" d="M9 16.22l7.498 4.353v-7.701z"/>
+    </g>
   </svg>
 );
 
@@ -130,7 +137,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {/* 📝 内容区 */}
         <div className="flex flex-col flex-grow px-6 pt-5 pb-3 z-10">
             {/* 🚀 BBS 同款高级标题字体 */}
-            <h3 className="font-headline text-lg font-black text-white/90 leading-tight line-clamp-2 mb-5 group-hover:text-primary transition-colors tracking-tight uppercase italic">
+            <h3 className="font-sans text-base font-bold text-white/90 leading-tight line-clamp-2 mb-5 group-hover:text-primary transition-colors tracking-normal">
               {(product as any).title || product.name}
             </h3>
             
@@ -161,8 +168,8 @@ export function ProductCard({ product, className }: ProductCardProps) {
         <div className="px-6 py-6 flex items-center justify-between border-t border-white/5 bg-white/[0.01]">
             <div className="flex flex-col gap-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <USDTLogo className="w-4 h-4" />
-                    <span className="text-2xl font-headline font-black tracking-tighter text-white">
+                    <ETHLogo className="w-4 h-4" />
+                    <span className="text-2xl font-sans font-bold tracking-normal text-white">
                         {Number(product.price || 0).toLocaleString()}
                     </span>
                     {isRentalMode && <span className="text-[10px] text-white/30 font-mono uppercase ml-1">/ NT</span>}

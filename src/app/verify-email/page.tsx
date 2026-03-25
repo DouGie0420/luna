@@ -15,9 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useUser } from '@/firebase'
-// 🚀 确保这里引入的是 auth，而不是 app
-import { applyActionCode, sendEmailVerification } from 'firebase/auth'
-import { auth } from '@/firebase' 
+import { applyActionCode, sendEmailVerification, getAuth } from 'firebase/auth'
 import { useTranslation } from '@/hooks/use-translation'
 import { MailCheck, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 
@@ -51,8 +49,7 @@ function VerifyEmailContent() {
       hasAttempted.current = true // 立即上锁
       setVerifyStatus('loading')
       
-      // 直接使用项目里的 auth 实例
-      applyActionCode(auth, oobCode)
+      applyActionCode(getAuth(), oobCode)
         .then(() => {
           setVerifyStatus('success')
           setVerifyMessage('Your email has been successfully verified!')

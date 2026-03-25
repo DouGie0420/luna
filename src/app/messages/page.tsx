@@ -69,8 +69,15 @@ export default function MessagesPage() {
     const unsubscribe = chatService.subscribeToUserChats(
       user.uid,
       (chatPreviews) => {
-        // 显示所有聊天（包括订单聊天和直接消息）
-        setChats(chatPreviews);
+        // 按 otherUserId 去重，每个用户只保留最新的一条对话
+        const seen = new Map<string, typeof chatPreviews[0]>();
+        for (const chat of chatPreviews) {
+          const existing = seen.get(chat.otherUserId);
+          if (!existing || chat.lastMessageTime > existing.lastMessageTime) {
+            seen.set(chat.otherUserId, chat);
+          }
+        }
+        setChats(Array.from(seen.values()).sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime()));
         setIsLoading(false);
       },
       (error) => {

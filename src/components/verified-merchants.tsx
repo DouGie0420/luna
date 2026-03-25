@@ -170,40 +170,38 @@ export function VerifiedMerchants() {
                             </div>
 
                             {/* 文本靠左：商户名字和勋章保持在左侧 */}
-                            <div className="pt-10 px-6 relative z-20 flex flex-col items-start text-left w-full">
+                            <div className="pt-8 px-6 relative z-20 flex flex-col items-start text-left w-full">
                                 <h3 className="font-serif text-base md:text-lg font-bold tracking-wide text-white/90 drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)] group-hover:text-white transition-colors duration-500 truncate w-full">
                                     {merchant.displayName || merchant.name}
                                 </h3>
 
-                                <div className="flex flex-wrap gap-1 mt-1 min-h-[1.25rem] justify-start">
-                                    {merchant.medals?.map((medal: any, idx: number) => (
-                                        <div key={idx} className="h-5 w-5 rounded-md bg-white/5 border border-white/10 p-0.5 flex items-center justify-center backdrop-blur-md hover:bg-white/10 transition-all">
-                                            <Image src={typeof medal === 'string' ? medal : (medal.icon || '/medals/default.png')} alt="medal" width={14} height={14} className="object-contain animate-pulse-subtle" />
-                                        </div>
-                                    ))}
-                                </div>
+                                {merchant.medals && merchant.medals.length > 0 && (
+                                    <div className="flex flex-wrap gap-1 mt-1 justify-start">
+                                        {merchant.medals.map((medal: any, idx: number) => (
+                                            <div key={idx} className="h-5 w-5 rounded-md bg-white/5 border border-white/10 p-0.5 flex items-center justify-center backdrop-blur-md hover:bg-white/10 transition-all">
+                                                <Image src={typeof medal === 'string' ? medal : (medal.icon || '/medals/default.png')} alt="medal" width={14} height={14} className="object-contain animate-pulse-subtle" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
 
-                                {/* 主营产品徽章 */}
-                                {merchant.mainProduct && (
-                                    <div className="mt-1.5 flex w-full justify-center">
-                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
+                                {/* 主营产品 + 城市位置徽章 */}
+                                <div className="mt-1.5 flex flex-col items-center w-full gap-1">
+                                    {merchant.mainProduct && (
+                                        <div className="relative flex items-center gap-1.5 px-3 py-0.5 rounded-full overflow-hidden border border-purple-400/30 shadow-[0_0_10px_rgba(168,85,247,0.15)]">
                                             <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-violet-900/30 to-purple-900/50" />
                                             <Tag className="relative z-10 w-3 h-3 text-purple-400 shrink-0" />
                                             <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-purple-300 truncate max-w-[140px]">{merchant.mainProduct}</span>
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* 城市位置徽章 */}
-                                <div className="mt-1 flex w-full justify-center">
+                                    )}
                                     {merchant.location ? (
-                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/15 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
+                                        <div className="relative flex items-center gap-1.5 px-3 py-0.5 rounded-full overflow-hidden border border-white/15 shadow-[0_0_8px_rgba(255,255,255,0.05)]">
                                             <div className="absolute inset-0 bg-white/5" />
                                             <MapPin className="relative z-10 w-3 h-3 text-white/50 shrink-0" />
                                             <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/60 truncate max-w-[140px]">{merchant.location}</span>
                                         </div>
                                     ) : (
-                                        <div className="relative flex items-center gap-1.5 px-3 py-1 rounded-full overflow-hidden border border-white/10">
+                                        <div className="relative flex items-center gap-1.5 px-3 py-0.5 rounded-full overflow-hidden border border-white/10">
                                             <div className="absolute inset-0 bg-white/[0.03]" />
                                             <MapPin className="relative z-10 w-3 h-3 text-white/30 shrink-0" />
                                             <span className="relative z-10 text-[9px] font-black uppercase tracking-[0.18em] text-white/30">Location TBD</span>

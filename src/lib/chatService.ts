@@ -1,18 +1,19 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  addDoc,
   updateDoc,
-  setDoc, // 🚀 终极修复：引入 setDoc
+  setDoc,
   doc,
   serverTimestamp,
   increment,
   Firestore,
   writeBatch,
-  getDoc
+  getDoc,
+  getDocs
 } from 'firebase/firestore';
 import { ChatMessage, OrderChat, DirectChat, ChatPreview } from './types';
 import { sendPushNotification } from './fcm';
@@ -64,18 +65,22 @@ export class ChatService {
       const chatRef = doc(this.firestore, collectionName, chatId);
       const displayText = message.type === 'text' ? message.text : `[${message.type}]`;
       
-      // 🚀 终极修复：使用 setDoc + merge: true，如果不存在直接创建！
+      // Step 1: 更新聊天元数据（setDoc + merge 确保文档不存在时也能创建）
       await setDoc(chatRef, {
-        participants: [message.senderId || 'unknown', otherUserId], // 确保建房时加入参与者
+        participants: [message.senderId || 'unknown', otherUserId],
         orderId: notificationData?.orderId || chatId.replace('order_', ''),
         productName: notificationData?.productName || 'Target Artifact',
         lastMessage: displayText || '',
         lastMessageTime: serverTimestamp(),
         lastMessageTimestamp: serverTimestamp(),
         lastSenderId: message.senderId || 'unknown',
-        [`unreadCount.${otherUserId}`]: increment(1),
         updatedAt: serverTimestamp()
-      }, { merge: true }); // <--- 核心：如果文档不存在就创建，存在就合并修改
+      }, { merge: true });
+
+      // Step 2: 用 updateDoc 递增 unreadCount（setDoc 的 dot notation 不走嵌套路径，只有 updateDoc 才能正确更新嵌套字段）
+      await updateDoc(chatRef, {
+        [`unreadCount.${otherUserId}`]: increment(1),
+      });
 
       // 3. 发送推送通知
       await this.sendNotification(
@@ -220,23 +225,37 @@ export class ChatService {
 
     const unsubscribeDirect = onSnapshot(
       directQuery,
-      (snapshot) => {
-        directChats = [];
-        snapshot.forEach((doc) => {
-          const data = doc.data() as DirectChat;
+      async (snapshot) => {
+        const entries: Array<{ id: string; data: DirectChat; otherUserId: string; otherProfile: any }> = [];
+        snapshot.forEach((chatDoc) => {
+          const data = chatDoc.data() as DirectChat;
           const otherUserId = data.participants.find(id => id !== userId) || '';
           const otherProfile = data.participantProfiles?.[otherUserId];
+          entries.push({ id: chatDoc.id, data, otherUserId, otherProfile });
+        });
 
-          directChats.push({
-            id: doc.id,
-            type: 'direct',
+        // For entries missing profile data, fetch from users collection
+        const missingProfiles = await Promise.all(
+          entries.map(({ otherUserId, otherProfile }) =>
+            (!otherProfile?.displayName && otherUserId)
+              ? getDoc(doc(this.firestore, 'users', otherUserId)).catch(() => null)
+              : Promise.resolve(null)
+          )
+        );
+
+        directChats = entries.map(({ id, data, otherUserId, otherProfile }, i) => {
+          const fetched = missingProfiles[i]?.data() as any;
+          const resolvedProfile = otherProfile?.displayName ? otherProfile : fetched;
+          return {
+            id,
+            type: 'direct' as const,
             otherUserId,
-            otherUserName: otherProfile?.displayName || 'User',
-            otherUserAvatar: otherProfile?.photoURL,
+            otherUserName: resolvedProfile?.displayName || otherProfile?.displayName || 'User',
+            otherUserAvatar: resolvedProfile?.photoURL || otherProfile?.photoURL,
             lastMessage: data.lastMessage || 'No messages yet',
             lastMessageTime: data.lastMessageTimestamp?.toDate() || new Date(),
             unreadCount: data.unreadCount?.[userId] || 0
-          });
+          };
         });
         updateChats();
       },
@@ -264,11 +283,11 @@ export class ChatService {
     const chatRef = doc(this.firestore, collectionName, chatId);
     
     try {
-      // ✅ 这里同样修改为 setDoc，防止用户在房间建好前就触发已读导致崩溃
-      await setDoc(chatRef, {
+      // 用 updateDoc 确保 dot notation 正确走嵌套字段路径
+      await updateDoc(chatRef, {
         [`unreadCount.${userId}`]: 0,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      });
     } catch (error) {
       console.error('Error marking as read:', error);
       throw error;
@@ -316,6 +335,13 @@ export class ChatService {
       chatsRef,
       where('participants', 'array-contains', userId1)
     );
+
+    const snapshot = await getDocs(q);
+    const existing = snapshot.docs.find((d) => {
+      const participants: string[] = d.data().participants || [];
+      return participants.includes(userId2);
+    });
+    if (existing) return existing.id;
 
     const newChatRef = doc(collection(this.firestore, 'direct_chats'));
     await setDoc(newChatRef, {

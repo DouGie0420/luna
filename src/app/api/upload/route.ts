@@ -50,12 +50,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ url });
     } catch (error: any) {
         console.error('[R2 Upload]', error);
-        return NextResponse.json({
-            error: 'Upload failed',
-            detail: error?.message || String(error),
-            endpoint: process.env.R2_ENDPOINT ? 'set' : 'missing',
-            bucket: process.env.R2_BUCKET ? 'set' : 'missing',
-            keyId: process.env.R2_ACCESS_KEY_ID ? 'set' : 'missing',
-        }, { status: 500 });
+        return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }
 }

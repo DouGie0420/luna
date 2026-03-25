@@ -146,7 +146,7 @@ export default function AllProductsPage() {
         try {
             const documentSnapshots = await getDocs(q);
             const newProducts = documentSnapshots.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Product);
-            
+
             setLastVisible(documentSnapshots.docs[documentSnapshots.docs.length-1]);
             setProducts(prev => loadMore ? [...prev, ...newProducts] : newProducts);
             setHasMore(documentSnapshots.docs.length === PAGE_SIZE);
@@ -159,23 +159,58 @@ export default function AllProductsPage() {
             setLoadingMore(false);
         }
     };
-    
+
+    // 搜索时拉取全量数据（不分页），确保搜索覆盖整个数据库
+    const fetchAllForSearch = async () => {
+        if (!firestore) return;
+        setLoading(true);
+        try {
+            const q = query(
+                collection(firestore, 'products'),
+                where('status', '==', 'active'),
+                limit(1000)
+            );
+            const snapshot = await getDocs(q);
+            const allProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Product);
+            setProducts(allProducts);
+            setHasMore(false);
+        } catch (error) {
+            console.error("Search fetch error:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
     }, [firestore]);
+
+    // 有搜索词时拉取全量，清空搜索词时恢复分页
+    useEffect(() => {
+        if (!firestore) return;
+        if (debouncedSearchTerm) {
+            fetchAllForSearch();
+        } else {
+            setLastVisible(null);
+            setHasMore(true);
+            fetchProducts();
+        }
+    }, [debouncedSearchTerm, firestore]);
 
     const filteredAndSortedProducts = useMemo(() => {
         let processedProducts = products ? [...products] : [];
 
         if (debouncedSearchTerm) {
-            processedProducts = processedProducts.filter(product => {
-                const lowercasedTerm = debouncedSearchTerm.toLowerCase();
-                return (
-                    product.name?.toLowerCase().includes(lowercasedTerm) ||
-                    product.description?.toLowerCase().includes(lowercasedTerm) ||
-                    product.category?.toLowerCase().includes(lowercasedTerm)
-                );
-            });
+            const term = debouncedSearchTerm.toLowerCase();
+            processedProducts = processedProducts.filter(product =>
+                product.name?.toLowerCase().includes(term) ||
+                product.title?.toLowerCase().includes(term) ||
+                product.description?.toLowerCase().includes(term) ||
+                product.category?.toLowerCase().includes(term) ||
+                product.condition?.toLowerCase().includes(term) ||
+                product.location?.toLowerCase().includes(term) ||
+                product.shippingMethod?.toLowerCase().includes(term)
+            );
         }
 
         switch (activeFilter) {
@@ -257,7 +292,7 @@ export default function AllProductsPage() {
                             placeholder="SEARCH ARCHIVE // TITLES, CATEGORIES..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="h-14 w-full bg-transparent border-none outline-none text-white placeholder:text-white/40 font-mono text-sm tracking-widest uppercase pl-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="h-14 w-full bg-transparent border-none outline-none text-white placeholder:text-[#ff00ff]/70 placeholder:font-black font-mono text-sm tracking-widest uppercase pl-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus:placeholder:text-transparent transition-all"
                         />
                         <div className="hidden sm:flex px-6 py-3 mr-2 rounded-2xl bg-white/10 border border-white/10 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-inner">
                             ENTER
@@ -289,7 +324,7 @@ export default function AllProductsPage() {
                     <div className="mt-6 md:mt-0">
                         <Link href="/products/new">
                             <button className="px-10 py-3 rounded-full bg-white text-black font-sans text-sm font-black flex items-center gap-2 hover:scale-[1.05] transition-all shadow-[0_0_25px_rgba(255,255,255,0.4)]">
-                                <Plus className="h-5 w-5" /> 发布新帖
+                                <Plus className="h-5 w-5" /> 发布商品
                             </button>
                         </Link>
                     </div>

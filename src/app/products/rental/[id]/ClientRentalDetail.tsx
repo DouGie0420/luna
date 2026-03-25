@@ -454,7 +454,24 @@ export default function ClientRentalDetail() {
             });
 
             await updateDoc(doc(db, 'rentalProperties', id as string), { blockedDates: arrayUnion(...bookingDates) });
-            
+
+            // 付款成功后发送确认邮件给租客
+            fetch('/api/email/booking-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'booking_confirmed',
+                    tenantEmail: currentUser.email || '',
+                    tenantName: currentUser.displayName || '',
+                    propertyName: property.title || '',
+                    checkIn: format(checkIn, 'yyyy年MM月dd日'),
+                    checkOut: format(checkOut, 'yyyy年MM月dd日'),
+                    nights: billing.days,
+                    guests: 1,
+                    totalPrice: billing.totalUSD?.toFixed(2) || '0',
+                }),
+            }).catch(() => {});
+
             setIsConfirmOpen(false);
             toast({ title: "Booking Secured!", description: "资金已进入安全池。日期已为您锁定。" });
             setTimeout(() => { router.push(`/account/bookings/${newBookingId}`); }, 1500);

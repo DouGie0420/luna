@@ -37,6 +37,11 @@ env:
     availability:
       - BUILD
       - RUNTIME
+  - variable: NEXT_PUBLIC_WC_PROJECT_ID
+    value: 82acb0de1a1f61579bdadee65e01cf50
+    availability:
+      - BUILD
+      - RUNTIME
   # RESEND_API_KEY 通过 Firebase Console Secret Manager 设置（见下方说明）
   # - variable: RESEND_API_KEY
   #   secret: RESEND_API_KEY
